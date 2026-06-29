@@ -76,10 +76,10 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:44px 0 30px;margin
 <div class="wrap doc">
   <div class="eyebrow">Legal</div>
   <h1>Privacy Policy</h1>
-  <div class="meta">Launch preview · Last updated 25 June 2026</div>
+  <div class="meta">Launch preview · Last updated 29 June 2026</div>
 
   <div class="note">
-    This Policy explains how CiaraLink handles personal information, including the sensitive health information involved in care. It’s written to reflect the Australian Privacy Principles. <b>It’s the launch-preview version and may be updated as the platform develops.</b>
+    This Policy explains how CiaraLink handles personal information, including the sensitive health information involved in care. It’s written to reflect the Australian Privacy Principles. <b>It’s the launch-preview version and has not been reviewed by a lawyer — professional review is recommended before production use.</b>
   </div>
 
   <div class="toc">
@@ -102,7 +102,8 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:44px 0 30px;margin
 
   <div class="body">
     <section id="scope"><h2><span class="num">01</span> Who this applies to</h2>
-      <p>This Policy covers personal information CiaraLink handles when you use the platform — whether you’re a provider, support coordinator, allied-health professional, support worker, participant, guardian or nominee. Where an organisation uses CiaraLink to manage its own records, that organisation is responsible for how it handles the information it puts in; we act as the software provider that stores and processes it on their behalf.</p>
+      <p>This Policy covers personal information CiaraLink handles when you use the platform — whether you’re a provider, support coordinator, allied-health professional, support worker, participant, guardian or nominee.</p>
+      <p><b>Platform vs provider.</b> CiaraLink operates the software platform (hosting, security, billing, product support). We are <b>not</b> an NDIS registered provider and do not deliver care. Where an organisation uses CiaraLink to manage its own records, that organisation is typically responsible for the care information it enters and how it meets its own regulatory and privacy obligations; we act as the software provider that stores and processes that information on their behalf, as described in our <a href="./terms.html">Terms of Service</a>.</p>
     </section>
 
     <section id="collect"><h2><span class="num">02</span> What we collect</h2>
@@ -134,11 +135,20 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:44px 0 30px;margin
     </section>
 
     <section id="security"><h2><span class="num">06</span> Storage &amp; security</h2>
-      <p>Data is stored in our managed database with access controls, encryption in transit, and row-level security so records are isolated to the people entitled to them. No system is perfectly secure, but we take reasonable steps to protect information and to limit who can access it. Tell us promptly if you believe your account has been compromised.</p>
+      <p>Care data is stored in our managed database (Supabase — Postgres, Auth and file storage) with access controls, encryption in transit, and row-level security so records are isolated to the people entitled to them. No system is perfectly secure, but we take reasonable steps to protect information and to limit who can access it. Tell us promptly if you believe your account has been compromised.</p>
+      <p><b>Data location.</b> CiaraLink is designed for Australian care teams and we target Australian data residency (AWS Sydney, <code>ap-southeast-2</code>). The Supabase project region must be confirmed in the Supabase dashboard — it is not encoded in this website. Until Australian residency is confirmed and documented, you should assume infrastructure may process or store data outside Australia. See our internal residency guide or contact us for the current status.</p>
     </section>
 
     <section id="providers"><h2><span class="num">07</span> Service providers</h2>
-      <p>We rely on trusted infrastructure providers to run CiaraLink — for example, hosting, database and payment processing. These providers handle data only to deliver their service to us, under their own security and privacy obligations. Some providers may store or process data outside Australia; where that happens, we take reasonable steps to ensure appropriate protections apply.</p>
+      <p>We rely on trusted infrastructure and service providers to run CiaraLink, including:</p>
+      <ul>
+        <li><b>Supabase</b> — database, authentication and file storage;</li>
+        <li><b>Vercel</b> — application hosting and serverless API functions;</li>
+        <li><b>Stripe</b> — subscription billing and payment processing;</li>
+        <li><b>Anthropic</b> (where AI features are enabled) — language-model processing for drafting assistance;</li>
+        <li><b>Xero / MYOB</b> (tenant-initiated) — accounting integrations you connect under your own account.</li>
+      </ul>
+      <p>These providers handle data only to deliver their service to us or to you, under their own security and privacy obligations. Some providers (for example, Stripe and AI inference) may store or process limited data outside Australia; where that happens, we take reasonable steps to ensure appropriate protections apply.</p>
     </section>
 
     <section id="rights"><h2><span class="num">08</span> Your rights</h2>

@@ -2,7 +2,7 @@
  * CiaraLink — Rostering conflict detection (PURE, browser-safe).
  *
  * Mirrors the authoritative Postgres function public.roster_detect_conflicts()
- * (supabase/migrations/20260629120000_rostering.sql) so the drag-and-drop
+ * (supabase/migrations/20260629120100_rostering.sql) so the drag-and-drop
  * roster can show INSTANT feedback while dragging, without a round-trip. The
  * server function remains the source of truth (called via /api/roster-conflicts
  * and enforced in /api/roster-assign before any write).

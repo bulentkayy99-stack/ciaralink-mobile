@@ -115,6 +115,8 @@
             <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 16px"><div style="font-size:24px;font-weight:800;color:#14302b">{{ hoursValue }}</div><div style="font-size:12px;color:#8a9a94">{{ hoursSub }}</div></div>
           </div>
 
+          <button onClick="{{ goIncidentReport }}" style="width:100%;margin-top:14px;height:48px;border-radius:15px;border:1px solid #f2c2cf;background:#fff8f9;color:#c0445c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">Report an incident</button>
+
           <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ goPayments }}" style="width:100%;text-align:left;font-family:inherit;cursor:pointer;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-top:14px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
@@ -1321,6 +1323,8 @@ class Component extends DCLogic {
 
     // settings
     const settings=[
+      {label:'My roster',iconEl:ic('cal','#16b8a6',16),bg:'#e7f4f1',onClick:()=>{window.location.href='Roster.dc.html';}},
+      {label:'Report an incident',iconEl:ic('alert','#c0445c',16),bg:'#fbe9ed',onClick:()=>{window.location.href='Incident Report.dc.html';}},
       {label:'Availability & travel radius',iconEl:ic('clock','#16b8a6',16),bg:'#e7f4f1',onClick:()=>this.push('avail')},
       {label:'My shift notes',iconEl:ic('note','#9333ea',16),bg:'#f4e8fe',onClick:()=>this.push('shift_notes')},
       {label:'Messages',iconEl:ic('msg','#6366f1',16),bg:'#eef0fd',onClick:()=>this.push('msg')},
@@ -1521,6 +1525,7 @@ class Component extends DCLogic {
       closeNewShift:()=>this.closeNewShift(),
       submitNewShift:()=>this.submitNewShift(),
       goRoster:()=>this.goRoster(),
+      goIncidentReport:()=>{window.location.href='Incident Report.dc.html';},
       onAcName:(e)=>this.setState({acName:e.target.value}),
       onAcNdis:(e)=>this.setState({acNdis:e.target.value}),
       onAcPhone:(e)=>this.setState({acPhone:e.target.value}),

@@ -282,6 +282,10 @@
 
       <!-- ============= BILLING ============= -->
       <sc-if value="{{ isBilling }}" hint-placeholder-val="">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button onClick="{{ goClaims }}" style="padding:9px 14px;border-radius:11px;border:1px solid #16b8a6;background:#f0faf8;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">NDIS Claims →</button>
+        <button onClick="{{ goPayroll }}" style="padding:9px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Payroll (SCHADS) →</button>
+      </div>
       <sc-if value="{{ noBilling }}" hint-placeholder-val="">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
           <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">Nothing ready to invoice yet</div>
@@ -406,6 +410,9 @@
 
       <!-- ============= COMPLIANCE ============= -->
       <sc-if value="{{ isCompliance }}" hint-placeholder-val="">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button onClick="{{ goComplianceRegister }}" style="padding:9px 14px;border-radius:11px;border:1px solid #16b8a6;background:#f0faf8;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Open Compliance Register →</button>
+      </div>
       <sc-if value="{{ noCompliance }}" hint-placeholder-val="">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
           <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No compliance records yet</div>
@@ -440,6 +447,9 @@
 
       <!-- ============= INCIDENTS ============= -->
       <sc-if value="{{ isIncidents }}" hint-placeholder-val="">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button onClick="{{ goIncidentCentre }}" style="padding:9px 14px;border-radius:11px;border:1px solid #16b8a6;background:#f0faf8;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Open Incident Centre →</button>
+      </div>
       <sc-if value="{{ noIncidents }}" hint-placeholder-val="">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
           <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No incidents reported.</div>
@@ -986,6 +996,10 @@ class Component extends DCLogic {
         this.showToast('Incident marked resolved & closed');
       },
       goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      goComplianceRegister:()=>{ window.location.href='Compliance Register.dc.html'; },
+      goIncidentCentre:()=>{ window.location.href='Incident Centre.dc.html'; },
+      goClaims:()=>{ window.location.href='Claims.dc.html'; },
+      goPayroll:()=>{ window.location.href='Payroll.dc.html'; },
       signOutPC:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goPlanBilling:()=>{ window.location.href='billing.html'; },
       logoutPCEl:ic('logout','#6c8a83',15),

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CiaraLink — Compliance &amp; Responsibilities</title>
+<script src="./env.local.js?v=20260629"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260629c"></script>
+<script src="./auth-guard.js?v=4"></script>
+<style>
+  :root{ --teal:#16b8a6; --teal-d:#0b6b60; --ink:#1f2d2a; --muted:#5f726d; --line:#e3ece9; --bg:#f4faf8; --bg2:#ffffff; --warn:#7a5410; --warn-bg:#fff4e0; --warn-bd:#f0dcae; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  a{color:var(--teal-d);font-weight:600;text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 20px 64px}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px}
+  .back{font-size:13px;color:var(--muted);text-decoration:none}
+  h1{font-size:24px;margin:10px 0 4px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+  .card h2{font-size:16px;margin:0 0 10px;letter-spacing:-.2px}
+  .card p,.card li{font-size:14px;color:#3d524c;margin:0 0 10px}
+  .card ul{margin:0;padding-left:20px}
+  .card li{margin-bottom:8px}
+  .banner{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn);border-radius:12px;padding:14px 16px;font-size:13.5px;margin-bottom:18px;line-height:1.55}
+  .banner b{color:#5c3a0a}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:#e7f4f1;color:var(--teal-d);margin-bottom:8px}
+  .pill.you{background:#eef0fd;color:#4338ca}
+  .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .links a{font-size:13px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  th,td{text-align:left;padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="Settings.dc.html">← Settings</a>
+    <a class="back" href="Provider Console.dc.html">Dashboard</a>
+  </div>
+  <h1>Compliance &amp; responsibilities</h1>
+  <div class="sub">What CiaraLink provides as software — and what your organisation must own as an NDIS or healthcare provider.</div>
+
+  <div class="banner">
+    <b>Not legal advice.</b> This page is a plain-language summary for provider administrators. It does not replace advice from an Australian lawyer, NDIS consultant, payroll specialist, or the NDIS Quality and Safeguards Commission. CiaraLink has not had these materials reviewed by a lawyer unless your platform operator tells you otherwise.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <span class="pill">CiaraLink (platform)</span>
+      <h2>What we operate</h2>
+      <ul>
+        <li>The SaaS product — hosting, security, updates, support</li>
+        <li>Terms of Service and Privacy Policy for the platform</li>
+        <li>Software tools: rostering, records, credentials, incidents, payroll aids, claiming aids, integrations</li>
+      </ul>
+      <p>We are <b>not</b> your NDIS registered provider and do not deliver care, employ your workers, or submit claims or SIRS reports on your behalf.</p>
+    </div>
+    <div class="card">
+      <span class="pill you">Your organisation (provider)</span>
+      <h2>What you remain responsible for</h2>
+      <ul>
+        <li>NDIS registration (where required) and Practice Standards</li>
+        <li>Worker screening and credential validity</li>
+        <li>Participant consent and care quality</li>
+        <li>Accurate payroll, tax, super and STP</li>
+        <li>Correct NDIA claims and evidence</li>
+        <li>SIRS reporting to the NDIS Commission</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Feature modules — tools, not guarantees</h2>
+    <table>
+      <thead><tr><th>Module</th><th>CiaraLink helps with</th><th>You must still</th></tr></thead>
+      <tbody>
+        <tr><td><b>Compliance Register</b></td><td>Store credentials, expiry alerts, rostering eligibility flags</td><td>Verify checks, block non-compliant rostering</td></tr>
+        <tr><td><b>Roster</b></td><td>Scheduling, conflict checks</td><td>Award compliance, adequate staffing, participant preferences</td></tr>
+        <tr><td><b>Incidents</b></td><td>Record incidents, timelines, internal escalation</td><td>Report to the Commission when required; investigate and act</td></tr>
+        <tr><td><b>Payroll (SCHADS)</b></td><td>Calculation aid and audit trail</td><td>Verify rates with a payroll adviser; run certified payroll &amp; STP</td></tr>
+        <tr><td><b>NDIA Claims</b></td><td>Claim line preparation and export</td><td>Use current Price Guide; submit via PRODA; reconcile</td></tr>
+        <tr><td><b>Xero / MYOB</b></td><td>Push invoices/bills you select</td><td>Accounting accuracy, GST, your chart of accounts</td></tr>
+        <tr><td><b>Consent &amp; agreements</b></td><td>Consent records; on-screen attestation logs</td><td>Lawful consent; compliant e-sign for binding agreements</td></tr>
+        <tr><td><b>AI (Hugo)</b></td><td>Drafting assistance</td><td>Review all output; no clinical or legal reliance without a professional</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Before you rely on payroll or claiming</h2>
+    <p>SCHADS rates and NDIS Price Guide figures in CiaraLink may be <b>placeholders</b> until verified by qualified consultants. Always review calculations and claim lines before paying staff or submitting to the NDIA.</p>
+  </div>
+
+  <div class="card">
+    <h2>Privacy roles</h2>
+    <p>For participant and worker records your team enters, your organisation is typically the <b>privacy controller</b>. CiaraLink processes that data on your instructions to run the software. Direct privacy questions about care records to your organisation first; platform questions to CiaraLink via the contact on our website.</p>
+  </div>
+
+  <div class="links">
+    <a href="./terms.html" target="_blank" rel="noopener">Terms of Service</a>
+    <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+    <a href="./landing.html#trust" target="_blank" rel="noopener">Security overview</a>
+    <a href="https://www.ndiscommission.gov.au/providers" target="_blank" rel="noopener">NDIS Commission — provider obligations</a>
+  </div>
+</div>
+<script>
+(function(){
+  if(window.CiaraLinkAuthGuard && window.CiaraLinkAuthGuard.requireAuth){
+    window.CiaraLinkAuthGuard.requireAuth();
+  }
+})();
+</script>
+</body>
+</html>

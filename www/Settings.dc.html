@@ -424,22 +424,23 @@ class Component extends DCLogic {
     const privacyItems=[
       {title:'Download my data',desc:'Export a copy of your CiaraLink data — profile, organisation, participants, documents, tasks, notifications and referrals — as a JSON file',btnLabel:'Download my data',btnBd:'#dde4e1',btnBg:'#fff',btnFg:'#41635c',action:()=>this.exportMyData()},
       {title:'Consent Centre',desc:'Manage who can see your participant information and what data they have access to',btnLabel:'Open Consent Centre',btnBd:'#16b8a6',btnBg:'#f0faf8',btnFg:'#0b6b60',action:()=>{window.location.href='Consent Centre.dc.html';}},
-      {title:'Connected services',desc:'Third-party apps connected to your CiaraLink account. CiaraLink does not currently use any external OAuth connections, so there is nothing to manage here.',btnLabel:'No connected apps',btnBd:'#eef2f0',btnBg:'#f7faf9',btnFg:'#9aa8a3',action:()=>this.showToast('No third-party apps are connected to your account')},
+      {title:'Connected services',desc:'Connect Xero and other accounting integrations for your organisation.',btnLabel:'Manage integrations',btnBd:'#16b8a6',btnBg:'#f0faf8',btnFg:'#0b6b60',action:()=>{window.location.href='Integrations.dc.html';}},
       {title:'Delete account',desc:'Permanently delete your CiaraLink account and all associated data. This cannot be undone.',btnLabel:'Delete account',btnBd:'#fce4e9',btnBg:'#fff8f9',btnFg:'#c0445c',action:()=>this.showToast('Please contact support to delete your account')},
     ];
 
     const faqs=[
       {q:'How do I add a new participant?',a:'Navigate to your Provider Dashboard and click "Add participant" in the Clients section. Fill in the NDIS details and the participant will be added to your active list.'},
       {q:'How does consent work in CiaraLink?',a:'Participants control who sees their information. Every sharing action requires explicit consent. Visit the Consent Centre to manage permissions for each participant.'},
-      {q:'How do I upload worker credentials?',a:'Go to Worker Passport and click "Upload" next to any credential. CiaraLink automatically verifies NDIS Worker Screening numbers against the national register.'},
+      {q:'How do I upload worker credentials?',a:'Go to Worker Passport or the Compliance Register and upload credential documents. Your organisation is responsible for verifying validity and expiry — CiaraLink tracks records and alerts you to upcoming expiries.'},
       {q:'Who can see shift notes?',a:'Shift notes are visible to the support worker who wrote them, the service provider, and the support coordinator. Clinical notes have separate, stricter consent rules.'},
       {q:'What happens when a plan expires?',a:'CiaraLink sends alerts 60, 30, 14 and 7 days before plan expiry. Support coordinators receive tasks in the Task Centre to begin review preparation.'},
     ];
 
     const legalLinks=[
+      {label:'Compliance & responsibilities',iconEl:ic('shield','#0b6b60',16),onClick:()=>window.location.href='Platform Legal.dc.html'},
       {label:'Terms of Service',iconEl:ic('file','#6c7f79',16),onClick:()=>window.open('terms.html','_blank')},
       {label:'Privacy Policy',iconEl:ic('shield','#6c7f79',16),onClick:()=>window.open('privacy.html','_blank')},
-      {label:'NDIS Practice Standards compliance',iconEl:ic('check','#6c7f79',16),onClick:()=>window.open('https://www.ndiscommission.gov.au/providers/provider-obligations-and-requirements/ndis-practice-standards','_blank')},
+      {label:'NDIS Commission — provider obligations',iconEl:ic('check','#6c7f79',16),onClick:()=>window.open('https://www.ndiscommission.gov.au/providers/provider-obligations-and-requirements/ndis-practice-standards','_blank')},
     ];
 
     return {

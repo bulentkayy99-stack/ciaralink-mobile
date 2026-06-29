@@ -1668,10 +1668,11 @@ class Component extends DCLogic {
     const defs = [
       { title:'WORKSPACE', items:[ ['overview','Overview','grid',null], ['find','Posted Shifts','note','NEW'], ['match','Smart Match','spark',null] ] },
       { title:'PIPELINE', items:[ ['pipeline','Pipeline','route',null], ['referrals','Referrals','inbox','3'], ['agreements','Agreements','doc',null], ['docs_hub','Documents','folder',null], ['filedrop','AI File Drop','spark','AI'] ] },
-      { title:'SCHEDULING', items:[ ['roster','Roster','users',null], ['calendar','Calendar','cal',null] ] },
+      { title:'SCHEDULING', items:[ ['roster','Roster','users',null,'Roster.dc.html'], ['calendar','Calendar','cal',null] ] },
       { title:'PEOPLE', items:[ ['clients','Clients','user',null], ['workers','Support Workers','users',null], ['allied','Allied Health','pulse',null], ['coord','Coordinators','hub',null] ] },
-      { title:'SETTINGS', items:[ ['perms','Consent Centre','shield',null,'Consent Centre.dc.html'], ['tasks','Task Centre','task',null,'Task Centre.dc.html'], ['wagree','Worker Agreements','file',null,'Worker Agreement.dc.html'], ['settings','Settings','grid',null,'Settings.dc.html'] ] },
-      { title:'RECEIVING · CONSOLE', items:[ ['cn_records','Visit Records','note',null], ['cn_billing','Billing','receipt',null], ['cn_compliance','Compliance','shield',null], ['cn_incidents','Incidents','alert','2'] ] }
+      { title:'FINANCE', items:[ ['payroll','Payroll (SCHADS)','receipt',null,'Payroll.dc.html'], ['claims','Claims & bulk payment','doc',null,'Claims.dc.html'] ] },
+      { title:'SETTINGS', items:[ ['perms','Consent Centre','shield',null,'Consent Centre.dc.html'], ['tasks','Task Centre','task',null,'Task Centre.dc.html'], ['wagree','Worker Agreements','file',null,'Worker Agreement.dc.html'], ['integrations','Integrations','link',null,'Integrations.dc.html'], ['settings','Settings','grid',null,'Settings.dc.html'] ] },
+      { title:'RECEIVING · CONSOLE', items:[ ['cn_records','Visit Records','note',null], ['cn_billing','Billing','receipt',null], ['cn_compliance','Compliance Register','shield',null,'Compliance Register.dc.html'], ['cn_incidents','Incident Centre','alert','2','Incident Centre.dc.html'] ] }
     ];
     const navSections = defs.map(sec => ({
       title: sec.title,
@@ -2458,7 +2459,7 @@ class Component extends DCLogic {
       pageTitle: isConsole ? cv.title : (pages[content]?.title||''),
       pageSub: isConsole ? cv.sub : (pages[content]?.sub||''),
       goConnect: () => this.setNav('match'),
-      goRoster: () => this.setNav('roster'),
+      goRoster: () => { window.location.href = 'Roster.dc.html'; },
       sparkSmEl: ic('spark','#bdf0e8',14),
       sparkWhiteEl: ic('spark','#eafaf8',18),
       boltEl: ic('bolt','#06201c',16),

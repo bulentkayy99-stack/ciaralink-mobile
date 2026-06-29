@@ -31,6 +31,11 @@
   var PAGE_ROLE = {
     'CiaraLink Provider Dashboard.dc.html': 'provider',
     'Provider Console.dc.html': 'provider',
+    'Compliance Register.dc.html': 'provider',
+    'Incident Centre.dc.html': 'provider',
+    'Payroll.dc.html': 'provider',
+    'Claims.dc.html': 'provider',
+    'Integrations.dc.html': 'provider',
     'Support Worker.dc.html': 'worker',
     'Worker App.dc.html': 'worker',
     'Support Coordination.dc.html': 'coordinator',

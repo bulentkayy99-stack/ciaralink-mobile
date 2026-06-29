@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./data.js"></script>
+<script>
+  if (typeof window.ENV === 'undefined') {
+    window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+  }
+</script>
+<script src="./env.local.js?v=20260629"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260629c"></script>
+<script src="./auth-guard.js?v=4"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    .scrl::-webkit-scrollbar{width:8px}
+    .scrl::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:99px}
+    select{font-family:inherit}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;width:100%;background:radial-gradient(120% 90% at 50% 0%,#103a34 0%,#0a201c 55%,#071512 100%);padding:32px 18px;display:flex;justify-content:center">
+  <div style="width:100%;max-width:1080px">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#7ce0d2;background:rgba(22,184,166,.12);border:1px solid rgba(22,184,166,.25);padding:6px 12px;border-radius:99px">NDIS CLAIMING</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;margin-top:12px">Claims &amp; bulk payment request</div>
+        <div style="font-size:13.5px;line-height:1.6;color:#9fb8b1;margin-top:6px;max-width:640px">Turn verified visits into claimable line items, reconcile against the participant&rsquo;s plan budget, and export the NDIA bulk payment request CSV.</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:700;color:{{ connColor }};background:{{ connBg }};border:1px solid {{ connBd }};padding:6px 12px;border-radius:99px;display:inline-flex;align-items:center;gap:7px">{{ connDotEl }}{{ connLabel }}</div>
+        <div style="font-size:11px;color:#86a39b;margin-top:8px;font-family:'IBM Plex Mono',monospace">{{ orgLabel }}</div>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER PRICE-GUIDE WARNING -->
+    <sc-if value="{{ showPlaceholderWarn }}" hint-placeholder-val="">
+      <div style="display:flex;align-items:flex-start;gap:11px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:12px 14px;margin-bottom:16px">
+        <span style="display:flex;margin-top:1px">{{ warnEl }}</span>
+        <div style="flex:1;font-size:12.5px;color:#8a5a1e;line-height:1.5"><b>Placeholder price guide loaded ({{ priceGuideName }}).</b> The dollar caps and item numbers shown are NOT the real NDIS prices. Import the current NDIS Pricing Arrangements and Price Limits before submitting any real claim, and verify the CSV against the current NDIA bulk upload / PRODA / PACE spec.</div>
+      </div>
+    </sc-if>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button onClick="{{ tabBuild }}" style="height:40px;padding:0 18px;border-radius:11px;border:1px solid {{ buildBd }};background:{{ buildBg }};color:{{ buildFg }};font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Build a claim</button>
+      <button onClick="{{ tabHistory }}" style="height:40px;padding:0 18px;border-radius:11px;border:1px solid {{ histBd }};background:{{ histBg }};color:{{ histFg }};font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Claim history {{ histCount }}</button>
+    </div>
+
+    <!-- ============ BUILD TAB ============ -->
+    <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:1fr;gap:16px">
+
+      <!-- selectors -->
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px">
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">PARTICIPANT</div>
+            <select value="{{ selectedParticipantId }}" onChange="{{ onPickParticipant }}" style="width:100%;height:46px;border:1px solid #e2e9e6;border-radius:12px;padding:0 12px;font-size:13.5px;color:#14302b;background:#f9fbfa">
+              <option value="">Select a participant&hellip;</option>
+              <sc-for list="{{ participantOptions }}" as="p" hint-placeholder-count="3"><option value="{{ p.value }}">{{ p.label }}</option></sc-for>
+            </select>
+          </div>
+          <div style="width:220px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">PRICE REGION</div>
+            <select value="{{ region }}" onChange="{{ onPickRegion }}" style="width:100%;height:46px;border:1px solid #e2e9e6;border-radius:12px;padding:0 12px;font-size:13.5px;color:#14302b;background:#f9fbfa">
+              <sc-for list="{{ regionOptions }}" as="r" hint-placeholder-count="5"><option value="{{ r.value }}">{{ r.label }}</option></sc-for>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- claimable visits -->
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:15px;font-weight:800;color:#14302b">Claimable verified visits</div>
+          <div style="font-size:12px;color:#8a9a94">{{ visitsHint }}</div>
+        </div>
+
+        <sc-if value="{{ noParticipant }}" hint-placeholder-val="">
+          <div style="padding:26px;text-align:center;color:#8a9a94;font-size:13px">Select a participant to see their delivered supports.</div>
+        </sc-if>
+
+        <sc-if value="{{ noVisits }}" hint-placeholder-val="">
+          <div style="padding:26px;text-align:center;color:#8a9a94;font-size:13px">No unclaimed verified visits for this participant.</div>
+        </sc-if>
+
+        <sc-for list="{{ visitRows }}" as="v" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ v.bd }};background:{{ v.bg }};border-radius:13px;padding:11px 12px;margin-bottom:9px;flex-wrap:wrap">
+            <button onClick="{{ v.onToggle }}" style="width:26px;height:26px;border-radius:8px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;border:2px solid {{ v.boxBd }};background:{{ v.boxBg }};cursor:{{ v.cursor }}">{{ v.checkEl }}</button>
+            <div style="width:120px;min-width:120px">
+              <div style="font-size:13px;font-weight:700;color:#14302b">{{ v.dateLabel }}</div>
+              <div style="font-size:11px;color:#8a9a94">{{ v.statusLabel }}</div>
+            </div>
+            <div style="width:74px;text-align:center">
+              <div style="font-size:13px;font-weight:700;color:#14302b">{{ v.hoursLabel }}</div>
+              <div style="font-size:11px;color:#8a9a94">hours</div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <select value="{{ v.supportItemValue }}" onChange="{{ v.onPickItem }}" style="width:100%;height:40px;border:1px solid #e2e9e6;border-radius:10px;padding:0 10px;font-size:12.5px;color:#14302b;background:#f9fbfa">
+                <option value="">Select support item&hellip;</option>
+                <sc-for list="{{ v.itemOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+            </div>
+            <div style="width:96px;text-align:right">
+              <div style="font-size:13px;font-weight:800;color:#0b6b60">{{ v.lineTotalLabel }}</div>
+              <div style="font-size:11px;color:#9aa8a3">{{ v.unitPriceLabel }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- budget panel -->
+      <sc-if value="{{ hasBudgets }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px">
+        <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:4px">Plan budget &amp; reconciliation</div>
+        <div style="font-size:12px;color:#8a9a94;margin-bottom:12px">Remaining funds per support category. Claims that exceed remaining funds are blocked.</div>
+        <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="2">
+          <div style="margin-bottom:11px">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
+              <span style="font-weight:700;color:#14302b">{{ b.name }}</span>
+              <span style="color:{{ b.remColor }};font-weight:700">{{ b.remLabel }} left</span>
+            </div>
+            <div style="height:8px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ b.pct }};background:{{ b.barColor }}"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#9aa8a3;margin-top:3px"><span>Claimed {{ b.claimedLabel }}</span><span>Budget {{ b.budgetLabel }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <!-- summary + create -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;background:#0c2622;border-radius:16px;padding:16px 18px;flex-wrap:wrap">
+        <div style="color:#eafaf8">
+          <div style="font-size:12px;color:#7ce0d2;font-weight:700;letter-spacing:.04em">SELECTED</div>
+          <div style="font-size:20px;font-weight:800;margin-top:2px">{{ selectedSummary }}</div>
+        </div>
+        <button onClick="{{ createDraft }}" style="height:50px;padding:0 22px;border-radius:14px;border:none;background:{{ createBg }};color:#06201c;font-family:inherit;font-size:14.5px;font-weight:800;cursor:{{ createCursor }};display:flex;align-items:center;gap:9px">{{ createLabel }}</button>
+      </div>
+
+    </div>
+    </sc-if>
+
+    <!-- ============ HISTORY TAB ============ -->
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="">
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:8px 6px">
+      <sc-if value="{{ noClaims }}" hint-placeholder-val="">
+        <div style="padding:30px;text-align:center;color:#8a9a94;font-size:13px">No claims yet. Build one from the &ldquo;Build a claim&rdquo; tab.</div>
+      </sc-if>
+      <sc-for list="{{ claimRows }}" as="c" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 14px;border-bottom:1px solid #f1f4f2;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="font-size:14px;font-weight:800;color:#14302b;font-family:'IBM Plex Mono',monospace">{{ c.reference }}</span>
+              <span style="font-size:10.5px;font-weight:700;color:{{ c.statusFg }};background:{{ c.statusBg }};padding:2px 9px;border-radius:7px;text-transform:uppercase;letter-spacing:.03em">{{ c.status }}</span>
+            </div>
+            <div style="font-size:11.5px;color:#8a9a94;margin-top:3px">{{ c.meta }}</div>
+          </div>
+          <div style="text-align:right;width:120px"><div style="font-size:15px;font-weight:800;color:#0b6b60">{{ c.totalLabel }}</div><div style="font-size:11px;color:#9aa8a3">{{ c.lineCountLabel }}</div></div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button onClick="{{ c.onCsv }}" style="height:36px;padding:0 13px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">{{ csvIconEl }}CSV</button>
+            <sc-if value="{{ c.canSubmit }}" hint-placeholder-val=""><button onClick="{{ c.onSubmit }}" style="height:36px;padding:0 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Mark submitted</button></sc-if>
+            <sc-if value="{{ c.canPaid }}" hint-placeholder-val=""><button onClick="{{ c.onPaid }}" style="height:36px;padding:0 13px;border-radius:10px;border:none;background:#1e9e6a;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Mark paid</button></sc-if>
+            <sc-if value="{{ c.canReject }}" hint-placeholder-val=""><button onClick="{{ c.onReject }}" style="height:36px;padding:0 13px;border-radius:10px;border:1px solid #f0c9c4;background:#fff;color:#b4453a;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Rejected</button></sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <div style="margin-top:20px;font-size:11px;color:#6c8a83;line-height:1.6">
+      Records the claim lifecycle inside CiaraLink. Actual submission to the NDIA happens by uploading the exported CSV via the myplace provider portal / PACE bulk-upload process (PRODA login). Verify all formats against the current NDIA spec before production.
+    </div>
+
+  </div>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">&times;</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1120,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    ctx:null, tab:'build', participants:[], selectedParticipantId:'', region:'national',
+    supportItems:[], priceGuide:null, shifts:[], claimedShiftIds:{}, selections:{},
+    budgets:[], claims:[], busy:false, toast:null
+  };
+
+  // ---- icons --------------------------------------------------------------
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||16;
+    const P={
+      check:'M20 6L9 17l-5-5',
+      warn:'M12 2l10 18H2z M12 9v5 M12 17h.01',
+      dot:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0',
+      csv:'M5 3h10l4 4v14H5z M14 3v5h5 M8 13h8 M8 17h5',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      plus:'M12 5v14 M5 12h14'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:name==='dot'?stroke:'none',stroke,strokeWidth:sw||1.9,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.check}));
+  }
+  showToast(m){ this.setState({toast:m}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:null}),3600); }
+  money(n){ const x=Number(n||0); return '$'+x.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  configured(){ return !!(window.isSupabaseConfigured && window.isSupabaseConfigured()); }
+
+  componentDidMount(){ this.boot(); }
+  async boot(){
+    if(!this.configured()){
+      // Preview mode — show clearly-labelled demo so the screen isn't blank.
+      this.setState({
+        priceGuide:{name:'PLACEHOLDER price guide (demo)',is_placeholder:true,id:null},
+        participants:[{id:'demo-alex',full_name:'Alex Demo (preview)',ndis_number:'4310 887 226'}],
+        supportItems:[
+          {id:'demo-1',support_item_number:'01_011_0107_1_1',name:'PLACEHOLDER — Self-Care Weekday',unit:'H',support_category_number:1,support_category_name:'Daily Life',price_cap_national:70.23},
+          {id:'demo-2',support_item_number:'04_104_0125_6_1',name:'PLACEHOLDER — Community Access',unit:'H',support_category_number:4,support_category_name:'Social & Community',price_cap_national:67.56}
+        ],
+        claims:[]
+      });
+      return;
+    }
+    try{
+      const ctx = window.loadCurrentUserContext ? await window.loadCurrentUserContext() : null;
+      this.setState({ctx});
+      await Promise.all([ this.loadPriceGuide(), this.loadParticipants(), this.loadClaims() ]);
+    }catch(e){ console.warn('[Claims] boot',e); this.showToast('Could not load: '+(e.message||'error')); }
+  }
+
+  async loadPriceGuide(){
+    const c=window.getSupabaseClient(); if(!c) return;
+    try{
+      const {data:vers}=await c.from('ndis_price_guide_versions').select('id,name,is_placeholder,is_active').eq('is_active',true).limit(1);
+      const pg = (vers&&vers[0])||null;
+      let items=[];
+      if(pg){
+        const {data}=await c.from('ndis_support_items').select('id,support_item_number,name,unit,support_category_number,support_category_name,gst_code,price_cap_national,price_cap_act_nsw_qld_vic,price_cap_wa_nt_sa_tas,price_cap_remote,price_cap_very_remote').eq('version_id',pg.id).eq('active',true).order('support_item_number');
+        items=data||[];
+      }
+      this.setState({priceGuide:pg,supportItems:items});
+    }catch(e){ console.warn('[Claims] loadPriceGuide',e); }
+  }
+
+  async loadParticipants(){
+    try{
+      let ps=[];
+      if(window.loadParticipantsForCurrentUser){ const r=await window.loadParticipantsForCurrentUser(); ps=(r&&r.participants)||[]; }
+      this.setState({participants:ps});
+    }catch(e){ console.warn('[Claims] loadParticipants',e); }
+  }
+
+  async loadClaims(){
+    const c=window.getSupabaseClient(); if(!c) return;
+    try{
+      const {data}=await c.from('claims').select('id,reference,status,total_amount,line_count,created_at,submitted_at').order('created_at',{ascending:false}).limit(50);
+      this.setState({claims:data||[]});
+    }catch(e){ console.warn('[Claims] loadClaims',e); }
+  }
+
+  async onParticipantChange(pid){
+    this.setState({selectedParticipantId:pid,shifts:[],selections:{},budgets:[],claimedShiftIds:{}});
+    if(!pid || !this.configured()) return;
+    const c=window.getSupabaseClient(); if(!c) return;
+    try{
+      // Claimable = completed (delivered) shifts for this participant.
+      const {data:shifts}=await c.from('shifts').select('id,participant_id,title,start_time,end_time,break_minutes,status,verified_at,support_type').eq('participant_id',pid).eq('status','completed').order('start_time',{ascending:false}).limit(200);
+      // Which of those are already claimed (non-rejected line items)?
+      const {data:lines}=await c.from('claim_line_items').select('shift_id,status').eq('participant_id',pid);
+      const claimed={}; (lines||[]).forEach(l=>{ if(l.shift_id && l.status!=='rejected' && l.status!=='cancelled') claimed[l.shift_id]=true; });
+      // Budget reconciliation view.
+      const {data:budgets}=await c.from('claim_budget_status').select('*').eq('participant_id',pid);
+      this.setState({shifts:shifts||[],claimedShiftIds:claimed,budgets:budgets||[]});
+    }catch(e){ console.warn('[Claims] onParticipantChange',e); this.showToast('Could not load visits: '+(e.message||'error')); }
+  }
+
+  shiftHours(s){
+    try{
+      const ms=new Date(s.end_time)-new Date(s.start_time);
+      let h=ms/3600000 - (Number(s.break_minutes||0)/60);
+      if(!(h>0)) h=0;
+      return Math.round(h*100)/100;
+    }catch(e){ return 0; }
+  }
+  capFor(item){
+    if(!item) return null;
+    const map={national:'price_cap_national',act_nsw_qld_vic:'price_cap_act_nsw_qld_vic',wa_nt_sa_tas:'price_cap_wa_nt_sa_tas',remote:'price_cap_remote',very_remote:'price_cap_very_remote'};
+    const col=map[this.state.region]||'price_cap_national';
+    const v=item[col]; return v!=null?Number(v):(item.price_cap_national!=null?Number(item.price_cap_national):null);
+  }
+  isHourly(unit){ return ['H','HR','HOUR','HOURS'].indexOf(String(unit||'').toUpperCase())>=0; }
+  lineTotalFor(s){
+    const sel=this.state.selections[s.id]; if(!sel||!sel.supportItemId) return 0;
+    const item=this.state.supportItems.find(i=>i.id===sel.supportItemId); if(!item) return 0;
+    const cap=this.capFor(item); if(cap==null) return 0;
+    const hrs=this.shiftHours(s);
+    return this.isHourly(item.unit)? cap*hrs : cap*1;
+  }
+
+  toggleShift(id){
+    this.setState(st=>{ const sel={...st.selections}; const cur=sel[id]||{}; sel[id]={...cur,selected:!cur.selected}; return {selections:sel}; });
+  }
+  pickItem(id,itemId){
+    this.setState(st=>{ const sel={...st.selections}; const cur=sel[id]||{}; sel[id]={...cur,supportItemId:itemId,selected:cur.selected!==false?true:cur.selected}; if(sel[id].selected===undefined) sel[id].selected=true; return {selections:sel}; });
+  }
+
+  selectedShifts(){
+    return this.state.shifts.filter(s=>{ const sel=this.state.selections[s.id]; return sel&&sel.selected&&sel.supportItemId&&!this.state.claimedShiftIds[s.id]; });
+  }
+
+  async createDraft(){
+    if(this.state.busy) return;
+    if(!this.configured()){ this.showToast('Preview mode — sign in to create real claims'); return; }
+    const ctx=this.state.ctx;
+    const orgId=ctx&&ctx.organisationId;
+    if(!orgId){ this.showToast('No organisation found for your account'); return; }
+    const picks=this.selectedShifts();
+    if(!picks.length){ this.showToast('Select at least one visit and a support item'); return; }
+    const pg=this.state.priceGuide;
+    const lines=picks.map(s=>{
+      const sel=this.state.selections[s.id];
+      const item=this.state.supportItems.find(i=>i.id===sel.supportItemId);
+      const hourly=this.isHourly(item&&item.unit);
+      const hrs=this.shiftHours(s);
+      const day=(s.start_time||'').slice(0,10);
+      return {
+        participant_id:this.state.selectedParticipantId,
+        shift_id:s.id,
+        support_item_id:sel.supportItemId,
+        support_item_number:item&&item.support_item_number,
+        support_category_number:item&&item.support_category_number,
+        supports_delivered_from:day, supports_delivered_to:day,
+        unit:(item&&item.unit)||'H',
+        hours:hourly?hrs:0, quantity:hourly?0:1,
+        claim_reference:'CLR-'+s.id.slice(0,8)
+      };
+    });
+    this.setState({busy:true});
+    try{
+      const token=window.getAccessToken?await window.getAccessToken():null;
+      if(!token){ this.setState({busy:false}); this.showToast('Please sign in again'); return; }
+      const r=await fetch('/api/claims-create',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({orgId,region:this.state.region,priceGuideVersionId:pg&&pg.id,lines})});
+      const data=await r.json().catch(()=>({}));
+      this.setState({busy:false});
+      if(!r.ok){
+        if(data.code==='over_budget'){ this.showToast('Blocked: claim exceeds remaining plan budget'); }
+        else this.showToast('Could not create claim: '+(data.error||('error '+r.status)));
+        return;
+      }
+      this.showToast('Draft claim '+(data.claim&&data.claim.reference||'')+' created with '+lines.length+' line(s)');
+      this.setState({selections:{},tab:'history'});
+      await Promise.all([this.loadClaims(), this.onParticipantChange(this.state.selectedParticipantId)]);
+    }catch(e){ this.setState({busy:false}); this.showToast('Network error: '+(e.message||'error')); }
+  }
+
+  async setStatus(claimId,status){
+    if(!this.configured()){ this.showToast('Preview mode'); return; }
+    try{
+      const token=window.getAccessToken?await window.getAccessToken():null;
+      if(!token){ this.showToast('Please sign in again'); return; }
+      const r=await fetch('/api/claims-status',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({claimId,status})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok){ this.showToast('Could not update: '+(data.error||('error '+r.status))); return; }
+      this.showToast('Claim marked '+status);
+      this.loadClaims();
+    }catch(e){ this.showToast('Network error: '+(e.message||'error')); }
+  }
+
+  async downloadCsv(claim){
+    if(!this.configured()){ this.showToast('Preview mode — connect Supabase to export'); return; }
+    try{
+      const token=window.getAccessToken?await window.getAccessToken():null;
+      if(!token){ this.showToast('Please sign in again'); return; }
+      const r=await fetch('/api/claims-bulk-csv?claimId='+encodeURIComponent(claim.id),{headers:{Authorization:'Bearer '+token}});
+      if(!r.ok){ const d=await r.json().catch(()=>({})); this.showToast('Could not export: '+(d.error||('error '+r.status))); return; }
+      const blob=await r.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='bulk-payment-request-'+(claim.reference||claim.id)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),4000);
+      this.showToast('Downloaded bulk payment request CSV');
+    }catch(e){ this.showToast('Network error: '+(e.message||'error')); }
+  }
+
+  statusColors(s){
+    const m={draft:['#6b5b1e','#fdf6e3'],submitted:['#1d4ed8','#e8effe'],paid:['#1e7d57','#e7f6ee'],rejected:['#b4453a','#fdecea'],cancelled:['#6b7280','#f1f3f4']};
+    return m[s]||m.draft;
+  }
+
+  renderVals(){
+    const st=this.state;
+    const connected=this.configured();
+    const [cf,cb]=connected?['#0b6b60','#e7f4f1']:['#8a5a1e','#fff7ed'];
+    const connColor=connected?'#7ce0d2':'#f4cf8f';
+    const regionOptions=[
+      {value:'national',label:'National'},
+      {value:'act_nsw_qld_vic',label:'ACT / NSW / QLD / VIC'},
+      {value:'wa_nt_sa_tas',label:'WA / NT / SA / TAS'},
+      {value:'remote',label:'Remote'},
+      {value:'very_remote',label:'Very remote'}
+    ];
+    const participantOptions=(st.participants||[]).map(p=>({value:p.id,label:(p.full_name||p.preferred_name||'Participant')+(p.ndis_number?(' · '+p.ndis_number):'')}));
+    const itemOptions=(st.supportItems||[]).map(i=>{ const cap=this.capFor(i); return {value:i.id,label:i.support_item_number+' — '+(i.name||'')+(cap!=null?(' ('+this.money(cap)+'/'+(i.unit||'H')+')'):'')}; });
+
+    const visitRows=(st.shifts||[]).map(s=>{
+      const sel=st.selections[s.id]||{};
+      const claimed=!!st.claimedShiftIds[s.id];
+      const selected=!claimed && !!sel.selected;
+      const total=this.lineTotalFor(s);
+      const item=st.supportItems.find(i=>i.id===sel.supportItemId);
+      const cap=item?this.capFor(item):null;
+      const hrs=this.shiftHours(s);
+      return {
+        bd:selected?'#9fdfd3':'#e7ece9', bg:claimed?'#f5f7f6':(selected?'#f3fbf9':'#fff'),
+        boxBd:claimed?'#cdd8d3':(selected?'#16b8a6':'#cdd8d3'), boxBg:claimed?'#eef2f0':(selected?'#16b8a6':'#fff'),
+        cursor:claimed?'default':'pointer',
+        checkEl:(selected||claimed)?this.ic('check',claimed?'#9aa8a3':'#fff',15,2.6):React.createElement('span'),
+        onToggle:claimed?(()=>this.showToast('Already claimed')): (()=>this.toggleShift(s.id)),
+        dateLabel:(s.start_time||'').slice(0,10)||'—',
+        statusLabel:claimed?'already claimed':(s.verified_at?'verified visit':'completed'),
+        hoursLabel:hrs.toFixed(2),
+        itemOptions,
+        supportItemValue:sel.supportItemId||'',
+        onPickItem:(e)=>this.pickItem(s.id, e&&e.target?e.target.value:''),
+        lineTotalLabel:this.money(total),
+        unitPriceLabel:cap!=null?(this.money(cap)+'/'+(item&&item.unit||'H')):'—'
+      };
+    });
+
+    const budgetRows=(st.budgets||[]).map(b=>{
+      const budget=Number(b.budget_amount||0), claimed=Number(b.claimed_amount||0);
+      const remaining=Number(b.remaining_amount!=null?b.remaining_amount:(budget-claimed));
+      const pct=budget>0?Math.min(100,Math.round(claimed/budget*100)):0;
+      const low=remaining<=0; const warn=budget>0&&remaining<budget*0.15;
+      return {
+        name:(b.support_category_name||('Category '+b.support_category_number)),
+        remLabel:this.money(remaining), remColor:low?'#b4453a':(warn?'#8a5a1e':'#0b6b60'),
+        pct:pct+'%', barColor:low?'#d8675b':(warn?'#e0a23a':'#16b8a6'),
+        claimedLabel:this.money(claimed), budgetLabel:this.money(budget)
+      };
+    });
+
+    const picks=this.selectedShifts();
+    const selTotal=picks.reduce((a,s)=>a+this.lineTotalFor(s),0);
+
+    const claimRows=(st.claims||[]).map(c=>{
+      const [fg,bg]=this.statusColors(c.status);
+      return {
+        reference:c.reference||c.id.slice(0,8),
+        status:c.status, statusFg:fg, statusBg:bg,
+        meta:(c.line_count||0)+' line(s) · created '+((c.created_at||'').slice(0,10)),
+        totalLabel:this.money(c.total_amount),
+        lineCountLabel:(c.line_count||0)+' lines',
+        onCsv:()=>this.downloadCsv(c),
+        canSubmit:c.status==='draft', onSubmit:()=>this.setStatus(c.id,'submitted'),
+        canPaid:c.status==='submitted', onPaid:()=>this.setStatus(c.id,'paid'),
+        canReject:c.status==='submitted', onReject:()=>this.setStatus(c.id,'rejected')
+      };
+    });
+
+    const isBuild=st.tab==='build', isHistory=st.tab==='history';
+    const pg=st.priceGuide;
+
+    return {
+      toast:st.toast, clearToast:()=>this.setState({toast:null}),
+      connColor:cf, connBg:cb, connBd:connected?'#cfe9e3':'#f4e6cf',
+      connLabel:connected?'Connected to Supabase':'Preview mode — not connected',
+      connDotEl:this.ic('dot',connColor,9),
+      orgLabel:(st.ctx&&st.ctx.organisationName)?st.ctx.organisationName:'—',
+      showPlaceholderWarn:!!(pg&&pg.is_placeholder), priceGuideName:(pg&&pg.name)||'',
+      warnEl:this.ic('warn','#d98b22',18),
+
+      tabBuild:()=>this.setState({tab:'build'}), tabHistory:()=>this.setState({tab:'history'}),
+      buildBg:isBuild?'#16b8a6':'rgba(255,255,255,.06)', buildFg:isBuild?'#06201c':'#cfe2dc', buildBd:isBuild?'#16b8a6':'rgba(255,255,255,.14)',
+      histBg:isHistory?'#16b8a6':'rgba(255,255,255,.06)', histFg:isHistory?'#06201c':'#cfe2dc', histBd:isHistory?'#16b8a6':'rgba(255,255,255,.14)',
+      histCount:(st.claims&&st.claims.length)?('('+st.claims.length+')'):'',
+
+      isBuild, isHistory,
+      participantOptions, selectedParticipantId:st.selectedParticipantId,
+      onPickParticipant:(e)=>this.onParticipantChange(e&&e.target?e.target.value:''),
+      region:st.region, regionOptions, onPickRegion:(e)=>{ const v=e&&e.target?e.target.value:'national'; this.setState({region:v}); },
+
+      noParticipant:!st.selectedParticipantId,
+      noVisits:!!st.selectedParticipantId && visitRows.length===0,
+      visitsHint:st.selectedParticipantId?(visitRows.length+' visit(s)'):'',
+      visitRows,
+
+      hasBudgets:budgetRows.length>0, budgetRows,
+
+      selectedSummary:picks.length+' visit(s) · '+this.money(selTotal),
+      createLabel:st.busy?'Creating…':'Create draft claim',
+      createBg:(picks.length&&!st.busy)?'#16b8a6':'#9fcfc7', createCursor:(picks.length&&!st.busy)?'pointer':'default',
+      createDraft:()=>this.createDraft(),
+
+      noClaims:claimRows.length===0, claimRows, csvIconEl:this.ic('csv','#2c4a44',15)
+    };
+  }
+}
+</script>
+</body>
+</html>

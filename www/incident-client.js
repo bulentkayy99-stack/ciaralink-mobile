@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------------------
  * Frontend-safe. Uses ONLY the public anon client exposed by supabase-client.js
  * (window.getSupabaseClient) plus window.getCurrentUser / loadCurrentUserContext.
- * NEVER add the service-role key here — RLS (migration 20260629150000_incidents.sql)
+ * NEVER add the service-role key here — RLS (migration 20260629130000_incidents.sql)
  * enforces who can read/write.
  *
  * Loaded by:  Incident Report.dc.html (worker quick report)

@@ -2,8 +2,18 @@
   "name": "ciaralink-mobile",
   "version": "1.0.0",
   "description": "CiaraLink — Care OS native app shell (Capacitor)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bulentkayy99-stack/ciaralink-mobile.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "main": "index.js",
   "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "verify": "node scripts/verify.mjs",
+    "doctor": "npm run verify",
     "sync:web": "node scripts/sync-web.mjs",
     "refresh": "npm run sync:web && npx cap sync",
     "icons": "npx capacitor-assets generate --iconBackgroundColor #14302b --iconBackgroundColorDark #14302b --splashBackgroundColor #14302b --splashBackgroundColorDark #0a1c19",

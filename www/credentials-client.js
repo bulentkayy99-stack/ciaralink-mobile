@@ -12,7 +12,7 @@
  * All reads/writes go through the anon client, so existing Row-Level Security
  * (worker_credentials, worker_profiles, user_profiles, credential_alerts) is
  * fully enforced — provider owner/admin manage their org's workers; workers
- * read their own. Depends on migration 20260629151500_credentials.sql.
+ * read their own. Depends on migration 20260629120000_credentials.sql.
  *
  * Everything is namespaced under window.CiaraCredentials and returns the same
  * { data, error } shape used elsewhere in the codebase.
