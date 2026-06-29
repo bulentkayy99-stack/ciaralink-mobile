@@ -1,99 +1,100 @@
-# CiaraLink — App Store Connect submit (build 3 / 1.0.0)
+# CiaraLink — App Store Connect submit (build 4 / 1.0.0)
 
 Technical prep done on this machine:
 
-- **Build uploaded:** `1.0.0 (3)` via Xcode **26.5 GM** (`DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer`)
-- **Device family:** iPhone only (`UIDeviceFamily` = `1`) — iPad 13" screenshots should **not** be required once this build is selected
-- **Export:** `ios/App/build/export-build3/App.ipa` (upload succeeded 2026-06-29)
+- **Build uploaded:** `1.0.0 (4)` via Xcode **26.5 GM** (`DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer`)
+- **Upload:** `xcodebuild -exportArchive` with `ExportOptions.plist` (`app-store-connect`, `upload`) — **Upload succeeded** 2026-06-29
+- **Device family:** iPhone only (`UIDeviceFamily` = `1`)
+- **Archive:** `ios/App/build/App-build4.xcarchive`
 - **Screenshots:** `store-assets/ios/iphone-6.9/01-sign-in.png`, `02-provider-dashboard.png`, `03-support-worker.png` (1320×2868)
 
-Wait until App Store Connect shows build **3** as **Ready to Submit** (Processing can take 5–30 minutes).
+Wait until App Store Connect shows build **4** as **Ready to Submit** (Processing usually 5–30 minutes).
+
+### Fixes in build 4 (Invalid Binary mitigation)
+
+- Removed **`UIBackgroundModes` → `remote-notification`** (no Push Notifications capability / `aps-environment` for v1)
+- **`UIRequiredDeviceCapabilities`:** `armv7` → **`arm64`**
+- Added app **`PrivacyInfo.xcprivacy`** (bundled in target)
+- **`ONLY_ACTIVE_ARCH = NO`** on Release (device archive)
+- **`CURRENT_PROJECT_VERSION` = 4**
 
 ---
 
 ## 1. Pricing (required — “choose price tier”)
 
 1. Open [App Store Connect](https://appstoreconnect.apple.com) → **Apps** → **CiaraLink**.
-2. In the left sidebar, open **Monetization** → **Pricing and Availability**  
-   *(older UI: **App Store** tab → **Pricing and Availability**)*.
-3. Under **Price**, click **Edit** (or **Add Pricing**).
-4. Select **Free** (Price Tier **0**).
-5. Click **Save** / **Done**.
+2. **Monetization** → **Pricing and Availability** (or **App Store** → **Pricing and Availability**).
+3. Set **Free** (Price Tier **0**) → **Save**.
 
 ---
 
-## 2. Attach build 3 to version 1.0
+## 2. Attach build 4 to version 1.0
 
-1. Left sidebar: **Distribution** (or **App Store** → **iOS App**).
-2. Open version **1.0** (Prepare for Submission).
-3. Scroll to **Build**.
-4. Click **+** or **Select a build before you submit your app**.
-5. Choose **1.0.0 (3)** — the build uploaded today with Xcode 26.5 GM.
-6. If build **3** is missing, refresh after processing completes; do **not** re-select older beta-Xcode builds.
+1. **Distribution** → version **1.0** (Prepare for Submission).
+2. **Build** → **+** → select **`1.0.0 (4)`** (not build 3 or older).
+3. Save the version page.
 
 ---
 
 ## 3. iPhone 6.9" screenshots
 
-1. On the same **1.0** page, scroll to **App Previews and Screenshots**.
-2. Select **iPhone** → **6.9" Display** (or the slot labeled for iPhone 17 Pro Max / 6.9").
-3. Drag in (minimum 3):
-
-   ```
-   store-assets/ios/iphone-6.9/01-sign-in.png
-   store-assets/ios/iphone-6.9/02-provider-dashboard.png
-   store-assets/ios/iphone-6.9/03-support-worker.png
-   ```
-
-4. Click **Save** on the version page.
+1. **App Previews and Screenshots** → **iPhone** → **6.9" Display**.
+2. Upload at least 3 from `store-assets/ios/iphone-6.9/` (see paths above).
+3. **Save**.
 
 ---
 
-## 4. iPad 13" tab (only if still shown)
+## 4. TestFlight — internal testing (optional before review)
 
-If **iPad Pro (13-inch)** still appears as required **after** build **3** is selected:
-
-- Confirm the selected build is **(3)**, not an older build.
-- If the iPad section remains, capture one simulator shot:
-
-  ```bash
-  export DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer
-  xcrun simctl boot "iPad Pro 13-inch (M4)" 2>/dev/null || true
-  # Install/run app on that sim, then:
-  xcrun simctl io booted screenshot store-assets/ios/ipad-13/01-dashboard.png
-  ```
-
-  Upload to the **iPad Pro 13-inch** slot.
-
-If build **3** is iPhone-only, the iPad section should disappear — no iPad art needed.
+1. **TestFlight** tab → wait until build **4** finishes processing.
+2. **Internal Testing** → create or open a group → **+** → add build **`1.0.0 (4)`**.
+3. Add internal testers (App Store Connect users on your team). They install via **TestFlight** app.
+4. Smoke-test sign-in and core flows before **Submit to App Review**.
 
 ---
 
 ## 5. Export compliance & submit
 
-1. On version **1.0**, answer **App Encryption** if prompted: uses standard encryption only / **ITSAppUsesNonExemptEncryption** is **No** (already in Info.plist).
-2. Complete any remaining metadata (Privacy, Age Rating, etc.).
-3. Click **Add for Review** → **Submit to App Review**.
+1. On version **1.0**, if **App Encryption** is asked: standard encryption only — **`ITSAppUsesNonExemptEncryption` = No** (already in Info.plist).
+2. Complete remaining metadata (Privacy, Age Rating, etc.).
+3. **Add for Review** → **Submit to App Review**.
 
 ---
 
-## Demo account (for App Review notes)
+## Demo account (App Review notes)
 
 - Email: `demo-provider-admin@ciaralink.com.au`
 - Password: `DemoPassword123!`
 
-(If login fails in review, confirm the demo user exists in production Supabase; capture script uses `demo-provider-admin@ciaralink.example` when `.com.au` is not provisioned.)
-
 ---
 
-## Re-upload reference (already done)
+## Re-upload reference (build 4 — already uploaded)
 
 ```bash
+cd /Users/billy/ciaralink-mobile
+npm run verify && npm run refresh
+
 cd ios/App
 DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer \
+  xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+  -destination 'generic/platform=iOS' \
+  -archivePath build/App-build4.xcarchive \
+  -allowProvisioningUpdates DEVELOPMENT_TEAM=38GH68YP88 archive
+
+DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer \
   xcodebuild -exportArchive \
-  -archivePath build/App-build3.xcarchive \
-  -exportPath build/export-build3 \
+  -archivePath build/App-build4.xcarchive \
+  -exportPath build/export-build4 \
   -exportOptionsPlist ExportOptions.plist \
   -allowProvisioningUpdates
+```
+
+Validate archive before export:
+
+```bash
+ARCH=build/App-build4.xcarchive/Products/Applications/App.app
+plutil -lint "$ARCH/Info.plist"
+plutil -p "$ARCH/Info.plist" | grep -E 'CFBundleVersion|UIDeviceFamily|UIBackground'
+codesign -dv "$ARCH"
+test -f "$ARCH/PrivacyInfo.xcprivacy" && echo OK privacy manifest
 ```

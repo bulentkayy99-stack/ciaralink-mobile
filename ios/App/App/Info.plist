@@ -32,7 +32,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -55,9 +55,5 @@
 	<string>CiaraLink needs photo library access so you can attach existing documents and images to your records.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>CiaraLink can save documents and images you generate back to your photo library.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 </dict>
 </plist>
