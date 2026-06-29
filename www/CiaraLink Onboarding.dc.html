@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px} ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes ob-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes ob-scan{0%{top:4%}100%{top:94%}}
+    @keyframes ob-ping{0%{transform:scale(.7);opacity:.8}70%{transform:scale(2);opacity:0}100%{opacity:0}}
+    @keyframes ob-check{0%{stroke-dashoffset:48}100%{stroke-dashoffset:0}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(120% 80% at 50% 0%,#103a34,#0a201c 55%,#071512);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px 60px">
+
+  <!-- progress header -->
+  <div style="width:100%;max-width:760px;margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -4px rgba(14,147,132,.8)">{{ logoEl }}</div>
+      <span style="font-size:17px;font-weight:800;color:#f4faf8;letter-spacing:-.01em">CiaraLink</span>
+      <span style="font-size:12px;color:#5f7a73;font-weight:600;letter-spacing:.1em">ONBOARDING</span>
+      <div style="flex:1"></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5f7a73">Step {{ stepNum }}/6</span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="6">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <div style="height:5px;width:100%;border-radius:99px;background:{{ s.barBg }}"></div>
+          <span style="font-size:10px;font-weight:600;color:{{ s.labelFg }}">{{ s.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- card -->
+  <div style="width:100%;max-width:760px;background:#fff;border-radius:24px;box-shadow:0 30px 60px -20px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.06);overflow:hidden">
+
+    <!-- ========= STEP 0: SIGN UP ========= -->
+    <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="background:linear-gradient(150deg,#0c2622,#0e5147);padding:28px 36px 24px;color:#eafaf8">
+        <div style="font-size:13px;font-weight:700;letter-spacing:.05em;color:#7ce0d2;margin-bottom:8px">WELCOME TO CiaraLink</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.2">Your whole care operation,<br/>in one place.</div>
+        <div style="font-size:13.5px;color:#a9cfc8;margin-top:8px">Set up in under 10 minutes. No credit card required.</div>
+      </div>
+      <div style="padding:28px 36px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">FIRST NAME</div><div style="height:46px;border:1px solid #e2e9e6;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;color:#14302b;background:#f7faf9">Bulent</div></div>
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">LAST NAME</div><div style="height:46px;border:1px solid #e2e9e6;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;color:#14302b;background:#f7faf9">Kay</div></div>
+        </div>
+        <div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">ORGANISATION NAME</div><div style="height:46px;border:1px solid #e2e9e6;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;color:#14302b;background:#f7faf9">Brightside Care</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">EMAIL</div><div style="height:46px;border:1px solid #e2e9e6;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:13.5px;font-weight:600;color:#14302b;background:#f7faf9">bulent@brightside.com.au</div></div>
+          <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:6px">ROLE</div><div style="height:46px;border:1px solid #16b8a6;border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:13.5px;font-weight:700;color:#0b6b60;background:#f4faf8">Service Provider</div></div>
+        </div>
+        <div style="display:flex;gap:11px;margin-bottom:20px">
+          <sc-for list="{{ orgTypes }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.onClick }}" style="flex:1;padding:10px 8px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button></sc-for>
+        </div>
+        <button onClick="{{ next }}" style="width:100%;height:54px;border-radius:16px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Create my account →</button>
+        <div style="text-align:center;margin-top:11px;font-size:12px;color:#9aa8a3">Already have an account? <span style="color:#0b6b60;font-weight:700;cursor:pointer">Sign in</span></div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ========= STEP 1: UPLOAD DOCS ========= -->
+    <sc-if value="{{ isStep1 }}" hint-placeholder-val="">
+    <div>
+      <div style="padding:28px 36px 0">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:#14302b">Upload your organisation documents</div>
+        <div style="font-size:13.5px;color:#6c7f79;margin-top:5px">I'll read them and set up your profile automatically. No forms to fill.</div>
+      </div>
+      <div style="padding:20px 36px">
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:13px;padding:12px 14px;margin-bottom:16px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:12.5px;color:#2a4a8a">Drop any document — NDIS registration, ABN, insurance, policies. I understand all of them and extract what matters.</div>
+        </div>
+        <div style="position:relative;height:220px;border-radius:18px;overflow:hidden;background:#f7faf9;border:1.5px dashed {{ uploadBd }};margin-bottom:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+          <sc-if value="{{ docUploaded }}" hint-placeholder-val="">
+            <div style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#16b8a6,transparent);box-shadow:0 0 12px #16b8a6;animation:ob-scan 1.8s ease infinite"></div>
+            <div style="width:48px;height:48px;border-radius:14px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ docScanEl }}</div>
+            <div style="font-size:14px;font-weight:700;color:#14302b">Reading NDIS Registration.pdf…</div>
+            <div style="font-size:12px;color:#8a9a94">Extracting ABN, registration details, approved supports</div>
+          </sc-if>
+          <sc-if value="{{ docDone }}" hint-placeholder-val="">
+            <div style="width:48px;height:48px;border-radius:14px;background:#e9f6ef;display:flex;align-items:center;justify-content:center">{{ checkBigEl }}</div>
+            <div style="font-size:14px;font-weight:700;color:#1e7a52">Read — 8 fields extracted</div>
+            <div style="font-size:12px;color:#8a9a94">ABN, registration number, approved supports, expiry</div>
+          </sc-if>
+          <sc-if value="{{ docIdle }}" hint-placeholder-val="{{ true }}">
+            <div style="width:48px;height:48px;border-radius:14px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center">{{ uploadEl }}</div>
+            <div style="font-size:14px;font-weight:700;color:#14302b">Drop your documents here</div>
+            <div style="font-size:12px;color:#9aa8a3">PDF, Word or image</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ docDone }}" hint-placeholder-val="">
+          <div style="background:#f4faf8;border:1px solid #e0efe9;border-radius:14px;padding:14px 16px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:10px">EXTRACTED FROM YOUR DOCUMENT</div>
+            <sc-for list="{{ extracted }}" as="e" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #eef2f0">
+                <span style="flex:0 0 140px;font-size:12px;color:#8a9a94">{{ e.k }}</span>
+                <span style="flex:1;font-size:13px;font-weight:700;color:#14302b">{{ e.v }}</span>
+                <span style="font-size:10px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:1px 7px;border-radius:5px">auto</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ uploadDoc }}" style="flex:1;height:50px;border-radius:14px;border:1.5px dashed #b6d8d0;background:#f1faf8;color:#0b6b60;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">{{ uploadSmEl }}{{ uploadBtnLabel }}</button>
+          <sc-if value="{{ docDone }}" hint-placeholder-val="">
+            <button onClick="{{ next }}" style="flex:2;height:50px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Looks right — continue →</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ========= STEP 2: CREATE PARTICIPANT ========= -->
+    <sc-if value="{{ isStep2 }}" hint-placeholder-val="">
+    <div style="padding:28px 36px">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:#14302b">Add your first participant</div>
+      <div style="font-size:13.5px;color:#6c7f79;margin-top:5px">Or upload their NDIS plan — I'll create the profile automatically.</div>
+      <div style="display:flex;gap:11px;margin:16px 0">
+        <button onClick="{{ setParticipantMode.manual }}" style="flex:1;padding:12px;border-radius:13px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;border:1px solid {{ pManBd }};background:{{ pManBg }};color:{{ pManFg }}">Fill in manually</button>
+        <button onClick="{{ setParticipantMode.upload }}" style="flex:1;padding:12px;border-radius:13px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;border:1px solid {{ pUpBd }};background:{{ pUpBg }};color:{{ pUpFg }}">{{ sparkSmEl }}Upload their NDIS plan</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px">
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">FULL NAME</div><div style="height:44px;border:1px solid #e2e9e6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:600;color:#14302b;background:#f7faf9">Ali Tahan</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">NDIS NUMBER</div><div style="height:44px;border:1px solid #e2e9e6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#14302b;background:#f7faf9">4310 887 226</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">DATE OF BIRTH</div><div style="height:44px;border:1px solid #e2e9e6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:600;color:#14302b;background:#f7faf9">08/02/1992</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">PLAN ENDS</div><div style="height:44px;border:1px solid #16b8a6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:700;color:#0b6b60;background:#f4faf8">30 Jun 2027</div></div>
+      </div>
+      <div style="display:flex;gap:11px;margin-bottom:20px">
+        <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">CORE BUDGET</div><div style="height:44px;border:1px solid #e2e9e6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:700;color:#0b6b60;background:#f4faf8">$74,200</div></div>
+        <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:5px">PLAN MANAGEMENT</div><div style="height:44px;border:1px solid #e2e9e6;border-radius:11px;display:flex;align-items:center;padding:0 13px;font-size:13px;font-weight:600;color:#14302b;background:#f7faf9">Plan-managed</div></div>
+      </div>
+      <button onClick="{{ next }}" style="width:100%;height:52px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Create participant profile →</button>
+    </div>
+    </sc-if>
+
+    <!-- ========= STEP 3: FIND WORKER ========= -->
+    <sc-if value="{{ isStep3 }}" hint-placeholder-val="">
+    <div style="padding:28px 36px">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:#14302b">Find a verified worker for Ali</div>
+      <div style="font-size:13.5px;color:#6c7f79;margin-top:5px">Matched on skills, credentials, location and availability. Every worker is pre-verified.</div>
+      <div style="display:flex;gap:8px;margin:16px 0 14px;flex-wrap:wrap">
+        <sc-for list="{{ searchFilters }}" as="f" hint-placeholder-count="5"><button onClick="{{ f.onClick }}" style="padding:8px 14px;border-radius:99px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button></sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:20px">
+        <sc-for list="{{ matchedWorkers }}" as="w" hint-placeholder-count="3">
+          <button onClick="{{ w.onSelect }}" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:1.5px solid {{ w.selBd }};background:{{ w.selBg }};cursor:pointer;font-family:inherit;text-align:left;transition:.15s">
+            <div style="position:relative;width:46px;height:46px;flex:0 0 46px">
+              <sc-if value="{{ w.pro }}" hint-placeholder-val=""><div style="position:absolute;inset:-3px;border-radius:14px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(5px);opacity:.7"></div></sc-if>
+              <div style="position:relative;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ w.tint }}">{{ w.init }}</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:7px"><span style="font-size:14.5px;font-weight:800;color:#14302b">{{ w.name }}</span><sc-if value="{{ w.pro }}" hint-placeholder-val=""><span style="font-size:9px;font-weight:800;color:#06201c;background:linear-gradient(90deg,#7ce0d2,#16b8a6);padding:1px 6px;border-radius:5px">PRO</span></sc-if></div>
+              <div style="font-size:12px;color:#6c7f79;margin-top:2px">{{ w.role }} · {{ w.area }} · {{ w.checks }} checks verified</div>
+              <div style="display:flex;gap:7px;margin-top:7px;flex-wrap:wrap"><sc-for list="{{ w.tags }}" as="t" hint-placeholder-count="3"><span style="font-size:11px;font-weight:600;color:#41635c;background:#eef4f2;padding:3px 9px;border-radius:7px">{{ t }}</span></sc-for></div>
+            </div>
+            <div style="text-align:center;flex:0 0 auto"><div style="font-size:18px;font-weight:800;color:#16b8a6">{{ w.score }}</div><div style="font-size:9.5px;color:#9aa8a3;letter-spacing:.04em">MATCH</div></div>
+          </button>
+        </sc-for>
+        <sc-if value="{{ noWorkers }}" hint-placeholder-val="">
+          <div style="padding:22px 16px;text-align:center;background:#f7faf9;border:1px dashed #d7e0dc;border-radius:16px;font-size:13px;color:#6c7f79">No verified workers match these filters. Try removing a filter.</div>
+        </sc-if>
+      </div>
+      <button onClick="{{ next }}" style="width:100%;height:52px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2bcbb9">{{ checkSmEl }}{{ inviteLabel }}</button>
+    </div>
+    </sc-if>
+
+    <!-- ========= STEP 4: SEND AGREEMENT ========= -->
+    <sc-if value="{{ isStep4 }}" hint-placeholder-val="">
+    <div style="padding:28px 36px">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:#14302b">Service agreement — ready to send</div>
+      <div style="font-size:13.5px;color:#6c7f79;margin-top:5px">I've filled everything from Ali's profile. Just review and send for signatures.</div>
+      <div style="background:#f4faf8;border:1px solid #e0efe9;border-radius:14px;padding:16px 18px;margin:16px 0">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:12px">AUTO-FILLED FROM PROFILES</div>
+        <sc-for list="{{ agFields }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eef2f0">
+            <span style="flex:0 0 130px;font-size:12px;color:#9aa8a3">{{ f.k }}</span>
+            <span style="flex:1;font-size:13px;font-weight:700;color:#14302b">{{ f.v }}</span>
+            <span style="font-size:10px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:1px 7px;border-radius:5px">auto</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:11px 14px;margin-bottom:16px">
+        <span style="display:flex">{{ infoEl }}</span>
+        <div style="font-size:12.5px;color:#8a5a1e">Rates follow the current price guide. Signing routes to Ali (participant) then Amara (worker) automatically.</div>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button onClick="{{ previewAgreement }}" style="flex:1;height:50px;border-radius:13px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Preview full agreement</button>
+        <button onClick="{{ next }}" style="flex:2;height:50px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sendEl }}Send for signatures →</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ========= STEP 5: DONE ========= -->
+    <sc-if value="{{ isStep5 }}" hint-placeholder-val="">
+    <div style="padding:36px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ bigCheckEl }}</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.02em;color:#14302b;margin-top:16px">You're live in under 10 minutes.</div>
+        <div style="font-size:13.5px;color:#6c7f79;margin-top:6px;line-height:1.6">That's it. One profile. One upload. One source of truth.<br/>Brightside Care is ready to operate on CiaraLink.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+        <sc-for list="{{ doneItems }}" as="d" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:10px;padding:13px 15px;background:#f4faf8;border:1px solid #e0efe9;border-radius:14px">
+            <div style="width:30px;height:30px;border-radius:9px;flex:0 0 30px;background:#e9f6ef;display:flex;align-items:center;justify-content:center">{{ checkSmEl }}</div>
+            <span style="font-size:13px;font-weight:700;color:#14302b">{{ d }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onClick="{{ gotoDashboard }}" style="flex:1;height:54px;border-radius:14px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Add more participants</button>
+        <button onClick="{{ gotoDashboard }}" style="flex:2;height:54px;border-radius:14px;border:none;background:#0c2622;color:#eafaf8;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#1a4a40">Go to my dashboard →</button>
+      </div>
+      <button onClick="{{ restart }}" style="width:100%;margin-top:12px;height:40px;border-radius:12px;border:none;background:none;color:#9aa8a3;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">↺ Replay the flow</button>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- time indicator -->
+  <div style="margin-top:18px;display:flex;align-items:center;gap:9px;font-size:12px;color:#5f7a73">
+    {{ clockSmEl }}<span>Time elapsed: <b style="color:#7ce0d2">{{ elapsed }}</b></span>
+  </div>
+
+</div>
+<sc-if value="{{ agModalOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:9998;background:rgba(7,21,18,.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:640px;max-height:88vh;background:#fff;border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden">
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:22px 26px 16px;border-bottom:1px solid #eef2f0">
+        <div style="flex:1">
+          <div style="font-size:18px;font-weight:800;color:#14302b;letter-spacing:-.01em">NDIS Service Agreement</div>
+          <div style="font-size:12.5px;color:#6c7f79;margin-top:3px">Brightside Care &amp; Ali Tahan · Personal Care</div>
+        </div>
+        <button onClick="{{ closeAgModal }}" style="background:none;border:none;color:#9aa8a3;cursor:pointer;font-size:24px;line-height:1;padding:0">×</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;margin:14px 26px 0;background:#fff7ed;border:1px solid #f4e6cf;border-radius:11px;padding:10px 13px">
+        <span style="display:flex">{{ infoEl }}</span>
+        <div style="font-size:12px;color:#8a5a1e;font-weight:600">Draft template — must be reviewed and approved by a qualified person before signing.</div>
+      </div>
+      <div style="overflow-y:auto;padding:18px 26px 8px">
+        <div style="background:#f4faf8;border:1px solid #e0efe9;border-radius:13px;padding:13px 15px;margin-bottom:16px">
+          <sc-for list="{{ agFields }}" as="f" hint-placeholder-count="7">
+            <div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid #eef2f0">
+              <span style="flex:0 0 130px;font-size:12px;color:#9aa8a3">{{ f.k }}</span>
+              <span style="flex:1;font-size:13px;font-weight:700;color:#14302b">{{ f.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ agClauses }}" as="c" hint-placeholder-count="9">
+          <div style="margin-bottom:14px">
+            <div style="font-size:13.5px;font-weight:800;color:#14302b;margin-bottom:4px">{{ c.h }}</div>
+            <div style="font-size:12.8px;line-height:1.55;color:#41635c">{{ c.body }}</div>
+          </div>
+        </sc-for>
+        <div style="display:flex;gap:14px;margin:20px 0 8px">
+          <div style="flex:1"><div style="height:38px;border-bottom:1.5px solid #cdd8d3"></div><div style="font-size:11px;color:#9aa8a3;margin-top:5px">Participant signature — Ali Tahan</div></div>
+          <div style="flex:1"><div style="height:38px;border-bottom:1.5px solid #cdd8d3"></div><div style="font-size:11px;color:#9aa8a3;margin-top:5px">Worker signature — Amara Okafor</div></div>
+        </div>
+      </div>
+      <div style="padding:14px 26px;border-top:1px solid #eef2f0;display:flex;justify-content:flex-end">
+        <button onClick="{{ closeAgModal }}" style="height:44px;padding:0 22px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Close preview</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { step:0, orgType:0, pMode:'manual', workerSel:0, docPhase:'idle', elapsed:0, toast:null, activeFilters:[], agModalOpen:false };
+  tick=null;
+  componentDidMount(){ this.tick=setInterval(()=>this.setState(s=>({elapsed:s.elapsed+1})),1000); }
+  componentWillUnmount(){ clearInterval(this.tick); }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  ic(n,c,s,sw){
+    const stroke=c||'#5f726d',sz=s||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      upload:'M12 16V4 M7 9l5-5 5 5 M4 20h16',
+      check:'M20 6L9 17l-5-5',
+      checkCirc:'M12 12m-10 0a10 10 0 1 0 20 0 10 10 0 1 0-20 0 M8 12l3 3 5-5',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5',
+      info:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 11v5 M12 8h.01',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2'
+    };
+    return React.createElement('svg',{width:sz,height:sz,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.doc}));
+  }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const step=this.state.step;
+    const elapsed=this.state.elapsed;
+    const mm=Math.floor(elapsed/60), ss=elapsed%60;
+    const elapsedStr=(mm>0?mm+'m ':'')+ss+'s';
+
+    const stepLabels=['Sign up','Upload docs','Participant','Find worker','Agreement','Done'];
+    const steps=stepLabels.map((label,i)=>({label,barBg:i<step?'#16b8a6':i===step?'rgba(22,184,166,.5)':'rgba(255,255,255,.12)',labelFg:i<=step?'#7ce0d2':'#5f7a73'}));
+
+    const orgTypeDefs=['Service provider','Support coordination','Allied health','ABN contractor'];
+    const orgTypes=orgTypeDefs.map((label,i)=>{const a=this.state.orgType===i;return{label,onClick:()=>this.setState({orgType:i}),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+
+    const dp=this.state.docPhase;
+    const pMode=this.state.pMode||'manual';
+    const wSel=this.state.workerSel||0;
+
+    const workerDefs=[
+      {name:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,role:'Senior Support Worker',area:'Glenroy · 2.1km',checks:'9',score:'98%',tags:['Hoist trained','Medication','Arabic','Female'],availableNow:true},
+      {name:'Noah Reed',init:'NR',tint:'#0e5147',pro:false,role:'Support Worker',area:'Coburg · 3.8km',checks:'8',score:'91%',tags:['Driver','Manual handling','Personal care'],availableNow:true},
+      {name:'Grace Adeyemi',init:'GA',tint:'#9333ea',pro:true,role:'Disability Worker',area:'Footscray · 5km',checks:'9',score:'87%',tags:['Behaviour support','Autism','Female'],availableNow:false}
+    ];
+    const workers=workerDefs.map((w,i)=>({...w,idx:i,selBd:wSel===i?'#16b8a6':'#e7ece9',selBg:wSel===i?'#f4faf8':'#fff',onSelect:()=>this.setState({workerSel:i})}));
+
+    // Real, working client-side filtering of the matched-worker list.
+    const filterDefs=['Personal Care','Female','Hoist','Glenroy','Available now'];
+    const active=this.state.activeFilters||[];
+    const toggleFilter=(label)=>this.setState(s=>{const cur=s.activeFilters||[];return {activeFilters:cur.includes(label)?cur.filter(x=>x!==label):[...cur,label]};});
+    const matchesFilter=(w,label)=>{
+      if(label==='Available now') return !!w.availableNow;
+      const hay=((w.tags||[]).join(' ')+' '+(w.area||'')+' '+(w.role||'')).toLowerCase();
+      return hay.includes(label.toLowerCase());
+    };
+    const searchFilters=filterDefs.map(label=>{const on=active.includes(label);return {label,onClick:()=>toggleFilter(label),bd:on?'#16b8a6':'#e2e9e6',bg:on?'#e7f4f1':'#fff',fg:on?'#0b6b60':'#5f726d'};});
+    const visibleWorkers=workers.filter(w=>active.every(l=>matchesFilter(w,l)));
+
+    let selWorker=workers[wSel]||workers[0];
+    if(visibleWorkers.length && !visibleWorkers.some(w=>w.idx===(selWorker&&selWorker.idx))) selWorker=visibleWorkers[0];
+    const inviteLabel='Invite '+((selWorker&&selWorker.name)?selWorker.name.split(' ')[0]:'worker')+' & send agreement →';
+
+    const agFields=[
+      {k:'Participant',v:'Ali Tahan'},
+      {k:'NDIS number',v:'4310 887 226'},
+      {k:'Provider',v:'Brightside Care'},
+      {k:'Worker',v:'Amara Okafor'},
+      {k:'Service',v:'Personal Care'},
+      {k:'Rate',v:'$46/hr'},
+      {k:'Plan period',v:'01 Jul 2026 – 30 Jun 2027'}
+    ];
+
+    const doneItems=['Account created','Documents uploaded','Ali Tahan added','Amara Okafor matched','Service agreement sent','Signing in progress'];
+
+    // Full service-agreement body, populated from the auto-filled fields above.
+    // COMPLIANCE: NDIS service agreement — draft template, must be reviewed by a qualified person before use with real participants.
+    const agClauses=[
+      {h:'1. Parties',body:'This Service Agreement is made between Brightside Care (the Provider) and Ali Tahan (the Participant), NDIS number 4310 887 226.'},
+      {h:'2. Purpose',body:'This agreement provides supports under the Participant’s NDIS plan, in line with the NDIS Act 2013 and the NDIS Practice Standards.'},
+      {h:'3. Schedule of supports',body:'Personal Care delivered by Amara Okafor at $46/hr, in accordance with the current NDIS Pricing Arrangements and Price Limits, for the plan period 01 Jul 2026 – 30 Jun 2027.'},
+      {h:'4. Provider responsibilities',body:'Deliver supports safely and respectfully, communicate openly, protect privacy, give at least 7 days notice of changes, issue regular invoices, and treat the Participant with courtesy and dignity.'},
+      {h:'5. Participant responsibilities',body:'Treat workers with respect, raise any concerns with the Provider, give notice when a scheduled support is no longer needed, and tell the Provider if the NDIS plan changes, is suspended or replaced.'},
+      {h:'6. Payments',body:'The Participant is plan-managed. The Provider claims payment from the plan manager after supports are delivered. Rates follow the current NDIS price guide.'},
+      {h:'7. Cancellations',body:'Either party may cancel a scheduled support. Short-notice cancellations may be charged in line with the current NDIS cancellation rules.'},
+      {h:'8. Changes & ending this agreement',body:'Changes must be agreed in writing by both parties. Either party may end this agreement with 14 days notice, or immediately for a serious breach.'},
+      {h:'9. Feedback & complaints',body:'Concerns can be raised with the Provider directly. Unresolved complaints can be made to the NDIS Quality and Safeguards Commission on 1800 035 544.'}
+    ];
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      agModalOpen:this.state.agModalOpen,
+      closeAgModal:()=>this.setState({agModalOpen:false}),
+      previewAgreement:()=>this.setState({agModalOpen:true}),
+      agClauses,
+      logoEl:ic('logo','#eafaf8',20),
+      steps,stepNum:step+1,
+      isStep0:step===0,isStep1:step===1,isStep2:step===2,isStep3:step===3,isStep4:step===4,isStep5:step===5,
+      next:()=>this.setState(s=>({step:Math.min(5,s.step+1)})),
+      restart:()=>this.setState({step:0,elapsed:0,docPhase:'idle'}),
+      gotoDashboard:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      orgTypes,
+      sparkBlueEl:ic('spark','#2a4a8a',17),sparkSmEl:ic('spark','#0b6b60',14),
+      uploadEl:ic('upload','#16b8a6',24),uploadSmEl:ic('upload','#0b6b60',15),
+      docScanEl:ic('doc','#16b8a6',22),checkBigEl:ic('check','#1e9e6a',24,2.6),checkSmEl:ic('check','#06201c',16,2.4),bigCheckEl:ic('checkCirc','#1e9e6a',32,2.4),
+      docIdle:dp==='idle',docUploaded:dp==='uploading',docDone:dp==='done',
+      uploadBd:dp==='done'?'#16b8a6':'#b6d8d0',uploadBtnLabel:dp==='done'?'Upload another doc':'Simulate: upload NDIS registration',
+      uploadDoc:()=>{
+        if(dp==='idle'){ this.setState({docPhase:'uploading'}); clearTimeout(this._dt); this._dt=setTimeout(()=>this.setState({docPhase:'done'}),1800); }
+        else if(dp==='done'){ this.setState({docPhase:'idle'}); }
+      },
+      extracted:[{k:'ABN',v:'44 123 456 789'},{k:'NDIS registration',v:'4050123456 · expires 2027'},{k:'Approved supports',v:'Core · Capacity · Capital'},{k:'Organisation name',v:'Brightside Care'},{k:'State',v:'VIC'}],
+      pMode,
+      pManBd:pMode==='manual'?'#16b8a6':'#e2e9e6',pManBg:pMode==='manual'?'#e7f4f1':'#fff',pManFg:pMode==='manual'?'#0b6b60':'#5f726d',
+      pUpBd:pMode==='upload'?'#16b8a6':'#e2e9e6',pUpBg:pMode==='upload'?'#e7f4f1':'#fff',pUpFg:pMode==='upload'?'#0b6b60':'#5f726d',
+      setParticipantMode:{manual:()=>this.setState({pMode:'manual'}),upload:()=>this.setState({pMode:'upload'})},
+      searchFilters,matchedWorkers:visibleWorkers,noWorkers:visibleWorkers.length===0,inviteLabel,
+      agFields,infoEl:ic('info','#d98b22',17),sendEl:ic('send','#06201c',16),
+      doneItems,clockSmEl:ic('clock','#5f7a73',14),elapsed:elapsedStr
+    };
+  }
+}
+</script>
+</body>
+</html>

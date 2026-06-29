@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes cc-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:260px;flex:0 0 260px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">CONSENT CENTRE</div></div>
+    </div>
+
+    <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#5f7a73;margin-bottom:8px">SELECT PARTICIPANT</div>
+      <sc-for list="{{ participants }}" as="pt" hint-placeholder-count="4">
+        <button onClick="{{ pt.select }}" style="width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;margin-bottom:4px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;background:{{ pt.bg }}">
+          <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ pt.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ pt.init }}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:{{ pt.fg }}">{{ pt.name }}</div><div style="font-size:10.5px;color:#5f7a73">{{ pt.ndis }}</div></div>
+          <sc-if value="{{ pt.alert }}" hint-placeholder-val="">{{ alertDotEl }}</sc-if>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:12px 14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#5f7a73;margin-bottom:8px">QUICK LINKS</div>
+      <sc-for list="{{ sideNav }}" as="sn" hint-placeholder-count="4">
+        <button onClick="{{ sn.onClick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;background:transparent" style-hover="background:rgba(255,255,255,.06)">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center">{{ sn.iconEl }}</span>
+          <span style="font-size:13px;font-weight:600;color:#9fb4ae">{{ sn.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:6px">← Back to dashboard</button>
+      <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">Consent &amp; Permissions — {{ selectedName }}</div>
+        <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">Control who sees what · all sharing requires participant consent</div>
+      </div>
+      <button onClick="{{ generateConsentForm }}" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">{{ docEl }}Generate consent form</button>
+      <button onClick="{{ revokeAll }}" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:none;background:#fbe9ed;color:#c0445c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f5d7dc">{{ shieldEl }}Revoke all</button>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 56px">
+    <div style="max-width:1200px;margin:0 auto">
+
+      <!-- Consent summary bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+        <sc-for list="{{ consentKpis }}" as="ck" hint-placeholder-count="4">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:8px">{{ ck.label }}</div>
+            <div style="font-size:26px;font-weight:800;color:{{ ck.color }};letter-spacing:-.02em">{{ ck.value }}</div>
+            <div style="font-size:12px;color:#6c7f79;margin-top:4px">{{ ck.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Permission matrix -->
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-bottom:22px">
+        <div style="padding:16px 22px;border-bottom:1px solid #eef2f0">
+          <div style="font-size:15px;font-weight:800;color:#14302b">Permission matrix — {{ selectedName }}</div>
+          <div style="font-size:12.5px;color:#6c7f79;margin-top:3px">Each row is a care team member. Each column is a data category. Click any cell to toggle access.</div>
+        </div>
+
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:200px repeat(7,1fr);gap:0;padding:11px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">CARE TEAM MEMBER</div>
+          <sc-for list="{{ dataCategories }}" as="dc2" hint-placeholder-count="7">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3;text-align:center">{{ dc2 }}</div>
+          </sc-for>
+        </div>
+
+        <!-- Permission rows -->
+        <sc-for list="{{ permissionRows }}" as="pr" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:200px repeat(7,1fr);gap:0;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ pr.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ pr.init }}</div>
+              <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ pr.name }}</div><div style="display:flex;align-items:center;gap:5px;margin-top:2px"><div style="font-size:10px;color:#8a9a94">{{ pr.role }}</div><span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;color:{{ pr.accessBadge.fg }};background:{{ pr.accessBadge.bg }}">{{ pr.accessBadge.label }}</span></div></div>
+            </div>
+            <sc-for list="{{ pr.cells }}" as="cell" hint-placeholder-count="7">
+              <div style="display:flex;justify-content:center">
+                <button onClick="{{ cell.toggle }}" style="width:36px;height:28px;border-radius:8px;border:1.5px solid {{ cell.bd }};background:{{ cell.bg }};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:{{ cell.fg }}" style-hover="opacity:0.8">{{ cell.label }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+
+        <!-- Legend -->
+        <div style="display:flex;gap:20px;padding:12px 22px;background:#f7faf9;border-top:1px solid #eef2f0">
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:28px;height:22px;border-radius:6px;background:#e9f6ef;border:1.5px solid #1e9e6a;font-size:10px;font-weight:800;color:#1e9e6a;display:flex;align-items:center;justify-content:center">✓</div><span style="font-size:12px;color:#6c7f79">Full access</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:28px;height:22px;border-radius:6px;background:#fbf0df;border:1.5px solid #d98b22;font-size:10px;font-weight:800;color:#d98b22;display:flex;align-items:center;justify-content:center">~</div><span style="font-size:12px;color:#6c7f79">Summary only</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:28px;height:22px;border-radius:6px;background:#f1f4f2;border:1.5px solid #b6c4be;font-size:10px;font-weight:800;color:#9aa8a3;display:flex;align-items:center;justify-content:center">✗</div><span style="font-size:12px;color:#6c7f79">No access</span></div>
+          <div style="margin-left:auto;font-size:12px;color:#6c7f79">Click any cell to toggle · changes saved automatically</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:18px">
+
+        <!-- Consent documents -->
+        <div id="consent-docs-section" style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Consent documents</div>
+            <button onClick="{{ generateConsentForm }}" style="display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">+ New</button>
+          </div>
+          <sc-for list="{{ consentDocs }}" as="cd" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid #f4f7f5">
+              <div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;background:{{ cd.tintBg }};display:flex;align-items:center;justify-content:center">{{ cd.iconEl }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;color:#14302b">{{ cd.name }}</div>
+                <div style="font-size:11.5px;color:#8a9a94;margin-top:2px">{{ cd.meta }}</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:{{ cd.stFg }};background:{{ cd.stBg }};padding:3px 9px;border-radius:7px">{{ cd.status }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ docsEmpty }}" hint-placeholder-val="">
+            <div style="padding:22px 20px;font-size:12.5px;color:#8a9a94;text-align:center">No consent documents recorded yet for {{ selectedName }}. Use <b>+ New</b> to record one.</div>
+          </sc-if>
+        </div>
+
+        <!-- Consent history -->
+        <div id="consent-history-section" style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Consent change history</div>
+          <sc-for list="{{ consentHistory }}" as="ch" hint-placeholder-count="4">
+            <div style="display:flex;gap:12px;padding:12px 20px;border-bottom:1px solid #f4f7f5">
+              <div style="width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:{{ ch.dot }};margin-top:5px"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:700;color:#14302b;line-height:1.4">{{ ch.action }}</div>
+                <div style="font-size:11px;color:#8a9a94;margin-top:3px">{{ ch.by }} · {{ ch.when }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ historyEmpty }}" hint-placeholder-val="">
+            <div style="padding:22px 20px;font-size:12.5px;color:#8a9a94;text-align:center">No consent changes recorded yet. Toggling access or recording a consent form will log here.</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+    </div>
+  </main>
+</div>
+
+<!-- Generate / record consent modal -->
+<sc-if value="{{ genOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:90;background:rgba(8,22,19,.46);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px" onClick="{{ genClose }}">
+    <div onClick="{{ genStop }}" style="width:100%;max-width:480px;background:#fff;border-radius:18px;box-shadow:0 24px 60px -16px rgba(0,0,0,.45);overflow:hidden;animation:cc-rise .2s ease">
+      <div style="padding:18px 22px;border-bottom:1px solid #eef2f0;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:16px;font-weight:800;color:#14302b">Record consent — {{ selectedName }}</div>
+        <button onClick="{{ genClose }}" style="background:none;border:none;color:#9aa8a3;font-size:22px;line-height:1;cursor:pointer;padding:0">×</button>
+      </div>
+      <div style="padding:20px 22px">
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:6px">CONSENT TYPE</label>
+        <select value="{{ genDocType }}" onChange="{{ genDocTypeChange }}" style="width:100%;padding:10px 12px;border:1px solid #dde4e1;border-radius:10px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;margin-bottom:16px">
+          <option value="general_share">General consent to share information</option>
+          <option value="clinical_info">Consent — clinical information (allied health)</option>
+          <option value="photo_image">Consent — photo &amp; image capture</option>
+          <option value="privacy_notice">Privacy notice acknowledgement</option>
+          <option value="other">Other consent</option>
+        </select>
+
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:6px">SIGNED BY</label>
+        <select value="{{ genSignedBy }}" onChange="{{ genSignedByChange }}" style="width:100%;padding:10px 12px;border:1px solid #dde4e1;border-radius:10px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;margin-bottom:16px">
+          <option value="participant">Participant</option>
+          <option value="guardian">Guardian / nominee</option>
+          <option value="advocate">Advocate</option>
+        </select>
+
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:6px">DATE SIGNED</label>
+        <input value="{{ genSignedAt }}" onChange="{{ genSignedAtChange }}" type="date" style="width:100%;padding:10px 12px;border:1px solid #dde4e1;border-radius:10px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;margin-bottom:16px" />
+
+        <div style="display:flex;gap:8px;padding:11px 13px;background:#fff8ec;border:1px solid #f4e2c2;border-radius:10px;margin-bottom:4px">
+          <span style="font-size:14px;line-height:1.3">⚠️</span>
+          <div style="font-size:11.5px;color:#8a6d2f;line-height:1.45">This records the consent and its status. The legally binding signed form and signature capture must be completed and reviewed by your compliance process — this does not generate a legal document.</div>
+        </div>
+      </div>
+      <div style="padding:14px 22px;border-top:1px solid #eef2f0;display:flex;gap:10px;justify-content:flex-end">
+        <button onClick="{{ genClose }}" style="padding:9px 16px;border-radius:10px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ genSubmit }}" style="padding:9px 18px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ genSubmitLabel }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- Toast -->
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:cc-rise .25s ease">
+    {{ checkEl }}{{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    selectedPt: 0,
+    toast: null,
+    perms: {}, // PREVIEW-MODE only (no Supabase): key ptIdx_roleKey_catIdx -> level, in localStorage
+    supabaseParticipants: [],
+    supabaseConnected: false,
+    dbPerms: {},            // CONNECTED: key `${subject_key}_${category}` -> 'full'|'summary'|'none' (current participant)
+    consentDocsData: [],    // CONNECTED: consent_documents rows for current participant
+    consentHistoryData: [], // CONNECTED: consent_audit_log rows for current participant
+    consentLoaded: false,   // have we attempted a real load for the current participant
+    genOpen: false,
+    genDocType: 'general_share',
+    genSignedBy: 'participant',
+    genSignedAt: '',
+    genBusy: false,
+  };
+
+  componentDidMount(){
+    try{
+      const AD=window.AegisData;
+      if(AD){ const saved=AD.get('consent_perms'); if(saved && typeof saved==='object') this.setState({perms:saved}); }
+    }catch(e){}
+    try{ this.setState({genSignedAt: new Date().toISOString().slice(0,10)}); }catch(e){}
+    this.loadParticipants();
+  }
+
+  loadParticipants(){
+    try{
+      if(!window.loadParticipantsForCurrentUser) return;
+      Promise.resolve(window.loadParticipantsForCurrentUser()).then(res=>{
+        if(res && !res.error && res.participants && res.participants.length){
+          const connected = window.isSupabaseConfigured ? window.isSupabaseConfigured() : true;
+          this.setState({
+            supabaseParticipants: res.participants,
+            supabaseConnected: connected
+          });
+          if(connected){
+            const first = res.participants[0];
+            if(first && first.id) this.loadConsentFor(first.id);
+          }
+        }
+      }).catch(e=>console.warn('loadParticipants error:', e && e.message));
+    }catch(e){ console.warn('loadParticipants error:', e && e.message); }
+  }
+
+  // Current real participant id (connected mode), or null.
+  currentParticipantId(){
+    const {supabaseParticipants,supabaseConnected,selectedPt}=this.state;
+    if(!supabaseConnected) return null;
+    const p=(supabaseParticipants||[])[selectedPt];
+    return p && p.id ? p.id : null;
+  }
+
+  // Load the real consent matrix, documents and audit log for a participant.
+  loadConsentFor(participantId){
+    if(!participantId){ this.setState({dbPerms:{},consentDocsData:[],consentHistoryData:[],consentLoaded:true}); return; }
+    this.setState({consentLoaded:false});
+    const jobs=[
+      window.loadConsentPermissions ? Promise.resolve(window.loadConsentPermissions(participantId)) : Promise.resolve({permissions:[]}),
+      window.loadConsentDocuments ? Promise.resolve(window.loadConsentDocuments(participantId)) : Promise.resolve({documents:[]}),
+      window.loadConsentAuditLog ? Promise.resolve(window.loadConsentAuditLog(participantId)) : Promise.resolve({entries:[]}),
+    ];
+    Promise.all(jobs).then(([permRes,docRes,auditRes])=>{
+      const dbPerms={};
+      ((permRes&&permRes.permissions)||[]).forEach(row=>{ dbPerms[`${row.subject_key}_${row.category}`]=row.access_level; });
+      this.setState({
+        dbPerms,
+        consentDocsData:(docRes&&docRes.documents)||[],
+        consentHistoryData:(auditRes&&auditRes.entries)||[],
+        consentLoaded:true,
+      });
+    }).catch(e=>{ console.warn('loadConsentFor error:', e && e.message); this.setState({consentLoaded:true}); });
+  }
+
+  selectParticipant(i){
+    this.setState({selectedPt:i});
+    if(this.state.supabaseConnected){
+      const p=(this.state.supabaseParticipants||[])[i];
+      if(p && p.id) this.loadConsentFor(p.id);
+      else this.setState({dbPerms:{},consentDocsData:[],consentHistoryData:[],consentLoaded:true});
+    }
+  }
+
+  // Reload only the audit log (after a change) without flicker on the matrix.
+  refreshAudit(participantId){
+    if(!participantId || !window.loadConsentAuditLog) return;
+    Promise.resolve(window.loadConsentAuditLog(participantId)).then(r=>{
+      if(r && !r.error) this.setState({consentHistoryData:r.entries||[]});
+    }).catch(()=>{});
+  }
+
+  // Toggle one matrix cell. role = {key,name}, cat = category key, ci = index, next = next level.
+  toggleCell(connected, role, cat, ci, next, catLabel){
+    const labelMap={full:'Full access granted',summary:'Summary access granted',none:'Access revoked'};
+    const sym={full:'✓',summary:'~',none:'✗'};
+    if(connected){
+      const pid=this.currentParticipantId();
+      if(!pid){ this.showToast('Select a participant first'); return; }
+      const key=`${role.key}_${cat}`;
+      const prev=this.state.dbPerms[key]||'none';
+      // optimistic update
+      this.setState(s=>({dbPerms:{...s.dbPerms,[key]:next}}));
+      Promise.resolve(window.setConsentPermission({
+        participant_id:pid, subject_key:role.key, subject_role:role.key, subject_label:role.name, category:cat, access_level:next
+      })).then(res=>{
+        if(res && res.permission && !res.error){
+          this.showToast(labelMap[next]+' '+sym[next]+' for '+role.name+' ('+catLabel+') — saved');
+          if(window.logConsentChange){
+            Promise.resolve(window.logConsentChange({
+              participant_id:pid,
+              action:labelMap[next]+' for '+role.name+' — '+catLabel,
+              category:cat, subject_label:role.name,
+              detail:catLabel+' set to '+next
+            })).then(()=>this.refreshAudit(pid)).catch(()=>{});
+          }
+        } else {
+          this.setState(s=>({dbPerms:{...s.dbPerms,[key]:prev}}));
+          this.showToast("Couldn't save: "+((res&&res.error)||'unknown error'));
+        }
+      }).catch(e=>{
+        this.setState(s=>({dbPerms:{...s.dbPerms,[key]:prev}}));
+        this.showToast("Couldn't save: "+(e&&e.message||'error'));
+      });
+      return;
+    }
+    // PREVIEW MODE (no Supabase): persist to localStorage as before.
+    const k=`${this.state.selectedPt}_${role.key}_${ci}`;
+    this.setState(s=>{
+      const newPerms={...s.perms,[k]:next};
+      const AD=window.AegisData; if(AD) AD.set('consent_perms',newPerms);
+      return {perms:newPerms};
+    });
+    this.showToast(labelMap[next]+' '+sym[next]+' for '+role.name+' — saved (preview)');
+  }
+
+  // Open / submit the "record consent" modal.
+  openGenerate(){ this.setState({genOpen:true}); }
+  closeGenerate(){ this.setState({genOpen:false}); }
+  submitConsent(selName){
+    const {genDocType,genSignedBy,genSignedAt}=this.state;
+    const baseMap={general_share:'General consent to share information',clinical_info:'Consent — clinical information (allied health)',photo_image:'Consent — photo & image capture',privacy_notice:'Privacy notice acknowledgement',other:'Consent'};
+    const title=(baseMap[genDocType]||'Consent')+' — '+(selName||'Participant');
+    const pid=this.currentParticipantId();
+    if(!(this.state.supabaseConnected && pid && window.createConsentDocument)){
+      this.setState({genOpen:false});
+      this.showToast('Preview mode — connect your account to record consent');
+      return;
+    }
+    this.setState({genBusy:true});
+    Promise.resolve(window.createConsentDocument({
+      participant_id:pid, doc_type:genDocType, title, status:'active',
+      signed_by:genSignedBy, signed_role:genSignedBy, signed_at:genSignedAt||null
+    })).then(res=>{
+      this.setState({genBusy:false});
+      if(res && res.document && !res.error){
+        this.setState({genOpen:false});
+        this.showToast('Consent recorded — flag for compliance review');
+        if(window.logConsentChange){
+          Promise.resolve(window.logConsentChange({
+            participant_id:pid, action:'Consent recorded — '+title, subject_label:genSignedBy, detail:'Signed by '+genSignedBy
+          })).catch(()=>{});
+        }
+        this.loadConsentFor(pid);
+      } else {
+        this.showToast("Couldn't record consent: "+((res&&res.error)||'unknown error'));
+      }
+    }).catch(e=>{ this.setState({genBusy:false}); this.showToast("Couldn't record consent: "+(e&&e.message||'error')); });
+  }
+
+  doRevokeAll(selName){
+    const pid=this.currentParticipantId();
+    if(!(this.state.supabaseConnected && pid && window.revokeAllConsent)){
+      this.showToast('Preview mode — connect your account to revoke consent');
+      return;
+    }
+    try{ if(!window.confirm('Revoke ALL data-sharing consent for '+selName+'? Every permission will be set to "No access". This is logged.')) return; }catch(e){}
+    Promise.resolve(window.revokeAllConsent(pid)).then(res=>{
+      if(res && !res.error){
+        this.showToast('Revoked '+(res.count||0)+' permission(s) for '+selName);
+        if(window.logConsentChange){
+          Promise.resolve(window.logConsentChange({
+            participant_id:pid, action:'All data-sharing consent revoked', detail:(res.count||0)+' permission(s) set to no access'
+          })).catch(()=>{});
+        }
+        this.loadConsentFor(pid);
+      } else {
+        this.showToast("Couldn't revoke: "+((res&&res.error)||'unknown error'));
+      }
+    }).catch(e=>this.showToast("Couldn't revoke: "+(e&&e.message||'error')));
+  }
+
+  scrollTo(id){ try{ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+  fmtDate(d){ if(!d) return ''; try{ return new Date(d).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(d); } }
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      check:'M20 6L9 17l-5-5',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',
+      alert:'M10.3 3.3L1.6 18a2 2 0 0 0 1.7 3h17.4a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      lock:'M12 2a4 4 0 0 0-4 4v4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      task:'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {selectedPt,perms}=this.state;
+
+    const demoPtList=[
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',ndis:'NDI-4310 887 226',alert:true},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',ndis:'NDI-4012 553 781',alert:false},
+      {name:'Priya Sharma',init:'PS',tint:'#d98b22',ndis:'NDI-3991 220 445',alert:true},
+      {name:'Liam Wright',init:'LW',tint:'#0891b2',ndis:'NDI-3820 441 009',alert:false},
+    ];
+
+    // Real participants fetched on mount via loadParticipantsForCurrentUser() and held
+    // in this.state.supabaseParticipants. Map to the sidebar item shape; fall back to the
+    // demo list when none are loaded so the list never renders blank.
+    const ptInitials=(s)=>String(s||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'P';
+    const ptTints=['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea','#e0556e'];
+    const {supabaseParticipants,supabaseConnected}=this.state;
+    const connected = supabaseConnected && (supabaseParticipants||[]).length;
+    const ptList=connected
+      ? (supabaseParticipants||[]).map((p,i)=>{
+          const nm=p.full_name||p.preferred_name||'Participant';
+          return {
+            id:p.id||null,
+            name:nm,
+            init:ptInitials(nm),
+            tint:ptTints[i%ptTints.length],
+            ndis:p.ndis_number?('NDI-'+p.ndis_number):'',
+            alert:false,
+          };
+        })
+      : demoPtList;
+
+    const participants=ptList.map((p,i)=>({
+      ...p,
+      select:()=>this.selectParticipant(i),
+      bg:selectedPt===i?'rgba(255,255,255,.09)':'transparent',
+      fg:selectedPt===i?'#f4faf8':'#9fb4ae',
+    }));
+
+    const sel=ptList[selectedPt]||ptList[0];
+
+    // Care-ROLE taxonomy (real NDIS roles, not invented individuals). Consent to
+    // share is captured per role-category so it works regardless of care-team size.
+    const roles=[
+      {key:'support_coordinator',name:'Support Coordinator',role:'Coordinates supports',init:'SC',tint:'#6366f1'},
+      {key:'service_provider',   name:'Service Provider',   role:'Delivers funded supports',init:'SP',tint:'#16b8a6'},
+      {key:'support_worker',     name:'Support Worker',     role:'Day-to-day support',init:'SW',tint:'#0891b2'},
+      {key:'allied_health',      name:'Allied Health',      role:'Therapists & clinicians',init:'AH',tint:'#9333ea'},
+      {key:'family_guardian',    name:'Family / Guardian',  role:'Nominee / advocate',init:'FG',tint:'#e0556e'},
+    ];
+
+    const catKeys=['plan','fund','goals','docs','notes','clinical','photos'];
+    const dataCategories=['NDIS Plan','Funding','Goals','Docs','Shift Notes','Clinical','Photos'];
+
+    // Default access levels — PREVIEW MODE ONLY (illustrative). In connected mode
+    // the honest default for any cell that has never been set is 'none' (no
+    // sharing) until someone explicitly grants consent.
+    const defaults={
+      support_coordinator:['full','full','full','full','full','summary','none'],
+      service_provider:   ['none','summary','summary','full','full','none','none'],
+      support_worker:     ['none','none','summary','none','full','none','full'],
+      allied_health:      ['none','none','full','full','none','full','none'],
+      family_guardian:    ['summary','summary','full','summary','summary','none','none'],
+    };
+
+    const lvlMap={full:{label:'✓',bg:'#e9f6ef',bd:'#1e9e6a',fg:'#1e9e6a',next:'summary'},summary:{label:'~',bg:'#fbf0df',bd:'#d98b22',fg:'#b4561f',next:'none'},none:{label:'✗',bg:'#f1f4f2',bd:'#c8d4ce',fg:'#9aa8a3',next:'full'}};
+    const dbPerms=this.state.dbPerms||{};
+
+    const permissionRows=roles.map(r=>{
+      const cells=catKeys.map((cat,ci)=>{
+        let level;
+        if(connected){
+          level=dbPerms[`${r.key}_${cat}`]||'none';
+        } else {
+          const k=`${selectedPt}_${r.key}_${ci}`;
+          level=perms[k]||(defaults[r.key]?defaults[r.key][ci]:'none')||'none';
+        }
+        const lv=lvlMap[level]||lvlMap.none;
+        return {...lv,toggle:()=>this.toggleCell(connected,r,cat,ci,lv.next,dataCategories[ci])};
+      });
+      const totalCats=catKeys.length;
+      const grantedCount=cells.filter(c=>c.label==='✓'||c.label==='~').length;
+      const hasAny=grantedCount>0;
+      const accessBadge=hasAny
+        ? {label:`${grantedCount}/${totalCats} categories`,fg:'#1e7a52',bg:'#e9f6ef'}
+        : {label:'No access granted',fg:'#9aa8a3',bg:'#f1f4f2'};
+      return {...r,cells,accessBadge,hasAny};
+    });
+
+    // ---- Consent documents (real in connected mode) ----
+    const statusMap={
+      active:     {label:'Active',     stFg:'#1e7a52',stBg:'#e9f6ef',icon:'check',iconC:'#1e9e6a',tintBg:'#e9f6ef'},
+      expiring:   {label:'Expiring',   stFg:'#b4561f',stBg:'#fbf0df',icon:'alert',iconC:'#d98b22',tintBg:'#fbf0df'},
+      renewal_due:{label:'Renewal due',stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',iconC:'#e0556e',tintBg:'#fbe9ed'},
+      draft:      {label:'Draft',      stFg:'#6c7f79',stBg:'#eef2f0',icon:'doc',  iconC:'#8a9a94',tintBg:'#f1f4f2'},
+      revoked:    {label:'Revoked',    stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',iconC:'#c0445c',tintBg:'#fbe9ed'},
+    };
+    const fmt=(d)=>this.fmtDate(d);
+    const docsData=this.state.consentDocsData||[];
+    const histData=this.state.consentHistoryData||[];
+
+    const demoDocs=[
+      {name:'General Consent to Share — Margaret Reyes',meta:'Signed by participant · 01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',16),tintBg:'#e9f6ef'},
+      {name:'Consent — Clinical Information (Allied Health)',meta:'Signed by guardian · 01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',16),tintBg:'#e9f6ef'},
+      {name:'Consent — Photo & Image Capture',meta:'Signed by participant · 15 Jun 2026',status:'Expiring',stFg:'#b4561f',stBg:'#fbf0df',iconEl:ic('alert','#d98b22',16),tintBg:'#fbf0df'},
+      {name:'Privacy Notice Acknowledgement',meta:'Signed by participant · 01 Jul 2025',status:'Renewal due',stFg:'#c0445c',stBg:'#fbe9ed',iconEl:ic('alert','#e0556e',16),tintBg:'#fbe9ed'},
+    ];
+    const consentDocs=connected
+      ? docsData.map(d=>{
+          const sm=statusMap[d.status]||statusMap.draft;
+          const who=d.signed_by?('Signed by '+d.signed_by):'Unsigned';
+          const when=fmt(d.signed_at||d.created_at);
+          return {name:d.title,meta:who+(when?(' · '+when):''),status:sm.label,stFg:sm.stFg,stBg:sm.stBg,iconEl:ic(sm.icon,sm.iconC,16),tintBg:sm.tintBg};
+        })
+      : demoDocs;
+    const docsEmpty = connected && consentDocs.length===0;
+
+    // ---- Consent change history (real in connected mode) ----
+    const demoHistory=[
+      {action:'Full access granted to Jordan Pham (Physio) for Goals & Clinical',by:'Margaret Reyes',when:'20 Jun 2026',dot:'#1e9e6a'},
+      {action:'Photo access revoked for James Liu (Support Worker)',by:'Mariam T. (Guardian)',when:'15 Jun 2026',dot:'#c0445c'},
+      {action:'Funding summary access granted to Brightside Care',by:'Sarah Kelly (SC)',when:'01 Jul 2026',dot:'#1e9e6a'},
+      {action:'Consent form renewed — General Information Sharing',by:'Margaret Reyes',when:'01 Jul 2026',dot:'#16b8a6'},
+      {action:'Clinical notes access revoked for Family/Guardian',by:'Margaret Reyes',when:'12 May 2026',dot:'#c0445c'},
+    ];
+    const dotFor=(a)=>{const t=String(a||'').toLowerCase(); if(t.indexOf('revok')!==-1) return '#c0445c'; if(t.indexOf('grant')!==-1) return '#1e9e6a'; return '#16b8a6';};
+    const consentHistory=connected
+      ? histData.map(h=>({action:h.action,by:h.actor_label||'—',when:fmt(h.created_at),dot:dotFor(h.action)}))
+      : demoHistory;
+    const historyEmpty = connected && consentHistory.length===0;
+
+    // ---- KPIs (computed from real data in connected mode) ----
+    const grantedCells=permissionRows.reduce((sum,r)=>sum+r.cells.filter(c=>c.label==='✓'||c.label==='~').length,0);
+    const rolesWithAccess=permissionRows.filter(r=>r.hasAny).length;
+    const signedDocs=connected?docsData.filter(d=>['active','expiring','renewal_due'].indexOf(d.status)!==-1).length:6;
+    const alertDocs=connected?docsData.filter(d=>['expiring','renewal_due'].indexOf(d.status)!==-1).length:2;
+    const consentKpis=connected
+      ? [
+          {label:'CONSENT FORMS ON RECORD',value:String(signedDocs),color:'#1e9e6a',sub:signedDocs?'Active / current consents':'None recorded yet'},
+          {label:'ROLES WITH ACCESS',value:rolesWithAccess+'/'+roles.length,color:'#0b6b60',sub:'Care roles with any data shared'},
+          {label:'PERMISSIONS GRANTED',value:String(grantedCells),color:'#14302b',sub:'Across all data categories'},
+          {label:'ALERTS',value:String(alertDocs),color:alertDocs?'#c0445c':'#1e9e6a',sub:alertDocs?'Consent expiring / renewal due':'No consents need review'},
+        ]
+      : [
+          {label:'CONSENT FORMS SIGNED',value:'6',color:'#1e9e6a',sub:'All current · last updated Jul 2026'},
+          {label:'ROLES WITH ACCESS',value:'5/6',color:'#0b6b60',sub:'Family access pending review'},
+          {label:'PERMISSIONS GRANTED',value:'34',color:'#14302b',sub:'Across all data categories'},
+          {label:'ALERTS',value:'2',color:'#c0445c',sub:'Consent expiring soon · review needed'},
+        ];
+
+    return {
+      logoEl:ic('shield','#eafaf8',20),
+      logoutEl:ic('logout','#56716a',14),
+      alertDotEl:React.createElement('span',{style:{width:8,height:8,borderRadius:'50%',background:'#e0556e',flex:'0 0 8px',display:'block'}}),
+      docEl:ic('doc','#41635c',15),
+      shieldEl:ic('shield','#c0445c',15),
+      checkEl:ic('check','#16b8a6',15),
+      participants,
+      selectedName:sel.name,
+      sideNav:[
+        {label:'All participants',iconEl:ic('users','#7e948e',16),onClick:()=>{window.location.href='Care Ecosystem.dc.html';}},
+        {label:'Consent documents',iconEl:ic('file','#7e948e',16),onClick:()=>this.scrollTo('consent-docs-section')},
+        {label:'Audit log',iconEl:ic('task','#7e948e',16),onClick:()=>this.scrollTo('consent-history-section')},
+        {label:'Settings',iconEl:ic('grid','#7e948e',16),onClick:()=>{window.location.href='Settings.dc.html';}},
+      ],
+      dataCategories,
+      permissionRows,
+      consentKpis,
+      consentDocs,
+      docsEmpty,
+      consentHistory,
+      historyEmpty,
+      generateConsentForm:()=>this.openGenerate(),
+      revokeAll:()=>this.doRevokeAll(sel.name),
+      // Record-consent modal bindings
+      genOpen:this.state.genOpen,
+      genStop:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
+      genClose:()=>this.closeGenerate(),
+      genDocType:this.state.genDocType,
+      genDocTypeChange:(e)=>this.setState({genDocType:e.target.value}),
+      genSignedBy:this.state.genSignedBy,
+      genSignedByChange:(e)=>this.setState({genSignedBy:e.target.value}),
+      genSignedAt:this.state.genSignedAt,
+      genSignedAtChange:(e)=>this.setState({genSignedAt:e.target.value}),
+      genSubmit:()=>this.submitConsent(sel.name),
+      genSubmitLabel:this.state.genBusy?'Recording…':'Record consent',
+      goBack:()=>{try{const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html',guardian_nominee:'Participant Dashboard.dc.html'};window.location.href=m[s.role]||'Index.dc.html';}catch(e){window.location.href='Index.dc.html';}},
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

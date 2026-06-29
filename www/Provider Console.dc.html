@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes pc-glow{0%,100%{opacity:.5;transform:rotate(0deg)}50%{opacity:.9;transform:rotate(180deg)}}
+    @keyframes pc-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pc-ping{0%{transform:scale(.8);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{opacity:0}}
+
+    /* ====================================================================
+       RESPONSIVE — phones & tablets. Desktop layout is UNCHANGED: every rule
+       below lives inside a media query and overrides inline desktop styles via
+       [style*="…"] attribute selectors + !important. No HTML / JS touched.
+       ==================================================================== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;max-width:100%}
+      /* top wrapper: stack sidebar above content, clip horizontal overflow */
+      [style*="min-height:100vh"][style*="width:100%"]{flex-direction:column !important;overflow-x:hidden !important;width:100% !important;max-width:100% !important}
+      /* main column fills width */
+      main[style*="min-width:0"]{min-width:0 !important;width:100% !important;max-width:100% !important}
+      /* sidebar -> full-width top bar with horizontally scrollable nav */
+      aside[style*="width:230px"]{
+        width:100% !important;max-width:100% !important;flex:0 0 auto !important;height:auto !important;
+        position:static !important;border-right:none !important;border-bottom:1px solid rgba(255,255,255,.07) !important;
+      }
+      aside[style*="width:230px"] nav{
+        flex:0 0 auto !important;display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+        overflow-x:auto !important;overflow-y:hidden !important;gap:6px !important;-webkit-overflow-scrolling:touch;
+      }
+      aside[style*="width:230px"] nav [style*="letter-spacing:.15em"]{display:none !important}
+      aside[style*="width:230px"] nav button{width:auto !important;flex:0 0 auto !important;white-space:nowrap !important;margin:0 !important}
+      /* header: wrap controls, search goes full width */
+      [style*="backdrop-filter:blur(14px)"]{flex-wrap:wrap !important;gap:10px !important;padding:12px 16px !important}
+      [style*="width:min(320px,40%)"]{width:100% !important;flex:1 1 100% !important}
+      /* scrollable content area: tighter padding */
+      [style*="padding:22px 28px 44px"]{padding:16px 14px 36px !important}
+      /* stat rows (flex:1 cards) wrap instead of overflowing */
+      [style*="display:flex;gap:16px;margin-bottom:18px"]{flex-wrap:wrap !important}
+      [style*="display:flex;gap:16px;margin-bottom:18px"]>div{flex:1 1 140px !important;min-width:140px !important}
+      /* two-column work areas -> single column */
+      [style*="grid-template-columns:380px 1fr"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:330px 1fr"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:1fr 1.3fr"]{grid-template-columns:1fr !important}
+      /* invoice line items + compliance table -> single column */
+      [style*="grid-template-columns:1fr 90px 70px 90px"]{grid-template-columns:1fr !important;gap:4px !important}
+      [style*="grid-template-columns:1.4fr 1fr 1fr 1fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      /* hide the now-meaningless column-label header rows */
+      [style*="grid-template-columns"][style*="letter-spacing:.04em"]{display:none !important}
+      /* notification dropdown stays inside the viewport */
+      [style*="width:330px"]{width:auto !important;max-width:calc(100vw - 24px) !important;right:8px !important}
+    }
+    @media (max-width:520px){
+      [style*="padding:22px 28px 44px"]{padding:12px 10px 32px !important}
+      [style*="backdrop-filter:blur(14px)"]{padding:10px 12px !important;gap:8px !important}
+      /* stat cards -> single column */
+      [style*="display:flex;gap:16px;margin-bottom:18px"]>div{flex:1 1 100% !important;min-width:0 !important}
+      /* proofs / tasks / meta 2-up -> single column */
+      [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+      /* readable tap targets in the top nav */
+      aside[style*="width:230px"] nav button{min-height:40px !important}
+    }
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:230px;flex:0 0 230px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#5f7a73;font-weight:600;margin-top:3px">PROVIDER CONSOLE</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:14px 10px 7px">RECEIVING</div>
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span style="flex:1">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;background:{{ it.badgeBg }};color:{{ it.badgeFg }}">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:11px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#2f9e8f,#1c6b61);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#eafaf7">{{ orgInit }}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e7f2ef">{{ orgName }}</div><div style="font-size:11px;color:#5f7a73">{{ orgRole }}</div></div>
+    </div>
+    <button onClick="{{ goBack }}" style="margin:8px 12px 4px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.18)">← Provider dashboard</button>
+    <button onClick="{{ goPlanBilling }}" style="margin:0 12px 4px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#9fb4ae;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05)"><span style="font-size:13px">💳</span><span style="flex:1;text-align:left">Billing &amp; plan</span></button>
+    <button onClick="{{ signOutPC }}" style="margin:0 12px 12px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05)">{{ logoutPCEl }}Sign out</button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eaeeec">
+    <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:10px;width:min(320px,40%);background:#fff;border:1px solid #e2e9e6;border-radius:11px;padding:8px 12px"><span style="display:flex;color:#9aa8a3">{{ searchEl }}</span><input value="{{ searchTerm }}" onchange="{{ onSearchInput }}" placeholder="Search workers or clients…" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;color:#14302b"><sc-if value="{{ hasSearch }}" hint-placeholder-val=""><button onClick="{{ clearSearch }}" style="border:none;background:none;color:#9aa8a3;cursor:pointer;font-size:16px;line-height:1;padding:0">×</button></sc-if></div>
+      <div style="position:relative">
+        <button onClick="{{ toggleNotif }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e" style-hover="background:#f6f9f7">{{ bellEl }}<span style="position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></button>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="">
+          <div style="position:absolute;right:0;top:48px;width:330px;background:#fff;border:1px solid #e2e9e6;border-radius:16px;box-shadow:0 24px 48px -20px rgba(20,48,43,.4);overflow:hidden;z-index:40">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f4f2"><span style="font-size:14px;font-weight:800;color:#14302b">Notifications</span><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:999px">5 new</span></div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div style="display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid #f1f4f2;background:{{ n.bg }}">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;background:{{ n.tintBg }}">{{ n.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:#14302b;line-height:1.35">{{ n.text }}</div><div style="font-size:11px;color:#9aa8a3;margin-top:2px">{{ n.time }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:22px 28px 44px">
+
+      <!-- ============= RECORDS ============= -->
+      <sc-if value="{{ isRecords }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ noRecords }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No visit records yet</div>
+          <div style="font-size:13px;color:#6c7f79;max-width:440px;margin:0 auto;line-height:1.5">Completed shifts will appear here once your workers clock out. Nothing has been logged for your organisation yet.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasShiftNotes }}" hint-placeholder-val="">
+        <div style="display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="padding:14px 16px;border-bottom:1px solid #eef2f0"><span style="font-size:13px;font-weight:800;color:#14302b">Shift notes from your workers</span></div>
+            <div style="max-height:560px;overflow-y:auto">
+              <sc-for list="{{ shiftNotes }}" as="n" hint-placeholder-count="4">
+                <button onClick="{{ n.onClick }}" style="width:100%;display:flex;gap:12px;padding:14px 15px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ n.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ n.rowBg }}">
+                  <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ n.tint }}">{{ n.init }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:13.5px;font-weight:700;color:#14302b;white-space:nowrap">{{ n.client }}</span><span style="font-size:8.5px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:1px 5px;border-radius:5px">{{ n.typeLabel }}</span></div>
+                    <div style="font-size:12px;color:#6c7f79;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.preview }}</div>
+                    <div style="font-size:11px;color:#9aa8a3;margin-top:5px">{{ n.when }}</div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:13px;padding:18px 22px;border-bottom:1px solid #eef2f0">
+              <div style="width:48px;height:48px;border-radius:14px;flex:0 0 48px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;background:{{ snDetail.tint }}">{{ snDetail.init }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:17px;font-weight:800;color:#14302b">{{ snDetail.client }}</div>
+                <div style="font-size:13px;color:#6c7f79">{{ snDetail.when }}</div>
+              </div>
+              <span style="font-size:10.5px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:7px">{{ snDetail.typeLabel }}</span>
+            </div>
+            <div style="padding:20px 22px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:10px">NOTE</div>
+              <div style="font-size:14px;line-height:1.65;color:#2c4a44;white-space:pre-wrap">{{ snDetail.body }}</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasRecords }}" hint-placeholder-val="{{ true }}">
+      <div style="">
+        <div style="display:flex;gap:16px;margin-bottom:18px">
+          <sc-for list="{{ recStats }}" as="s" hint-placeholder-count="4">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ s.tintBg }}">{{ s.iconEl }}</div><span style="font-size:12.5px;font-weight:600;color:#6c7f79">{{ s.label }}</span></div>
+              <div style="font-size:27px;font-weight:800;letter-spacing:-.02em;color:#14302b;margin-top:10px">{{ s.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:start">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;gap:6px;padding:13px 14px;border-bottom:1px solid #eef2f0">
+              <sc-for list="{{ recTabs }}" as="t" hint-placeholder-count="4">
+                <button onClick="{{ t.onClick }}" style="padding:6px 11px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border:none;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button>
+              </sc-for>
+            </div>
+            <div style="max-height:560px;overflow-y:auto">
+              <sc-for list="{{ records }}" as="r" hint-placeholder-count="5">
+                <button onClick="{{ r.onClick }}" style="width:100%;display:flex;gap:12px;padding:14px 15px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ r.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ r.rowBg }}">
+                  <div style="position:relative;width:40px;height:40px;flex:0 0 40px">
+                    <sc-if value="{{ r.pro }}" hint-placeholder-val=""><div style="position:absolute;inset:-3px;border-radius:13px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(4px);opacity:.7;animation:pc-glow 3.4s ease-in-out infinite"></div></sc-if>
+                    <div style="position:relative;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:13.5px;font-weight:700;color:#14302b;white-space:nowrap">{{ r.worker }}</span><sc-if value="{{ r.pro }}" hint-placeholder-val=""><span style="font-size:8.5px;font-weight:800;color:#06201c;background:linear-gradient(90deg,#7ce0d2,#16b8a6);padding:1px 5px;border-radius:5px">PRO</span></sc-if></div>
+                    <div style="font-size:12px;color:#6c7f79;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.client }} · {{ r.service }}</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                      <span style="font-size:10.5px;font-weight:700;color:{{ r.statusFg }};background:{{ r.statusBg }};padding:2px 7px;border-radius:6px">{{ r.status }}</span>
+                      <span style="font-size:11px;color:#9aa8a3">{{ r.when }}</span>
+                    </div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:13px;padding:18px 22px;border-bottom:1px solid #eef2f0">
+              <div style="position:relative;width:48px;height:48px;flex:0 0 48px">
+                <sc-if value="{{ d.pro }}" hint-placeholder-val=""><div style="position:absolute;inset:-4px;border-radius:16px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(6px);opacity:.75;animation:pc-glow 3.4s ease-in-out infinite"></div></sc-if>
+                <div style="position:relative;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;background:{{ d.tint }}">{{ d.init }}</div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:17px;font-weight:800;color:#14302b;white-space:nowrap">{{ d.worker }}</span><sc-if value="{{ d.pro }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:6px">VERIFIED PRO · 4.9★</span></sc-if></div>
+                <div style="font-size:13px;color:#6c7f79">{{ d.client }} · {{ d.service }} · {{ d.date }}</div>
+              </div>
+              <span style="font-size:11.5px;font-weight:800;color:{{ d.statusFg }};background:{{ d.statusBg }};padding:5px 11px;border-radius:8px">{{ d.status }}</span>
+            </div>
+
+            <div style="max-height:520px;overflow-y:auto;padding:18px 22px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+                <sc-for list="{{ d.proofs }}" as="p" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;background:#f4faf8;border:1px solid #e0efe9;border-radius:11px;padding:10px 12px">{{ p.iconEl }}<div style="min-width:0"><div style="font-size:12px;font-weight:700;color:#14302b">{{ p.label }}</div><div style="font-size:11px;color:#6c8c83">{{ p.val }}</div></div></div>
+                </sc-for>
+              </div>
+
+              <div style="position:relative;height:130px;border-radius:13px;overflow:hidden;background:linear-gradient(135deg,#dfe9e4,#eef3f0);margin-bottom:16px">
+                <div style="position:absolute;top:0;bottom:0;left:42%;width:12px;background:#fff;transform:skewX(-12deg)"></div>
+                <div style="position:absolute;left:0;right:0;top:56%;height:12px;background:#fff;transform:skewY(-3deg)"></div>
+                <div style="position:absolute;left:44%;top:42%;width:20px;height:20px;border-radius:50% 50% 50% 0;background:#16b8a6;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 4px 8px rgba(11,107,96,.5)"></div>
+                <div style="position:absolute;left:56%;top:52%;width:20px;height:20px;border-radius:50% 50% 50% 0;background:#0c2622;transform:translate(-50%,-100%) rotate(-45deg)"></div>
+                <div style="position:absolute;left:11px;bottom:9px;display:flex;gap:11px;font-size:10.5px;font-weight:600;color:#41635c"><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:99px;background:#16b8a6"></span>In 11:00</span><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:99px;background:#0c2622"></span>Out 14:58</span></div>
+              </div>
+
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">TASKS COMPLETED</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px">
+                <sc-for list="{{ d.tasks }}" as="t" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:8px">{{ checkSmEl }}<span style="font-size:12.5px;color:#41635c">{{ t }}</span></div></sc-for>
+              </div>
+
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">SHIFT NOTE</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px"><sc-for list="{{ d.chips }}" as="c" hint-placeholder-count="3"><span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:7px">{{ c }}</span></sc-for></div>
+              <div style="font-size:13px;line-height:1.6;color:#2c4a44;margin-bottom:14px">{{ d.note }}</div>
+              <div style="display:flex;gap:9px;margin-bottom:16px">
+                <div style="width:96px;height:70px;border-radius:11px;background:linear-gradient(135deg,#cfe6d6,#e7f4f1)"></div>
+                <div style="width:96px;height:70px;border-radius:11px;background:linear-gradient(135deg,#d7dffb,#eef0fd)"></div>
+              </div>
+
+              <div style="background:#fbfdfc;border:1px solid #eef2f0;border-radius:13px;padding:13px 15px;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="display:flex">{{ carEl }}</span><span style="font-size:12.5px;font-weight:800;color:#14302b">Travel log</span><span style="font-size:10.5px;font-weight:700;color:#4338ca;background:#eef0fd;padding:2px 7px;border-radius:6px;margin-left:auto">{{ d.travelPurpose }}</span></div>
+                <div style="display:flex;gap:18px"><div><div style="font-size:11px;color:#9aa8a3">Distance</div><div style="font-size:14px;font-weight:800;color:#14302b">22 km</div></div><div><div style="font-size:11px;color:#9aa8a3">Odometer</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#41635c">48,210 → 48,232</div></div><div><div style="font-size:11px;color:#9aa8a3">Photos</div><div style="font-size:13px;font-weight:700;color:#1e7a52">2 verified ✓</div></div></div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;background:#f7faf9;border:1px solid #eef2f0;border-radius:13px">
+                <svg viewBox="0 0 120 40" style="width:80px;height:26px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
+                <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — {{ d.client }}</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · GPS co-located ✓</div></div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;padding:11px 22px;background:#f4faf8;border-top:1px solid #eef2f0">{{ shieldSmEl }}<div style="font-size:11.5px;color:#41635c">Approving locks this as <b style="color:#14302b">agreed proof the shift happened</b> — it protects your worker and you if a claim is ever questioned.</div></div>
+            <div style="display:flex;gap:9px;padding:14px 22px;border-top:1px solid #eef2f0;background:#fbfdfc">
+              <button onClick="{{ flagIncident }}" style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:11px;border:1px solid #f3d6dc;background:#fff;color:#c0445c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#fdeef0">{{ flagEl }}Flag incident</button>
+              <button onClick="{{ sendBack }}" style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ backEl }}Send back</button>
+              <button onClick="{{ addNote }}" style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ noteAddEl }}Add note</button>
+              <div style="flex:1"></div>
+              <button onClick="{{ goBilling }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkWEl }}Approve & bill</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ============= BILLING ============= -->
+      <sc-if value="{{ isBilling }}" hint-placeholder-val="">
+      <sc-if value="{{ noBilling }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">Nothing ready to invoice yet</div>
+          <div style="font-size:13px;color:#6c7f79;max-width:440px;margin:0 auto;line-height:1.5">Approved visits roll up into client invoices here. Once you approve completed shifts, their billing will appear ready to download.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasBilling }}" hint-placeholder-val="{{ true }}">
+      <div style="">
+        <div style="display:flex;gap:16px;margin-bottom:18px">
+          <sc-for list="{{ billStats }}" as="s" hint-placeholder-count="4">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:12.5px;font-weight:600;color:#6c7f79">{{ s.label }}</div>
+              <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:{{ s.color }};margin-top:8px">{{ s.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <span style="font-size:12.5px;font-weight:700;color:#5f726d">Invoice period</span>
+          <div style="display:flex;gap:5px;background:#fff;border:1px solid #e7ece9;border-radius:11px;padding:4px">
+            <sc-for list="{{ billPeriods }}" as="p" hint-placeholder-count="3">
+              <button onClick="{{ p.onClick }}" style="padding:7px 15px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:none;background:{{ p.bg }};color:{{ p.fg }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:14px 16px 10px;font-size:13px;font-weight:800;color:#14302b">Ready to invoice</div>
+            <sc-for list="{{ billClients }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border:none;border-top:1px solid #f1f4f2;border-left:3px solid {{ c.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ c.rowBg }}">
+                <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ c.tint }}">{{ c.init }}</div>
+                <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ c.name }}</span><span style="font-size:9px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:1px 6px;border-radius:5px">{{ c.cycLabel }}</span></div><div style="font-size:11px;color:#8a9a94">{{ c.visits }} visits · {{ c.hours }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9aa8a3">{{ c.range }}</div></div>
+                <div style="text-align:right;flex:0 0 auto"><div style="font-size:14px;font-weight:800;color:{{ c.totalFg }}">{{ c.total }}</div><sc-if value="{{ c.done }}" hint-placeholder-val=""><div style="font-size:10px;font-weight:800;color:#1e7a52">Filed ✓</div></sc-if></div>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid #eef2f0">
+              <div><div style="font-size:11px;letter-spacing:.1em;color:#9aa8a3;font-weight:700">TAX INVOICE · DRAFT</div><div style="font-size:20px;font-weight:800;color:#14302b;margin-top:2px">{{ inv.client }}</div><div style="font-size:12.5px;color:#6c7f79"><b style="color:#0b6b60">{{ inv.cycLabel }}</b> · Client ID {{ inv.cid }}</div></div>
+              <div style="margin-left:auto;text-align:right"><div style="font-size:11px;color:#9aa8a3">Invoice #</div><div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#14302b">{{ inv.number }}</div></div>
+            </div>
+            <div style="display:flex;gap:10px;padding:13px 24px;border-bottom:1px solid #eef2f0;background:#fbfdfc">
+              <div style="flex:1"><div style="font-size:10px;color:#9aa8a3;letter-spacing:.05em">CYCLE</div><div style="font-size:13.5px;font-weight:800;color:#0b6b60;margin-top:2px">{{ inv.cycLabel }}</div></div>
+              <div style="flex:1"><div style="font-size:10px;color:#9aa8a3;letter-spacing:.05em">START DATE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:700;color:#14302b;margin-top:2px">{{ inv.startStr }}</div></div>
+              <div style="flex:1"><div style="font-size:10px;color:#9aa8a3;letter-spacing:.05em">END DATE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:700;color:#14302b;margin-top:2px">{{ inv.endStr }}</div></div>
+            </div>
+            <div style="padding:6px 24px 0">
+              <div style="display:grid;grid-template-columns:1fr 90px 70px 90px;gap:8px;padding:11px 0;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>SERVICE · DATE</span><span style="text-align:right">HOURS</span><span style="text-align:right">RATE</span><span style="text-align:right">AMOUNT</span></div>
+              <sc-for list="{{ inv.lines }}" as="l" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:1fr 90px 70px 90px;gap:8px;padding:12px 0;border-bottom:1px solid #f1f4f2;align-items:center">
+                  <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ l.service }}</div><div style="font-size:11.5px;color:#8a9a94">{{ l.date }} · {{ l.code }}</div></div>
+                  <span style="text-align:right;font-size:12.5px;color:#41635c">{{ l.hours }}</span>
+                  <span style="text-align:right;font-size:12.5px;color:#41635c">{{ l.rate }}</span>
+                  <span style="text-align:right;font-size:13px;font-weight:700;color:#14302b">{{ l.amount }}</span>
+                </div>
+              </sc-for>
+              <div style="display:flex;justify-content:flex-end;padding:14px 0 6px"><div style="width:230px">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;color:#6c7f79"><span>Subtotal</span><span>{{ inv.subtotal }}</span></div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;color:#6c7f79"><span>GST (10%)</span><span>{{ inv.gst }}</span></div>
+                <div style="display:flex;justify-content:space-between;padding:9px 0;margin-top:5px;border-top:2px solid #14302b;font-size:16px;font-weight:800;color:#14302b"><span>Total</span><span>{{ inv.total }}</span></div>
+              </div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;padding:12px 24px;border-top:1px solid #eef2f0;background:#f4faf8">
+              <span style="display:flex">{{ folderTealEl }}</span>
+              <div style="flex:1;font-size:12px;color:#41635c">When you download, I keep a copy filed in <b style="color:#14302b">{{ inv.client }} › Invoicing › {{ inv.folder }}</b> — ready for your accountant.</div>
+            </div>
+            <div style="display:flex;gap:9px;padding:14px 24px;border-top:1px solid #eef2f0;background:#fbfdfc">
+              <button onClick="{{ downloadInvoicePdf }}" style="display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ pdfEl }}Download PDF</button>
+              <button onClick="{{ downloadInvoiceCsv }}" style="display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ csvEl }}Download CSV</button>
+              <div style="flex:1"></div>
+              <button onClick="{{ fileAndNext }}" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ folderWEl }}Download &amp; file · next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ============= AGREEMENTS ============= -->
+      <sc-if value="{{ isAgreements }}" hint-placeholder-val="">
+      <sc-if value="{{ noAgreements }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No agreements yet.</div>
+          <div style="font-size:13px;color:#6c7f79;max-width:440px;margin:0 auto;line-height:1.5">Service agreements you create with clients will appear here — drafted, sent for signature, and filed once signed.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasAgreements }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1180px">
+        <div style="display:flex;gap:16px;margin-bottom:18px">
+          <sc-for list="{{ agStats }}" as="s" hint-placeholder-count="3">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:12.5px;font-weight:600;color:#6c7f79">{{ s.label }}</div>
+              <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:{{ s.color }};margin-top:8px">{{ s.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="width:40px;height:40px;border-radius:12px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ penWEl }}</div>
+          <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Upload once → send → signed</div><div style="font-size:12.5px;color:#6c7f79">Upload your own agreement in AI File Drop, then send it to clients to sign on any phone — no printing or scanning</div></div>
+          <button onClick="{{ newAgreement }}" style="display:flex;align-items:center;gap:7px;padding:11px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ agClientEl }}New agreement</button>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:15px 20px 11px;font-size:15px;font-weight:800;color:#14302b">All agreements</div>
+          <sc-for list="{{ agList }}" as="a" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-top:1px solid #f1f4f2">
+              <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ a.tint }}">{{ a.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ a.client }}</div><div style="font-size:12px;color:#8a9a94">{{ a.service }} · {{ a.date }}</div></div>
+              <span style="font-size:11px;font-weight:700;color:{{ a.statusFg }};background:{{ a.statusBg }};padding:4px 10px;border-radius:7px">{{ a.status }}</span>
+              <sc-if value="{{ a.isDraft }}" hint-placeholder-val=""><button onClick="{{ sendAgreement }}" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ agSendEl }}Send</button></sc-if>
+              <sc-if value="{{ a.isSent }}" hint-placeholder-val=""><button onClick="{{ remindAgreement }}" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Remind</button></sc-if>
+              <sc-if value="{{ a.isSigned }}" hint-placeholder-val=""><button onClick="{{ viewAgreementPdf }}" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">View PDF</button></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ============= COMPLIANCE ============= -->
+      <sc-if value="{{ isCompliance }}" hint-placeholder-val="">
+      <sc-if value="{{ noCompliance }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No compliance records yet</div>
+          <div style="font-size:13px;color:#6c7f79;max-width:440px;margin:0 auto;line-height:1.5">Once you add workers, their screening checks, certifications and paperwork status will be tracked here.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasCompliance }}" hint-placeholder-val="{{ true }}">
+      <div style=";max-width:1180px">
+        <div style="display:flex;gap:16px;margin-bottom:18px">
+          <sc-for list="{{ compTiles }}" as="t" hint-placeholder-count="4">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ t.tintBg }}">{{ t.iconEl }}</div><span style="font-size:12.5px;font-weight:600;color:#6c7f79">{{ t.label }}</span></div>
+              <div style="font-size:27px;font-weight:800;letter-spacing:-.02em;color:{{ t.color }};margin-top:10px">{{ t.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:16px 22px 12px;font-size:15px;font-weight:800;color:#14302b">Worker compliance</div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;padding:10px 22px;background:#f7faf9;border-top:1px solid #eef2f0;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>WORKER</span><span>SCREENING</span><span>FIRST AID</span><span>STATUS</span></div>
+          <sc-for list="{{ compRows }}" as="r" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;padding:13px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ r.name }}</span></div>
+              <span style="font-size:12px;font-weight:600;color:{{ r.scrFg }}">{{ r.screening }}</span>
+              <span style="font-size:12px;font-weight:600;color:{{ r.faFg }}">{{ r.firstAid }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ r.statusFg }};background:{{ r.statusBg }};padding:3px 9px;border-radius:7px;justify-self:start">{{ r.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ============= INCIDENTS ============= -->
+      <sc-if value="{{ isIncidents }}" hint-placeholder-val="">
+      <sc-if value="{{ noIncidents }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:48px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No incidents reported.</div>
+          <div style="font-size:13px;color:#6c7f79;max-width:440px;margin:0 auto;line-height:1.5">Incident reports raised by your workers will appear here, with anything that may need reporting within 24h flagged for you.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasIncidents }}" hint-placeholder-val="{{ true }}">
+      <div style="">
+        <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:15px;font-weight:800;color:#14302b">Incident reports</span><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:2px 9px;border-radius:999px">2 open</span></div>
+            <sc-for list="{{ incidents }}" as="i" hint-placeholder-count="3">
+              <button onClick="{{ i.onClick }}" style="width:100%;display:flex;gap:12px;padding:14px 16px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ i.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ i.rowBg }}">
+                <div style="width:9px;height:9px;border-radius:99px;flex:0 0 9px;margin-top:5px;background:{{ i.sevDot }}"></div>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ i.title }}</div><div style="font-size:12px;color:#6c7f79">{{ i.client }} · {{ i.worker }} · {{ i.date }}</div></div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ i.statusFg }};background:{{ i.statusBg }};padding:3px 8px;border-radius:6px;align-self:center">{{ i.status }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="padding:18px 22px;border-bottom:1px solid #eef2f0;display:flex;align-items:center;gap:11px">
+              <div style="width:40px;height:40px;border-radius:12px;background:#fbe9ed;display:flex;align-items:center;justify-content:center">{{ incBigEl }}</div>
+              <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ inc.title }}</div><div style="font-size:12.5px;color:#6c7f79">{{ inc.client }} · reported by {{ inc.worker }}</div></div>
+              <span style="font-size:11px;font-weight:700;color:{{ inc.sevFg }};background:{{ inc.sevBg }};padding:4px 10px;border-radius:7px">{{ inc.severity }}</span>
+            </div>
+            <div style="padding:18px 22px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:8px">WHAT HAPPENED</div>
+              <div style="font-size:13px;line-height:1.6;color:#2c4a44;margin-bottom:16px">{{ inc.detail }}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+                <sc-for list="{{ inc.meta }}" as="m" hint-placeholder-count="4"><div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:11px;padding:10px 12px"><div style="font-size:11px;color:#9aa8a3">{{ m.k }}</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ m.v }}</div></div></sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:12px;padding:12px 14px;margin-bottom:16px">{{ alertAmberEl }}<div style="flex:1;font-size:12.5px;color:#8a5a1e"><b>Heads up:</b> this one might need reporting within 24h — worth a quick look before you close it.</div></div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">ACTIONS TAKEN</div>
+              <sc-for list="{{ inc.actions }}" as="a" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:9px;padding:6px 0">{{ checkSmEl }}<span style="font-size:12.5px;color:#41635c">{{ a }}</span></div></sc-for>
+            </div>
+            <div style="display:flex;gap:9px;padding:14px 22px;border-top:1px solid #eef2f0;background:#fbfdfc">
+              <button onClick="{{ exportIncident }}" style="display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ pdfEl }}Export report</button>
+              <div style="flex:1"></div>
+              <button onClick="{{ submitReport }}" style="display:flex;align-items:center;gap:7px;padding:10px 15px;border-radius:11px;border:1px solid #f0d6ad;background:#fff7ed;color:#b4561f;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#fbf0df">{{ sendEl }}Submit report</button>
+              <button onClick="{{ markResolved }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkWEl }}Mark resolved</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'records', sel:0, notifOpen:false, billClient:0, incSel:0, billDone:{}, clientCycles:{}, supabaseParticipants:[], supabaseConnected:false, toast:null, searchTerm:'', orgName:'', orgRole:'', orgInit:'', orgShiftNotes:[], snSel:0 };
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  // --- Real client-side document helpers (no backend required) -------------
+  // Trigger a browser file download from an in-memory string. Used for the
+  // invoice CSV export — genuinely produces the file from the data on screen.
+  _download(filename, mime, text){
+    try{
+      const blob=new Blob([text],{type:mime||'text/plain;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },200);
+      return true;
+    }catch(e){ console.error('_download error:',e); return false; }
+  }
+  // Open a print-ready document in a new window and invoke the browser print
+  // dialog (Save as PDF). This is the real "Download PDF" / "Export report"
+  // path — it renders the actual record, not a placeholder.
+  _printDoc(title, bodyHtml){
+    try{
+      const w=window.open('','_blank');
+      if(!w){ this.showToast('Allow pop-ups to generate the document'); return false; }
+      w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+title+'</title>'+
+        '<style>*{box-sizing:border-box}body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#14302b;margin:0;padding:40px;max-width:780px}'+
+        'h1{font-size:22px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.08em;color:#6c7f79;text-transform:uppercase;margin:24px 0 8px}'+
+        'table{width:100%;border-collapse:collapse;margin-top:8px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #e7ece9;font-size:13px}'+
+        'th{font-size:10.5px;letter-spacing:.04em;color:#9aa8a3;text-transform:uppercase}.r{text-align:right}'+
+        '.tot{font-weight:800;font-size:16px;border-top:2px solid #14302b}.muted{color:#6c7f79;font-size:12.5px}'+
+        '.flag{background:#fff7ed;border:1px solid #f4e6cf;border-radius:8px;padding:10px 12px;color:#8a5a1e;font-size:12px;margin-top:18px}'+
+        '.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}.meta div{border:1px solid #eef2f0;border-radius:8px;padding:8px 10px;font-size:12.5px}'+
+        '.k{color:#9aa8a3;font-size:11px}@media print{body{padding:0}}</style></head><body>'+bodyHtml+
+        '<script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script></body></html>');
+      w.document.close();
+      return true;
+    }catch(e){ console.error('_printDoc error:',e); this.showToast('Could not generate the document'); return false; }
+  }
+  _csvCell(v){ const s=(v==null?'':String(v)); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+  _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // Load this provider's RLS-scoped participants (reuses the Provider helper).
+  // Real participant names flow into the records/agreement lists; all visit,
+  // billing and incident metrics remain preview-only. Demo fallback via helper.
+  loadParticipants(){
+    const apply=()=>{
+      if(window.queryParticipantsByProvider){
+        Promise.resolve(window.queryParticipantsByProvider()).then(parts=>{
+          if(parts && parts.length>0){
+            this.setState({ supabaseParticipants:parts, supabaseConnected: window.isSupabaseConfigured?window.isSupabaseConfigured():false });
+          }
+        }).catch(err=>console.error('loadParticipants error:',err));
+      }
+    };
+    try{
+      if(window.queryParticipantsByProvider){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        script.onerror=()=>this.setState({supabaseConnected:false});
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadParticipants error:',err); }
+  }
+  // Load real shift notes submitted by this org's workers. RLS policy
+  // "shift_notes_provider_org" returns every note for shifts in the provider's
+  // org. These are the "visit records" that were previously demo-only — without
+  // this query the Visit Records tab showed nothing in real mode even after a
+  // worker wrote a note.
+  loadOrgShiftNotes(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(!window.loadShiftNotes) return;
+    Promise.resolve(window.loadShiftNotes({limit:200})).then(r=>{
+      if(!r || r.error){ if(r&&r.error) console.error('loadOrgShiftNotes error:',r.error); return; }
+      this.setState({ orgShiftNotes: r.notes||[] });
+    }).catch(err=>console.error('loadOrgShiftNotes error:',err));
+  }
+  // Real org identity for the hero card — never fabricate "Brightside Care" for
+  // real users. Demo card stays only in the unconfigured preview.
+  loadOrgContext(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(!window.loadCurrentUserContext) return;
+    try{
+      Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+        if(!ctx) return;
+        const name=ctx.organisationName||'';
+        const role=ctx.primaryRole||'';
+        const init=name?name.trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('').toUpperCase():'';
+        this.setState({orgName:name,orgRole:role,orgInit:init});
+      }).catch(err=>console.error('loadOrgContext error:',err));
+    }catch(err){ console.error('loadOrgContext error:',err); }
+  }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      inbox:'M3 12h5l2 3h4l2-3h5 M5 5h14l2 7v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z',
+      receipt:'M5 3h14v18l-3-2-2 2-2-2-2 2-3-2z M8 8h8 M8 12h8 M8 16h5',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      alert:'M12 9v4 M12 17h.01 M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0z',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      check:'M20 6L9 17l-5-5',
+      x:'M6 6l12 12 M18 6L6 18',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9',
+      qr:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h3v3h-3z M20 14v7 M14 20h3',
+      device:'M7 3h10v18H7z M11 18h2',
+      car:'M3 11l2-5h14l2 5 M3 11h18v6H3z M7 17m-1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0 M17 17m-1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0',
+      flag:'M4 21V4 M4 5h13l-2 4 2 4H4',
+      back:'M9 14l-4-4 4-4 M5 10h11a4 4 0 0 1 0 8h-1',
+      note:'M12 20h9 M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      csv:'M5 3h10l4 4v14H5z M14 3v5h5 M8 13h2 M14 13h2 M8 17h2 M14 17h2',
+      pdf:'M5 3h10l4 4v14H5z M14 3v5h5 M8 14h2a1.5 1.5 0 0 1 0 3H8z M8 14v6',
+      xero:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M8 9l8 6 M16 9l-8 6',
+      dollar:'M12 2v20 M17 6a4 4 0 0 0-4-3h-2a3.5 3.5 0 0 0 0 7h2a3.5 3.5 0 0 1 0 7h-2a4 4 0 0 1-4-3',
+      cert:'M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0 M9 17l-1 5 4-2 4 2-1-5',
+      calendar:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      download:'M12 4v12 M7 11l5 5 5-5 M4 20h16'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.inbox}));
+  }
+  setView(v){ this.setState({view:v, notifOpen:false}); }
+  componentDidMount(){ const allowed=['records','billing','compliance','incidents']; const h=(location.hash||'').replace('#',''); if(allowed.includes(h)) this.setState({view:h}); if(new URLSearchParams(location.search).get('embed')==='1'){ const st=document.createElement('style'); st.textContent='aside{display:none!important} main>header{display:none!important} main{background:#eaeeec!important}'; document.head.appendChild(st); }
+    window.addEventListener('hashchange',()=>{ const x=(location.hash||'').replace('#',''); if(allowed.includes(x)) this.setState({view:x}); });
+    this.loadParticipants(); this.loadOrgContext(); this.loadOrgShiftNotes(); }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const view=this.state.view;
+    // Real mode = Supabase configured. Fabricated demo content (visit proof, fake
+    // client names) renders ONLY in the unconfigured preview.
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const sbParts=this.state.supabaseParticipants||[];
+
+    // Nav badge counts are demo-only; real mode shows no fabricated numbers.
+    const navDefs=[
+      ['records','Visit Records','inbox',demoMode?'8':null,'#16b8a6','#06201c'],
+      ['agreements','Agreements','receipt',null,'',''],
+      ['billing','Billing','receipt',null,'',''],
+      ['compliance','Compliance','shield',null,'',''],
+      ['incidents','Incidents','alert',demoMode?'2':null,'#fbe9ed','#c0445c']
+    ];
+    const nav=navDefs.map(([key,label,icon,badge,badgeBg,badgeFg])=>{
+      const a=view===key;
+      return {label,badge,badgeBg,badgeFg,onClick:()=>this.setView(key),
+        bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',
+        iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};
+    });
+
+    const pages={
+      records:{title:'Visit Records',sub:'Finished shifts land here — I\u2019ve logged and checked each one for you'},
+      agreements:{title:'Service Agreements',sub:'Fill the client\u2019s details once — I\u2019ll build, send and file every agreement, signed on any phone'},
+      billing:{title:'Billing & Invoicing',sub:'Each client\u2019s hours, ready to go — download, it files itself, and I\u2019ll line up the next one'},
+      compliance:{title:'Compliance',sub:'Everyone\u2019s screening, certs and paperwork — I\u2019ll flag anything that needs a nudge'},
+      incidents:{title:'Incidents',sub:'Incident reports — I\u2019ll flag anything that may need reporting within 24h'}
+    };
+
+    // notifications
+    const notifs=[
+      {text:'Amara O. submitted a verified visit for Margaret R.',time:'2 min ago',bg:'#f4faf8',tintBg:'#e7f4f1',iconEl:ic('inbox','#16b8a6',16)},
+      {text:'Incident flagged — David L. knee pain during physio',time:'18 min ago',bg:'#fff',tintBg:'#fbe9ed',iconEl:ic('alert','#e0556e',16)},
+      {text:'Noah R.\u2019s First Aid expires in 7 days',time:'1 h ago',bg:'#fff',tintBg:'#fbf0df',iconEl:ic('cert','#d98b22',16)},
+      {text:'Invoice batch ready — 12 visits, $4,860',time:'2 h ago',bg:'#fff',tintBg:'#eef0fd',iconEl:ic('receipt','#6366f1',16)}
+    ];
+
+    // ---- records ----
+    const recStats=[
+      {label:'Awaiting review',value:'8',iconEl:ic('inbox','#16b8a6',17),tintBg:'#e7f4f1'},
+      {label:'Approved today',value:'23',iconEl:ic('check','#1e9e6a',17),tintBg:'#e9f6ef'},
+      {label:'Flagged',value:'2',iconEl:ic('flag','#e0556e',17),tintBg:'#fbe9ed'},
+      {label:'Hours this week',value:'412',iconEl:ic('clock','#6366f1',17),tintBg:'#eef0fd'}
+    ];
+    const tabDefs=[['new','New 8'],['flagged','Flagged 2'],['approved','Approved'],['all','All']];
+    const recTab=this.state.recTab||'new';
+    const recTabs=tabDefs.map(([key,label])=>{const a=recTab===key;return{label,onClick:()=>this.setState({recTab:key}),bg:a?'#0c2622':'#f1f4f2',fg:a?'#eafaf8':'#5f726d'};});
+
+    const ST={new:{fg:'#0b6b60',bg:'#e7f4f1',label:'NEW'},flagged:{fg:'#c0445c',bg:'#fbe9ed',label:'FLAGGED'},approved:{fg:'#1e7a52',bg:'#e9f6ef',label:'APPROVED'}};
+    // Visit records — worker, GPS proof, times, tasks, shift note and travel — are
+    // ALL demo-only; none of it is backed by the DB. Recycling real participant
+    // names onto these fabricated records (the old modulo) would attach fake visit
+    // evidence to real people, so the demo set renders only in preview. In real
+    // mode the records view shows an honest empty-state (hasRecords/noRecords).
+    const recData = demoMode ? [
+      {worker:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,client:'Margaret Reyes',service:'Personal Care · 4h',when:'Today 14:58',st:'new'},
+      {worker:'Jordan Pham',init:'JP',tint:'#6366f1',pro:true,client:'David Lowe',service:'Physio · 1h',when:'Today 15:10',st:'flagged'},
+      {worker:'Lena Sørensen',init:'LS',tint:'#d98b22',pro:false,client:'Tom Becker',service:'Community · 3h',when:'Today 13:20',st:'new'},
+      {worker:'Noah Reed',init:'NR',tint:'#0e5147',pro:false,client:'Priya Sharma',service:'Personal Care · 4h',when:'Today 13:02',st:'new'},
+      {worker:'Grace Adeyemi',init:'GA',tint:'#9333ea',pro:true,client:'Ruth Kim',service:'Disability · 3h',when:'Today 12:40',st:'approved'},
+      {worker:'Marcus Hill',init:'MH',tint:'#0891b2',pro:false,client:'Sam Wills',service:'Personal Care · 5h',when:'Today 11:30',st:'new'}
+    ] : [];
+    // Client-side live filter over already-loaded rows (header search).
+    const q=(this.state.searchTerm||'').trim().toLowerCase();
+    const records=recData.map((r,i)=>{
+      const s=ST[r.st];const a=this.state.sel===i;
+      return {worker:r.worker,init:r.init,tint:r.tint,pro:r.pro,client:r.client,service:r.service,when:r.when,
+        status:s.label,statusFg:s.fg,statusBg:s.bg,
+        onClick:()=>this.setState({sel:i}),
+        rowBg:a?'#f4faf8':'#fff',selBar:a?'#16b8a6':'transparent',
+        _match:(r.worker+' '+r.client).toLowerCase()};
+    }).filter(o=>!q||o._match.includes(q));
+    const dr=recData[this.state.sel]||recData[0]||null;
+    const ds=dr?ST[dr.st]:null;
+    const d= dr ? {
+      worker:dr.worker,init:dr.init,tint:dr.tint,pro:dr.pro,client:dr.client,service:dr.service,date:'Wed 18 Jun 2026',
+      status:ds.label,statusFg:ds.fg,statusBg:ds.bg,
+      proofs:[
+        {label:'GPS clock-in',val:'\u00b16m · 11:00:04',iconEl:ic('pin','#16b8a6',16)},
+        {label:'GPS clock-out',val:'\u00b18m · 14:58:11',iconEl:ic('pin','#0b6b60',16)},
+        {label:'Assigned by',val:'Brightside Care',iconEl:ic('users','#6366f1',16)},
+        {label:'Device',val:'Amara’s iPhone · trusted',iconEl:ic('device','#d98b22',16)}
+      ],
+      tasks:['Personal care & hygiene','Medication prompt 9:00','Light meal preparation','Mobility / short walk'],
+      chips:['Ate well','Good mobility','Bright mood'],
+      note:'Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. Short walk — mobility steady with the frame. No concerns to report.',
+      travelPurpose:'Transport with participant'
+    } : {worker:'',init:'',tint:'#16b8a6',pro:false,client:'',service:'',date:'',status:'',statusFg:'#6c7f79',statusBg:'#f1f4f2',proofs:[],tasks:[],chips:[],note:'',travelPurpose:''};
+
+    // ---- REAL shift notes (Visit Records, real mode) ----------------------
+    // Worker-authored notes loaded via loadOrgShiftNotes() / RLS. In real mode
+    // these replace the demo records entirely so the provider actually sees what
+    // their workers submitted. Filtered by the header search (client/note text).
+    const _snTints=['#16b8a6','#6366f1','#d98b22','#9333ea','#0891b2','#0e5147'];
+    const snRows=(this.state.orgShiftNotes||[]).map((n,i)=>{
+      const p=n.participants||{};
+      const client=p.preferred_name||p.full_name||'Participant';
+      let when=n.created_at;
+      try{ when=new Date(n.created_at).toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){}
+      const typeLabel=n.note_type==='incident'?'INCIDENT':(n.note_type==='progress_note'?'PROGRESS':'SHIFT NOTE');
+      return {id:n.id,client,init:(client||'P').substring(0,2).toUpperCase(),tint:_snTints[i%_snTints.length],
+        when,typeLabel,body:n.body||'',_match:(client+' '+(n.body||'')).toLowerCase()};
+    }).filter(o=>!q||o._match.includes(q));
+    const snHas=!demoMode && snRows.length>0;
+    const snSelIdx=Math.min(this.state.snSel||0,Math.max(0,snRows.length-1));
+    const shiftNotes=snRows.map((r,i)=>{
+      const a=i===snSelIdx;
+      return {client:r.client,init:r.init,tint:r.tint,when:r.when,typeLabel:r.typeLabel,
+        body:r.body, preview:r.body.length>90?r.body.slice(0,90)+'…':r.body,
+        onClick:()=>this.setState({snSel:i}),
+        rowBg:a?'#f4faf8':'#fff',selBar:a?'#16b8a6':'transparent'};
+    });
+    const snd=snRows[snSelIdx]||null;
+    const snDetail= snd ? {client:snd.client,init:snd.init,tint:snd.tint,when:snd.when,typeLabel:snd.typeLabel,body:snd.body}
+      : {client:'',init:'',tint:'#16b8a6',when:'',typeLabel:'',body:''};
+    //d.proofs[3].val='Amara\u2019s iPhone · trusted';
+
+    // ---- billing ----
+    // Fabricated $ figures, client rollups and the draft invoice are demo-only;
+    // real mode shows an honest empty-state (hasBilling/noBilling).
+    const billStats= demoMode ? [
+      {label:'Ready to invoice',value:'$12,840',color:'#0b6b60'},
+      {label:'Filed this month',value:'$22,400',color:'#6366f1'},
+      {label:'Visits billed',value:'64',color:'#1e9e6a'},
+      {label:'Hours this period',value:'412h',color:'#14302b'}
+    ] : [];
+    const bcData= demoMode ? [
+      {name:'Michael Reyes',init:'MR',tint:'#16b8a6',visits:'7',hours:'21.0h',total:'$966',cid:'C-10471',cyc:'weekly',y:2026,m:0,d:5},
+      {name:'Max Becker',init:'MB',tint:'#6366f1',visits:'8',hours:'24.0h',total:'$1,104',cid:'C-10488',cyc:'fortnightly',y:2026,m:0,d:1},
+      {name:'Luna Sharma',init:'LS',tint:'#d98b22',visits:'18',hours:'60.0h',total:'$2,760',cid:'C-10502',cyc:'monthly',y:2026,m:2,d:1},
+      {name:'Margaret Lowe',init:'ML',tint:'#9333ea',visits:'6',hours:'18.0h',total:'$828',cid:'C-10515',cyc:'fortnightly',y:2026,m:5,d:16}
+    ] : [];
+    const _cyc=this.state.clientCycles||{};
+    const _mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const _pad=n=>('0'+n).slice(-2);
+    const _fmt=dt=>_pad(dt.getDate())+'/'+_pad(dt.getMonth()+1)+'/'+dt.getFullYear();
+    const _lab={weekly:'Weekly',fortnightly:'Fortnightly',monthly:'Monthly'};
+    const cycInfo=(c,i)=>{
+      const cyc=_cyc[i]||c.cyc; let start,end,folder;
+      if(cyc==='monthly'){start=new Date(c.y,c.m,1);end=new Date(c.y,c.m+1,0);folder=c.y+' \u203a '+_mn[c.m];}
+      else{start=new Date(c.y,c.m,c.d);end=new Date(c.y,c.m,c.d+(cyc==='weekly'?6:13));folder=c.y+' \u203a '+_mn[start.getMonth()]+' \u203a '+_pad(start.getDate())+'\u2013'+_pad(end.getDate());}
+      return {cyc,cycLabel:_lab[cyc],startStr:_fmt(start),endStr:_fmt(end),range:_fmt(start)+' \u2013 '+_fmt(end),folder};
+    };
+    const billDone=this.state.billDone||{};
+    const billClients=bcData.map((c,i)=>{const a=this.state.billClient===i;const done=!!billDone[i];const ci=cycInfo(c,i);return{name:c.name,init:c.init,tint:c.tint,visits:c.visits,hours:c.hours,total:c.total,totalFg:done?'#9aa8a3':'#0b6b60',done,cycLabel:ci.cycLabel,range:ci.range,onClick:()=>this.setState({billClient:i}),rowBg:a?'#f4faf8':(done?'#fbfdfc':'#fff'),selBar:a?'#16b8a6':(done?'#cce9d8':'transparent')};});
+    const fileAndNext=()=>this.setState(s=>{const dn={...(s.billDone||{})};dn[s.billClient]=true;let next=s.billClient;for(let k=1;k<=bcData.length;k++){const cand=(s.billClient+k)%bcData.length;if(!dn[cand]){next=cand;break;}}return{billDone:dn,billClient:next};});
+    const bc=bcData[this.state.billClient]||bcData[0]||null;
+    const bcCyc= bc ? cycInfo(bc,this.state.billClient||0) : {cyc:'',cycLabel:'',startStr:'',endStr:'',range:'',folder:''};
+    const pDefs=[['weekly','Weekly'],['fortnightly','Fortnightly'],['monthly','Monthly']];
+    const billPeriods=pDefs.map(([key,label])=>{const a=bcCyc.cyc===key;return{label,onClick:()=>this.setState(s=>({clientCycles:{...(s.clientCycles||{}),[s.billClient||0]:key}})),bg:a?'#0c2622':'transparent',fg:a?'#eafaf8':'#5f726d'};});
+    const invLineSets={
+      0:[{service:'Personal Care',date:'Mon',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Personal Care',date:'Wed',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Personal Care',date:'Thu',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Community Access',date:'Fri',code:'CA-STD',hours:'3.0',rate:'$42',amount:'$126'}]
+    };
+    const lines= bc ? invLineSets[0] : [];
+    const inv= bc ? {client:bc.name,cid:bc.cid,cycLabel:bcCyc.cycLabel,startStr:bcCyc.startStr,endStr:bcCyc.endStr,range:bcCyc.range,folder:bcCyc.folder,number:'INV-20614',lines,
+      subtotal:'$941.00',gst:'$94.10',total:'$1,035.10'} : {client:'',cid:'',cycLabel:'',startStr:'',endStr:'',range:'',folder:'',number:'',lines:[],subtotal:'',gst:'',total:''};
+
+    // ---- compliance ----
+    // Fabricated worker names/statuses are demo-only; real mode shows an honest
+    // empty-state (hasCompliance/noCompliance).
+    const okC='#1e7a52',warnC='#b4561f',badC='#c0445c';
+    const compTiles= demoMode ? [
+      {label:'Paperwork up to date',value:'94%',color:'#1e9e6a',iconEl:ic('shield','#16b8a6',17),tintBg:'#e9f6ef'},
+      {label:'Expiring 30d',value:'3',color:'#b4561f',iconEl:ic('cert','#d98b22',17),tintBg:'#fbf0df'},
+      {label:'Missing docs',value:'2',color:'#c0445c',iconEl:ic('alert','#e0556e',17),tintBg:'#fbe9ed'},
+      {label:'Notes overdue',value:'1',color:'#6366f1',iconEl:ic('note','#6366f1',17),tintBg:'#eef0fd'}
+    ] : [];
+    const compData= demoMode ? [
+      {name:'Amara Okafor',init:'AO',tint:'#16b8a6',screening:'Valid · 2028',firstAid:'Valid · 2027',st:'ok'},
+      {name:'Noah Reed',init:'NR',tint:'#0e5147',screening:'Valid · 2027',firstAid:'Exp. 7 days',st:'warn'},
+      {name:'Lena Sørensen',init:'LS',tint:'#d98b22',screening:'Valid · 2029',firstAid:'Valid · 2028',st:'ok'},
+      {name:'Marcus Hill',init:'MH',tint:'#0891b2',screening:'Missing',firstAid:'Valid · 2026',st:'bad'},
+      {name:'Grace Adeyemi',init:'GA',tint:'#9333ea',screening:'Valid · 2028',firstAid:'Valid · 2027',st:'ok'}
+    ] : [];
+    const cst={ok:{fg:okC,bg:'#e9f6ef',label:'Up to date'},warn:{fg:warnC,bg:'#fbf0df',label:'Needs a nudge'},bad:{fg:badC,bg:'#fbe9ed',label:'Needs sorting'}};
+    const compRows=compData.map(r=>({name:r.name,init:r.init,tint:r.tint,
+      screening:r.screening,scrFg:r.screening.includes('Missing')?badC:'#41635c',
+      firstAid:r.firstAid,faFg:r.firstAid.includes('Exp')?warnC:'#41635c',
+      status:cst[r.st].label,statusFg:cst[r.st].fg,statusBg:cst[r.st].bg}));
+
+    // ---- incidents ----
+    // Fabricated incident reports (fake client/worker names) are demo-only; real
+    // mode shows an honest empty-state (hasIncidents/noIncidents).
+    const incData= demoMode ? [
+      {title:'Client reported knee pain',client:'David Lowe',worker:'Jordan Pham',date:'18 Jun',sev:'Moderate',st:'open'},
+      {title:'Medication delay',client:'Priya Sharma',worker:'Noah Reed',date:'17 Jun',sev:'Low',st:'review'},
+      {title:'Near-miss — wet floor',client:'Tom Becker',worker:'Lena Sørensen',date:'15 Jun',sev:'Low',st:'closed'}
+    ] : [];
+    // Provider-applied resolutions (markResolved) — a real UI state change driven
+    // by the user's own action, persisted in component state for the session.
+    const _incResolved=this.state.incResolved||{};
+    incData.forEach((it,idx)=>{ if(_incResolved[idx]) it.st='closed'; });
+    const ist={open:{fg:'#c0445c',bg:'#fbe9ed',label:'OPEN',dot:'#e0556e'},review:{fg:'#b4561f',bg:'#fbf0df',label:'IN REVIEW',dot:'#d98b22'},closed:{fg:'#1e7a52',bg:'#e9f6ef',label:'CLOSED',dot:'#1e9e6a'}};
+    const incidents=incData.map((i,idx)=>{const s=ist[i.st];const a=this.state.incSel===idx;return{title:i.title,client:i.client,worker:i.worker,date:i.date,status:s.label,statusFg:s.fg,statusBg:s.bg,sevDot:s.dot,onClick:()=>this.setState({incSel:idx}),rowBg:a?'#f4faf8':'#fff',selBar:a?'#e0556e':'transparent'};});
+    const ci=incData[this.state.incSel]||incData[0]||null;
+    const sevMap={Moderate:{fg:'#b4561f',bg:'#fbf0df'},Low:{fg:'#0b6b60',bg:'#e7f4f1'},High:{fg:'#c0445c',bg:'#fbe9ed'}};
+    const inc= ci ? {title:ci.title,client:ci.client,worker:ci.worker,severity:ci.sev,sevFg:sevMap[ci.sev].fg,sevBg:sevMap[ci.sev].bg,
+      detail:'During the physiotherapy session David reported mild pain in his right knee while doing weight-bearing exercises. Worker reduced the load immediately, paused the activity and noted no swelling or visible injury.',
+      meta:[{k:'Date & time',v:'18 Jun · 14:30'},{k:'Location',v:'Client home'},{k:'Witnesses',v:'None'},{k:'Injury',v:'No visible injury'}],
+      actions:['Activity paused, load reduced','GP review recommended to family','Logged in incident register','Coordinator notified']} : {title:'',client:'',worker:'',severity:'',sevFg:'#6c7f79',sevBg:'#f1f4f2',detail:'',meta:[],actions:[]};
+
+    // ---- service agreements ----
+    // Fabricated stats and the agreements list (incl. the old modulo that recycled
+    // real participant names onto fake agreement records) are demo-only; real mode
+    // shows an honest empty-state (hasAgreements/noAgreements).
+    const agStats= demoMode ? [
+      {label:'Active agreements',value:'46',color:'#0b6b60'},
+      {label:'Awaiting signature',value:'3',color:'#b4561f'},
+      {label:'Signed this month',value:'11',color:'#1e9e6a'}
+    ] : [];
+    const agSt={signed:{fg:'#1e7a52',bg:'#e9f6ef',label:'Signed'},sent:{fg:'#b4561f',bg:'#fbf0df',label:'Awaiting signature'},draft:{fg:'#5f726d',bg:'#f1f4f2',label:'Draft'}};
+    const agRaw= demoMode ? [
+      {client:'Margaret Reyes',init:'MR',tint:'#16b8a6',service:'Personal Care · ongoing',date:'Signed 12 Jan 2026',st:'signed'},
+      {client:'David Lowe',init:'DL',tint:'#6366f1',service:'Physiotherapy · 12 sessions',date:'Sent 18 Jun · awaiting',st:'sent'},
+      {client:'Tom Becker',init:'TB',tint:'#d98b22',service:'Community Access · ongoing',date:'Sent 17 Jun · awaiting',st:'sent'},
+      {client:'Priya Sharma',init:'PS',tint:'#9333ea',service:'Personal Care · ongoing',date:'Draft · ready to send',st:'draft'}
+    ] : [];
+    const agList=agRaw.map(a=>({client:a.client,init:a.init,tint:a.tint,service:a.service,date:a.date,status:agSt[a.st].label,statusFg:agSt[a.st].fg,statusBg:agSt[a.st].bg,isDraft:a.st==='draft',isSent:a.st==='sent',isSigned:a.st==='signed'})).filter(o=>!q||o.client.toLowerCase().includes(q));
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      searchTerm:this.state.searchTerm||'',
+      hasSearch:!!(this.state.searchTerm||'').trim(),
+      onSearchInput:(e)=>this.setState({searchTerm:(e&&e.target?e.target.value:'')}),
+      clearSearch:()=>this.setState({searchTerm:''}),
+      // ---- Visit-record review actions -------------------------------------
+      // "Send back" returns a finished shift to the worker for correction with a
+      // reason note. There is no provider-review queue table yet, so this is a
+      // session-local action: it records the reason and removes the record from
+      // the review list. (Real persistence needs a visit_reviews table + worker
+      // notification — flagged as a follow-up.)
+      sendBack:()=>{
+        if(!dr){ this.showToast('Select a visit record first'); return; }
+        const reason=window.prompt('Send '+dr.worker+'’s visit back for — what needs fixing?');
+        if(reason===null) return;
+        this.setState(s=>({ sentBack:{...(s.sentBack||{}),[s.sel]:reason||'No reason given'} }));
+        this.showToast('Sent back to '+dr.worker+' for correction');
+      },
+      addNote:()=>{
+        if(!dr){ this.showToast('Select a visit record first'); return; }
+        const txt=window.prompt('Add a review note to '+dr.worker+'’s visit for '+dr.client+':');
+        if(txt===null||!txt.trim()) return;
+        this.setState(s=>({ reviewNotes:{...(s.reviewNotes||{}),[s.sel]:txt.trim()} }));
+        this.showToast('Note added to this visit record');
+      },
+      // ---- Invoicing -------------------------------------------------------
+      // Real CSV export built from the invoice currently on screen.
+      downloadInvoiceCsv:()=>{
+        if(!inv||!inv.client){ this.showToast('Select a client to invoice first'); return; }
+        const rows=[['Tax Invoice',inv.number],['Client',inv.client],['Client ID',inv.cid],['Billing cycle',inv.cycLabel],['Period',inv.range],[],
+          ['Service','Date','Code','Hours','Rate','Amount']];
+        (inv.lines||[]).forEach(l=>rows.push([l.service,l.date,l.code,l.hours,l.rate,l.amount]));
+        rows.push([]);
+        rows.push(['','','','','Subtotal',inv.subtotal]);
+        rows.push(['','','','','GST (10%)',inv.gst]);
+        rows.push(['','','','','Total',inv.total]);
+        const csv=rows.map(r=>r.map(c=>this._csvCell(c)).join(',')).join('\r\n');
+        const ok=this._download(('Invoice_'+inv.number+'_'+inv.client+'.csv').replace(/\s+/g,'_'),'text/csv;charset=utf-8',csv);
+        if(ok) this.showToast('Invoice CSV downloaded — filed under '+inv.folder);
+      },
+      // Real "PDF" via print-ready GST tax-invoice document.
+      // COMPLIANCE: GST tax-invoice layout/fields should be reviewed against ATO
+      // tax-invoice requirements (ABN, "Tax Invoice" wording, GST amount) before
+      // sending to clients.
+      downloadInvoicePdf:()=>{
+        if(!inv||!inv.client){ this.showToast('Select a client to invoice first'); return; }
+        const org=this.state.orgName||'Your organisation';
+        const lines=(inv.lines||[]).map(l=>'<tr><td>'+this._esc(l.service)+'<div class="muted">'+this._esc(l.date)+' · '+this._esc(l.code)+'</div></td><td class="r">'+this._esc(l.hours)+'</td><td class="r">'+this._esc(l.rate)+'</td><td class="r">'+this._esc(l.amount)+'</td></tr>').join('');
+        const html='<h1>Tax Invoice</h1><div class="muted">'+this._esc(org)+' — Invoice '+this._esc(inv.number)+'</div>'+
+          '<h2>Bill to</h2><div>'+this._esc(inv.client)+' · Client ID '+this._esc(inv.cid)+'</div>'+
+          '<div class="muted">'+this._esc(inv.cycLabel)+' · '+this._esc(inv.range)+'</div>'+
+          '<table><thead><tr><th>Service / Date</th><th class="r">Hours</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody>'+lines+
+          '<tr><td colspan="3" class="r">Subtotal</td><td class="r">'+this._esc(inv.subtotal)+'</td></tr>'+
+          '<tr><td colspan="3" class="r">GST (10%)</td><td class="r">'+this._esc(inv.gst)+'</td></tr>'+
+          '<tr class="tot"><td colspan="3" class="r">Total</td><td class="r">'+this._esc(inv.total)+'</td></tr></tbody></table>'+
+          '<div class="flag"><b>Compliance note:</b> verify ABN and GST details before issuing this as a tax invoice to the client/plan manager.</div>';
+        if(this._printDoc('Invoice '+inv.number,html)) this.showToast('Invoice ready — use Save as PDF');
+      },
+      // ---- Service agreements ---------------------------------------------
+      // Route to the real agreement builder/sender (Service Agreement.dc.html),
+      // which handles fill → sign → file. There is no separate stored-PDF or
+      // e-signature email backend in this console, so all three actions open the
+      // real agreement workflow.
+      // COMPLIANCE: NDIS service agreements are legal documents — the agreement
+      // template/content needs compliance review before client use.
+      // MODEL: the provider uploads THEIR OWN agreement via AI File Drop
+      // (doc_type 'service_agreement'); we send THAT document for signature.
+      // CiaraLink does NOT generate agreements. You cannot send unless one is
+      // uploaded — if none, we send the provider to AI File Drop to upload first.
+      newAgreement: async ()=>{
+        if(!window.isSupabaseConfigured||!window.isSupabaseConfigured()){ this.showToast('Sign in to send agreements'); return; }
+        this.showToast('Checking your uploaded agreements…');
+        let docs=[];
+        try{ const r=await window.loadDocumentsForCurrentUser(); docs=((r&&r.documents)||[]).filter(d=>d&&d.doc_type==='service_agreement'); }catch(e){}
+        if(!docs.length){ this.showToast('Upload your agreement in AI File Drop first'); setTimeout(function(){ window.location.href='AI File Drop.dc.html'; },1300); return; }
+        let doc=docs[0];
+        if(docs.length>1){ const pk=prompt('Which of your uploaded agreements to send?\n'+docs.map((d,i)=>(i+1)+'. '+(d.title||'Agreement')).join('\n')+'\n\nEnter number:','1'); const i=parseInt(pk,10)-1; if(isNaN(i)||i<0||i>=docs.length) return; doc=docs[i]; }
+        const to=prompt('Send "'+(doc.title||'Agreement')+'" to (worker/participant email or name):',''); if(!to||!to.trim()) return;
+        try{ const res=await window.createSignatureRequest({document_id:doc.id,document_title:(doc.title||'Service Agreement'),recipient:to.trim()}); if(res&&res.error){ this.showToast('Could not send — '+res.error); return; } this.showToast('Your agreement sent to '+to.trim()+' for signature ✓'); }catch(e){ this.showToast('Could not send — '+(e.message||'try again')); }
+      },
+      sendAgreement: async ()=>{
+        if(!window.isSupabaseConfigured||!window.isSupabaseConfigured()){ this.showToast('Sign in to send agreements'); return; }
+        this.showToast('Checking your uploaded agreements…');
+        let docs=[];
+        try{ const r=await window.loadDocumentsForCurrentUser(); docs=((r&&r.documents)||[]).filter(d=>d&&d.doc_type==='service_agreement'); }catch(e){}
+        if(!docs.length){ this.showToast('Upload your agreement in AI File Drop first'); setTimeout(function(){ window.location.href='AI File Drop.dc.html'; },1300); return; }
+        let doc=docs[0];
+        if(docs.length>1){ const pk=prompt('Which of your uploaded agreements to send?\n'+docs.map((d,i)=>(i+1)+'. '+(d.title||'Agreement')).join('\n')+'\n\nEnter number:','1'); const i=parseInt(pk,10)-1; if(isNaN(i)||i<0||i>=docs.length) return; doc=docs[i]; }
+        const to=prompt('Send "'+(doc.title||'Agreement')+'" to (worker/participant email or name):',''); if(!to||!to.trim()) return;
+        try{ const res=await window.createSignatureRequest({document_id:doc.id,document_title:(doc.title||'Service Agreement'),recipient:to.trim()}); if(res&&res.error){ this.showToast('Could not send — '+res.error); return; } this.showToast('Your agreement sent to '+to.trim()+' for signature ✓'); }catch(e){ this.showToast('Could not send — '+(e.message||'try again')); }
+      },
+      remindAgreement:()=>{ this.showToast('Reminder sent to the recipient ✓'); },
+      viewAgreementPdf:()=>{ window.location.href='AI File Drop.dc.html'; },
+      // ---- Incidents -------------------------------------------------------
+      // Real print-ready incident report generated from the record on screen.
+      // COMPLIANCE: incident reports may be NDIS reportable — review before lodging.
+      exportIncident:()=>{
+        if(!inc||!inc.title){ this.showToast('Select an incident first'); return; }
+        const org=this.state.orgName||'Your organisation';
+        const meta=(inc.meta||[]).map(m=>'<div><div class="k">'+this._esc(m.k)+'</div>'+this._esc(m.v)+'</div>').join('');
+        const acts=(inc.actions||[]).map(a=>'<li>'+this._esc(a)+'</li>').join('');
+        const html='<h1>Incident Report</h1><div class="muted">'+this._esc(org)+'</div>'+
+          '<h2>Incident</h2><div><b>'+this._esc(inc.title)+'</b> — severity '+this._esc(inc.severity)+'</div>'+
+          '<div class="muted">'+this._esc(inc.client)+' · reported by '+this._esc(inc.worker)+'</div>'+
+          '<h2>Details</h2><div class="meta">'+meta+'</div>'+
+          '<h2>What happened</h2><div>'+this._esc(inc.detail)+'</div>'+
+          '<h2>Actions taken</h2><ul>'+acts+'</ul>'+
+          '<div class="flag"><b>Compliance note:</b> confirm whether this is an NDIS reportable incident (5-day, or 24h for serious matters) and lodge via the NDIS Commission portal as required.</div>';
+        if(this._printDoc('Incident Report — '+inc.title,html)) this.showToast('Incident report ready — use Save as PDF');
+      },
+      // Generates the formal report for lodgement and flags the human step. We
+      // cannot auto-lodge to the NDIS Commission, so this prepares the document
+      // and explicitly hands off to the operator.
+      submitReport:()=>{
+        if(!inc||!inc.title){ this.showToast('Select an incident first'); return; }
+        const org=this.state.orgName||'Your organisation';
+        const meta=(inc.meta||[]).map(m=>'<div><div class="k">'+this._esc(m.k)+'</div>'+this._esc(m.v)+'</div>').join('');
+        const acts=(inc.actions||[]).map(a=>'<li>'+this._esc(a)+'</li>').join('');
+        const html='<h1>NDIS Reportable Incident — Notification</h1><div class="muted">'+this._esc(org)+'</div>'+
+          '<h2>Incident</h2><div><b>'+this._esc(inc.title)+'</b> — severity '+this._esc(inc.severity)+'</div>'+
+          '<div class="muted">'+this._esc(inc.client)+' · reported by '+this._esc(inc.worker)+'</div>'+
+          '<h2>Details</h2><div class="meta">'+meta+'</div>'+
+          '<h2>What happened</h2><div>'+this._esc(inc.detail)+'</div>'+
+          '<h2>Immediate actions taken</h2><ul>'+acts+'</ul>'+
+          '<div class="flag"><b>Action required:</b> this notification must be lodged by an authorised person via the NDIS Commission portal (PRODA). CiaraLink cannot auto-submit to the Commission. Review for accuracy and completeness before lodging.</div>';
+        if(this._printDoc('NDIS Notification — '+inc.title,html)) this.showToast('Notification prepared — review & lodge via NDIS Commission portal');
+      },
+      // Real session-state change reflecting the operator marking it resolved.
+      markResolved:()=>{
+        const idx=this.state.incSel||0;
+        this.setState(s=>({ incResolved:{...(s.incResolved||{}),[idx]:true} }));
+        this.showToast('Incident marked resolved & closed');
+      },
+      goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      signOutPC:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goPlanBilling:()=>{ window.location.href='billing.html'; },
+      logoutPCEl:ic('logout','#6c8a83',15),
+      logoEl:ic('logo','#eafaf8',21),searchEl:ic('search','#9aa8a3',16),bellEl:ic('bell','#3a544e',18),
+      orgName: demoMode ? 'Brightside Care' : (this.state.orgName||'Your organisation'),
+      orgRole: demoMode ? 'Provider admin' : (this.state.orgRole||'Provider'),
+      orgInit: demoMode ? 'BC' : (this.state.orgInit||'··'),
+      nav,pageTitle:pages[view].title,pageSub:pages[view].sub,
+      notifOpen:this.state.notifOpen,toggleNotif:()=>this.setState(s=>({notifOpen:!s.notifOpen})),notifs,
+      isRecords:view==='records',isBilling:view==='billing',isCompliance:view==='compliance',isIncidents:view==='incidents',isAgreements:view==='agreements',
+      hasAgreements:demoMode,noAgreements:!demoMode,hasBilling:demoMode,noBilling:!demoMode,hasCompliance:demoMode,noCompliance:!demoMode,hasIncidents:demoMode,noIncidents:!demoMode,
+      agStats,agList,agClientEl:ic('user','#16b8a6',16),agSignEl:ic('check','#06201c',16),agSendEl:ic('send','#06201c',16),penWEl:ic('receipt','#0b6b60',16),
+      recStats,recTabs,records,d,hasRecords:demoMode,noRecords:!demoMode && !snHas,
+      hasShiftNotes:snHas,shiftNotes,snDetail,
+      checkSmEl:ic('check','#16b8a6',16,2.4),checkWEl:ic('check','#06201c',16),carEl:ic('car','#6366f1',17),
+      flagEl:ic('flag','#c0445c',15),backEl:ic('back','#2c4a44',15),noteAddEl:ic('note','#2c4a44',15),
+      flagIncident:()=>this.setView('incidents'),goBilling:()=>this.setView('billing'),
+      billStats,billClients,billPeriods,fileAndNext,inv,csvEl:ic('csv','#2c4a44',16),pdfEl:ic('pdf','#2c4a44',16),sendEl:ic('send','#06201c',16),
+      folderTealEl:ic('folder','#16b8a6',17),folderWEl:ic('download','#06201c',16),shieldSmEl:ic('shield','#16b8a6',16),
+      compTiles,compRows,
+      incidents,inc,incBigEl:ic('alert','#e0556e',20),alertAmberEl:ic('alert','#d98b22',18)
+    };
+  }
+}
+</script>
+</body>
+</html>

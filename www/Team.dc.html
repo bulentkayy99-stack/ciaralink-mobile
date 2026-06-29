@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CiaraLink — Team & Users</title>
+<script src="./env.local.js?v=20260628"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
+<style>
+  :root{ --teal:#16b8a6; --teal-d:#0b6b60; --ink:#1f2d2a; --muted:#5f726d; --line:#e3ece9; --bg:#f4faf8; --bg2:#ffffff; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit}
+  .wrap{max-width:1040px;margin:0 auto;padding:24px 20px 64px}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .back{font-size:13px;color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--teal-d)}
+  h1{font-size:24px;margin:10px 0 2px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+  .seatrow{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .seatnum{font-size:30px;font-weight:700;letter-spacing:-.5px}
+  .seatnum small{font-size:15px;color:var(--muted);font-weight:500}
+  .bar{height:9px;background:#eef3f1;border-radius:99px;overflow:hidden;flex:1;min-width:160px;margin:0 8px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#16b8a6,#0e9e8e)}
+  .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#e7f4f1;color:var(--teal-d);text-transform:capitalize}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:disabled{background:#b7d8d2;cursor:not-allowed}
+  .btn-ghost{background:#f1f5f4;color:var(--ink)}
+  .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+  table{width:100%;border-collapse:collapse}
+  th{ text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:0 10px 10px;font-weight:600}
+  td{padding:12px 10px;border-top:1px solid var(--line);font-size:14px;vertical-align:middle}
+  .who{display:flex;align-items:center;gap:11px}
+  .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+  .nm{font-weight:600}
+  .em{font-size:12.5px;color:var(--muted)}
+  .tag{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px}
+  .t-active{background:#e9f6ef;color:#1e7a52}
+  .t-inactive{background:#f1f4f2;color:#5f726d}
+  .t-pending{background:#fbf0df;color:#b4561f}
+  select.role{font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .acts{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
+  .muted{color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:30px 0}
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(16,30,28,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .ov.open{display:flex}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:440px;padding:22px}
+  .modal h2{margin:0 0 4px;font-size:19px}
+  .modal p.h{color:var(--muted);font-size:13px;margin:0 0 16px}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin:12px 0 5px}
+  input,select.f{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .err{background:#fbe9ed;color:#b0314f;border-radius:10px;padding:9px 12px;font-size:13px;margin-top:14px;display:none}
+  .ok{background:#e9f6ef;color:#1e7a52;border-radius:10px;padding:9px 12px;font-size:13px;margin-top:14px;display:none}
+  .mrow{display:flex;gap:10px;margin-top:18px}
+  .mrow .btn{flex:1}
+  .genrow{display:flex;gap:8px}
+  .genrow input{flex:1}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1f2d2a;color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;opacity:0;transition:opacity .2s;z-index:60}
+  .toast.show{opacity:1}
+  .banner{background:#fff4e0;border:1px solid #f0dcae;color:#7a5410;border-radius:12px;padding:14px 16px;font-size:13.5px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="Allied Health.dc.html">← Back to dashboard</a>
+    <a class="back" href="#" id="signout">Sign out</a>
+  </div>
+  <h1>Team &amp; Users</h1>
+  <div class="sub" id="orgname">Manage who can access your practice.</div>
+
+  <div id="notadmin" class="banner" style="display:none">
+    You're signed in, but you don't administer any organisation, so there's no team to manage here.
+  </div>
+
+  <div class="card" id="seatcard" style="display:none">
+    <div class="seatrow">
+      <div>
+        <div class="seatnum"><span id="used">0</span><small> / <span id="limit">0</span> seats</small></div>
+        <div class="muted" style="font-size:12.5px;margin-top:2px">Plan: <span class="pill" id="plan">—</span> <span id="domnote"></span></div>
+      </div>
+      <div class="bar"><i id="barfill" style="width:0%"></i></div>
+      <button class="btn btn-primary" id="addbtn">+ Add user</button>
+    </div>
+  </div>
+
+  <div class="card" id="teamcard" style="display:none">
+    <table>
+      <thead><tr><th>Member</th><th>Role</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="loading">Loading team…</div>
+  </div>
+</div>
+
+<!-- Add user modal -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <h2>Add a team member</h2>
+    <p class="h">They'll get a temporary password and must set their own on first login.</p>
+    <label>Full name</label>
+    <input id="f_name" placeholder="e.g. Max Taylor" />
+    <label>Work email</label>
+    <input id="f_email" placeholder="max@yourpractice.com.au" />
+    <div class="hint" id="domhint"></div>
+    <label>Role</label>
+    <select class="f" id="f_role">
+      <option value="allied_health">Clinician (own caseload)</option>
+      <option value="allied_health_admin">Admin (sees everything)</option>
+      <option value="provider_staff">Support staff</option>
+    </select>
+    <label>Temporary password</label>
+    <div class="genrow">
+      <input id="f_pw" />
+      <button type="button" class="btn btn-ghost" id="gen">Generate</button>
+    </div>
+    <div class="hint">Share this with them securely. They'll change it on first login.</div>
+    <div class="err" id="m_err"></div>
+    <div class="ok" id="m_ok"></div>
+    <div class="mrow">
+      <button class="btn btn-ghost" id="cancel">Cancel</button>
+      <button class="btn btn-primary" id="save">Create user</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var A = window.CiaraLinkAuth || {};
+  var ORG = null;          // {org_id, org_name, plan, seat_limit, seats_used, email_domain}
+  var el = function(id){ return document.getElementById(id); };
+
+  function toast(msg){ var t=el('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2600); }
+  function tint(name){ var c=['#16b8a6','#6366f1','#9333ea','#0891b2','#d98b22','#1e9e6a']; var s=0; for(var i=0;i<name.length;i++)s+=name.charCodeAt(i); return c[s%c.length]; }
+  function initials(n){ return (String(n||'?').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2)||'?').toUpperCase(); }
+  function roleLabel(r){ return ({allied_health:'Clinician',allied_health_admin:'Admin',provider_owner:'Owner',provider_admin:'Admin',provider_staff:'Support staff',support_coordinator:'Coordinator',support_worker:'Support worker'})[r]||r; }
+
+  function genPw(){
+    var lower='abcdefghijkmnpqrstuvwxyz', upper='ABCDEFGHJKLMNPQRSTUVWXYZ', num='23456789', sym='!@#$';
+    function pick(s){ return s[Math.floor(Math.random()*s.length)]; }
+    var base=[pick(upper),pick(lower),pick(num),pick(sym)];
+    for(var i=0;i<6;i++) base.push(pick(lower+upper+num));
+    return base.sort(function(){return Math.random()-0.5;}).join('');
+  }
+
+  async function boot(){
+    if(!window.isSupabaseConfigured || !window.isSupabaseConfigured()){
+      el('orgname').textContent='Supabase not configured — preview mode.';
+      el('notadmin').style.display='block';
+      el('notadmin').textContent='This page needs a live Supabase connection.';
+      return;
+    }
+    var who = await A.getCurrentUser();
+    if(!who || !who.user){ window.location.href='signin.html'; return; }
+
+    var res = await A.getMyOrgSeatUsage();
+    var orgs = (res && res.orgs) || [];
+    if(!orgs.length){ el('notadmin').style.display='block'; return; }
+    ORG = orgs[0];   // first admin org (single-practice case)
+    ORG.seats_used = Number(ORG.seats_used) || 0;   // RPC returns BIGINT (may be string)
+    ORG.seat_limit = Number(ORG.seat_limit) || 0;
+
+    el('orgname').textContent = ORG.org_name || 'Your practice';
+    el('seatcard').style.display='block';
+    el('teamcard').style.display='block';
+    renderSeats();
+    if(ORG.email_domain){
+      el('domnote').innerHTML = '· Domain-locked to <b>@'+ORG.email_domain+'</b>';
+      el('domhint').textContent = 'Must end in @'+ORG.email_domain;
+    } else {
+      el('domhint').textContent = 'Any email address is allowed.';
+    }
+    loadTeam();
+  }
+
+  function renderSeats(){
+    el('used').textContent = ORG.seats_used;
+    el('limit').textContent = ORG.seat_limit;
+    el('plan').textContent = ORG.plan || 'free';
+    var pct = ORG.seat_limit ? Math.min(100, Math.round(ORG.seats_used/ORG.seat_limit*100)) : 0;
+    el('barfill').style.width = pct+'%';
+    var full = ORG.seats_used >= ORG.seat_limit;
+    var b=el('addbtn'); b.disabled=full; b.textContent = full ? 'Seat limit reached' : '+ Add user';
+  }
+
+  async function loadTeam(){
+    el('loading').style.display='block';
+    var res = await A.loadOrgTeam(ORG.org_id);
+    var members = (res && res.members) || [];
+    var rows = el('rows'); rows.innerHTML='';
+    el('loading').style.display = members.length ? 'none' : 'block';
+    if(!members.length){ el('loading').textContent='No members yet. Add your first user.'; return; }
+
+    members.forEach(function(m){
+      var tr=document.createElement('tr');
+      var st = m.status==='active'?'t-active':(m.status==='pending'?'t-pending':'t-inactive');
+      var stLabel = m.status==='active'?'Active':(m.status==='pending'?'Invited':'Suspended');
+      tr.innerHTML =
+        '<td><div class="who"><div class="av" style="background:'+tint(m.full_name)+'">'+esc(initials(m.full_name))+'</div>'+
+          '<div><div class="nm">'+esc(m.full_name)+'</div><div class="em">'+esc(m.email||'')+'</div></div></div></td>'+
+        '<td><select class="role" data-id="'+m.id+'">'+roleOpts(m.role)+'</select></td>'+
+        '<td><span class="tag '+st+'">'+stLabel+'</span></td>'+
+        '<td><div class="acts">'+
+          '<button class="btn btn-ghost btn-sm act-pw" data-uid="'+m.user_id+'" data-nm="'+esc(m.full_name)+'">Reset password</button>'+
+          (m.status==='active'
+            ? '<button class="btn btn-ghost btn-sm act-susp" data-id="'+m.id+'">Suspend</button>'
+            : '<button class="btn btn-ghost btn-sm act-react" data-id="'+m.id+'">Reactivate</button>')+
+        '</div></td>';
+      rows.appendChild(tr);
+    });
+    wireRowActions();
+  }
+
+  function roleOpts(cur){
+    var opts=[['allied_health','Clinician'],['allied_health_admin','Admin'],['provider_staff','Support staff']];
+    // If the member's actual role isn't one of the editable options, show it
+    // first (selected) so we never silently misrepresent or downgrade them.
+    if(!opts.some(function(o){return o[0]===cur;})) opts.unshift([cur, roleLabel(cur)]);
+    return opts.map(function(o){ return '<option value="'+esc(o[0])+'"'+(o[0]===cur?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('');
+  }
+  function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+
+  function wireRowActions(){
+    document.querySelectorAll('.role').forEach(function(s){
+      s.addEventListener('change', async function(){
+        var r = await A.updateMemberRole(s.getAttribute('data-id'), s.value);
+        toast(r.ok ? 'Role updated' : ('Error: '+r.error));
+      });
+    });
+    document.querySelectorAll('.act-susp').forEach(function(b){
+      b.addEventListener('click', async function(){
+        if(!confirm('Suspend this member? They lose access but their records stay.')) return;
+        var r = await A.setMemberStatus(b.getAttribute('data-id'),'inactive');
+        if(r.ok){ toast('Member suspended'); ORG.seats_used=Math.max(0,ORG.seats_used-1); renderSeats(); loadTeam(); }
+        else toast('Error: '+r.error);
+      });
+    });
+    document.querySelectorAll('.act-react').forEach(function(b){
+      b.addEventListener('click', async function(){
+        var r = await A.setMemberStatus(b.getAttribute('data-id'),'active');
+        if(r.ok){ toast('Member reactivated'); ORG.seats_used=ORG.seats_used+1; renderSeats(); loadTeam(); }
+        else toast('Error: '+(r.error||'').replace(/.*seat limit.*/i,'Seat limit reached — cannot reactivate'));
+      });
+    });
+    document.querySelectorAll('.act-pw').forEach(function(b){
+      b.addEventListener('click', async function(){
+        var pw = genPw();
+        if(!confirm('Reset password for '+b.getAttribute('data-nm')+'?\n\nNew temporary password:\n'+pw+'\n\nClick OK to apply, then share it securely.')) return;
+        var r = await A.resetMemberPassword({ orgId:ORG.org_id, targetUserId:b.getAttribute('data-uid'), newPassword:pw });
+        toast(r.ok ? 'Password reset — share it with them' : ('Error: '+r.error));
+      });
+    });
+  }
+
+  // ----- Add user modal -----
+  function openModal(){
+    el('f_name').value=''; el('f_email').value=''; el('f_pw').value=genPw(); el('f_role').value='allied_health';
+    el('m_err').style.display='none'; el('m_ok').style.display='none';
+    el('ov').classList.add('open'); el('f_name').focus();
+  }
+  function closeModal(){ el('ov').classList.remove('open'); }
+
+  async function saveUser(){
+    var name=el('f_name').value.trim(), email=el('f_email').value.trim().toLowerCase(),
+        role=el('f_role').value, pw=el('f_pw').value;
+    el('m_err').style.display='none'; el('m_ok').style.display='none';
+    if(!name||!email||!pw){ showErr('Name, email and password are required.'); return; }
+    var save=el('save'); save.disabled=true; save.textContent='Creating…';
+    var r = await A.addTeamMember({ orgId:ORG.org_id, email:email, fullName:name, role:role, tempPassword:pw });
+    save.disabled=false; save.textContent='Create user';
+    if(r.ok){
+      el('m_ok').textContent='Created! Temp password: '+pw+'  — share it securely.';
+      el('m_ok').style.display='block';
+      ORG.seats_used=ORG.seats_used+1; renderSeats(); loadTeam();
+      setTimeout(closeModal, 2200);
+    } else {
+      showErr(r.error || 'Could not create user.');
+    }
+  }
+  function showErr(m){ el('m_err').textContent=m; el('m_err').style.display='block'; }
+
+  // wire static controls
+  document.addEventListener('DOMContentLoaded', function(){
+    el('addbtn').addEventListener('click', openModal);
+    el('cancel').addEventListener('click', closeModal);
+    el('save').addEventListener('click', saveUser);
+    el('gen').addEventListener('click', function(){ el('f_pw').value=genPw(); });
+    el('ov').addEventListener('click', function(e){ if(e.target===el('ov')) closeModal(); });
+    el('signout').addEventListener('click', async function(e){ e.preventDefault(); if(A.signOut) await A.signOut(); window.location.href='signin.html'; });
+    boot();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { margin:0; font-family:'Inter',sans-serif; background:#f0f0ee; }
+    @keyframes fade-in { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+    @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(224,85,110,.4)} 50%{box-shadow:0 0 0 6px rgba(224,85,110,0)} }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#f0f0ee;display:flex;flex-direction:column">
+
+  <!-- Top bar -->
+  <header style="position:sticky;top:0;z-index:40;background:#0c2622;display:flex;align-items:center;gap:12px;padding:0 28px;height:54px;border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 4v4c0 3.3 2.6 5.7 6 6.5 3.4-.8 6-3.2 6-6.5V4L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" fill="none"/><path d="M5.5 8l2 2 3-3" stroke="#7ce0d2" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span style="font-size:14px;font-weight:800;color:#f4faf8">CiaraLink</span>
+    <span style="color:#2e5a52;font-size:13px">/</span>
+    <span style="font-size:13px;color:#9dcdc8;font-weight:600">Production Security Plan</span>
+    <div style="flex:1"></div>
+    <a href="Launch Readiness.dc.html" style="padding:6px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#9dcdc8;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.08)">Launch Report →</a>
+    <a href="Index.dc.html" style="padding:6px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#9dcdc8;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.08)">← Index</a>
+  </header>
+
+  <main style="flex:1;padding:28px 36px 72px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box">
+
+    <!-- BLOCKED hero -->
+    <div style="background:linear-gradient(135deg,#2d0810 0%,#4a0e1a 55%,#2d0810 100%);border-radius:24px;padding:28px 36px;margin-bottom:20px;border:2px solid rgba(224,85,110,.35);position:relative;overflow:hidden">
+      <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(224,85,110,.06)"></div>
+      <div style="position:absolute;left:160px;bottom:-60px;width:160px;height:160px;border-radius:50%;background:rgba(224,85,110,.04)"></div>
+      <div style="display:flex;align-items:center;gap:24px;position:relative;z-index:1;flex-wrap:wrap">
+        <div style="width:60px;height:60px;border-radius:17px;background:#e0556e;flex:0 0 60px;display:flex;align-items:center;justify-content:center;animation:pulse-ring 2.5s infinite">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.2em;color:#f4a0b0;margin-bottom:6px">CiaraLink · PRODUCTION SECURITY PLAN · JUNE 2026</div>
+          <div style="font-size:30px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px">Production Launch <span style="color:#f4a0b0">BLOCKED</span></div>
+          <div style="font-size:13.5px;color:#f4a0b0;line-height:1.65;max-width:600px">CiaraLink handles sensitive NDIS, healthcare, worker, provider and participant information. The 25 security controls below must be implemented, tested and evidenced before production launch. <strong style="color:#fff">Make CiaraLink secure by design — not patched later.</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;flex:0 0 auto">
+          <div style="background:rgba(22,184,166,.15);border:1.5px solid rgba(22,184,166,.3);border-radius:14px;padding:12px 18px;text-align:center">
+            <div style="font-size:11px;font-weight:800;color:#7ce0d2;letter-spacing:.08em;margin-bottom:2px">PREVIEW APP</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">✅ Built</div>
+          </div>
+          <div style="background:rgba(224,85,110,.2);border:1.5px solid rgba(224,85,110,.35);border-radius:14px;padding:12px 18px;text-align:center">
+            <div style="font-size:11px;font-weight:800;color:#f4a0b0;letter-spacing:.08em;margin-bottom:2px">PRODUCTION SECURITY</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">0 / 25 Done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Three status cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
+      <!-- Card 1: Preview App -->
+      <div style="background:#fff;border:1.5px solid #b8e8df;border-radius:16px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16b8a6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#5f7a73;margin-bottom:2px">CURRENT APPROVED USE OF THIS PREVIEW</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b">✅ Preview App Built</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:#41635c;line-height:1.65">Dashboards, workflows, Hugo AI preview, messaging, AI File Drop preview, consent centre, launch readiness and backend planning are available for demo and workflow validation.</div>
+      </div>
+      <!-- Card 2: Production Security -->
+      <div style="background:#fff;border:1.5px solid #fca5b8;border-radius:16px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:#fde8ed;display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e0556e" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#5f7a73;margin-bottom:2px">PRODUCTION SECURITY STATUS</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b">🚫 Not Complete</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:#41635c;line-height:1.65">Production backend, authentication, RLS, secure storage, consent enforcement, audit logging and privacy controls are not yet implemented. 25 controls required.</div>
+      </div>
+      <!-- Card 3: Production Launch -->
+      <div style="background:#fff;border:1.5px solid #fca5b8;border-radius:16px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:#fde8ed;display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e0556e" stroke-width="2.2" stroke-linecap="round"><path d="M18.4 2.6L21 5l-2.6 2.4M3 12C3 7 7 3 12 3h7M5.6 21.4L3 19l2.6-2.4M21 12c0 5-4 9-9 9H5"/></svg>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#5f7a73;margin-bottom:2px">PRODUCTION LAUNCH</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b">🚫 Blocked</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:#41635c;line-height:1.65">CiaraLink must not be used with real participant, worker or provider data until all 25 production security controls are implemented, tested and evidenced.</div>
+      </div>
+    </div>
+
+    <!-- Clarifying note -->
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:14px 20px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style="flex:0 0 18px;margin-top:2px"><circle cx="8" cy="8" r="6" stroke="#6366f1" stroke-width="1.4"/><path d="M8 7v4M8 5v.5" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div style="font-size:13px;color:#41635c;line-height:1.65"><strong style="color:#14302b">This checklist does not measure the completion of the CiaraLink preview interface.</strong> It measures readiness for production use with real sensitive data. The CiaraLink frontend is built and available for controlled testing — what is incomplete is the production backend layer required before real participant, worker or provider data may be used.</div>
+    </div>
+
+    <!-- Demo warning -->
+    <div style="background:#fff;border:1px solid #f4d0a0;border-radius:14px;padding:14px 20px;margin-bottom:26px;display:flex;gap:12px;align-items:flex-start">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style="flex:0 0 20px;margin-top:1px"><path d="M8 2L1.5 13h13L8 2z" stroke="#d97706" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 7v3M8 11.5v.5" stroke="#d97706" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div style="font-size:13px;color:#5c3a0a;line-height:1.6"><strong style="color:#14302b">Data warning — preview environment only.</strong> Do not upload real participant, worker or provider documents. Do not enter real NDIS numbers, names or health information. This environment uses localStorage — no encryption, no RLS, no secure backend. <strong style="color:#c05c10">Use demo data only.</strong></div>
+    </div>
+
+    <!-- Filter bar -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="font-size:12px;font-weight:800;letter-spacing:.1em;color:#6c7f79;text-transform:uppercase;margin-right:4px">Filter:</div>
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+        <button onClick="{{ f.click }}" style="padding:6px 16px;border-radius:10px;border:1.5px solid {{ f.borderColor }};background:{{ f.bgColor }};color:{{ f.textColor }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ f.label }}</button>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="font-size:12.5px;color:#6c7f79;font-weight:600">Showing {{ visibleCount }} of 25 production security controls</div>
+    </div>
+
+    <!-- Requirements list -->
+    <sc-for list="{{ visibleReqs }}" as="req" hint-placeholder-count="8">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;margin-bottom:12px;overflow:hidden;animation:fade-in .2s ease both">
+        <!-- Header -->
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;background:{{ req.headerBg }};border-bottom:1px solid #f0f4f2;cursor:pointer" onClick="{{ req.toggleExpand }}">
+          <div style="width:36px;height:36px;border-radius:11px;flex:0 0 36px;background:{{ req.iconBg }};display:flex;align-items:center;justify-content:center">{{ req.iconEl }}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:800;color:#6c7f79">{{ req.num }}.</span>
+              <span style="font-size:14.5px;font-weight:800;color:#14302b">{{ req.title }}</span>
+              <span style="font-size:10px;font-weight:800;color:{{ req.catFg }};background:{{ req.catBg }};padding:2px 9px;border-radius:6px;letter-spacing:.04em">{{ req.cat }}</span>
+              <span style="font-size:10px;font-weight:800;color:{{ req.priFg }};background:{{ req.priBg }};padding:2px 9px;border-radius:6px;letter-spacing:.03em">{{ req.priority }}</span>
+            </div>
+            <div style="font-size:12.5px;color:#6c7f79">{{ req.sub }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+            <div style="padding:4px 12px;border-radius:9px;background:{{ req.statusBg }};border:1px solid {{ req.statusBdr }}">
+              <span style="font-size:11px;font-weight:800;color:{{ req.statusFg }}">{{ req.status }}</span>
+            </div>
+            <div style="width:22px;height:22px;border-radius:7px;background:#f0f4f2;display:flex;align-items:center;justify-content:center;color:#6c7f79;font-size:14px">{{ req.arrow }}</div>
+          </div>
+        </div>
+        <!-- Body -->
+        <sc-if value="{{ req.expanded }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:18px 20px">
+            <!-- Meta row -->
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+              <div style="background:#f7faf9;border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:120px">
+                <div style="font-size:10px;font-weight:800;color:#8aa09a;letter-spacing:.06em">STATUS</div>
+                <div style="font-size:13px;font-weight:700;color:{{ req.statusFg }}">{{ req.status }}</div>
+              </div>
+              <div style="background:#f7faf9;border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:120px">
+                <div style="font-size:10px;font-weight:800;color:#8aa09a;letter-spacing:.06em">PRIORITY</div>
+                <div style="font-size:13px;font-weight:700;color:{{ req.priFg }}">{{ req.priority }}</div>
+              </div>
+              <div style="background:#f7faf9;border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:140px">
+                <div style="font-size:10px;font-weight:800;color:#8aa09a;letter-spacing:.06em">OWNER</div>
+                <div style="font-size:13px;font-weight:700;color:#14302b">{{ req.owner }}</div>
+              </div>
+              <div style="background:#f7faf9;border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:160px">
+                <div style="font-size:10px;font-weight:800;color:#8aa09a;letter-spacing:.06em">EVIDENCE / TEST RESULT</div>
+                <div style="font-size:12px;font-weight:600;color:#6c7f79;font-style:italic">{{ req.evidence }}</div>
+              </div>
+              <div style="background:#f7faf9;border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:120px">
+                <div style="font-size:10px;font-weight:800;color:#8aa09a;letter-spacing:.06em">DATE VERIFIED</div>
+                <div style="font-size:12px;font-weight:600;color:#6c7f79">{{ req.dateVerified }}</div>
+              </div>
+            </div>
+            <!-- Checklist -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px">
+              <sc-for list="{{ req.items }}" as="it" hint-placeholder-count="4">
+                <div style="display:flex;align-items:flex-start;gap:9px;background:#fafbfa;border-radius:10px;padding:9px 12px">
+                  <div style="width:18px;height:18px;border-radius:5px;flex:0 0 18px;background:#fde8ed;display:flex;align-items:center;justify-content:center;margin-top:1px">
+                    <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="#e0556e" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  </div>
+                  <span style="font-size:12.5px;color:#41635c;line-height:1.5">{{ it }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <!-- Environment separation -->
+    <div style="background:#0c2622;border-radius:22px;padding:26px 30px;margin-top:28px;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:#f4faf8;margin-bottom:4px">Environment Separation</div>
+      <div style="font-size:12.5px;color:#7ce0d2;margin-bottom:20px">Three separate environments required before production launch</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <sc-for list="{{ envs }}" as="env" hint-placeholder-count="3">
+          <div style="background:rgba(255,255,255,.05);border:1.5px solid {{ env.bdr }};border-radius:16px;padding:18px 20px">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:{{ env.label }};margin-bottom:10px">{{ env.name }}</div>
+            <sc-for list="{{ env.points }}" as="pt" hint-placeholder-count="3">
+              <div style="font-size:12.5px;color:#9dcdc8;margin-bottom:5px;padding-left:2px">• {{ pt }}</div>
+            </sc-for>
+            <div style="margin-top:12px;padding:6px 12px;border-radius:9px;background:{{ env.statusBg }};display:inline-block">
+              <span style="font-size:11px;font-weight:800;color:{{ env.statusFg }}">{{ env.statusLabel }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Production launch gate -->
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:24px 28px;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">🔒 Production Launch Gate — All Required</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+        <sc-for list="{{ gateItems }}" as="gi" hint-placeholder-count="13">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fbe9ed;border:1px solid rgba(224,85,110,.2);border-radius:12px">
+            <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="#e0556e" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span style="font-size:12.5px;color:#41635c;font-weight:600">{{ gi }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Incident response + Backup -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:22px 24px">
+        <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">🚨 Incident &amp; Breach Response Plan</div>
+        <sc-for list="{{ breachSteps }}" as="bs" hint-placeholder-count="8">
+          <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f4f2">
+            <div style="width:22px;height:22px;border-radius:7px;flex:0 0 22px;background:#fde8ed;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#e0556e">{{ bs.n }}</div>
+            <span style="font-size:12.5px;color:#41635c;line-height:1.5">{{ bs.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:22px 24px">
+        <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">💾 Backup &amp; Recovery Requirements</div>
+        <sc-for list="{{ backupItems }}" as="bi" hint-placeholder-count="7">
+          <div style="display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid #f0f4f2">
+            <svg width="16" height="16" viewBox="0 0 14 14" fill="none" style="flex:0 0 16px;margin-top:1px"><path d="M3 3l8 8M11 3l-8 8" stroke="#e0556e" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span style="font-size:12.5px;color:#41635c">{{ bi }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Final statement -->
+    <div style="background:linear-gradient(135deg,#0c2622,#163b35);border-radius:20px;padding:26px 32px">
+      <div style="font-size:14px;font-weight:800;color:#f4faf8;margin-bottom:14px">Final Production Statement</div>
+      <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 22px;margin-bottom:14px">
+        <div style="font-size:14px;color:#eafaf8;font-style:italic;line-height:1.65">"CiaraLink is a controlled preview and workflow validation environment. It is not approved for real participant data or public production use. CiaraLink should only be called production-ready when every critical security control is implemented, tested and evidenced."</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="background:rgba(22,184,166,.1);border:1px solid rgba(22,184,166,.2);border-radius:14px;padding:14px 18px">
+          <div style="font-size:10.5px;font-weight:800;color:#7ce0d2;margin-bottom:8px;letter-spacing:.08em">✅ CiaraLink MAY BE USED AS:</div>
+          <sc-for list="{{ canDo }}" as="c" hint-placeholder-count="4">
+            <div style="font-size:12.5px;color:#9dcdc8;padding:2px 0">• {{ c }}</div>
+          </sc-for>
+        </div>
+        <div style="background:rgba(224,85,110,.1);border:1px solid rgba(224,85,110,.2);border-radius:14px;padding:14px 18px">
+          <div style="font-size:10.5px;font-weight:800;color:#f4a0b0;margin-bottom:8px;letter-spacing:.08em">🚫 CiaraLink MUST NOT BE USED AS:</div>
+          <sc-for list="{{ cantDo }}" as="c" hint-placeholder-count="3">
+            <div style="font-size:12.5px;color:#f4a0b0;padding:2px 0">• {{ c }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  state = { filter: 'all', expanded: {} };
+
+  svgIcon(name, color) {
+    const c = color || '#e0556e'; const s = 16;
+    const p = {
+      lock: `<rect x="3.5" y="7" width="9" height="6" rx="1.5" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M5.5 7V5.5a2.5 2.5 0 015 0V7" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      users: `<circle cx="5.5" cy="5.5" r="2.5" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M1.5 13c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5" fill="none" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/><circle cx="11.5" cy="5.5" r="2" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M10.5 9.5c.3-.1.6-.1 1-.1 1.6 0 3 1 3 3" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      db: `<ellipse cx="8" cy="5" rx="5" ry="2" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M3 5v6c0 1.1 2.2 2 5 2s5-.9 5-2V5" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2" stroke="${c}" stroke-width="1.3"/>`,
+      file: `<path d="M4 2h6l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M10 2v4h4" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      shield: `<path d="M8 1.5L2 4v4c0 3.3 2.6 5.7 6 6.5 3.4-.8 6-3.2 6-6.5V4L8 1.5z" fill="none" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"/>`,
+      api: `<rect x="2" y="4" width="12" height="8" rx="2" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M5 8h6M5 6h2M5 10h3" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      log: `<path d="M3 4h10M3 7.5h7M3 11h8" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      key: `<circle cx="6.5" cy="8" r="3.5" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M9.5 8h5M12 7v2" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      legal: `<path d="M3 4h10M3 7.5h7M3 11h5" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="none" stroke="${c}" stroke-width="1.3"/>`,
+      star: `<path d="M8 2l1.8 3.6L14 6.4l-3 2.9.7 4.1L8 11.4l-3.7 2 .7-4.1-3-2.9 4.2-.8z" fill="none" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"/>`,
+      server: `<rect x="2" y="3" width="12" height="4" rx="1.5" fill="none" stroke="${c}" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1.5" fill="none" stroke="${c}" stroke-width="1.3"/><circle cx="5" cy="5" r=".8" fill="${c}"/><circle cx="5" cy="11" r=".8" fill="${c}"/>`,
+      warn: `<path d="M8 2L1.5 13h13L8 2z" fill="none" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3M8 11.5v.5" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      msg: `<path d="M2 4h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+      clock: `<circle cx="8" cy="8" r="6" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="${c}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>`,
+      check: `<path d="M2 8l4 4 8-8" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+      test: `<rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="${c}" stroke-width="1.3"/><path d="M6 6h4M6 9h3" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/>`,
+    };
+    return React.createElement('svg', { width: s, height: s, viewBox: '0 0 16 16', fill: 'none', dangerouslySetInnerHTML: { __html: p[name] || p.shield } });
+  }
+
+  allReqs() {
+    const ic = (n, col) => this.svgIcon(n, col);
+    return [
+      { num:1, title:'Secure Backend — Replace localStorage', cat:'Infrastructure', priority:'P0 — Critical',
+        sub:'Move from frontend prototype to a real production backend with auth, database and RLS',
+        owner:'Engineering Lead', evidence:'Not started — no backend exists', dateVerified:'—',
+        status:'Not Started', iconEl:ic('server','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Supabase Auth or equivalent for user management','PostgreSQL database with encrypted storage','Row-Level Security enabled on all sensitive tables','Secure private file storage (Supabase Storage or AWS S3)','Server-side API layer (Edge Functions or Node)','Environment variables for all secrets — never in frontend code','Audit log table (append-only, tamper-resistant)','Encrypted backups with tested restore process','Production monitoring (uptime, error alerts, performance)','Remove all localStorage as primary data store in production'],
+      },
+      { num:2, title:'Real Authentication', cat:'Security', priority:'P0 — Critical',
+        sub:'Secure email/password login, invite-only accounts, MFA, session expiry — no fake role switching',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('lock','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Secure email/password login with rate limiting','Invite-only account creation — no open self-registration','Password reset via secure time-limited email link','Email verification before first login','Session expiry (configurable, default 8h)','Explicit logout on all dashboards — clears tokens','Multi-factor authentication option (TOTP)','Device/session management — view and revoke sessions','No fake role switching in production — roles enforced server-side','JWT or secure session tokens (httpOnly cookies in production)'],
+      },
+      { num:3, title:'Organisation and Role Model', cat:'Security', priority:'P0 — Critical',
+        sub:'10 roles, 6 organisation types — every user belongs to an approved org or relationship',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('users','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Platform Admin role','Provider Owner / Admin / Staff roles','Support Worker and ABN Worker roles','Support Coordinator role','Allied Health Professional role','Participant role','Guardian / Nominee role','Provider organisation type','Support coordination and allied health organisation types','Sole trader / ABN worker and participant account types'],
+      },
+      { num:4, title:'Database Schema', cat:'Infrastructure', priority:'P0 — Critical',
+        sub:'25+ tables required — all with id, org_id, participant_id, created_by, timestamps, archived status',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('db','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['users + user_profiles','organisations + organisation_members','participants + participant_contacts + participant_representatives','care_team_relationships + provider_participant_links','worker_profiles + worker_credentials','shifts + shift_assignments','referrals + service_agreements + worker_agreements','documents + document_permissions + consent_records','messages + message_threads','tasks + notifications + audit_logs + file_access_logs','All tables: id, org_id, participant_id, created_by, created_at, updated_at, archived'],
+      },
+      { num:5, title:'Row-Level Security', cat:'Database', priority:'P0 — Critical',
+        sub:'RLS on every sensitive table — no ID-in-URL exploits, no cross-org data leaks',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('shield','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Provider users: only see participants linked to their org','Support workers: only assigned shifts + needed participant info','Support coordinators: only their participants','Allied health: only approved participants + shared docs','Participants: own data only','Guardians/nominees: authorised participant data only','Platform admins: access audited','Revoked consent immediately blocks data access','Tested: no access gained by changing ID in URL or API request','RLS policies covered: all 25+ tables'],
+      },
+      { num:6, title:'Backend Permission Checks', cat:'Security', priority:'P0 — Critical',
+        sub:'Every API action checks: who, role, org, participant link, consent, CRUD permission — server-side',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('api','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Who is the user? (verified JWT/session)','What role do they have? (from DB, not frontend)','What organisation do they belong to?','Are they linked to this participant?','Do they have active consent?','Are they allowed to view / create / edit / share / delete?','Applied to: Participants, Documents, Shifts, Referrals, Agreements','Applied to: Messages, Tasks, Notifications, Worker records, Consent records','Never trust the frontend for access decisions','Log every access denial in audit_logs'],
+      },
+      { num:7, title:'Consent Enforcement at Data Layer', cat:'Privacy', priority:'P0 — Critical',
+        sub:'Consent must control backend access — not just UI state — with expiry, revoke and audit log',
+        owner:'Privacy Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('shield','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Consent records stored in database (not localStorage)','Consent scope, expiry and revoked state fields','Granted by participant / guardian / nominee','Document-level and role-level consent controls','Care team access controlled by consent','Audit log for every consent change','On revoke: access blocked immediately server-side','On revoke: shared document permissions removed','On revoke: future messages/files restricted','On revoke: audit log records change with timestamp + user'],
+      },
+      { num:8, title:'Secure File Storage', cat:'Infrastructure', priority:'P0 — Critical',
+        sub:'Private buckets, signed expiring URLs, malware scanning, no public file URLs',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('file','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Private storage buckets — no public URLs','Signed URLs with short expiry (15–60 min)','File ownership linked to participant and uploader','File type validation (MIME + magic bytes)','File size limits enforced server-side','Malware/virus scanning on every upload','No direct file access without permission check','Audit log for upload, view and download','Files covered: NDIS plans, agreements, consent, health reports, worker checks, police checks, WWCC, First Aid, insurance, ABN records'],
+      },
+      { num:9, title:'Input Validation and Sanitisation', cat:'Security', priority:'P1 — High',
+        sub:'All user input validated server-side — protect against injection, XSS, oversized payloads',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('warn','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Validate: names, emails, phone numbers, dates, NDIS numbers, ABNs','Validate: shift times, agreement fields, file metadata','Validate: message content, referral content, notes, document upload data','Protect against: SQL injection, XSS, malicious file names','Protect against: oversized payloads, invalid role changes','Protect against: broken object access, unsafe redirects','Server-side schema validation (Zod, Joi or equivalent)','Never rely on frontend validation as a security control'],
+      },
+      { num:10, title:'API Security', cat:'Security', priority:'P1 — High',
+        sub:'Auth required by default, rate limiting, CORS, CSRF, no secrets in frontend',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('api','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['All endpoints require authenticated requests (JWT/session)','Role permission checks on every request','Rate limiting per user and per IP','Strict CORS rules — CiaraLink frontend domain only','CSRF protection on all state-changing actions','Request body size limits enforced','Error responses must not leak secrets or stack traces','No public admin APIs','No secrets or API keys exposed to frontend','Secure service role usage only on backend functions'],
+      },
+      { num:11, title:'Audit Logging', cat:'Compliance', priority:'P1 — High',
+        sub:'Every sensitive action logged — tamper-resistant, with user, role, org, IP, timestamp',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('log','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Log: login, logout, failed login attempts','Log: participant viewed/updated, document uploaded/viewed/downloaded/shared','Log: consent changed, message sent, referral sent','Log: shift created/updated, worker assigned, agreement sent/signed','Log: access denied, admin change, data export/deletion request','Fields: User ID, role, org ID, action, record type/ID, participant ID','Fields: timestamp, IP address, device/browser, result (success/denied)','Audit logs must be append-only and tamper-resistant','Retain audit logs per data retention policy (minimum 7 years for NDIS)'],
+      },
+      { num:12, title:'Encryption and Secret Management', cat:'Security', priority:'P0 — Critical',
+        sub:'HTTPS everywhere, AES-256 at rest, bcrypt passwords, no secrets in code or frontend',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('key','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['HTTPS everywhere — TLS 1.2 minimum, TLS 1.3 preferred','Encryption at rest (AES-256 or database-level encryption)','Secure password hashing (bcrypt cost ≥12 or Argon2id)','Secure token storage — httpOnly cookies, not localStorage in production','No sensitive data in localStorage in production','No API keys or secrets in frontend source code','No secrets committed to GitHub, Replit, or version control','Rotate any exposed keys immediately','Separate development, staging and production secrets','Environment variable management via platform secrets'],
+      },
+      { num:13, title:'Privacy and Legal Readiness', cat:'Legal', priority:'P1 — High',
+        sub:'Privacy Policy, Terms, AI disclaimer, data rights, breach response — before any real participant data',
+        owner:'Privacy/Legal Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('legal','#d97706'), iconBg:'#fef3c7', headerBg:'#fffdf5',
+        catFg:'#92400e', catBg:'#fef3c7', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Privacy Policy (APP-compliant, NDIS-specific)','Terms of Use','Consent explanation page','Data sharing explanation','Participant rights (access, correction, deletion)','Guardian/nominee access explanation','Data retention policy','Data deletion request process','Breach response policy (NDB scheme obligations)','AI disclaimer: Hugo does not replace clinical, legal or financial advice','Support contact for privacy queries'],
+      },
+      { num:14, title:'AI Safety and Hugo Controls', cat:'Privacy', priority:'P1 — High',
+        sub:'Hugo must never reveal restricted data, bypass consent, or take actions without user confirmation',
+        owner:'Product Lead', evidence:'Partially implemented in preview', dateVerified:'—',
+        status:'In Progress', iconEl:ic('shield','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
+        items:['Hugo can: draft messages, notes, summaries, suggestions, reminders, navigation help','Hugo must confirm before: sending messages, sharing documents, changing shifts','Hugo must confirm before: assigning workers, sending referrals/reports, submitting notes','Hugo must confirm before: changing consent, signing documents, deleting anything','Hugo must not: reveal restricted data, bypass consent, make clinical decisions','Hugo must not: replace professional advice, send actions without approval','Hugo must not: access data outside the user\'s current permissions','Hugo actions must be logged in audit_logs where sensitive','Coming Soon: voice mode, autonomous agent actions (labelled correctly in preview)'],
+      },
+      { num:15, title:'Secure AI File Drop', cat:'Infrastructure', priority:'P1 — High',
+        sub:'Upload to private storage, server-side classification, permission check before linking to participant',
+        owner:'Engineering Lead', evidence:'Preview classification is simulated only', dateVerified:'—',
+        status:'Not Started', iconEl:ic('file','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Upload directly to private storage — never client-side only','Scan every file for malware before processing','Validate file type server-side (MIME + magic bytes)','Extract metadata server-side using OCR/AI pipeline','Classify document server-side — never expose raw AI prompts to frontend','Store extracted data in secure database','Link to participant only after permission check','Ask user confirmation before updating participant profile','Audit every upload, view, extraction and share event','Real OCR/AI pipeline required — preview classification is simulated'],
+      },
+      { num:16, title:'Secure Messaging', cat:'Security', priority:'P1 — High',
+        sub:'Users can only message approved connections — visibility controlled by role and consent',
+        owner:'Engineering Lead', evidence:'Preview messaging uses localStorage only', dateVerified:'—',
+        status:'Not Started', iconEl:ic('msg','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Users can only message people they are connected to (participant, shift, referral, org)','Threads linked to participant/shift/referral/document where relevant','Message visibility controlled by role and consent','Attachments use secure file permissions (signed URLs)','Deleted/archived messages follow retention policy','Sensitive message access audited in audit_logs','No open messaging to unconnected users','Message notifications enforced by server-side role rules'],
+      },
+      { num:17, title:'Secure Roster and Shift Actions', cat:'Security', priority:'P1 — High',
+        sub:'Shift and roster changes permission-checked server-side — workers cannot edit provider rosters',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('clock','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Provider can only create shifts for their own participants','Worker can only view assigned or offered shifts (not full roster)','Worker cannot edit provider roster unless explicitly permitted','Shift changes must notify all affected users','Shift changes must be logged in audit_logs','Hugo cannot change shifts without user confirmation','Shift assignment linked to participant — updates care timeline','Shift hours recorded and linked to participant funding'],
+      },
+      { num:18, title:'NDIS and Australian Privacy Obligations', cat:'Compliance', priority:'P1 — High',
+        sub:'Australian Privacy Act, NDIS Practice Standards, NDB scheme, health information handling',
+        owner:'Privacy/Legal Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('star','#d97706'), iconBg:'#fef3c7', headerBg:'#fffdf5',
+        catFg:'#92400e', catBg:'#fef3c7', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Australian Privacy Act 1988 — Australian Privacy Principles (APPs)','APP 11: reasonable steps to protect personal information','Notifiable Data Breaches scheme — report within 30 days if serious harm likely','NDIS Quality and Safeguards Commission Practice Standards compliance','Health and sensitive information handling (APP 6, APP 11)','Consent and authorised representative access rules','Record keeping obligations under NDIS provider registration','Privacy Impact Assessment (PIA) documented before production','OAIC guidance on NDB scheme reviewed and applied'],
+      },
+      { num:19, title:'Security Checklist Status Tracking', cat:'Process', priority:'P1 — High',
+        sub:'Each item tracked with status, owner, priority, evidence and date verified',
+        owner:'Product Lead', evidence:'This document — updated June 2026', dateVerified:'June 2026',
+        status:'In Progress', iconEl:ic('check','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
+        items:['Status options: Not Started / In Progress / Implemented / Tested / Passed / Blocked','Each item has: Owner, Priority, Evidence link, Test result, Date verified','Reviewed before any production deployment','Shared with engineering, privacy and legal teams','Updated as items are implemented and tested','Blocked items escalated immediately'],
+      },
+      { num:20, title:'Production Launch Gate', cat:'Process', priority:'P0 — Critical',
+        sub:'All 13 gate requirements must be checked before any real participant data enters CiaraLink',
+        owner:'Product Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('shield','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Authentication implemented and tested','RBAC implemented and tested','RLS implemented and adversarially tested','Secure database live with encryption at rest','Secure file storage live with signed URLs','Consent enforced at backend (not just UI)','Audit logging active and verified tamper-resistant','Server-side validation active on all endpoints','API security active (rate limiting, CORS, CSRF)','Privacy/legal pages complete and reviewed','Backups configured and restore tested','Security review (penetration test or independent audit) complete','Demo data separated from production data'],
+      },
+      { num:21, title:'Environment Separation', cat:'Infrastructure', priority:'P1 — High',
+        sub:'Development, Staging and Production must be separate — no real data in dev/staging',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('server','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Development: demo data, internal use only, no real participant data','Staging: production-like setup, test users, security testing','Production: real users only after approval, real backend, real auth, real security controls','Separate environment variables for each environment','No fake role switching in production — all roles enforced by backend','Demo data must never be mixed with production participant data'],
+      },
+      { num:22, title:'Data Protection Warnings', cat:'Safety', priority:'P1 — High',
+        sub:'Clear warnings in all upload and document areas — use demo data only',
+        owner:'Product Lead', evidence:'Added to AI File Drop and Index in preview', dateVerified:'June 2026',
+        status:'In Progress', iconEl:ic('warn','#d97706'), iconBg:'#fef3c7', headerBg:'#fffdf5',
+        catFg:'#92400e', catBg:'#fef3c7', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
+        items:['"Do not upload real participant, worker or provider documents" — visible in AI File Drop','Demo data only warning on Login and Index','Preview banner on all dashboards','Warning must be visible before any upload action in preview','Remove warnings only when production security controls are in place and tested'],
+      },
+      { num:23, title:'Incident and Breach Response Plan', cat:'Compliance', priority:'P1 — High',
+        sub:'Documented plan for breach detection, investigation, notification, access revocation and recovery',
+        owner:'Privacy/Legal Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('warn','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Document: how breaches are detected (monitoring, alerts, user reports)','Document: who investigates (named roles/contacts)','Document: how affected users are notified (timeline, method)','Document: how regulators are notified if required (OAIC NDB within 30 days)','Document: how access is revoked immediately on breach','Document: how logs are preserved for investigation','Document: how systems are restored after a breach','Document: how lessons are documented and controls updated','Test the plan annually or after any security incident'],
+      },
+      { num:24, title:'Backup and Recovery', cat:'Infrastructure', priority:'P1 — High',
+        sub:'Automated encrypted backups, tested restore, disaster recovery plan, data retention policy',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('db','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Automated daily database backups','Backup encryption (same standard as data at rest)','Restore testing: verified a full restore works before production','Disaster recovery plan documented','Data retention policy (NDIS records: minimum 7 years recommended)','Account recovery process (for locked/lost access)','File recovery process (for accidentally deleted documents)','Backup stored in separate region from primary database'],
+      },
+      { num:25, title:'Testing and Security Verification', cat:'Process', priority:'P1 — High',
+        sub:'Unit, integration, permission, RLS, XSS, file access and penetration tests before production',
+        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
+        status:'Not Started', iconEl:ic('test','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#c05c10', priBg:'#fef3c7',
+        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        items:['Unit tests for all business logic','Integration tests for auth flows, referral flows, shift flows','Permission tests: each role can only access what they should','RLS adversarial tests: attempt cross-org data access by changing IDs','File access tests: attempt to download another org\'s files','Consent revoke tests: verify access is immediately blocked','API tests: rate limiting, CORS, CSRF, auth required','XSS tests: malicious input in all text fields','Input validation tests: NDIS numbers, dates, file types, sizes','Role switching tests: no privilege escalation possible','Mobile tests: all critical flows work on mobile','Backup/restore test: verified before production','Independent penetration test or security review commissioned'],
+      },
+    ];
+  }
+
+  renderVals() {
+    const { filter, expanded } = this.state;
+    const all = this.allReqs();
+
+    const makeFilter = (label, key) => {
+      const active = filter === key;
+      return { label, click: () => this.setState({ filter: key }), active, borderColor: active ? '#0b6b60' : '#d4dbd8', bgColor: active ? '#e7f4f1' : '#fff', textColor: active ? '#0b6b60' : '#5f7a73' };
+    };
+    const filters = [
+      makeFilter('All (25)', 'all'),
+      makeFilter('🔴 P0 Critical', 'p0'),
+      makeFilter('🟡 P1 High', 'p1'),
+      makeFilter('In Progress', 'inprogress'),
+      makeFilter('Not Started', 'notstarted'),
+    ];
+
+    const visible = all.filter(r => {
+      if (filter === 'all') return true;
+      if (filter === 'p0') return r.priority.includes('P0');
+      if (filter === 'p1') return r.priority.includes('P1');
+      if (filter === 'inprogress') return r.status === 'In Progress';
+      if (filter === 'notstarted') return r.status === 'Not Started';
+      return true;
+    }).map(r => {
+      const isExpanded = !!expanded[r.num];
+      return {
+        ...r,
+        expanded: isExpanded,
+        arrow: isExpanded ? '▲' : '▼',
+        toggleExpand: () => this.setState(s => ({ expanded: { ...s.expanded, [r.num]: !s.expanded[r.num] } })),
+      };
+    });
+
+    const envs = [
+      { name: 'DEVELOPMENT', label: '#7ce0d2', bdr: 'rgba(22,184,166,.25)', statusLabel: '✅ Current state', statusBg: 'rgba(22,184,166,.15)', statusFg: '#16b8a6', points: ['Demo data only', 'Internal use only', 'No real participant data', 'localStorage prototype', 'Fake role switching'] },
+      { name: 'STAGING', label: '#fbbf24', bdr: 'rgba(251,191,36,.3)', statusLabel: '⏳ To be created', statusBg: 'rgba(251,191,36,.1)', statusFg: '#d97706', points: ['Production-like setup', 'Test users only', 'Security testing', 'RLS testing', 'Penetration testing'] },
+      { name: 'PRODUCTION', label: '#f4a0b0', bdr: 'rgba(224,85,110,.3)', statusLabel: '🚫 Blocked', statusBg: 'rgba(224,85,110,.1)', statusFg: '#e0556e', points: ['Real users only after approval', 'Real backend + auth', 'Real security controls', 'No fake role switching', 'Audit logging active'] },
+    ];
+
+    const gateItems = ['Authentication implemented', 'RBAC implemented', 'RLS adversarially tested', 'Secure database live', 'Secure file storage live', 'Consent enforced at backend', 'Audit logging active', 'Server-side validation active', 'API security active', 'Privacy/legal pages complete', 'Backups configured and tested', 'Security review complete', 'Demo data separated from production'];
+
+    const breachSteps = [
+      { n: '1', text: 'Detect: monitoring alerts, user reports, automated scanning' },
+      { n: '2', text: 'Investigate: named incident response lead reviews scope and affected data' },
+      { n: '3', text: 'Contain: revoke access, block affected systems, preserve logs' },
+      { n: '4', text: 'Notify affected users: clear, timely communication of what happened' },
+      { n: '5', text: 'Notify OAIC if NDB obligations triggered (within 30 days of awareness)' },
+      { n: '6', text: 'Restore: systems restored from clean backup after verification' },
+      { n: '7', text: 'Review: root cause analysis, lessons documented' },
+      { n: '8', text: 'Improve: update security controls, test the fix, update this plan' },
+    ];
+
+    const backupItems = ['Automated daily database backups', 'Backup encryption at same standard as production data', 'Restore testing: verified full restore before launch', 'Disaster recovery plan documented and tested', 'Data retention: 7 years recommended for NDIS records', 'Account recovery process for locked/lost access', 'File recovery for accidentally deleted documents', 'Backups stored in a separate region from primary'];
+
+    const canDo = ['Internal prototype and demo', 'Controlled preview for stakeholders', 'Workflow validation and UX testing', 'Training and onboarding demonstrations'];
+    const cantDo = ['Public production product', 'Real participant or worker data system', 'Live NDIS provider operations platform'];
+
+    return { filters, visibleReqs: visible, visibleCount: visible.length, envs, gateItems, breachSteps, backupItems, canDo, cantDo };
+  }
+}
+</script>
+</body>
+</html>

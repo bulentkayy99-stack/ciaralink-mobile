@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Sign your agreement · CiaraLink</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:9px;height:9px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes sg-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes sg-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+    @keyframes sg-spin{to{transform:rotate(360deg)}}
+    .sg-doc{font-size:13px;line-height:1.6;color:#23423c}
+    .sg-doc h1,.sg-doc h2,.sg-doc h3{color:#14302b;line-height:1.3}
+    .sg-doc table{width:100%;border-collapse:collapse}
+    .sg-doc td,.sg-doc th{border:1px solid #e2e9e6;padding:6px 8px;text-align:left}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;padding:0 0 60px">
+
+  <!-- Top bar -->
+  <header style="width:100%;display:flex;align-items:center;gap:11px;padding:16px 18px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 100%);color:#f4faf8;position:sticky;top:0;z-index:30">
+    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+    <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#7e948e;font-weight:600;margin-top:3px">SECURE SIGNING</div></div>
+  </header>
+
+  <div style="width:100%;max-width:680px;padding:18px 16px 0;flex:1">
+
+    <!-- LOADING -->
+    <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ true }}">
+      <div style="text-align:center;padding:80px 20px;color:#6c7f79">
+        <div style="width:34px;height:34px;border-radius:50%;border:3px solid #d3eae4;border-top-color:#16b8a6;margin:0 auto;animation:sg-spin .8s linear infinite"></div>
+        <div style="margin-top:16px;font-size:13.5px">Loading your agreement…</div>
+      </div>
+    </sc-if>
+
+    <!-- ERROR -->
+    <sc-if value="{{ isError }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #f3c9d2;border-radius:18px;padding:34px 26px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04);animation:sg-rise .35s ease both">
+        <div style="width:52px;height:52px;border-radius:15px;background:#fbe9ed;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ alertEl }}</div>
+        <div style="font-size:16px;font-weight:800;color:#14302b;margin-top:14px">We couldn't open this agreement</div>
+        <div style="font-size:13px;color:#6c7f79;margin-top:8px;line-height:1.55">{{ errMsg }}</div>
+      </div>
+    </sc-if>
+
+    <!-- ALREADY SIGNED -->
+    <sc-if value="{{ isAlreadySigned }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:34px 26px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04);animation:sg-rise .35s ease both">
+        <div style="width:54px;height:54px;border-radius:16px;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ checkBigEl }}</div>
+        <div style="font-size:17px;font-weight:800;color:#14302b;margin-top:14px">This agreement has already been signed.</div>
+        <div style="font-size:13px;color:#6c7f79;margin-top:8px;line-height:1.55">Nothing more to do here. If you think this is a mistake, contact the provider who sent you the link.</div>
+      </div>
+    </sc-if>
+
+    <!-- JUST SIGNED (success) -->
+    <sc-if value="{{ isJustSigned }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #e0efe9;border-radius:18px;padding:38px 26px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="width:64px;height:64px;border-radius:50%;background:#16b8a6;display:flex;align-items:center;justify-content:center;margin:0 auto;animation:sg-pop .4s ease both;box-shadow:0 10px 26px -8px rgba(14,147,132,.6)">{{ checkWhiteEl }}</div>
+        <div style="font-size:19px;font-weight:800;color:#14302b;margin-top:18px">Signed — a copy has been recorded</div>
+        <div style="font-size:13.5px;color:#6c7f79;margin-top:9px;line-height:1.6">Thank you, {{ signedName }}. Your signature on <b style="color:#2c4a44">{{ title }}</b> was submitted on {{ todayLong }}. You can close this page.</div>
+      </div>
+    </sc-if>
+
+    <!-- SIGNING FORM -->
+    <sc-if value="{{ showForm }}" hint-placeholder-val="">
+      <div style="animation:sg-rise .35s ease both">
+
+        <div style="margin-bottom:6px;font-size:11px;letter-spacing:.1em;font-weight:700;color:#0b6b60;text-transform:uppercase">Please review &amp; sign</div>
+        <div style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#14302b;line-height:1.2">{{ title }}</div>
+        <sc-if value="{{ recipient }}" hint-placeholder-val="">
+          <div style="font-size:12.5px;color:#6c7f79;margin-top:5px">Prepared for {{ recipient }}</div>
+        </sc-if>
+
+        <!-- Document -->
+        <div style="margin-top:16px;background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:11px 16px;border-bottom:1px solid #eef2f0;font-size:11.5px;font-weight:700;color:#9aa8a3;letter-spacing:.04em">AGREEMENT</div>
+          <div style="max-height:46vh;overflow-y:auto;padding:18px 18px 22px" class="sg-doc">
+            <sc-if value="{{ hasDoc }}" hint-placeholder-val="{{ true }}">{{ docEl }}</sc-if>
+            <sc-if value="{{ noDoc }}" hint-placeholder-val="">
+              <div style="color:#8a9a94;font-size:13px">The document content wasn't included with this request. Please ask the provider to resend it.</div>
+            </sc-if>
+          </div>
+        </div>
+
+        <!-- Signature capture -->
+        <div style="margin-top:16px;background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:18px 16px 20px">
+          <div style="font-size:14px;font-weight:800;color:#14302b">Your signature</div>
+
+          <div style="margin-top:14px;font-size:12px;font-weight:700;color:#41635c">Full name</div>
+          <input ref="{{ nameRef }}" placeholder="Type your full legal name" style="margin-top:6px;width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:15px;color:#14302b;background:#fff" />
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+            <div style="font-size:12px;font-weight:700;color:#41635c">Draw your signature</div>
+            <button onClick="{{ clearSig }}" style="background:none;border:none;color:#0b6b60;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:0">Clear</button>
+          </div>
+          <div style="margin-top:6px;position:relative;border:1.5px dashed #cfe0db;border-radius:12px;background:#fbfdfc;touch-action:none;overflow:hidden">
+            <canvas ref="{{ canvasRef }}" width="620" height="200" style="display:block;width:100%;height:170px;touch-action:none;cursor:crosshair"></canvas>
+            <sc-if value="{{ noInk }}" hint-placeholder-val="{{ true }}">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#b6c4be;font-size:13px">Sign here with your finger or mouse</div>
+            </sc-if>
+          </div>
+
+          <div style="margin-top:14px;font-size:12px;color:#6c7f79">Dated <b style="color:#2c4a44">{{ todayLong }}</b></div>
+
+          <button onClick="{{ toggleAgree }}" style="margin-top:16px;width:100%;display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:12px;border:1.5px solid {{ agreeBorder }};background:{{ agreeBg }};cursor:pointer;text-align:left">
+            <span style="flex:0 0 22px;width:22px;height:22px;border-radius:7px;border:2px solid {{ boxBorder }};background:{{ boxBg }};display:flex;align-items:center;justify-content:center">{{ tickEl }}</span>
+            <span style="flex:1;font-size:13px;color:#2c4a44;line-height:1.45">I confirm I have read this agreement and that the typed name and drawn signature above are mine.</span>
+          </button>
+
+          <button onClick="{{ submit }}" disabled="{{ submitDisabled }}" style="margin-top:16px;width:100%;height:52px;border-radius:14px;border:none;background:{{ submitBg }};color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:{{ submitCursor }};display:flex;align-items:center;justify-content:center;gap:9px">{{ submitInner }}</button>
+
+          <div style="margin-top:12px;font-size:11px;color:#9aa8a3;line-height:1.5;text-align:center">By signing you create a recorded copy for you and the provider. This is an attestation, not a witnessed e-signature.</div>
+        </div>
+
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:92vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932}}">
+class Component extends DCLogic {
+  state = { phase:'loading', title:'Agreement', html:'', recipient:null, status:'sent',
+    agreed:false, hasInk:false, submitting:false, justSigned:false, signedName:'', errMsg:'', toast:null };
+  nameRef = React.createRef();
+  canvasRef = React.createRef();
+
+  componentDidMount(){
+    // Read the request id from the URL: Sign.dc.html?req=<id>
+    let id=null;
+    try{ id=new URLSearchParams(window.location.search).get('req'); }catch(e){ id=null; }
+    this.reqId=id&&String(id).trim()?String(id).trim():null;
+    this.load();
+  }
+  componentDidUpdate(){ this.wireCanvas(); }
+
+  async load(){
+    if(!this.reqId){ this.setState({phase:'error',errMsg:'This signing link is missing its reference. Please ask the provider to resend it.'}); return; }
+    try{
+      const r=await fetch('/api/get-signing?id='+encodeURIComponent(this.reqId));
+      let j=null; try{ j=await r.json(); }catch(e){ j=null; }
+      if(r.status===404){ this.setState({phase:'error',errMsg:"We couldn't find this agreement. The link may be incorrect or expired."}); return; }
+      if(!r.ok||!j){ this.setState({phase:'error',errMsg:"We couldn't load this agreement. Please try again in a moment."}); return; }
+      this.setState({
+        phase:'ready',
+        title:j.document_title||'Agreement',
+        html:(typeof j.filled_html==='string')?j.filled_html:'',
+        recipient:j.recipient||null,
+        status:j.status||'sent'
+      });
+    }catch(e){ this.setState({phase:'error',errMsg:"We couldn't load this agreement. Please check your connection and try again."}); }
+  }
+
+  // Attach mouse + touch drawing handlers to the signature canvas (idempotent).
+  wireCanvas(){
+    const c=this.canvasRef.current;
+    if(!c||c.__wired) return;
+    c.__wired=true;
+    const ctx=c.getContext('2d');
+    if(!ctx) return;
+    ctx.lineWidth=2.6; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#14302b';
+    let drawing=false;
+    const pos=(e)=>{ const rc=c.getBoundingClientRect(); const t=(e.touches&&e.touches[0])||e; return { x:(t.clientX-rc.left)*(c.width/rc.width), y:(t.clientY-rc.top)*(c.height/rc.height) }; };
+    const start=(e)=>{ e.preventDefault(); drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); if(!this.state.hasInk) this.setState({hasInk:true}); };
+    const move=(e)=>{ if(!drawing) return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+    const end=()=>{ drawing=false; };
+    c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+    c.addEventListener('touchstart',start,{passive:false}); c.addEventListener('touchmove',move,{passive:false}); c.addEventListener('touchend',end);
+    this._ctx=ctx;
+  }
+  clearSig(){
+    const c=this.canvasRef.current;
+    if(c&&this._ctx){ this._ctx.clearRect(0,0,c.width,c.height); }
+    this.setState({hasInk:false});
+  }
+  toggleAgree(){ this.setState({agreed:!this.state.agreed}); }
+  showToast(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:null}),3200); }
+  componentWillUnmount(){ clearTimeout(this._t); }
+
+  async submit(){
+    if(this.state.submitting) return;
+    const name=this.nameRef.current?this.nameRef.current.value.trim():'';
+    if(!name){ this.showToast('Please type your full name'); if(this.nameRef.current) this.nameRef.current.focus(); return; }
+    if(!this.state.hasInk){ this.showToast('Please draw your signature in the box'); return; }
+    if(!this.state.agreed){ this.showToast('Please tick "I confirm" to continue'); return; }
+    let sig=null;
+    try{ const c=this.canvasRef.current; if(c) sig=c.toDataURL('image/png'); }catch(e){ sig=null; }
+    if(!sig){ this.showToast("Couldn't read your signature — please try again"); return; }
+    this.setState({submitting:true});
+    try{
+      const r=await fetch('/api/submit-signature',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id:this.reqId, signer_name:name, signature_image:sig, agreed:true })});
+      let j=null; try{ j=await r.json(); }catch(e){ j=null; }
+      if(r.ok&&j&&j.ok){ this.setState({status:'signed',justSigned:true,signedName:name,submitting:false}); return; }
+      if(r.status===409||(j&&j.error==='already_signed')){ this.setState({status:'signed',justSigned:false,submitting:false}); return; }
+      this.setState({submitting:false}); this.showToast("Couldn't submit your signature — please try again");
+    }catch(e){ this.setState({submitting:false}); this.showToast("Couldn't submit — please check your connection and try again"); }
+  }
+
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d', s=size||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      check:'M20 6L9 17l-5-5',
+      pen:'M12 19l7-7-3-3-7 7v3z M16 9l3-3-3-3-3 3',
+      alert:'M12 2l10 18H2z M12 9v5 M12 17v.5'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.check}));
+  }
+
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const phase=this.state.phase, status=this.state.status, justSigned=this.state.justSigned;
+
+    // Sanitize the AI-produced agreement HTML (strip any <script>).
+    let docEl=null, hasDoc=false;
+    const raw=this.state.html;
+    if(typeof raw==='string' && raw.trim()){
+      const safe=raw.replace(/<script[\s\S]*?<\/script>/gi,'');
+      docEl=React.createElement('div',{dangerouslySetInnerHTML:{__html:safe}});
+      hasDoc=true;
+    }
+
+    const today=new Date();
+    let todayLong=today.toISOString().slice(0,10);
+    try{ todayLong=today.toLocaleDateString('en-AU',{day:'2-digit',month:'long',year:'numeric'}); }catch(e){}
+
+    const agreed=this.state.agreed, submitting=this.state.submitting;
+    const submitInner = submitting
+      ? React.createElement('span',{style:{display:'inline-flex',alignItems:'center',gap:'8px'}},
+          React.createElement('span',{style:{width:'16px',height:'16px',borderRadius:'50%',border:'2.5px solid rgba(6,32,28,.3)',borderTopColor:'#06201c',display:'inline-block',animation:'sg-spin .8s linear infinite'}}),
+          'Submitting…')
+      : React.createElement('span',{style:{display:'inline-flex',alignItems:'center',gap:'8px'}}, ic('pen','#06201c',16), 'Sign & submit');
+
+    return {
+      // states
+      isLoading: phase==='loading',
+      isError: phase==='error',
+      isAlreadySigned: phase==='ready' && status==='signed' && !justSigned,
+      isJustSigned: status==='signed' && justSigned,
+      showForm: phase==='ready' && status!=='signed',
+      // content
+      title: this.state.title || 'Agreement',
+      recipient: this.state.recipient || '',
+      errMsg: this.state.errMsg || 'Something went wrong loading this agreement.',
+      signedName: this.state.signedName || '',
+      todayLong,
+      docEl, hasDoc, noDoc: !hasDoc,
+      noInk: !this.state.hasInk,
+      // agree checkbox styling
+      agreeBg: agreed?'#f1faf8':'#fff', agreeBorder: agreed?'#a8dccf':'#dde4e1',
+      boxBg: agreed?'#16b8a6':'#fff', boxBorder: agreed?'#16b8a6':'#cfd9d4',
+      tickEl: agreed?ic('check','#06201c',14,3):null,
+      // submit button
+      submitDisabled: submitting?true:null,
+      submitBg: submitting?'#9bd6cd':'#16b8a6',
+      submitCursor: submitting?'default':'pointer',
+      submitInner,
+      // refs + actions
+      nameRef: this.nameRef, canvasRef: this.canvasRef,
+      clearSig:()=>this.clearSig(), toggleAgree:()=>this.toggleAgree(), submit:()=>this.submit(),
+      // toast + icons
+      toast:this.state.toast, clearToast:()=>this.setState({toast:null}),
+      logoEl: ic('logo','#eafaf8',19),
+      alertEl: ic('alert','#c0445c',24,2),
+      checkBigEl: ic('check','#1e9e6a',26,2.6),
+      checkWhiteEl: ic('check','#eafaf8',30,3)
+    };
+  }
+}
+</script>
+</body>
+</html>

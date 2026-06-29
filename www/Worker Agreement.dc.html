@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- CiaraLink Worker PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c2622">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CL Worker">
+<script src="/pwa.js" defer></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes wa-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes wa-tick{0%{stroke-dashoffset:48}100%{stroke-dashoffset:0}}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#16b8a6!important;box-shadow:0 0 0 3px rgba(22,184,166,.12)}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#eaeeec;display:flex;flex-direction:column">
+
+  <!-- Header -->
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">{{ logoEl }}</div>
+    <div style="font-size:17px;font-weight:800;color:#14302b">CiaraLink <span style="color:#9aa8a3;font-weight:500">/ Worker Agreements</span></div>
+    <div style="flex:1"></div>
+    <button onClick="{{ goBack }}" style="padding:9px 16px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">← Provider dashboard</button>
+    <button onClick="{{ signOut }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#6c7f79;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">{{ logoutEl }}Sign out</button>
+  </header>
+
+  <div style="flex:1;display:flex;gap:0;max-width:1300px;margin:0 auto;width:100%;padding:28px 28px 56px;gap:24px;align-items:flex-start">
+
+    <!-- Left: Provider form -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:0">
+
+      <!-- Progress steps -->
+      <div style="display:flex;gap:0;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:4px;margin-bottom:20px">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border-radius:13px;background:{{ st.bg }}">
+            <div style="width:24px;height:24px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:{{ st.numBg }};color:{{ st.numFg }}">{{ st.num }}</div>
+            <div style="font-size:11px;font-weight:700;color:{{ st.labelFg }};text-align:center">{{ st.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- STEP 0: Select worker + type -->
+      <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04);display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:4px">Select worker &amp; agreement type</div>
+            <div style="font-size:13px;color:#6c7f79">CiaraLink will auto-fill from the worker's profile</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">SUPPORT WORKER</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+              <sc-for list="{{ workerOpts }}" as="w" hint-placeholder-count="4">
+                <button onClick="{{ w.select }}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:13px;border:1.5px solid {{ w.bd }};background:{{ w.bg }};cursor:pointer;font-family:inherit;text-align:left">
+                  <div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;background:{{ w.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ w.init }}</div>
+                  <div><div style="font-size:13px;font-weight:700;color:{{ w.fg }}">{{ w.name }}</div><div style="font-size:11px;color:#8a9a94">{{ w.role }}</div></div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">AGREEMENT TYPE</label>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ agreementTypes }}" as="at" hint-placeholder-count="5">
+                <button onClick="{{ at.select }}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:1.5px solid {{ at.bd }};background:{{ at.bg }};cursor:pointer;font-family:inherit;text-align:left">
+                  <div style="width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:{{ at.dot }}"></div>
+                  <span style="flex:1;font-size:13.5px;font-weight:700;color:{{ at.fg }}">{{ at.label }}</span>
+                  <sc-if value="{{ at.active }}" hint-placeholder-val="">{{ checkSmEl }}</sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 1: Agreement details -->
+      <sc-if value="{{ isStep1 }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+            <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">Agreement details</div><div style="font-size:13px;color:#6c7f79;margin-top:3px">Worker name and role pre-filled from the selected profile — complete and verify the rest before sending</div></div>
+            <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:5px 11px;border-radius:9px">{{ checkSmEl }}Pre-filled from profile</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:13px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">WORKER NAME</label><input value="{{ formWorkerName }}" onChange="{{ onWorkerName }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#f9fbfa"></div>
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">PROVIDER / EMPLOYER</label><input value="{{ formProvider }}" onChange="{{ onProvider }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#f9fbfa"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">ROLE / POSITION TITLE</label><input value="{{ formRole }}" onChange="{{ onRole }}" placeholder="e.g. Support Worker — Personal Care" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">EMPLOYMENT TYPE</label>
+                <select value="{{ formEmpType }}" onChange="{{ onEmpType }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+                  <option>Casual</option><option>Part-time</option><option>Full-time</option><option>Contractor (ABN)</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px">
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">HOURLY RATE</label><input value="{{ formRate }}" onChange="{{ onRate }}" placeholder="$46.00 / hr" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">START DATE</label><input type="date" value="{{ formStart }}" onChange="{{ onStart }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">SERVICE AREA</label><input value="{{ formArea }}" onChange="{{ onArea }}" placeholder="e.g. Glenroy, Brunswick" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">REQUIRED POLICIES TO ACKNOWLEDGE</label>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                <sc-for list="{{ policies }}" as="pol" hint-placeholder-count="5">
+                  <button onClick="{{ pol.toggle }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ pol.bd }};background:{{ pol.bg }};color:{{ pol.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ pol.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">ADDITIONAL NOTES</label><textarea value="{{ formNotes }}" onChange="{{ onNotes }}" placeholder="Any additional terms, notes or special conditions…" style="width:100%;height:80px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 2: Review & send -->
+      <sc-if value="{{ isStep2 }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">Review &amp; send for signature</div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:20px">The worker will receive a notification and can sign digitally on any device</div>
+          <div style="background:#f7faf9;border:1px solid #e7ece9;border-radius:14px;padding:16px 20px;margin-bottom:18px">
+            <div style="font-size:13.5px;font-weight:800;color:#14302b;margin-bottom:13px">Agreement summary</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <sc-for list="{{ agreementSummary }}" as="as2" hint-placeholder-count="5">
+                <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">{{ as2.label }}</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ as2.value }}</div></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#f0faf8;border:1px solid #cce9d8;border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px">
+            {{ infoEl }}<span style="font-size:13px;color:#14302b;line-height:1.5">CiaraLink will send this agreement to <b>{{ selectedWorkerName }}</b> with a secure signature link. Once both parties sign, the completed document is automatically stored in the worker file and provider records.</span>
+          </div>
+          <div style="background:#fff;border:1px solid #eef2f0;border-radius:12px;padding:14px 16px">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:10px">Fields included in this agreement</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ aiFields }}" as="af" hint-placeholder-count="6">
+                <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:8px">{{ checkSmEl }}{{ af }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 3: Sent / complete -->
+      <sc-if value="{{ isStep3 }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:32px 28px;box-shadow:0 1px 2px rgba(20,48,43,.04);text-align:center">
+          <div style="width:72px;height:72px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">{{ bigCheckEl }}</div>
+          <div style="font-size:22px;font-weight:800;color:#14302b;margin-bottom:8px">Agreement sent for signature</div>
+          <div style="font-size:14px;color:#6c7f79;line-height:1.6;margin-bottom:22px;max-width:480px;margin-left:auto;margin-right:auto">{{ selectedWorkerName }} has been notified by email and in the CiaraLink app. The agreement is now awaiting their digital signature.</div>
+          <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:14px;padding:16px 20px;text-align:left;margin-bottom:22px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">SENT TO</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ selectedWorkerName }}</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">AGREEMENT TYPE</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ selectedTypeName }}</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">STATUS</div><div style="font-size:13px;font-weight:700;color:#b4561f">Awaiting worker signature</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">REFERENCE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#14302b">WA-2026-{{ refNum }}</div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;justify-content:center">
+            <button onClick="{{ restart }}" style="height:46px;padding:0 20px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">New agreement</button>
+            <button onClick="{{ goBack }}" style="height:46px;padding:0 20px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">← Provider dashboard</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Nav footer -->
+      <sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:9px;margin-top:16px">
+          <sc-if value="{{ showBack }}" hint-placeholder-val=""><button onClick="{{ back }}" style="flex:1;height:48px;border-radius:13px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Back</button></sc-if>
+          <button onClick="{{ next }}" style="flex:2;height:48px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ nextLabel }}</button>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- Right: Worker view + status tracker -->
+    <div style="width:320px;flex:0 0 320px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- Agreement status tracker -->
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:14px">Agreement status</div>
+        <sc-for list="{{ statusSteps }}" as="ss" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:11px;padding:8px 0">
+            <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ ss.bg }};border:2px solid {{ ss.bd }};display:flex;align-items:center;justify-content:center">{{ ss.iconEl }}</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:700;color:{{ ss.fg }}">{{ ss.label }}</div><sc-if value="{{ ss.when }}" hint-placeholder-val=""><div style="font-size:11px;color:#9aa8a3;margin-top:1px">{{ ss.when }}</div></sc-if></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Recent agreements -->
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Recent worker agreements</div>
+        <sc-for list="{{ recentAgreements }}" as="ra" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f7f5">
+            <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ ra.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ ra.init }}</div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ra.worker }}</div><div style="font-size:11px;color:#8a9a94">{{ ra.type }}</div></div>
+            <span style="font-size:11px;font-weight:700;color:{{ ra.stFg }};background:{{ ra.stBg }};padding:2px 8px;border-radius:6px;white-space:nowrap">{{ ra.status }}</span>
+          </div>
+        </sc-for>
+        <button onClick="{{ goWorkerPassport }}" style="width:100%;margin-top:12px;height:38px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:#f0faf8">View in Worker Passport →</button>
+      </div>
+
+      <!-- Help card -->
+      <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:18px 20px;color:#eafaf8">
+        <div style="font-size:14px;font-weight:800;margin-bottom:8px">Worker agreements</div>
+        <div style="font-size:12.5px;color:#a9cfc8;line-height:1.6">Employment and contractor agreements are separate from participant service agreements. Worker contracts are stored in the worker file and provider records only.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:wa-rise .25s ease">
+    {{ checkEl }}{{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { step:0, worker:'amara', type:'casual', policies:{}, toast:null, refNum:null,
+    form:{ workerName:'Amara Okafor', provider:'Brightside Care', role:'Senior Support Worker', empType:'Casual', rate:'', start:'', area:'', notes:'' } };
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',check:'M20 6L9 17l-5-5',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      info:'M12 22m-10 0a10 10 0 1 0 20 0 10 10 0 1 0-20 0 M12 8v4 M12 16h.01',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.file}));
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  go(d){ this.setState(s=>({step:Math.max(0,Math.min(3,s.step+d))})); }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {step,worker,type,policies,form}=this.state;
+
+    const workerData={
+      amara:{name:'Amara Okafor',role:'Senior Support Worker',init:'AO',tint:'#16b8a6'},
+      james:{name:'James Liu',role:'Support Worker',init:'JL',tint:'#0891b2'},
+      nina:{name:'Nina Petrov',role:'Support Worker',init:'NP',tint:'#d98b22'},
+      omar:{name:'Omar Hassan',role:'Team Leader',init:'OH',tint:'#9333ea'},
+    };
+    const wd=workerData[worker]||workerData.amara;
+
+    const typeData={
+      casual:{label:'Casual Employment Agreement',dot:'#16b8a6'},
+      employment:{label:'Employment Contract',dot:'#6366f1'},
+      contractor:{label:'Contractor (ABN) Agreement',dot:'#d98b22'},
+      confidentiality:{label:'Confidentiality Agreement',dot:'#9333ea'},
+      conduct:{label:'Code of Conduct Acknowledgement',dot:'#0891b2'},
+      policy:{label:'Policy Acknowledgement',dot:'#1e9e6a'},
+    };
+    const td=typeData[type]||typeData.casual;
+
+    const workerOpts=Object.entries(workerData).map(([k,v])=>({
+      ...v,key:k,select:()=>this.setState(st=>({worker:k,form:{...st.form,workerName:v.name,role:v.role}})),
+      bd:worker===k?'#16b8a6':'#dde4e1',bg:worker===k?'#f0faf8':'#fff',fg:worker===k?'#0b6b60':'#14302b'
+    }));
+
+    const typeOpts=Object.entries(typeData).map(([k,v])=>({
+      ...v,key:k,select:()=>this.setState({type:k}),active:type===k,
+      bd:type===k?'#16b8a6':'#dde4e1',bg:type===k?'#f0faf8':'#fff',fg:type===k?'#0b6b60':'#14302b'
+    }));
+
+    const policyList=['NDIS Code of Conduct','Privacy Policy','Work Health & Safety','Incident Reporting Protocol','Social Media Policy'];
+    const pols=policyList.map((p,i)=>{
+      const on=!!policies[i];
+      return {label:p,toggle:()=>this.setState(s=>({policies:{...s.policies,[i]:!s.policies[i]}})),
+        bd:on?'#16b8a6':'#dde4e1',bg:on?'#f0faf8':'#fff',fg:on?'#0b6b60':'#6c7f79'};
+    });
+
+    const stepDefs=[
+      {label:'Worker & Type',num:'1'},
+      {label:'Fill Details',num:'2'},
+      {label:'Review & Send',num:'3'},
+      {label:'Sent ✓',num:'4'},
+    ];
+    const steps=stepDefs.map((s,i)=>{
+      const done=i<step,cur=i===step;
+      return {...s,bg:cur?'#0c2622':'transparent',numBg:(done||cur)?'#16b8a6':'#eef2f0',numFg:(done||cur)?'#06201c':'#9aa8a3',labelFg:cur?'#f4faf8':done?'#0b6b60':'#9aa8a3'};
+    });
+
+    const fmtDate=(d)=>{ if(!d) return 'Not set'; const dt=new Date(d+'T00:00:00'); if(isNaN(dt.getTime())) return d; return dt.toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); };
+    const agSummary=[
+      {label:'WORKER',value:form.workerName||wd.name},
+      {label:'PROVIDER',value:form.provider||'Not set'},
+      {label:'ROLE',value:form.role||'Not set'},
+      {label:'AGREEMENT TYPE',value:td.label},
+      {label:'EMPLOYMENT TYPE',value:form.empType||'Casual'},
+      {label:'HOURLY RATE',value:form.rate||'Not set'},
+      {label:'START DATE',value:fmtDate(form.start)},
+    ];
+
+    const stDefs=[
+      {label:'Draft created',when:'Just now',done:true},
+      {label:'Sent to worker',when:step>=3?'Just now':'—',done:step>=3},
+      {label:'Viewed by worker',when:'Pending',done:false},
+      {label:'Signed by worker',when:'Pending',done:false},
+      {label:'Completed',when:'Pending',done:false},
+    ];
+    const statusSteps=stDefs.map(s=>({...s,
+      iconEl:s.done?ic('check','#fff',13):ic('clock','#9aa8a3',13),
+      bg:s.done?'#16b8a6':'#f1f4f2',bd:s.done?'#16b8a6':'#dde4e1',fg:s.done?'#14302b':'#9aa8a3'
+    }));
+
+    const recentAgreements=[
+      {worker:'James Liu',init:'JL',tint:'#0891b2',type:'Casual Employment',status:'Completed',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {worker:'Amara Okafor',init:'AO',tint:'#16b8a6',type:'Code of Conduct',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {worker:'Nina Petrov',init:'NP',tint:'#d98b22',type:'Contractor Agreement',status:'Awaiting',stFg:'#b4561f',stBg:'#fbf0df'},
+    ];
+
+    const refNum=this.state.refNum;
+
+    return {
+      logoEl:ic('pulse','#eafaf8',20),
+      logoutEl:ic('logout','#6c7f79',15),
+      checkEl:ic('check','#16b8a6',15),
+      checkSmEl:ic('check','#1e9e6a',15),
+      bigCheckEl:ic('check','#1e9e6a',28,2.4),
+      sparkEl:ic('spark','#0b6b60',14),
+      sparkSmEl:ic('spark','#0b6b60',12),
+      infoEl:ic('info','#0b6b60',17),
+      steps,
+      isStep0:step===0,isStep1:step===1,isStep2:step===2,isStep3:step===3,
+      showNav:step<3,showBack:step>0,
+      workerOpts,agreementTypes:typeOpts,
+      selectedWorkerName:form.workerName||wd.name,selectedTypeName:td.label,
+      formWorkerName:form.workerName,formProvider:form.provider,formRole:form.role,
+      formEmpType:form.empType,formRate:form.rate,formStart:form.start,formArea:form.area,formNotes:form.notes,
+      onWorkerName:(e)=>this.setState(st=>({form:{...st.form,workerName:e.target.value}})),
+      onProvider:(e)=>this.setState(st=>({form:{...st.form,provider:e.target.value}})),
+      onRole:(e)=>this.setState(st=>({form:{...st.form,role:e.target.value}})),
+      onEmpType:(e)=>this.setState(st=>({form:{...st.form,empType:e.target.value}})),
+      onRate:(e)=>this.setState(st=>({form:{...st.form,rate:e.target.value}})),
+      onStart:(e)=>this.setState(st=>({form:{...st.form,start:e.target.value}})),
+      onArea:(e)=>this.setState(st=>({form:{...st.form,area:e.target.value}})),
+      onNotes:(e)=>this.setState(st=>({form:{...st.form,notes:e.target.value}})),
+      policies:pols,
+      agreementSummary:agSummary,
+      aiFields:['Worker name','Provider name','Start date','Employment type','Pay rate','ABN field','Signature blocks','Date fields'],
+      statusSteps,recentAgreements,refNum,
+      nextLabel:step===2?'Send for signature →':'Continue →',
+      back:()=>this.go(-1),
+      next:()=>{
+        if(step===2){
+          const AD=window.AegisData;
+          const name=form.workerName||wd.name;
+          if(AD) AD.push('wa_agreements',{worker:name,role:form.role,type:td.label,employmentType:form.empType,rate:form.rate,startDate:form.start,serviceArea:form.area,notes:form.notes,date:AD.now(),status:'Awaiting signature'});
+          this.setState({refNum:Math.random().toString().slice(2,6)});
+          this.showToast('Agreement sent to '+name+' for signature');
+        }
+        this.go(1);
+      },
+      restart:()=>this.setState({step:0}),
+      goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      goWorkerPassport:()=>{ window.location.href='Worker Passport.dc.html'; },
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

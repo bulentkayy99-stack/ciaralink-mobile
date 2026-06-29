@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    @media print{body{background:#fff}.no-print{display:none!important}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#eaeeec">
+
+  <!-- Header -->
+  <header class="no-print" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:14px 32px;background:rgba(234,238,236,.92);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">{{ logoEl }}</div>
+    <div style="font-size:16px;font-weight:800">CiaraLink <span style="color:#9aa8a3;font-weight:500">/ Deployment Guide</span></div>
+    <div style="flex:1"></div>
+    <button onClick="{{ goIndex }}" style="padding:8px 15px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">← Index</button>
+    <button onClick="{{ goLaunch }}" style="padding:8px 15px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Launch Report →</button>
+  </header>
+
+  <div style="max-width:1100px;margin:0 auto;padding:32px 32px 72px">
+
+    <!-- Hero banner -->
+    <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:22px;padding:32px 36px;margin-bottom:28px;display:flex;gap:28px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#7ce0d2;margin-bottom:10px">CiaraLink · DEPLOYMENT GUIDE · JUNE 2026</div>
+        <div style="font-size:30px;font-weight:800;color:#f4faf8;line-height:1.15;margin-bottom:12px">Launch Preview<br>Controlled Testing Version</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">28 screens</span>
+          <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">5 roles</span>
+          <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">9/9 tests passing</span>
+          <span style="background:rgba(217,139,34,.25);color:#f4c878;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">⚠ Not for public release</span>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px 22px;flex:0 0 auto;min-width:200px">
+        <div style="font-size:11px;color:#7ce0d2;font-weight:700;letter-spacing:.07em;margin-bottom:10px">QUICK START</div>
+        <div style="font-size:13px;color:#eafaf8;line-height:1.8">1. Open <b>Index.dc.html</b><br>2. Click a role card<br>3. Use demo login<br>4. Explore the dashboard<br>5. Check Launch Readiness</div>
+      </div>
+    </div>
+
+    <!-- Test logins -->
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+      <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:16px">Test login credentials</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+        <sc-for list="{{ logins }}" as="lg" hint-placeholder-count="5">
+          <div style="border:1.5px solid {{ lg.bd }};border-radius:14px;padding:14px 16px;background:{{ lg.bg }}">
+            <div style="width:32px;height:32px;border-radius:9px;background:{{ lg.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;margin-bottom:10px">{{ lg.init }}</div>
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:6px">{{ lg.role }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6c7f79;line-height:1.7"><b>Email:</b> {{ lg.email }}<br><b>Pass:</b> {{ lg.pass }}</div>
+            <button onClick="{{ lg.login }}" style="width:100%;margin-top:10px;height:32px;border-radius:8px;border:none;background:{{ lg.tint }};color:#fff;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer;opacity:.9" style-hover="opacity:1">Login →</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- All 28 screens -->
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+      <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:16px">All 28 screens — smoke test checklist</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <sc-for list="{{ screens }}" as="sc2" hint-placeholder-count="28">
+          <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;border:1px solid #eef2f0;background:#f9fbfa">
+            <div style="width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:{{ sc2.dot }}"></div>
+            <button onClick="{{ sc2.go }}" style="flex:1;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#14302b" style-hover="color:#0b6b60">{{ sc2.label }}</button>
+            <span style="font-size:10px;color:#9aa8a3;font-weight:600">{{ sc2.role }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Deployment checklist -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 26px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Pre-deployment checklist</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <sc-for list="{{ preChecks }}" as="pc" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:10px;background:{{ pc.bg }}">
+              <span style="font-size:14px">{{ pc.icon }}</span>
+              <span style="font-size:13px;font-weight:600;color:#14302b;flex:1">{{ pc.label }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ pc.stFg }}">{{ pc.st }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 26px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Post-deployment smoke test</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <sc-for list="{{ smokeTests }}" as="st2" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:10px;background:#f7faf9">
+              <div style="width:20px;height:20px;border-radius:6px;flex:0 0 20px;border:1.5px solid {{ st2.bd }};background:{{ st2.bg }};cursor:pointer;display:flex;align-items:center;justify-content:center" onClick="{{ st2.toggle }}">{{ st2.checkEl }}</div>
+              <span style="font-size:13px;color:{{ st2.fg }};flex:1;text-decoration:{{ st2.td }}">{{ st2.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;font-size:12.5px;font-weight:700;color:#0b6b60">{{ smokeCount }}/{{ smokeTests.length }} steps completed</div>
+      </div>
+    </div>
+
+    <!-- Known limitations -->
+    <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:800;color:#14302b">Known limitations</div>
+        <span style="font-size:11px;font-weight:700;color:#b4561f;background:#fbf0df;padding:3px 10px;border-radius:7px">For controlled testing only</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <sc-for list="{{ limitations }}" as="lim" hint-placeholder-count="6">
+          <div style="display:flex;gap:10px;padding:12px 14px;border-radius:12px;background:#f7faf9;border:1px solid #eef2f0">
+            <span style="font-size:18px;flex:0 0 22px">{{ lim.icon }}</span>
+            <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ lim.title }}</div><div style="font-size:12px;color:#6c7f79;margin-top:3px;line-height:1.5">{{ lim.desc }}</div></div>
+            <span style="margin-left:auto;font-size:10.5px;font-weight:700;height:fit-content;padding:2px 8px;border-radius:6px;white-space:nowrap;color:{{ lim.tagFg }};background:{{ lim.tagBg }}">{{ lim.tag }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Production roadmap -->
+    <div style="background:linear-gradient(150deg,#0c2622,#163b35);border-radius:18px;padding:24px 28px">
+      <div style="font-size:15px;font-weight:800;color:#f4faf8;margin-bottom:16px">Production roadmap — required before live release</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <sc-for list="{{ roadmap }}" as="rm" hint-placeholder-count="6">
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 15px">
+            <div style="font-size:13px;font-weight:800;color:#f4faf8;margin-bottom:5px">{{ rm.title }}</div>
+            <div style="font-size:12px;color:#9dcdc8;line-height:1.5">{{ rm.desc }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { smokeChecked:{} };
+
+  ic(n,c,s){
+    const P={pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',check:'M20 6L9 17l-5-5'};
+    return React.createElement('svg',{width:s||16,height:s||16,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.check}));
+  }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {smokeChecked}=this.state;
+
+    const logins=[
+      {role:'Provider',init:'PR',tint:'#16b8a6',email:'provider@ciaralink.care',pass:'demo2026',bd:'#b8e8df',bg:'#f4faf8',login:()=>{try{localStorage.setItem('ciaralink_session',JSON.stringify({role:'provider',name:'Sarah P.'}))}catch(e){}; window.location.href='CiaraLink Provider Dashboard.dc.html';}},
+      {role:'Support Worker',init:'SW',tint:'#6366f1',email:'worker@ciaralink.care',pass:'demo2026',bd:'#c7c9fa',bg:'#f5f5fe',login:()=>{try{localStorage.setItem('ciaralink_session',JSON.stringify({role:'worker',name:'Amara O.'}))}catch(e){}; window.location.href='Support Worker.dc.html';}},
+      {role:'Coordinator',init:'SC',tint:'#d98b22',email:'coord@ciaralink.care',pass:'demo2026',bd:'#f4cfa0',bg:'#fdf8ef',login:()=>{try{localStorage.setItem('ciaralink_session',JSON.stringify({role:'coordinator',name:'Sarah K.'}))}catch(e){}; window.location.href='Support Coordination.dc.html';}},
+      {role:'Allied Health',init:'AH',tint:'#9333ea',email:'allied@ciaralink.care',pass:'demo2026',bd:'#d8b4fe',bg:'#f7f0fe',login:()=>{try{localStorage.setItem('ciaralink_session',JSON.stringify({role:'allied',name:'Jordan P.'}))}catch(e){}; window.location.href='Allied Health.dc.html';}},
+      {role:'Participant',init:'PT',tint:'#0891b2',email:'participant@ciaralink.care',pass:'demo2026',bd:'#bae6fd',bg:'#f0f9ff',login:()=>{try{localStorage.setItem('ciaralink_session',JSON.stringify({role:'participant',name:'Margaret R.'}))}catch(e){}; window.location.href='Participant Dashboard.dc.html';}},
+    ];
+
+    const screens=[
+      {label:'Index / Launch Hub',role:'All',dot:'#16b8a6',go:()=>{window.location.href='Index.dc.html';}},
+      {label:'Login',role:'All',dot:'#16b8a6',go:()=>{window.location.href='Login.dc.html';}},
+      {label:'Provider Dashboard',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='CiaraLink Provider Dashboard.dc.html';}},
+      {label:'Service Provider',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='Service Provider.dc.html';}},
+      {label:'Provider Console',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='Provider Console.dc.html';}},
+      {label:'Service Agreement',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='Service Agreement.dc.html';}},
+      {label:'Worker Agreement',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='Worker Agreement.dc.html';}},
+      {label:'Support Worker Dashboard',role:'Worker',dot:'#6366f1',go:()=>{window.location.href='Support Worker.dc.html';}},
+      {label:'Worker App',role:'Worker',dot:'#6366f1',go:()=>{window.location.href='Worker App.dc.html';}},
+      {label:'Worker Passport',role:'Worker',dot:'#6366f1',go:()=>{window.location.href='Worker Passport.dc.html';}},
+      {label:'Verified Visit',role:'Worker',dot:'#6366f1',go:()=>{window.location.href='Verified Visit.dc.html';}},
+      {label:'Support Coordination',role:'SC',dot:'#d98b22',go:()=>{window.location.href='Support Coordination.dc.html';}},
+      {label:'Plan Review Prep',role:'SC',dot:'#d98b22',go:()=>{window.location.href='Plan Review Prep.dc.html';}},
+      {label:'Allied Health',role:'AH',dot:'#9333ea',go:()=>{window.location.href='Allied Health.dc.html';}},
+      {label:'Participant Dashboard',role:'Participant',dot:'#0891b2',go:()=>{window.location.href='Participant Dashboard.dc.html';}},
+      {label:'Participant Profile',role:'All',dot:'#0891b2',go:()=>{window.location.href='Participant Profile.dc.html';}},
+      {label:'Care Ecosystem',role:'All',dot:'#16b8a6',go:()=>{window.location.href='Care Ecosystem.dc.html';}},
+      {label:'AI File Drop',role:'All',dot:'#16b8a6',go:()=>{window.location.href='AI File Drop.dc.html';}},
+      {label:'AI Intake',role:'All',dot:'#16b8a6',go:()=>{window.location.href='AI Intake.dc.html';}},
+      {label:'Consent Centre',role:'All',dot:'#0891b2',go:()=>{window.location.href='Consent Centre.dc.html';}},
+      {label:'Notification Centre',role:'All',dot:'#e0556e',go:()=>{window.location.href='Notification Centre.dc.html';}},
+      {label:'Task Centre',role:'All',dot:'#e0556e',go:()=>{window.location.href='Task Centre.dc.html';}},
+      {label:'CiaraLink Connect',role:'All',dot:'#16b8a6',go:()=>{window.location.href='CiaraLink Connect.dc.html';}},
+      {label:'CiaraLink Intelligence',role:'All',dot:'#9333ea',go:()=>{window.location.href='CiaraLink Intelligence.dc.html';}},
+      {label:'CiaraLink Onboarding',role:'Provider',dot:'#16b8a6',go:()=>{window.location.href='CiaraLink Onboarding.dc.html';}},
+      {label:'Settings',role:'All',dot:'#6c7f79',go:()=>{window.location.href='Settings.dc.html';}},
+      {label:'Launch Readiness',role:'All',dot:'#1e9e6a',go:()=>{window.location.href='Launch Readiness.dc.html';}},
+      {label:'Deployment Guide',role:'All',dot:'#1e9e6a',go:()=>{}},
+    ];
+
+    const preChecks=[
+      {icon:'✅',label:'Index opens correctly',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'Login + role routing works',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'All 28 screens accessible',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'data.js / AegisData loads',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'hugo.js + hugo-owl.js loads',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'localStorage works',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'Sign out clears session',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'⚠️',label:'Real backend / database',st:'Not yet',stFg:'#b4561f',bg:'#fdf8ef'},
+    ];
+
+    const smokeList=[
+      'Open Index.dc.html',
+      'Login as Provider — dashboard loads',
+      'Login as Support Worker — dashboard loads',
+      'Login as Coordinator — dashboard loads',
+      'Login as Allied Health — dashboard loads',
+      'Login as Participant — dashboard loads',
+      'Open Launch Readiness — confirm 9/9 PASS',
+      'Upload test file in AI File Drop',
+      'Change permission in Consent Centre',
+      'Refresh page — confirm data persists',
+      'Sign out — confirm session cleared',
+      'Sign back in — confirm data still there',
+    ];
+    const smokeTests=smokeList.map((label,i)=>{
+      const done=!!smokeChecked[i];
+      return {
+        label,done,
+        toggle:()=>this.setState(s=>({smokeChecked:{...s.smokeChecked,[i]:!s.smokeChecked[i]}})),
+        bg:done?'#e9f6ef':'#e9f6ef',
+        bd:done?'#16b8a6':'#dde4e1',
+        checkEl:done?ic('check','#16b8a6',12):null,
+        fg:done?'#6c7f79':'#14302b',
+        td:done?'line-through':'none',
+      };
+    });
+    const smokeCount=smokeTests.filter(s=>s.done).length;
+
+    const limitations=[
+      {icon:'🗄️',title:'No production backend',desc:'All data stored in localStorage only. Production requires secure backend (Node.js / Supabase / Firebase).',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🔐',title:'No real authentication',desc:'Login is demo-only. Production requires OAuth / JWT / MFA and server-side session management.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'📂',title:'No secure file storage',desc:'File upload is simulated. Production requires S3 / Azure Blob / secure encrypted document storage.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🤖',title:'AI classification is simulated',desc:'AI File Drop shows demo classification. Real OCR/AI requires Claude API or equivalent document pipeline.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🔒',title:'Role permissions are visual only',desc:'Content visibility by role is shown in UI but not enforced server-side. Backend auth required.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🎙️',title:'Hugo voice mode',desc:'Voice commands documented and labelled Coming Soon. Requires speech-to-text API integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      {icon:'💳',title:'Payroll / payments',desc:'Work history and pay records show UI only. Real payroll requires ABA file / payroll API integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      {icon:'📱',title:'Privacy & security audit',desc:'Full penetration testing, privacy impact assessment, and NDIS data handling review required before real participant data.',tag:'Required',tagFg:'#9b1c3a',tagBg:'#fde8ed'},
+    ];
+
+    const roadmap=[
+      {title:'Backend & Database',desc:'Node.js / Express or Next.js API + PostgreSQL or Supabase for real data persistence'},
+      {title:'Authentication',desc:'Auth0 / Cognito / Supabase Auth with role-based JWT tokens and MFA'},
+      {title:'Secure File Storage',desc:'AWS S3 or Azure Blob with encrypted at-rest storage and signed URLs'},
+      {title:'AI Pipeline',desc:'Claude API document classification, OCR extraction, and auto-filing with confidence scoring'},
+      {title:'NDIS Compliance',desc:'Privacy impact assessment, data handling policy, participant consent audit, and NDIS Quality & Safeguards review'},
+      {title:'Deployment',desc:'Vercel / AWS / Azure hosting with CI/CD, monitoring, error tracking, and staging environment'},
+    ];
+
+    return {
+      logoEl:ic('pulse','#eafaf8',20),
+      logins,screens,preChecks,smokeTests,smokeCount,limitations,roadmap,
+      goIndex:()=>{ window.location.href='Index.dc.html'; },
+      goLaunch:()=>{ window.location.href='Launch Readiness.dc.html'; },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

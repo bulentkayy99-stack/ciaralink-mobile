@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- CiaraLink Worker PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c2622">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CL Worker">
+<script src="/pwa.js" defer></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px} ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes wp-rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes wp-glow{0%,100%{opacity:.5;transform:rotate(0deg)}50%{opacity:.9;transform:rotate(180deg)}}
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:234px;flex:0 0 234px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#5f7a73;font-weight:600;margin-top:3px">WORKER PASSPORT</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="3">
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:0 10px 7px">{{ sec.title }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+              <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+              <span style="flex:1">{{ it.label }}</span>
+              <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;background:#16b8a6;color:#06201c">{{ it.badge }}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="margin:0 12px 12px;padding:12px 13px;background:rgba(22,184,166,.1);border:1px solid rgba(22,184,166,.2);border-radius:12px">
+      <div style="font-size:11.5px;font-weight:800;color:#7ce0d2">Enter once. Verify once.</div>
+      <div style="font-size:11px;color:#86a39b;line-height:1.45;margin-top:2px">Your passport works across every provider, platform and role — no re-uploading.</div>
+    </div>
+    <button onClick="{{ goSettings }}" style="margin:0 12px 4px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">⚙ Settings</button>
+    <button onClick="{{ goBack }}" style="margin:0 12px 6px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.18)">← My dashboard</button>
+    <button onClick="{{ signOut }}" style="margin:0 12px 14px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05);color:#9fb4ae">{{ logoutSmEl }}Sign out</button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 48px">
+
+      <!-- ========== MY PASSPORT ========== -->
+      <sc-if value="{{ isPassport }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1100px;margin:0 auto">
+
+        <!-- profile hero -->
+        <div style="display:flex;align-items:flex-start;gap:18px;background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:22px 26px;margin-bottom:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4)">
+          <div style="position:relative;width:72px;height:72px;flex:0 0 72px">
+            <div style="position:absolute;inset:-5px;border-radius:22px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(8px);opacity:.75;animation:wp-glow 3.4s ease-in-out infinite"></div>
+            <div style="position:relative;width:72px;height:72px;border-radius:20px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff">AO</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b">Amara Okafor</span>
+              <span style="font-size:11px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:7px">VERIFIED ✓</span>
+              <span style="font-size:11px;font-weight:800;color:#06201c;background:linear-gradient(90deg,#7ce0d2,#16b8a6);padding:4px 10px;border-radius:7px">PRO</span>
+            </div>
+            <div style="font-size:13.5px;color:#6c7f79;margin-top:4px">Senior Support Worker · Personal Care · ABN 44 123 456 789</div>
+            <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font-size:12.5px;color:#41635c">
+              <span style="display:flex;align-items:center;gap:5px">{{ starEl }}4.9 · 312 shifts</span>
+              <span style="display:flex;align-items:center;gap:5px">{{ pinEl }}Glenroy VIC · 20km radius</span>
+              <span style="display:flex;align-items:center;gap:5px">{{ globeEl }}English · Arabic</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex:0 0 auto">
+            <div style="font-size:11px;color:#9aa8a3">Passport ID</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#14302b">WP-88214</div>
+            <div style="font-size:11px;color:#9aa8a3;margin-top:4px">Active across</div>
+            <div style="font-size:14px;font-weight:800;color:#0b6b60">7 providers</div>
+          </div>
+        </div>
+
+        <!-- banner -->
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:12px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a">Your passport is <b>live with 7 providers</b> right now. When you join a new provider, they get your verified profile instantly — no re-uploading, no waiting.</div>
+          <button onClick="{{ shareToProvider }}" style="padding:8px 15px;border-radius:10px;border:none;background:#2a4a8a;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Share to new provider</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start">
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- credentials -->
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Credentials & checks</span><span style="font-size:12px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 9px;border-radius:999px">9/11 verified</span></div>
+              <sc-for list="{{ creds }}" as="c" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:13px;padding:12px 20px;border-bottom:1px solid #f4f7f5">
+                  <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ c.tintBg }};display:flex;align-items:center;justify-content:center">{{ c.iconEl }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ c.label }}</div><div style="font-size:11.5px;color:#8a9a94">{{ c.detail }}</div></div>
+                  <span style="font-size:10.5px;font-weight:700;color:{{ c.stFg }};background:{{ c.stBg }};padding:3px 9px;border-radius:7px;white-space:nowrap">{{ c.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- skills matrix -->
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 20px">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:14px">Skills & experience</div>
+              <sc-for list="{{ skillGroups }}" as="g" hint-placeholder-count="3">
+                <div style="margin-bottom:13px">
+                  <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:8px">{{ g.title }}</div>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap">
+                    <sc-for list="{{ g.skills }}" as="s" hint-placeholder-count="4"><span style="font-size:12px;font-weight:600;color:{{ s.fg }};background:{{ s.bg }};padding:5px 11px;border-radius:9px">{{ s.label }}</span></sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- reuse count -->
+            <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:18px 20px;color:#eafaf8">
+              <div style="font-size:12px;color:#a9cfc8;margin-bottom:5px">Passport used across</div>
+              <div style="font-size:36px;font-weight:800;letter-spacing:-.02em;color:#7ce0d2">7 providers</div>
+              <div style="font-size:13px;color:#a9cfc8;margin-top:4px">Same profile, verified once — saves ~4h of re-onboarding each time</div>
+              <div style="height:1px;background:rgba(255,255,255,.1);margin:13px 0"></div>
+              <sc-for list="{{ providers }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:7px 0">
+                  <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#eafaf8">{{ p.init }}</div>
+                  <span style="flex:1;font-size:12.5px;font-weight:600;color:#dff5f1">{{ p.name }}</span>
+                  <span style="font-size:10.5px;font-weight:700;color:#7ce0d2">{{ p.since }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- ABN / rates -->
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 20px">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:13px">ABN & rates</div>
+              <sc-for list="{{ rates }}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid #f4f7f5">
+                  <span style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ r.label }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#0b6b60">{{ r.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- availability -->
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 20px">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:13px">Availability</div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px">
+                <sc-for list="{{ avail }}" as="a" hint-placeholder-count="7">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                    <span style="font-size:10px;font-weight:700;color:#9aa8a3">{{ a.day }}</span>
+                    <div style="width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;background:{{ a.bg }};border:1px solid {{ a.bd }}"><span style="font-size:10px;font-weight:700;color:{{ a.fg }}">{{ a.label }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:10px;font-size:11px;color:#8a9a94">
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#e7f4f1;border:1px solid #cce9d8"></span>Available</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#fbe9ed;border:1px solid #f3d6dc"></span>Unavailable</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ========== MY AGREEMENTS ========== -->
+      <sc-if value="{{ isAgreements }}" hint-placeholder-val="">
+      <div style="max-width:900px;margin:0 auto">
+        <div style="background:#fff7ed;border:1px solid #f4e6cf;border-radius:16px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;background:#fbf0df;display:flex;align-items:center;justify-content:center">{{ agAlertEl }}</div>
+          <div><div style="font-size:13.5px;font-weight:700;color:#8a5a1e">1 agreement awaiting your signature</div><div style="font-size:12px;color:#b07d39;margin-top:2px">Brightside Care sent a Casual Employment Agreement — sign to commence</div></div>
+          <button onClick="{{ signWorkerAgreement }}" style="padding:9px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap" style-hover="background:#2bcbb9">Review &amp; sign</button>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 100px;padding:10px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+            <span>AGREEMENT</span><span>PROVIDER</span><span>DATE</span><span>STATUS</span><span></span>
+          </div>
+          <sc-for list="{{ workerAgreements }}" as="wa" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 100px;padding:14px 22px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:{{ wa.tintBg }};display:flex;align-items:center;justify-content:center">{{ wa.iconEl }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ wa.name }}</span></div>
+              <span style="font-size:13px;font-weight:600;color:#41635c">{{ wa.provider }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ wa.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ wa.stFg }};background:{{ wa.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ wa.status }}</span>
+              <div style="display:flex;gap:5px">
+                <button onClick="{{ wa.download }}" style="flex:1;padding:6px;border-radius:7px;border:1px solid #e2e9e6;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#41635c">{{ downAgEl }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ========== WORKFORCE MATCH ========== -->
+      <sc-if value="{{ isMatch }}" hint-placeholder-val="">
+      <div style="max-width:1200px;margin:0 auto">
+
+        <!-- dual hero -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+          <div style="border-radius:18px;padding:18px 22px;background:#fff;border:2px solid {{ workerTabBd }};cursor:pointer;box-shadow:0 1px 2px rgba(20,48,43,.04)" onClick="{{ goWorkerSide }}">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:11px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ searchWEl }}</div><div style="font-size:15px;font-weight:800;color:#14302b">Workers finding providers</div></div>
+            <div style="font-size:12.5px;color:#6c7f79">Browse shifts, clients, contracts and rosters — matched to your passport</div>
+            <sc-if value="{{ isWorkerSide }}" hint-placeholder-val=""><div style="margin-top:11px;height:3px;border-radius:99px;background:#16b8a6"></div></sc-if>
+          </div>
+          <div style="border-radius:18px;padding:18px 22px;background:#fff;border:2px solid {{ providerTabBd }};cursor:pointer;box-shadow:0 1px 2px rgba(20,48,43,.04)" onClick="{{ goProviderSide }}">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:11px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ searchPEl }}</div><div style="font-size:15px;font-weight:800;color:#14302b">Providers finding workers</div></div>
+            <div style="font-size:12.5px;color:#6c7f79">Search verified workers filtered by compliance, skills, culture and availability</div>
+            <sc-if value="{{ isProviderSide }}" hint-placeholder-val=""><div style="margin-top:11px;height:3px;border-radius:99px;background:#6366f1"></div></sc-if>
+          </div>
+        </div>
+
+        <!-- worker side -->
+        <sc-if value="{{ isWorkerSide }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:11px 14px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:#f7faf9;border:1px solid #eef2f0;border-radius:10px;padding:8px 12px"><span style="display:flex">{{ searchSmEl }}</span><input value="{{ wQuery }}" onChange="{{ onWQuery }}" placeholder="Location, service type, client need…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:#14302b" /></div>
+            <sc-for list="{{ wFilters }}" as="f" hint-placeholder-count="3"><button onClick="{{ f.onClick }}" style="padding:8px 13px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button></sc-for>
+          </div>
+          <sc-if value="{{ wEmpty }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px dashed #d8e2de;border-radius:16px;padding:30px 20px;text-align:center;color:#6c7f79">
+              <div style="font-size:14px;font-weight:700;color:#14302b;margin-bottom:4px">No roles match your filters</div>
+              <div style="font-size:12.5px;margin-bottom:12px">Try a different search term or filter.</div>
+              <button onClick="{{ clearWFilters }}" style="padding:8px 16px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Clear filters</button>
+            </div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <sc-for list="{{ workerJobs }}" as="j" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid {{ j.cardBd }};border-left:3px solid {{ j.accent }};border-radius:18px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+                  <div style="width:44px;height:44px;border-radius:13px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ j.tint }}">{{ j.init }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:#14302b">{{ j.org }}</div><div style="font-size:12.5px;color:#6c7f79">{{ j.role }}</div></div>
+                  <span style="font-size:10.5px;font-weight:700;color:{{ j.stFg }};background:{{ j.stBg }};padding:3px 9px;border-radius:7px">{{ j.type }}</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:12px">
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">PAY</div><div style="font-size:13px;font-weight:800;color:#0b6b60">{{ j.pay }}</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">MATCH</div><div style="font-size:13px;font-weight:800;color:#16b8a6">{{ j.score }}</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">AREA</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ j.area }}</div></div>
+                </div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+                  <sc-for list="{{ j.tags }}" as="t" hint-placeholder-count="3"><span style="font-size:11px;font-weight:600;color:#41635c;background:#eef4f2;padding:4px 9px;border-radius:8px">{{ t }}</span></sc-for>
+                </div>
+                <button onClick="{{ j.onClick }}" style="width:100%;height:42px;border-radius:12px;border:none;background:{{ j.applyBg }};color:{{ j.applyFg }};font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ j.applyLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- provider side -->
+        <sc-if value="{{ isProviderSide }}" hint-placeholder-val="">
+        <div>
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:11px 14px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:#f7faf9;border:1px solid #eef2f0;border-radius:10px;padding:8px 12px"><span style="display:flex">{{ searchSmEl }}</span><input value="{{ pQuery }}" onChange="{{ onPQuery }}" placeholder="Skills, credentials, suburb, language…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:#14302b" /></div>
+            <sc-for list="{{ pFilters }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.onClick }}" style="padding:8px 13px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button></sc-for>
+          </div>
+          <sc-if value="{{ pEmpty }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px dashed #d8e2de;border-radius:16px;padding:30px 20px;text-align:center;color:#6c7f79">
+              <div style="font-size:14px;font-weight:700;color:#14302b;margin-bottom:4px">No workers match your filters</div>
+              <div style="font-size:12.5px;margin-bottom:12px">Try a different search term or filter.</div>
+              <button onClick="{{ clearPFilters }}" style="padding:8px 16px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Clear filters</button>
+            </div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <sc-for list="{{ providerWorkers }}" as="w" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:13px">
+                  <div style="position:relative;width:46px;height:46px;flex:0 0 46px">
+                    <sc-if value="{{ w.pro }}" hint-placeholder-val=""><div style="position:absolute;inset:-3px;border-radius:14px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(5px);opacity:.7;animation:wp-glow 3.4s ease-in-out infinite"></div></sc-if>
+                    <div style="position:relative;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ w.tint }}">{{ w.init }}</div>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:15px;font-weight:800;color:#14302b">{{ w.name }}</span><sc-if value="{{ w.pro }}" hint-placeholder-val=""><span style="font-size:9px;font-weight:800;color:#06201c;background:linear-gradient(90deg,#7ce0d2,#16b8a6);padding:1px 6px;border-radius:5px">PRO</span></sc-if></div>
+                    <div style="font-size:12px;color:#6c7f79">{{ w.role }} · {{ w.area }}</div>
+                  </div>
+                  <div style="text-align:right"><div style="font-size:16px;font-weight:800;color:#16b8a6">{{ w.score }}</div><div style="font-size:9.5px;color:#9aa8a3;letter-spacing:.04em">MATCH</div></div>
+                </div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px">
+                  <sc-for list="{{ w.tags }}" as="t" hint-placeholder-count="3"><span style="font-size:11px;font-weight:600;color:#41635c;background:#eef4f2;padding:4px 9px;border-radius:8px">{{ t }}</span></sc-for>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:12px">
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">VERIFIED</div><div style="font-size:12px;font-weight:700;color:#1e7a52">{{ w.verCount }} checks ✓</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">SHIFTS</div><div style="font-size:12px;font-weight:700;color:#14302b">{{ w.shifts }}</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">RATE</div><div style="font-size:12px;font-weight:700;color:#0b6b60">{{ w.rate }}</div></div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button onClick="{{ viewOwnPassport }}" style="flex:1;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View passport</button>
+                  <button onClick="{{ inviteToRole }}" style="flex:1;height:40px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Invite</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'passport', matchSide:'worker', toast:null, docs:[], wQuery:'', pQuery:'', wFilter:null, pFilter:null, applied:{} };
+  componentDidMount(){ this.loadDocs(); this.loadApplications(); }
+  // Load the worker's real, previously-submitted Workforce Match applications
+  // so already-applied roles render as "Applied ✓" (RLS-scoped, own rows only).
+  loadApplications(){
+    const apply=()=>{
+      if(window.loadMyJobApplications){
+        Promise.resolve(window.loadMyJobApplications()).then(res=>{
+          const apps=(res && res.applications) || [];
+          if(apps.length>0){
+            const applied={};
+            apps.forEach(a=>{ applied[(a.provider_name||'')+'|'+(a.role||'')]=true; });
+            this.setState({ applied });
+          }
+        }).catch(err=>console.error('loadApplications error:',err));
+      }
+    };
+    try{ if(window.loadMyJobApplications){ apply(); } else { setTimeout(apply,600); } }
+    catch(err){ console.error('loadApplications error:',err); }
+  }
+  // Real "Apply with passport": persists a job_applications row via Supabase
+  // (RLS WITH CHECK applicant_user_id = auth.uid()). Flips the card to
+  // "Applied ✓" on success; degrades to a clear message when unconfigured.
+  applyToJob(job){
+    const key=(job.org||'')+'|'+(job.role||'');
+    if(this.state.applied && this.state.applied[key]){ this.showToast('Already applied to '+job.org); return; }
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.createJobApplication){
+      this.showToast('Sign in to apply with your passport'); return;
+    }
+    this.showToast('Submitting application to '+job.org+'…');
+    Promise.resolve(window.createJobApplication({
+      provider_name:job.org, role:job.role, match_score:job.score, pay_rate:job.pay, area:job.area, job_snapshot:job
+    })).then(res=>{
+      if(res && res.application && !res.error){
+        const applied=Object.assign({},this.state.applied); applied[key]=true;
+        this.setState({applied});
+        this.showToast('Applied to '+job.org+' with your passport');
+      } else {
+        this.showToast("Couldn't apply: "+((res&&res.error)||'unknown error'));
+      }
+    }).catch(e=>this.showToast("Couldn't apply: "+e.message));
+  }
+  // Load the logged-in worker's real credential/document records from
+  // Supabase (RLS-scoped via loadDocumentsForCurrentUser). Falls back to
+  // the hardcoded demo creds when empty or unconfigured.
+  loadDocs(){
+    const apply=()=>{
+      if(window.loadDocumentsForCurrentUser){
+        Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
+          const docs=(res && res.documents) || [];
+          if(docs.length>0){ this.setState({ docs }); }
+        }).catch(err=>console.error('loadDocs error:',err));
+      }
+    };
+    try{
+      if(window.loadDocumentsForCurrentUser){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadDocs error:',err); }
+  }
+  // Map a real document record onto the existing cred-item shape so the
+  // "Credentials & checks" list renders identically with live data.
+  mapDocToCred(d){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const st=(d.status||'').toLowerCase();
+    const verified = st==='verified'||st==='approved'||st==='active';
+    const pending = st==='pending'||st==='submitted'||st==='review';
+    const statusLabel = d.status ? (d.status.charAt(0).toUpperCase()+d.status.slice(1)) : 'On file';
+    let detail = d.description || d.type || '';
+    if(d.created_at){ try{ detail = (detail?detail+' · ':'')+'Added '+new Date(d.created_at).toLocaleDateString(); }catch(e){} }
+    return {
+      label: d.title || 'Document',
+      detail: detail || 'On file',
+      status: statusLabel,
+      stFg: verified?'#1e7a52':(pending?'#b4561f':'#8a9a94'),
+      stBg: verified?'#e9f6ef':(pending?'#fbf0df':'#f1f4f2'),
+      tintBg:'#eef0fd',
+      iconEl: ic('doc','#6366f1',16)
+    };
+  }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  ic(n,c,s,sw){
+    const stroke=c||'#5f726d',sz=s||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      passport:'M5 3h14v18H5z M9 8h6 M9 12h6 M9 16h4',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      star:'M12 3l2.5 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.5 6.8 19.3l1.1-5.9L3.6 9.2l5.9-.8z',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      globe:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M3 12h18 M12 3a14 14 0 0 1 0 18 M12 3a14 14 0 0 0 0 18',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      check:'M20 6L9 17l-5-5',
+      alert:'M10.3 3.3L1.6 18a2 2 0 0 0 1.7 3h17.4a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      download:'M12 5v14 M5 12l7 7 7-7',
+      cert:'M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0 M9 17l-1 5 4-2 4 2-1-5',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      car:'M3 11l2-5h14l2 5 M3 11h18v6H3z M7 17m-1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0 M17 17m-1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0',
+      brain:'M9 3a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V14a3 3 0 0 0 4 2.8 M15 3a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V14a3 3 0 0 1-4 2.8',
+      caret:'M6 9l6 6 6-6',
+      abn:'M5 3h14v18H5z M8 7h3 M8 11h8 M8 15h5',
+      activity:'M2 12h4l2.5 7 4.5-15 2.5 8H22'
+    };
+    return React.createElement('svg',{width:sz,height:sz,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.passport}));
+  }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const view=this.state.view;
+    const ms=this.state.matchSide||'worker';
+    const navSections=[
+      {title:'MY PROFILE',items:[['passport','My Passport','passport'],['agreements','My Agreements','file','1'],['match','Workforce Match','users','NEW']]},
+    ].map(sec=>({title:sec.title,items:sec.items.map(([key,label,icon,badge])=>{const a=view===key;return{label,badge,onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};}) }));
+    const pages={passport:{title:'My Worker Passport',sub:'Verified once · reused across 7 providers · enter once, use everywhere'},agreements:{title:'My Agreements',sub:'Employment contracts · contractor agreements · signed documents'},match:{title:'CiaraLink Workforce Match',sub:'Workers find providers · providers find workers — matched by skills, credentials and culture'}};
+
+    const V=(ok)=>({status:ok?'Verified':'Upload',stFg:ok?'#1e7a52':'#b4561f',stBg:ok?'#e9f6ef':'#fbf0df'});
+    const E=(d)=>({status:`Exp. ${d}`,stFg:'#b4561f',stBg:'#fbf0df'});
+    const demoCreds=[
+      {label:'NDIS Worker Screening',detail:'WC-2024-88214 · expires 2028',...V(true),tintBg:'#e7f4f1',iconEl:ic('shield','#16b8a6',16)},
+      {label:'Police Check',detail:'Cleared · Mar 2024 · expires 2027',...V(true),tintBg:'#e9f6ef',iconEl:ic('shield','#1e9e6a',16)},
+      {label:'First Aid / CPR',detail:'HLTAID003 · expires Nov 2026',...E('Nov 26'),tintBg:'#fbf0df',iconEl:ic('heart','#d98b22',16)},
+      {label:'Working With Children',detail:'WWC-VIC-88214 · expires 2026',...V(true),tintBg:'#eef0fd',iconEl:ic('cert','#6366f1',16)},
+      {label:'Manual Handling',detail:'Certificate III · 2022',...V(true),tintBg:'#e7f4f1',iconEl:ic('activity','#16b8a6',16)},
+      {label:'ABN Registration',detail:'44 123 456 789 · active',...V(true),tintBg:'#eef0fd',iconEl:ic('abn','#6366f1',16)},
+      {label:'Insurance',detail:'Public liability · $20M · 2027',...V(true),tintBg:'#e9f6ef',iconEl:ic('doc','#1e9e6a',16)},
+      {label:'Driver licence',detail:'VIC class C · valid',...V(true),tintBg:'#fbf0df',iconEl:ic('car','#d98b22',16)},
+      {label:'Nursing registration',detail:'Not applicable — tick to add',...{status:'N/A',stFg:'#8a9a94',stBg:'#f1f4f2'},tintBg:'#f4f7f5',iconEl:ic('cert','#9aa8a3',16)}
+    ];
+    // Use the worker's real documents when available; fall back to demo creds so the list never renders blank.
+    const realDocs=this.state.docs||[];
+    const creds = realDocs.length>0 ? realDocs.map(d=>this.mapDocToCred(d)) : demoCreds;
+    const skillGroups=[
+      {title:'CLIENT CARE',skills:[{label:'Personal care',fg:'#0b6b60',bg:'#e7f4f1'},{label:'Hoist transfer',fg:'#0b6b60',bg:'#e7f4f1'},{label:'Medication',fg:'#0b6b60',bg:'#e7f4f1'},{label:'Dementia care',fg:'#0b6b60',bg:'#e7f4f1'}]},
+      {title:'SPECIALIST',skills:[{label:'Behaviour support',fg:'#4338ca',bg:'#eef0fd'},{label:'Autism experience',fg:'#4338ca',bg:'#eef0fd'},{label:'Mental health',fg:'#4338ca',bg:'#eef0fd'}]},
+      {title:'PRACTICAL',skills:[{label:'Driver · own car',fg:'#b4561f',bg:'#fbf0df'},{label:'Meal prep',fg:'#b4561f',bg:'#fbf0df'},{label:'Female worker',fg:'#b4561f',bg:'#fbf0df'}]}
+    ];
+    const providers=[{init:'BC',name:'Brightside Care',since:'Since Jan 25'},{init:'CC',name:'Coburg Community',since:'Since Mar 25'},{init:'NA',name:'Northern Allied',since:'Since Jun 25'},{init:'SS',name:'Southern Support',since:'Since Aug 25'}];
+    const rates=[{label:'ABN hourly rate',value:'$46/hr'},{label:'Weekend loading',value:'$55/hr'},{label:'Cancellation notice',value:'24h'},{label:'Travel allowance',value:'$0.96/km'}];
+    const dayDefs=[['Mon',true],['Tue',true],['Wed',true],['Thu',true],['Fri',true],['Sat',true],['Sun',false]];
+    const avail=dayDefs.map(([day,on])=>({day,label:on?'✓':'✕',bg:on?'#e7f4f1':'#fbe9ed',bd:on?'#cce9d8':'#f3d6dc',fg:on?'#1e7a52':'#c0445c'}));
+
+    // workforce match
+    const applied=this.state.applied||{};
+    const wQuery=(this.state.wQuery||'').trim().toLowerCase();
+    const pQuery=(this.state.pQuery||'').trim().toLowerCase();
+    const wFilterVal=this.state.wFilter, pFilterVal=this.state.pFilter;
+    // active-chip styling helper
+    const chip=(label,active)=>({label,active,bd:active?'#16b8a6':'#e2e9e6',bg:active?'#e7f4f1':'#fff',fg:active?'#0b6b60':'#5f726d'});
+
+    const allWorkerJobs=[
+      {org:'Brightside Care',role:'Personal Care · Glenroy',init:'BC',tint:'#16b8a6',pay:'$46/hr',score:'98%',area:'Glenroy',type:'Ongoing',stFg:'#1e7a52',stBg:'#e9f6ef',accent:'#16b8a6',cardBd:'#e7ece9',tags:['Hoist trained','Female pref','Medication']},
+      {org:'Northern Allied',role:'Community Access · Coburg',init:'NA',tint:'#6366f1',pay:'$42/hr',score:'94%',area:'Coburg',type:'Shifts',stFg:'#4338ca',stBg:'#eef0fd',accent:'#6366f1',cardBd:'#e7ece9',tags:['Driver','Social','Auslan']},
+      {org:'Coburg Community',role:'Home Support · Brunswick',init:'CC',tint:'#d98b22',pay:'$44/hr',score:'91%',area:'Brunswick',type:'Emergency',stFg:'#b4561f',stBg:'#fbf0df',accent:'#d98b22',cardBd:'#f0e2c9',tags:['Domestic','Meal prep','Transport']},
+      {org:'Southside Disability',role:'Behaviour Support · Dandenong',init:'SD',tint:'#0891b2',pay:'$50/hr',score:'87%',area:'Dandenong',type:'Contract',stFg:'#0e7490',stBg:'#e0f2f5',accent:'#0891b2',cardBd:'#e7ece9',tags:['Behaviour support','Autism','PBS']}
+    ];
+    // Worker-side quick filters map to real role types present in the data.
+    const wTypes=['Ongoing','Shifts','Emergency','Contract'];
+    const wFilters=wTypes.map(t=>{const c=chip(t,wFilterVal===t);c.onClick=()=>this.setState({wFilter:wFilterVal===t?null:t});return c;});
+    const workerJobs=allWorkerJobs.filter(j=>{
+      if(wFilterVal && j.type!==wFilterVal) return false;
+      if(wQuery){ const hay=(j.org+' '+j.role+' '+j.area+' '+j.type+' '+(j.tags||[]).join(' ')).toLowerCase(); if(hay.indexOf(wQuery)===-1) return false; }
+      return true;
+    }).map(j=>{
+      const isApplied=!!applied[(j.org||'')+'|'+(j.role||'')];
+      return Object.assign({},j,{
+        applied:isApplied,
+        applyLabel:isApplied?'Applied ✓':'Apply with passport',
+        applyBg:isApplied?'#e9f6ef':'#16b8a6',
+        applyFg:isApplied?'#1e7a52':'#06201c',
+        onClick:()=>this.applyToJob(j)
+      });
+    });
+
+    const allProviderWorkers=[
+      {name:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,role:'Support Worker',area:'Glenroy · 2km',score:'98%',tags:['Hoist','Medication','Arabic','Female'],verCount:'9',shifts:'312',rate:'$46/hr'},
+      {name:'Marcus Hill',init:'MH',tint:'#0891b2',pro:false,role:'Support Worker',area:'Coburg · 4km',score:'91%',tags:['Driver','Community','PBS'],verCount:'8',shifts:'124',rate:'$44/hr'},
+      {name:'Grace Adeyemi',init:'GA',tint:'#9333ea',pro:true,role:'Disability Worker',area:'Footscray · 5km',score:'89%',tags:['Behaviour support','Autism','Manual handling'],verCount:'9',shifts:'241',rate:'$46/hr'},
+      {name:'Jordan Pham',init:'JP',tint:'#6366f1',pro:true,role:'Allied Health Assist.',area:'Brunswick · 3km',score:'86%',tags:['Physio assist','Mobility','Exercise'],verCount:'10',shifts:'188',rate:'$48/hr'}
+    ];
+    // Provider-side quick filters map to real skill tags present in the data.
+    const pTags=['Driver','Behaviour support','Medication','Manual handling'];
+    const pFilters=pTags.map(t=>{const c=chip(t,pFilterVal===t);c.onClick=()=>this.setState({pFilter:pFilterVal===t?null:t});return c;});
+    const providerWorkers=allProviderWorkers.filter(w=>{
+      if(pFilterVal && !(w.tags||[]).some(t=>t.toLowerCase()===pFilterVal.toLowerCase())) return false;
+      if(pQuery){ const hay=(w.name+' '+w.role+' '+w.area+' '+(w.tags||[]).join(' ')).toLowerCase(); if(hay.indexOf(pQuery)===-1) return false; }
+      return true;
+    });
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      wQuery:this.state.wQuery,onWQuery:(e)=>this.setState({wQuery:e.target.value}),
+      pQuery:this.state.pQuery,onPQuery:(e)=>this.setState({pQuery:e.target.value}),
+      wEmpty:workerJobs.length===0,pEmpty:providerWorkers.length===0,
+      clearWFilters:()=>this.setState({wFilter:null,wQuery:''}),
+      clearPFilters:()=>this.setState({pFilter:null,pQuery:''}),
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goBack:()=>{ window.location.href='Support Worker.dc.html'; },
+      shareToProvider:()=>this.showToast('Sharing passport link — providers can view your verified profile'),
+      viewOwnPassport:()=>this.setState({view:'passport'}),
+      inviteToRole:()=>this.showToast('Invitation sent — they can now view your Worker Passport'),
+      goSettings:()=>{ window.location.href='Settings.dc.html'; },
+      logoutSmEl:ic('logout','#6c8a83',15),
+      logoEl:ic('logo','#eafaf8',21),navSections,pageTitle:pages[view].title,pageSub:pages[view].sub,
+      isPassport:view==='passport',isMatch:view==='match',isAgreements:view==='agreements',
+      agAlertEl:ic('alert','#d98b22',17),
+      downAgEl:ic('download','#41635c',14),
+      signWorkerAgreement:()=>this.showToast('Opening agreement for signature…'),
+      workerAgreements:[
+        {name:'Casual Employment Agreement',provider:'Brightside Care',date:'23 Jun 2026',status:'Signature required',stFg:'#b4561f',stBg:'#fbf0df',iconEl:ic('file','#d98b22',14),tintBg:'#fbf0df',download:()=>this.showToast('Downloading agreement…')},
+        {name:'Code of Conduct Acknowledgement',provider:'Brightside Care',date:'15 Jan 2026',status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',14),tintBg:'#e9f6ef',download:()=>this.showToast('Downloading document…')},
+        {name:'Privacy Policy Acknowledgement',provider:'Brightside Care',date:'15 Jan 2026',status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',14),tintBg:'#e9f6ef',download:()=>this.showToast('Downloading document…')},
+      ],
+      sparkBlueEl:ic('spark','#2a4a8a',17),starEl:ic('star','#d98b22',14),pinEl:ic('pin','#6c7f79',14),globeEl:ic('globe','#6c7f79',14),
+      creds,skillGroups,providers,rates,avail,
+      isWorkerSide:ms==='worker',isProviderSide:ms==='provider',
+      workerTabBd:ms==='worker'?'#16b8a6':'#e7ece9',providerTabBd:ms==='provider'?'#6366f1':'#e7ece9',
+      goWorkerSide:()=>this.setState({matchSide:'worker'}),goProviderSide:()=>this.setState({matchSide:'provider'}),
+      searchWEl:ic('search','#16b8a6',18),searchPEl:ic('search','#6366f1',18),searchSmEl:ic('search','#9aa8a3',16),
+      wFilters,workerJobs,pFilters,providerWorkers
+    };
+  }
+}
+</script>
+</body>
+</html>

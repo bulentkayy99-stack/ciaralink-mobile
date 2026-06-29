@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <script src="chat-drawer.js"></script>
+  <script src="./env.local.js?v=20260629"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./roster-conflicts.js?v=1"></script>
+  <script src="./roster-client.js?v=1"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes rs-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes rs-fade{from{opacity:0}to{opacity:1}}
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:252px;flex:0 0 252px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">ROSTERING</div></div>
+    </div>
+
+    <div style="padding:14px 16px;flex:1">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#5f7a73;margin-bottom:10px">THIS WEEK</div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 13px">
+        <div style="font-size:12px;color:#7e948e;font-weight:600;margin-bottom:4px">Scheduled shifts</div>
+        <div style="font-size:26px;font-weight:800;color:#f4faf8;line-height:1">{{ statShifts }}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;color:#f0b8c2;background:rgba(192,68,92,.16);padding:2px 8px;border-radius:6px">{{ statConflicts }} conflicts</span>
+          <span style="font-size:11px;font-weight:700;color:#16b8a6;background:rgba(22,184,166,.14);padding:2px 8px;border-radius:6px">{{ statUnassigned }} open</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;line-height:1.6;color:#6f8780">
+        Drag a shift onto a worker to roster them. CiaraLink checks for double-bookings, availability, and credential gaps as you go.
+      </div>
+    </div>
+
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:6px">← Dashboard</button>
+      <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div>
+        <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">{{ pageSub }}</div>
+      </div>
+      <span style="font-size:12px;font-weight:700;color:{{ connFg }};background:{{ connBg }};padding:5px 12px;border-radius:9px">{{ connTag }}</span>
+    </header>
+
+    <div style="flex:1;overflow:auto;padding:20px 24px 64px">
+      {{ rosterBody }}
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:rs-rise .25s ease">
+    {{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    role:null, canManage:false, view:'team',
+    weekStart:null, connected:false, loading:true,
+    orgId:null, orgName:null, userId:null,
+    workers:[], shifts:[], participants:[],
+    dragShiftId:null, dragOverKey:null,
+    drawer:null, form:null, recurForm:null,
+    busy:false, toast:null,
+  };
+
+  // ---- credential vocabulary (matches worker_credentials.type) ----
+  CRED_TYPES = ['ndis_worker_screening','wwcc','police_check','first_aid','professional_indemnity','public_liability','abn_registration','qualification'];
+  CRED_LABELS = {police_check:'Police Check',wwcc:'WWCC',first_aid:'First Aid',ndis_worker_screening:'NDIS Screening',professional_indemnity:'Prof. Indemnity',public_liability:'Public Liability',abn_registration:'ABN',qualification:'Qualification',other:'Other'};
+
+  componentDidMount(){
+    var role=null;
+    try{ var s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); role=s.role||null; }catch(e){}
+    var manage=this.isManager(role);
+    this.setState({role:role, canManage:manage, view:manage?'team':'mine', weekStart:this.weekStartOf(new Date())});
+    this.boot(0);
+  }
+
+  isManager(role){ return ['provider','provider_owner','provider_admin','provider_staff','platform_admin'].indexOf(role)>=0; }
+
+  boot(attempt){
+    attempt=attempt||0;
+    var configured = window.isSupabaseConfigured && window.isSupabaseConfigured();
+    if(!configured){ this.loadDemo(); return; } // honest design preview
+    if(!window.RosterData || typeof window.loadCurrentUserContext!=='function'){
+      if(attempt<30){ setTimeout(()=>this.boot(attempt+1),150); return; }
+      this.loadDemo(); return;
+    }
+    this.setState({connected:true});
+    this.loadAll();
+  }
+
+  // ============================================================
+  // DATA LOADING
+  // ============================================================
+  async loadAll(){
+    try{
+      var ctx = await window.RosterData.loadContext();
+      var manage = this.isManager(ctx.role) || this.isManager(this.state.role);
+      this.setState({orgId:ctx.orgId, orgName:ctx.orgName, userId:ctx.userId, role:ctx.role||this.state.role, canManage:manage, view:manage?this.state.view:'mine'});
+      await this.reload(ctx.orgId, manage);
+    }catch(e){ console.warn('roster loadAll',e&&e.message); this.loadDemo(); }
+  }
+
+  async reload(orgId, manage){
+    orgId = orgId || this.state.orgId;
+    manage = manage===undefined ? this.state.canManage : manage;
+    this.setState({loading:true});
+    var ws=this.state.weekStart, we=this.addDays(ws,7);
+    var fromIso=ws.toISOString(), toIso=we.toISOString();
+    try{
+      if(manage && this.state.view==='team'){
+        var wRes=await window.RosterData.loadOrgWorkers(orgId);
+        var sRes=await window.RosterData.loadWeekShifts(orgId, fromIso, toIso);
+        var pRes=await window.RosterData.loadParticipants();
+        this.setState({workers:wRes.workers||[], shifts:sRes.shifts||[], participants:(pRes&&pRes.participants)||[], loading:false});
+      }else{
+        var mine=await window.RosterData.loadMyWeekShifts(fromIso, toIso);
+        this.setState({shifts:mine.shifts||[], workers:[], loading:false});
+      }
+    }catch(e){ console.warn('roster reload',e&&e.message); this.setState({loading:false}); }
+  }
+
+  loadDemo(){
+    var ws=this.state.weekStart||this.weekStartOf(new Date());
+    var mk=(dayOffset,h,m,dur)=>{ var d=this.addDays(ws,dayOffset); d.setHours(h,m,0,0); var e=new Date(d.getTime()+dur*60000); return {s:d.toISOString(),e:e.toISOString()}; };
+    var workers=[
+      {user_id:'w-amelia',full_name:'Amelia Chen',role:'support_worker',credentials:[{type:'ndis_worker_screening',verified:true,expiry:'2027-09-01'},{type:'first_aid',verified:true,expiry:'2027-02-01'},{type:'wwcc',verified:true,expiry:'2028-01-01'}],availability:[{weekday:1,start_local_time:'08:00',end_local_time:'17:00',is_available:true},{weekday:2,start_local_time:'08:00',end_local_time:'17:00',is_available:true},{weekday:3,start_local_time:'08:00',end_local_time:'17:00',is_available:true},{weekday:4,start_local_time:'08:00',end_local_time:'17:00',is_available:true},{weekday:5,start_local_time:'08:00',end_local_time:'14:00',is_available:true}],unavailability:[]},
+      {user_id:'w-marcus',full_name:'Marcus Hassan',role:'support_worker',credentials:[{type:'first_aid',verified:true,expiry:'2026-07-10'},{type:'wwcc',verified:true,expiry:'2028-01-01'}],availability:[{weekday:1,start_local_time:'09:00',end_local_time:'15:00',is_available:true},{weekday:3,start_local_time:'09:00',end_local_time:'15:00',is_available:true}],unavailability:[{start_time:this.addDays(ws,2).toISOString(),end_time:this.addDays(ws,3).toISOString(),reason:'annual leave'}]},
+      {user_id:'w-priya',full_name:'Priya Sharma',role:'abn_worker',credentials:[{type:'ndis_worker_screening',verified:true,expiry:'2027-01-01'},{type:'first_aid',verified:true,expiry:'2027-01-01'},{type:'professional_indemnity',verified:true,expiry:'2027-01-01'},{type:'public_liability',verified:true,expiry:'2027-01-01'}],availability:[{weekday:2,start_local_time:'07:00',end_local_time:'19:00',is_available:true},{weekday:4,start_local_time:'07:00',end_local_time:'19:00',is_available:true},{weekday:6,start_local_time:'08:00',end_local_time:'16:00',is_available:true}],unavailability:[]},
+      {user_id:'w-james',full_name:'James O\u2019Brien',role:'support_worker',credentials:[{type:'wwcc',verified:true,expiry:'2028-01-01'}],availability:[],unavailability:[]},
+    ];
+    var t1=mk(0,9,0,180), t2=mk(0,9,30,120), t3=mk(1,10,0,240), t4=mk(2,13,0,180), t5=mk(3,8,0,300), t6=mk(4,9,0,180), t7=mk(0,14,0,120);
+    var shifts=[
+      {id:'s1',org_id:'demo',participant_id:'p1',worker_id:'w-amelia',title:'Personal care',location:'Coburg',start_time:t1.s,end_time:t1.e,status:'offered',support_type:'Personal Care',required_credentials:['ndis_worker_screening','first_aid'],participants:{full_name:'Margaret Reyes'}},
+      {id:'s2',org_id:'demo',participant_id:'p2',worker_id:'w-amelia',title:'Community access',location:'Brunswick',start_time:t2.s,end_time:t2.e,status:'offered',support_type:'Community',required_credentials:['ndis_worker_screening'],participants:{full_name:'David Lowe'}},
+      {id:'s3',org_id:'demo',participant_id:'p3',worker_id:'w-marcus',title:'Daily living',location:'Preston',start_time:t3.s,end_time:t3.e,status:'offered',support_type:'Daily Living',required_credentials:['ndis_worker_screening'],participants:{full_name:'Liam Wright'}},
+      {id:'s4',org_id:'demo',participant_id:'p1',worker_id:'w-priya',title:'Therapy support',location:'Coburg',start_time:t4.s,end_time:t4.e,status:'offered',support_type:'Therapy',required_credentials:['professional_indemnity','first_aid'],participants:{full_name:'Margaret Reyes'}},
+      {id:'s5',org_id:'demo',participant_id:'p4',worker_id:'w-priya',title:'Overnight support',location:'Northcote',start_time:t5.s,end_time:t5.e,status:'offered',support_type:'SIL',required_credentials:['ndis_worker_screening'],participants:{full_name:'Tom Becker'}},
+      {id:'s6',org_id:'demo',participant_id:'p2',worker_id:null,title:'Transport',location:'Brunswick',start_time:t6.s,end_time:t6.e,status:'draft',support_type:'Transport',required_credentials:['ndis_worker_screening'],participants:{full_name:'David Lowe'}},
+      {id:'s7',org_id:'demo',participant_id:'p3',worker_id:null,title:'Social group',location:'Preston',start_time:t7.s,end_time:t7.e,status:'draft',support_type:'Community',required_credentials:[],participants:{full_name:'Liam Wright'}},
+    ];
+    var participants=[{id:'p1',full_name:'Margaret Reyes'},{id:'p2',full_name:'David Lowe'},{id:'p3',full_name:'Liam Wright'},{id:'p4',full_name:'Tom Becker'}];
+    this.setState({connected:false, canManage:true, view:'team', loading:false, weekStart:ws, workers:workers, shifts:shifts, participants:participants, orgId:'demo'});
+  }
+
+  // ============================================================
+  // DATE HELPERS
+  // ============================================================
+  weekStartOf(d){ var x=new Date(d); var day=x.getDay(); var diff=(day===0?-6:1-day); x.setDate(x.getDate()+diff); x.setHours(0,0,0,0); return x; }
+  addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
+  weekDays(){ var out=[]; for(var i=0;i<7;i++) out.push(this.addDays(this.state.weekStart,i)); return out; }
+  sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+  fmtTime(d){ try{ return d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}catch(e){return ''+d.getHours()+':'+d.getMinutes();} }
+  fmtDayLabel(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
+  fmtDateShort(d){ try{return d.toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch(e){return (d.getMonth()+1)+'/'+d.getDate();} }
+  weekLabel(){ var a=this.state.weekStart, b=this.addDays(a,6); return this.fmtDateShort(a)+' – '+this.fmtDateShort(b)+', '+b.getFullYear(); }
+
+  // ============================================================
+  // CONFLICTS
+  // ============================================================
+  workerById(id){ for(var i=0;i<this.state.workers.length;i++){ if(this.state.workers[i].user_id===id) return this.state.workers[i]; } return null; }
+
+  conflictsFor(shift){
+    if(!shift || !shift.worker_id || !window.RosterConflicts) return [];
+    var w=this.workerById(shift.worker_id); if(!w) return [];
+    return window.RosterConflicts.detect(
+      {workerId:shift.worker_id, start:shift.start_time, end:shift.end_time, requiredCredentials:shift.required_credentials||[], excludeShiftId:shift.id},
+      {shifts:this.state.shifts, worker:w}
+    );
+  }
+
+  shiftsInCell(workerId, day){
+    var self=this;
+    return this.state.shifts.filter(function(s){
+      var sw=s.worker_id||null;
+      if(sw!==(workerId||null)) return false;
+      return self.sameDay(new Date(s.start_time), day);
+    }).sort(function(a,b){ return new Date(a.start_time)-new Date(b.start_time); });
+  }
+
+  // ============================================================
+  // DRAG + DROP / ASSIGNMENT
+  // ============================================================
+  handleDragStart(shiftId,e){ this.setState({dragShiftId:shiftId}); try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',shiftId);}catch(err){} }
+  cellKey(workerId,day){ return (workerId||'unassigned')+'|'+day.toDateString(); }
+
+  handleDrop(workerId, day){
+    var id=this.state.dragShiftId; this.setState({dragShiftId:null, dragOverKey:null});
+    if(!id) return;
+    var shift=this.state.shifts.filter(function(s){return s.id===id;})[0];
+    if(!shift) return;
+    if(!this.state.canManage){ this.showToast('Read-only roster'); return; }
+    if(workerId===null){ this.applyUnassign(shift); return; }
+    // keep time-of-day, move to the dropped day
+    var os=new Date(shift.start_time), oe=new Date(shift.end_time), dur=oe-os;
+    var ns=new Date(day); ns.setHours(os.getHours(),os.getMinutes(),0,0);
+    var ne=new Date(ns.getTime()+dur);
+    if(workerId===shift.worker_id && this.sameDay(os,day)) return; // no-op
+    this.applyAssignment(shift, workerId, ns, ne, false);
+  }
+
+  applyAssignment(shift, workerId, startD, endD, force){
+    var w=this.workerById(workerId);
+    var conflicts=[];
+    if(window.RosterConflicts && w){
+      conflicts=window.RosterConflicts.detect(
+        {workerId:workerId, start:startD, end:endD, requiredCredentials:shift.required_credentials||[], excludeShiftId:shift.id},
+        {shifts:this.state.shifts, worker:w}
+      );
+    }
+    var hard=conflicts.filter(function(c){return c.severity==='error';});
+    if(hard.length && !force){
+      this.setState({drawer:{type:'confirm', shiftId:shift.id, workerId:workerId, startIso:startD.toISOString(), endIso:endD.toISOString(), conflicts:conflicts, workerName:(w&&w.full_name)||'worker'}});
+      return;
+    }
+    if(this.state.connected){
+      this.setState({busy:true});
+      window.RosterData.assign({shiftId:shift.id, workerId:workerId, startIso:startD.toISOString(), endIso:endD.toISOString(), force:force}).then((r)=>{
+        this.setState({busy:false, drawer:null});
+        if(r.ok){ this.patchLocalShift(shift.id,{worker_id:workerId,start_time:startD.toISOString(),end_time:endD.toISOString(),status:'offered'}); this.showToast(r.forced?'Assigned despite conflicts':'Shift assigned ✓'); }
+        else if(r.blocked){ this.setState({drawer:{type:'confirm', shiftId:shift.id, workerId:workerId, startIso:startD.toISOString(), endIso:endD.toISOString(), conflicts:r.conflicts||conflicts, workerName:(w&&w.full_name)||'worker'}}); }
+        else this.showToast('Could not assign'+(r.error?': '+r.error:''));
+      }).catch((e)=>{ this.setState({busy:false}); this.showToast('Could not assign'); });
+    }else{
+      this.patchLocalShift(shift.id,{worker_id:workerId,start_time:startD.toISOString(),end_time:endD.toISOString(),status:'offered'});
+      this.setState({drawer:null});
+      this.showToast(force?'Assigned despite conflicts (preview)':'Shift assigned (preview)');
+    }
+  }
+
+  applyUnassign(shift){
+    if(this.state.connected){
+      this.setState({busy:true});
+      window.RosterData.unassign(shift.id).then((r)=>{
+        this.setState({busy:false});
+        if(r.ok){ this.patchLocalShift(shift.id,{worker_id:null,status:'draft'}); this.showToast('Shift unassigned'); }
+        else this.showToast('Could not unassign'+(r.error?': '+r.error:''));
+      }).catch(()=>{ this.setState({busy:false}); this.showToast('Could not unassign'); });
+    }else{
+      this.patchLocalShift(shift.id,{worker_id:null,status:'draft'});
+      this.showToast('Shift unassigned (preview)');
+    }
+  }
+
+  patchLocalShift(id, patch){
+    var next=this.state.shifts.map(function(s){ return s.id===id ? Object.assign({},s,patch) : s; });
+    this.setState({shifts:next});
+  }
+
+  // ============================================================
+  // FORMS: new shift + recurrence
+  // ============================================================
+  defaultForm(){ var d=this.addDays(this.state.weekStart, 0); return {participant_id:(this.state.participants[0]&&this.state.participants[0].id)||'', worker_id:'', dateIdx:0, start:'09:00', end:'12:00', title:'', support_type:'', required:[]}; }
+  defaultRecur(){ var ws=this.state.weekStart; return {participant_id:(this.state.participants[0]&&this.state.participants[0].id)||'', worker_id:'', days:[1,3], start:'09:00', end:'12:00', title:'', support_type:'', required:[], effective_from:this.isoDate(ws), effective_until:this.isoDate(this.addDays(ws,27)) }; }
+  isoDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+  openNew(){ this.setState({drawer:{type:'new'}, form:this.defaultForm()}); }
+  openRecur(){ this.setState({drawer:{type:'recur'}, recurForm:this.defaultRecur()}); }
+  closeDrawer(){ this.setState({drawer:null}); }
+
+  combineDateTime(day, hhmm){ var p=(hhmm||'00:00').split(':'); var d=new Date(day); d.setHours(parseInt(p[0]||'0',10),parseInt(p[1]||'0',10),0,0); return d; }
+
+  submitNewShift(){
+    var f=this.state.form; if(!f) return;
+    if(!f.participant_id){ this.showToast('Pick a participant'); return; }
+    var day=this.addDays(this.state.weekStart, f.dateIdx||0);
+    var sd=this.combineDateTime(day,f.start), ed=this.combineDateTime(day,f.end);
+    if(ed<=sd){ this.showToast('End time must be after start'); return; }
+    var input={org_id:this.state.orgId, participant_id:f.participant_id, worker_id:f.worker_id||null, title:f.title||null, support_type:f.support_type||null, start_time:sd.toISOString(), end_time:ed.toISOString(), required_credentials:f.required||[], status:f.worker_id?'offered':'draft'};
+    if(!this.state.connected){
+      var pname=(this.state.participants.filter((p)=>p.id===f.participant_id)[0]||{}).full_name||'';
+      var demo=Object.assign({id:'s'+Date.now(), participants:{full_name:pname}}, input);
+      this.setState({shifts:this.state.shifts.concat([demo]), drawer:null});
+      this.showToast('Shift created (preview)'); return;
+    }
+    this.setState({busy:true});
+    window.RosterData.createShift(input).then((r)=>{
+      this.setState({busy:false});
+      if(r.shift){ this.setState({shifts:this.state.shifts.concat([r.shift]), drawer:null}); this.showToast('Shift created ✓'); }
+      else this.showToast('Could not create shift'+(r.error?': '+r.error:''));
+    }).catch(()=>{ this.setState({busy:false}); this.showToast('Could not create shift'); });
+  }
+
+  submitRecurrence(){
+    var f=this.state.recurForm; if(!f) return;
+    if(!f.participant_id){ this.showToast('Pick a participant'); return; }
+    if(!f.days||!f.days.length){ this.showToast('Pick at least one weekday'); return; }
+    if(f.end<=f.start){ this.showToast('End time must be after start'); return; }
+    if(!this.state.connected){
+      this.showToast('Connect your account to create recurring shifts');
+      this.setState({drawer:null}); return;
+    }
+    var input={org_id:this.state.orgId, participant_id:f.participant_id, worker_id:f.worker_id||null, title:f.title||null, support_type:f.support_type||null, days_of_week:f.days, start_local_time:f.start, end_local_time:f.end, required_credentials:f.required||[], effective_from:f.effective_from, effective_until:f.effective_until||null, generate_from:f.effective_from, generate_to:f.effective_until||null};
+    this.setState({busy:true});
+    window.RosterData.createRecurrence(input).then((r)=>{
+      this.setState({busy:false, drawer:null});
+      if(r.ok){ this.showToast('Recurring shifts created: '+r.created_count); this.reload(); }
+      else this.showToast('Could not create recurrence'+(r.error?': '+r.error:''));
+    }).catch(()=>{ this.setState({busy:false}); this.showToast('Could not create recurrence'); });
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3200); }
+
+  // ============================================================
+  // ICONS
+  // ============================================================
+  ic(n,c,s){
+    var P={
+      calendar:'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      alert:'M10.3 3.3L1.6 18a2 2 0 0 0 1.7 3h17.4a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      check:'M20 6L9 17l-5-5',
+      plus:'M12 5v14 M5 12h14',
+      repeat:'M17 1l4 4-4 4 M3 11V9a4 4 0 0 1 4-4h14 M7 23l-4-4 4-4 M21 13v2a4 4 0 0 1-4 4H3',
+      chevL:'M15 18l-6-6 6-6', chevR:'M9 18l6-6-6-6',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      x:'M18 6L6 18 M6 6l12 12',
+      shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+      pin:'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},(P[n]||P.calendar).split(' M').map(function(seg,i){return React.createElement('path',{key:i,d:(i?'M':'')+seg});}));
+  }
+
+  // ============================================================
+  // RENDER: TOOLBAR
+  // ============================================================
+  renderToolbar(){
+    var h=React.createElement;
+    var btn=(label,onClick,opts)=>{ opts=opts||{}; return h('button',{onClick:onClick,style:Object.assign({display:'inline-flex',alignItems:'center',gap:'7px',height:'38px',padding:'0 14px',borderRadius:'11px',border:'1px solid '+(opts.bd||'#dde4e1'),background:opts.bg||'#fff',color:opts.fg||'#14302b',fontFamily:'inherit',fontSize:'13px',fontWeight:'700',cursor:'pointer'},opts.style||{})},opts.icon||null,label); };
+    var nav=h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+      btn(this.ic('chevL','#41635c',16),()=>{ this.setState({weekStart:this.addDays(this.state.weekStart,-7)},()=>{ if(this.state.connected) this.reload(); else this.loadDemo(); }); },{style:{padding:'0 10px'}}),
+      h('div',{style:{minWidth:'168px',textAlign:'center',fontSize:'13.5px',fontWeight:'800',color:'#14302b'}},this.weekLabel()),
+      btn(this.ic('chevR','#41635c',16),()=>{ this.setState({weekStart:this.addDays(this.state.weekStart,7)},()=>{ if(this.state.connected) this.reload(); else this.loadDemo(); }); },{style:{padding:'0 10px'}}),
+      btn('This week',()=>{ this.setState({weekStart:this.weekStartOf(new Date())},()=>{ if(this.state.connected) this.reload(); else this.loadDemo(); }); },{bg:'#f1f5f3'})
+    );
+    var actions=this.state.canManage ? h('div',{style:{display:'flex',gap:'8px',marginLeft:'auto'}},
+      btn('New shift',()=>this.openNew(),{icon:this.ic('plus','#06201c',16),bg:'#16b8a6',fg:'#06201c',bd:'#16b8a6'}),
+      btn('Recurring',()=>this.openRecur(),{icon:this.ic('repeat','#0b6b60',15),bg:'#e7f4f1',fg:'#0b6b60',bd:'#cfe8e2'})
+    ) : null;
+    return h('div',{style:{display:'flex',alignItems:'center',gap:'14px',marginBottom:'14px',flexWrap:'wrap'}}, nav, actions);
+  }
+
+  renderLegend(){
+    var h=React.createElement;
+    var chip=(color,label)=>h('span',{style:{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'11.5px',fontWeight:'700',color:'#55706a'}},h('span',{style:{width:'9px',height:'9px',borderRadius:'3px',background:color}}),label);
+    return h('div',{style:{display:'flex',gap:'16px',alignItems:'center',marginBottom:'12px',flexWrap:'wrap'}},
+      chip('#16b8a6','Scheduled'),
+      chip('#e0556e','Conflict — double-book / credential'),
+      chip('#d98b22','Warning — outside availability'),
+      h('span',{style:{fontSize:'11.5px',color:'#9aa8a3'}},'Drag a shift card onto a worker row to roster · drop on “Unassigned” to release')
+    );
+  }
+
+  // ============================================================
+  // RENDER: SHIFT CARD
+  // ============================================================
+  renderCard(shift){
+    var h=React.createElement;
+    var ss=new Date(shift.start_time), se=new Date(shift.end_time);
+    var conflicts=this.conflictsFor(shift);
+    var hard=conflicts.filter(function(c){return c.severity==='error';});
+    var soft=conflicts.filter(function(c){return c.severity==='warning';});
+    var bd = hard.length? '#f3b9c4' : (soft.length? '#f0d8a8' : '#cdeee8');
+    var bg = hard.length? '#fdeef1' : (soft.length? '#fdf6e8' : '#f1fbf9');
+    var pname=(shift.participants&&(shift.participants.preferred_name||shift.participants.full_name))||'Participant';
+    var creds=(shift.required_credentials||[]).map((c)=>this.CRED_LABELS[c]||c);
+    var draggable=this.state.canManage;
+    var badge=null;
+    if(hard.length) badge=h('span',{title:hard.map(function(c){return c.message;}).join('\n'),style:{display:'inline-flex',alignItems:'center',gap:'4px',fontSize:'10.5px',fontWeight:'800',color:'#c0445c',background:'#fbe1e7',padding:'1px 7px',borderRadius:'6px'}},this.ic('alert','#c0445c',12),hard.length+(hard.length>1?' conflicts':' conflict'));
+    else if(soft.length) badge=h('span',{title:soft.map(function(c){return c.message;}).join('\n'),style:{display:'inline-flex',alignItems:'center',gap:'4px',fontSize:'10.5px',fontWeight:'800',color:'#b4561f',background:'#fbf0df',padding:'1px 7px',borderRadius:'6px'}},this.ic('alert','#b4561f',12),'check');
+    else if(shift.worker_id) badge=h('span',{style:{fontSize:'10.5px',fontWeight:'800',color:'#1e7a52',background:'#e9f6ef',padding:'1px 7px',borderRadius:'6px'}},'OK');
+    return h('div',{
+        key:shift.id, draggable:draggable,
+        onDragStart:draggable?(e)=>this.handleDragStart(shift.id,e):undefined,
+        onClick:()=>this.setState({drawer:{type:'shift', shiftId:shift.id}}),
+        style:{border:'1px solid '+bd,background:bg,borderRadius:'11px',padding:'8px 9px',marginBottom:'6px',cursor:draggable?'grab':'pointer',animation:'rs-fade .2s ease'}
+      },
+      h('div',{style:{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}},
+        h('span',{style:{fontSize:'11px',fontWeight:'800',color:'#0b6b60'}},this.fmtTime(ss)+'–'+this.fmtTime(se)),
+        badge?h('span',{style:{marginLeft:'auto'}},badge):null
+      ),
+      h('div',{style:{fontSize:'12.5px',fontWeight:'800',color:'#14302b',lineHeight:'1.25'}},shift.title||shift.support_type||'Shift'),
+      h('div',{style:{fontSize:'11.5px',color:'#5f726d',marginTop:'1px'}},pname),
+      creds.length? h('div',{style:{display:'flex',flexWrap:'wrap',gap:'3px',marginTop:'5px'}}, creds.map((c,i)=>h('span',{key:i,style:{fontSize:'9.5px',fontWeight:'700',color:'#41635c',background:'#e7ece9',padding:'1px 6px',borderRadius:'5px'}},c))) : null
+    );
+  }
+
+  // ============================================================
+  // RENDER: GRID (team) / AGENDA (mine)
+  // ============================================================
+  renderGrid(){
+    var h=React.createElement;
+    var days=this.weekDays();
+    var self=this;
+    var colW='minmax(150px,1fr)';
+    var gridTpl='200px repeat(7,'+colW+')';
+
+    // header row
+    var headerCells=[h('div',{key:'h0',style:{padding:'10px 12px',fontSize:'11px',fontWeight:'800',letterSpacing:'.05em',color:'#9aa8a3'}},'WORKER')];
+    days.forEach(function(d,i){
+      var today=self.sameDay(d,new Date());
+      headerCells.push(h('div',{key:'h'+i,style:{padding:'10px 12px',textAlign:'center',borderLeft:'1px solid #eef2f0'}},
+        h('div',{style:{fontSize:'11px',fontWeight:'800',color:today?'#0b6b60':'#6c7f79'}},self.fmtDayLabel(d)),
+        h('div',{style:{fontSize:'15px',fontWeight:'800',color:today?'#0b6b60':'#14302b'}},d.getDate())
+      ));
+    });
+
+    // rows: Unassigned + workers
+    var rows=[];
+    var makeRow=(rowKey, label, sublabel, workerId, creds)=>{
+      var cells=[h('div',{key:rowKey+'-label',style:{padding:'10px 12px',borderTop:'1px solid #eef2f0',background:'#fafcfb',position:'sticky',left:0,zIndex:1}},
+        h('div',{style:{fontSize:'13px',fontWeight:'800',color:workerId?'#14302b':'#9a6a1f'}},label),
+        sublabel?h('div',{style:{fontSize:'10.5px',color:'#8a9b95',marginTop:'1px'}},sublabel):null,
+        creds&&creds.length?h('div',{style:{display:'flex',flexWrap:'wrap',gap:'3px',marginTop:'5px'}},creds.map(function(c,i){return h('span',{key:i,style:{fontSize:'9px',fontWeight:'700',color:c.ok?'#1e7a52':'#c0445c',background:c.ok?'#e9f6ef':'#fbe1e7',padding:'1px 5px',borderRadius:'4px'}},c.label);})):null
+      )];
+      days.forEach(function(d,i){
+        var key=self.cellKey(workerId,d);
+        var over=self.state.dragOverKey===key;
+        var cellShifts=self.shiftsInCell(workerId,d);
+        cells.push(h('div',{key:rowKey+'-'+i,
+          onDragOver:self.state.canManage?(e)=>{e.preventDefault(); if(self.state.dragOverKey!==key) self.setState({dragOverKey:key});}:undefined,
+          onDragLeave:self.state.canManage?()=>{ if(self.state.dragOverKey===key) self.setState({dragOverKey:null}); }:undefined,
+          onDrop:self.state.canManage?(e)=>{e.preventDefault(); self.handleDrop(workerId,d);}:undefined,
+          style:{padding:'7px 7px',borderTop:'1px solid #eef2f0',borderLeft:'1px solid #eef2f0',minHeight:'74px',background:over?'#e6f7f3':'transparent',transition:'background .12s',outline:over?'2px dashed #16b8a6':'none',outlineOffset:'-3px'}
+        }, cellShifts.map(function(s){return self.renderCard(s);})));
+      });
+      return h('div',{key:rowKey,style:{display:'grid',gridTemplateColumns:gridTpl}}, cells);
+    };
+
+    // Unassigned row first
+    rows.push(makeRow('unassigned','Unassigned','drag here to release a worker',null,null));
+    // worker rows
+    this.state.workers.forEach(function(w){
+      var sub=(w.role==='abn_worker'?'ABN / contractor':'Support worker');
+      var creds=(w.credentials||[]).slice(0,4).map(function(c){
+        var ok=c.verified && (!c.expiry || new Date(c.expiry)>=new Date());
+        return {label:(self.CRED_LABELS[c.type]||c.type), ok:ok};
+      });
+      rows.push(makeRow('w-'+w.user_id, w.full_name, sub, w.user_id, creds));
+    });
+    if(this.state.workers.length===0){
+      rows.push(h('div',{key:'empty',style:{padding:'28px',textAlign:'center',color:'#8a9b95',fontSize:'13px',borderTop:'1px solid #eef2f0'}},'No workers found in this organisation yet. Add team members in the Team screen, then return to roster them.'));
+    }
+
+    return h('div',{style:{background:'#fff',border:'1px solid #e7ece9',borderRadius:'16px',overflow:'auto',boxShadow:'0 1px 2px rgba(20,48,43,.04)'}},
+      h('div',{style:{display:'grid',gridTemplateColumns:gridTpl,borderBottom:'1px solid #e7ece9'}}, headerCells),
+      rows
+    );
+  }
+
+  renderAgenda(){
+    var h=React.createElement; var self=this;
+    var days=this.weekDays();
+    var blocks=days.map(function(d,i){
+      var list=self.state.shifts.filter(function(s){return self.sameDay(new Date(s.start_time),d);}).sort(function(a,b){return new Date(a.start_time)-new Date(b.start_time);});
+      return h('div',{key:i,style:{background:'#fff',border:'1px solid #e7ece9',borderRadius:'14px',padding:'12px 14px',marginBottom:'10px'}},
+        h('div',{style:{fontSize:'12.5px',fontWeight:'800',color:'#14302b',marginBottom:'8px'}},self.fmtDayLabel(d)+' '+self.fmtDateShort(d)),
+        list.length? list.map(function(s){return self.renderCard(s);}) : h('div',{style:{fontSize:'12px',color:'#9aa8a3'}},'No shifts')
+      );
+    });
+    return h('div',{style:{maxWidth:'640px'}}, blocks);
+  }
+
+  // ============================================================
+  // RENDER: DRAWER (confirm / new / recur / shift detail)
+  // ============================================================
+  renderDrawer(){
+    var d=this.state.drawer; if(!d) return null;
+    var h=React.createElement; var self=this;
+    var overlay=(content)=>h('div',{onClick:()=>this.closeDrawer(),style:{position:'fixed',inset:0,zIndex:60,background:'rgba(8,22,19,.42)',display:'flex',justifyContent:'flex-end',animation:'rs-fade .15s ease'}},
+      h('div',{onClick:(e)=>e.stopPropagation(),style:{width:'420px',maxWidth:'92vw',height:'100%',background:'#fff',boxShadow:'-20px 0 50px -20px rgba(0,0,0,.4)',padding:'22px 22px 32px',overflowY:'auto',animation:'rs-rise .2s ease'}}, content));
+    var field=(label,node)=>h('div',{style:{marginBottom:'13px'}},h('div',{style:{fontSize:'11px',fontWeight:'800',letterSpacing:'.04em',color:'#6c7f79',marginBottom:'5px'}},label),node);
+    var inputStyle={width:'100%',height:'40px',border:'1.5px solid #dde4e1',borderRadius:'10px',padding:'0 12px',fontFamily:'inherit',fontSize:'13.5px',color:'#14302b',background:'#fff'};
+    var head=(title,sub)=>h('div',{style:{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom:'16px'}},h('div',{style:{flex:1}},h('div',{style:{fontSize:'17px',fontWeight:'800',color:'#14302b'}},title),sub?h('div',{style:{fontSize:'12.5px',color:'#6c7f79',marginTop:'2px'}},sub):null),h('button',{onClick:()=>this.closeDrawer(),style:{background:'none',border:'none',cursor:'pointer',color:'#9aa8a3'}},this.ic('x','#9aa8a3',20)));
+    var primaryBtn=(label,onClick,disabled)=>h('button',{onClick:onClick,disabled:disabled,style:{height:'42px',padding:'0 18px',borderRadius:'11px',border:'none',background:disabled?'#9fded4':'#16b8a6',color:'#06201c',fontFamily:'inherit',fontSize:'13px',fontWeight:'800',cursor:disabled?'default':'pointer'}},label);
+    var credPicker=(selected,toggle)=>h('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px'}},this.CRED_TYPES.map(function(ct){var on=selected.indexOf(ct)>=0;return h('button',{key:ct,onClick:()=>toggle(ct),style:{fontSize:'11px',fontWeight:'700',padding:'5px 10px',borderRadius:'8px',cursor:'pointer',fontFamily:'inherit',border:'1.5px solid '+(on?'#16b8a6':'#dde4e1'),background:on?'#e7f4f1':'#fff',color:on?'#0b6b60':'#6c7f79'}},self.CRED_LABELS[ct]);}));
+    var partOptions=this.state.participants.map(function(p){return h('option',{key:p.id,value:p.id},p.full_name);});
+    var workerOptions=[h('option',{key:'none',value:''},'— Unassigned —')].concat(this.state.workers.map(function(w){return h('option',{key:w.user_id,value:w.user_id},w.full_name);}));
+
+    // ---- confirm (hard conflicts) ----
+    if(d.type==='confirm'){
+      return overlay([
+        head('Conflicts detected','Rostering '+d.workerName+' to this shift triggers checks:'),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'18px'}}, (d.conflicts||[]).map(function(c,i){var err=c.severity==='error';return h('div',{key:i,style:{display:'flex',gap:'9px',padding:'11px 12px',borderRadius:'11px',border:'1px solid '+(err?'#f3b9c4':'#f0d8a8'),background:err?'#fdeef1':'#fdf6e8'}},self.ic('alert',err?'#c0445c':'#b4561f',16),h('div',{style:{fontSize:'12.5px',fontWeight:'600',color:'#3a322f',lineHeight:'1.4'}},c.message));})),
+        h('div',{style:{display:'flex',gap:'10px'}},
+          h('button',{onClick:()=>this.closeDrawer(),style:{height:'42px',padding:'0 16px',borderRadius:'11px',border:'1px solid #dde4e1',background:'#fff',color:'#41635c',fontFamily:'inherit',fontSize:'13px',fontWeight:'700',cursor:'pointer'}},'Cancel'),
+          h('button',{onClick:()=>{var sh=self.state.shifts.filter(function(s){return s.id===d.shiftId;})[0]; if(sh) self.applyAssignment(sh, d.workerId, new Date(d.startIso), new Date(d.endIso), true);},style:{height:'42px',padding:'0 16px',borderRadius:'11px',border:'none',background:'#c0445c',color:'#fff',fontFamily:'inherit',fontSize:'13px',fontWeight:'800',cursor:'pointer'}},'Assign anyway')
+        )
+      ]);
+    }
+
+    // ---- shift detail ----
+    if(d.type==='shift'){
+      var sh=this.state.shifts.filter(function(s){return s.id===d.shiftId;})[0];
+      if(!sh) return null;
+      var conflicts=this.conflictsFor(sh);
+      var ss=new Date(sh.start_time), se=new Date(sh.end_time);
+      var w=sh.worker_id?this.workerById(sh.worker_id):null;
+      return overlay([
+        head(sh.title||sh.support_type||'Shift', (sh.participants&&sh.participants.full_name)||''),
+        field('When', h('div',{style:{fontSize:'13.5px',fontWeight:'700',color:'#14302b'}}, this.fmtDayLabel(ss)+' '+this.fmtDateShort(ss)+' · '+this.fmtTime(ss)+'–'+this.fmtTime(se))),
+        sh.location?field('Location', h('div',{style:{fontSize:'13px',color:'#41635c'}},sh.location)):null,
+        field('Assigned worker', h('div',{style:{fontSize:'13.5px',fontWeight:'700',color:w?'#14302b':'#9a6a1f'}}, w?w.full_name:'Unassigned')),
+        field('Required credentials', (sh.required_credentials&&sh.required_credentials.length)? h('div',{style:{display:'flex',flexWrap:'wrap',gap:'5px'}},sh.required_credentials.map(function(c,i){return h('span',{key:i,style:{fontSize:'11px',fontWeight:'700',color:'#41635c',background:'#e7ece9',padding:'3px 8px',borderRadius:'6px'}},self.CRED_LABELS[c]||c);})) : h('div',{style:{fontSize:'12.5px',color:'#9aa8a3'}},'None')),
+        conflicts.length? field('Conflicts', h('div',{style:{display:'flex',flexDirection:'column',gap:'7px'}},conflicts.map(function(c,i){var err=c.severity==='error';return h('div',{key:i,style:{display:'flex',gap:'8px',padding:'9px 11px',borderRadius:'10px',background:err?'#fdeef1':'#fdf6e8',border:'1px solid '+(err?'#f3b9c4':'#f0d8a8')}},self.ic('alert',err?'#c0445c':'#b4561f',15),h('div',{style:{fontSize:'12px',color:'#3a322f',lineHeight:'1.4'}},c.message));}))) : field('Status', h('div',{style:{fontSize:'12.5px',fontWeight:'700',color:'#1e7a52'}},'No conflicts detected')),
+        this.state.canManage && sh.worker_id? h('button',{onClick:()=>{this.applyUnassign(sh); this.closeDrawer();},style:{marginTop:'8px',height:'40px',padding:'0 14px',borderRadius:'10px',border:'1px solid #f3b9c4',background:'#fff',color:'#c0445c',fontFamily:'inherit',fontSize:'12.5px',fontWeight:'700',cursor:'pointer'}},'Unassign worker'):null
+      ]);
+    }
+
+    // ---- new shift ----
+    if(d.type==='new'){
+      var f=this.state.form||this.defaultForm();
+      var setF=(patch)=>this.setState({form:Object.assign({},this.state.form,patch)});
+      var dayOpts=this.weekDays().map((dd,i)=>h('option',{key:i,value:i},self.fmtDayLabel(dd)+' '+self.fmtDateShort(dd)));
+      return overlay([
+        head('New shift','Create a one-off shift, then drag it to roster a worker.'),
+        field('Participant', h('select',{value:f.participant_id,onChange:(e)=>setF({participant_id:e.target.value}),style:inputStyle},partOptions)),
+        field('Day', h('select',{value:f.dateIdx,onChange:(e)=>setF({dateIdx:parseInt(e.target.value,10)}),style:inputStyle},dayOpts)),
+        h('div',{style:{display:'flex',gap:'10px'}},
+          h('div',{style:{flex:1}},field('Start', h('input',{type:'time',value:f.start,onChange:(e)=>setF({start:e.target.value}),style:inputStyle}))),
+          h('div',{style:{flex:1}},field('End', h('input',{type:'time',value:f.end,onChange:(e)=>setF({end:e.target.value}),style:inputStyle})))
+        ),
+        field('Title', h('input',{value:f.title,onChange:(e)=>setF({title:e.target.value}),placeholder:'e.g. Personal care',style:inputStyle})),
+        field('Support type', h('input',{value:f.support_type,onChange:(e)=>setF({support_type:e.target.value}),placeholder:'e.g. Daily Living',style:inputStyle})),
+        field('Assign to (optional)', h('select',{value:f.worker_id,onChange:(e)=>setF({worker_id:e.target.value}),style:inputStyle},workerOptions)),
+        field('Required credentials', credPicker(f.required||[], (ct)=>{var cur=(self.state.form.required||[]).slice();var idx=cur.indexOf(ct);if(idx>=0)cur.splice(idx,1);else cur.push(ct);setF({required:cur});})),
+        h('div',{style:{marginTop:'8px'}}, primaryBtn(this.state.busy?'Saving…':'Create shift',()=>this.submitNewShift(),this.state.busy))
+      ]);
+    }
+
+    // ---- recurring ----
+    if(d.type==='recur'){
+      var rf=this.state.recurForm||this.defaultRecur();
+      var setR=(patch)=>this.setState({recurForm:Object.assign({},this.state.recurForm,patch)});
+      var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      var dayToggle=h('div',{style:{display:'flex',gap:'5px'}},dayNames.map(function(dn,idx){var on=(rf.days||[]).indexOf(idx)>=0;return h('button',{key:idx,onClick:()=>{var cur=(self.state.recurForm.days||[]).slice();var p=cur.indexOf(idx);if(p>=0)cur.splice(p,1);else cur.push(idx);setR({days:cur});},style:{width:'38px',height:'36px',borderRadius:'9px',cursor:'pointer',fontFamily:'inherit',fontSize:'11px',fontWeight:'800',border:'1.5px solid '+(on?'#16b8a6':'#dde4e1'),background:on?'#16b8a6':'#fff',color:on?'#06201c':'#6c7f79'}},dn);}));
+      return overlay([
+        head('Recurring shifts','Generate a weekly pattern of shifts across a date range.'),
+        !this.state.connected? h('div',{style:{fontSize:'12px',fontWeight:'700',color:'#b4561f',background:'#fbf0df',padding:'9px 11px',borderRadius:'10px',marginBottom:'14px'}},'Preview mode — connect your account to generate real recurring shifts.'):null,
+        field('Participant', h('select',{value:rf.participant_id,onChange:(e)=>setR({participant_id:e.target.value}),style:inputStyle},partOptions)),
+        field('Repeats on', dayToggle),
+        h('div',{style:{display:'flex',gap:'10px'}},
+          h('div',{style:{flex:1}},field('Start', h('input',{type:'time',value:rf.start,onChange:(e)=>setR({start:e.target.value}),style:inputStyle}))),
+          h('div',{style:{flex:1}},field('End', h('input',{type:'time',value:rf.end,onChange:(e)=>setR({end:e.target.value}),style:inputStyle})))
+        ),
+        h('div',{style:{display:'flex',gap:'10px'}},
+          h('div',{style:{flex:1}},field('From', h('input',{type:'date',value:rf.effective_from,onChange:(e)=>setR({effective_from:e.target.value}),style:inputStyle}))),
+          h('div',{style:{flex:1}},field('Until', h('input',{type:'date',value:rf.effective_until,onChange:(e)=>setR({effective_until:e.target.value}),style:inputStyle})))
+        ),
+        field('Title', h('input',{value:rf.title,onChange:(e)=>setR({title:e.target.value}),placeholder:'e.g. Morning personal care',style:inputStyle})),
+        field('Assign to (optional)', h('select',{value:rf.worker_id,onChange:(e)=>setR({worker_id:e.target.value}),style:inputStyle},workerOptions)),
+        field('Required credentials', credPicker(rf.required||[], (ct)=>{var cur=(self.state.recurForm.required||[]).slice();var idx=cur.indexOf(ct);if(idx>=0)cur.splice(idx,1);else cur.push(ct);setR({required:cur});})),
+        h('div',{style:{marginTop:'8px'}}, primaryBtn(this.state.busy?'Generating…':'Create recurring shifts',()=>this.submitRecurrence(),this.state.busy))
+      ]);
+    }
+
+    return null;
+  }
+
+  // ============================================================
+  // RENDER VALUES
+  // ============================================================
+  renderVals(){
+    var h=React.createElement;
+    var allConflicts=0, unassigned=0;
+    var self=this;
+    this.state.shifts.forEach(function(s){ if(!s.worker_id) unassigned++; else { var c=self.conflictsFor(s); if(c.some(function(x){return x.severity==='error';})) allConflicts++; } });
+
+    var body;
+    if(this.state.loading){
+      body=h('div',{style:{padding:'40px',textAlign:'center',color:'#8a9b95',fontSize:'13px'}},'Loading roster…');
+    }else if(this.state.canManage && this.state.view==='team'){
+      body=h('div',{},
+        this.renderToolbar(),
+        this.renderLegend(),
+        this.renderGrid()
+      );
+    }else{
+      body=h('div',{},
+        this.renderToolbar(),
+        h('div',{style:{fontSize:'13px',color:'#6c7f79',marginBottom:'12px',fontWeight:'600'}},'Your assigned shifts this week'),
+        this.renderAgenda()
+      );
+    }
+
+    var configured = (window.isSupabaseConfigured && window.isSupabaseConfigured());
+    return {
+      logoEl:this.ic('calendar','#eafaf8',20),
+      logoutEl:this.ic('logout','#56716a',14),
+      pageTitle:this.state.canManage&&this.state.view==='team'?'Weekly Roster':'My Roster',
+      pageSub:(this.state.orgName?this.state.orgName+' · ':'')+'Drag-and-drop scheduling with live conflict detection',
+      statShifts:this.state.shifts.length,
+      statConflicts:allConflicts,
+      statUnassigned:unassigned,
+      connTag: configured ? (this.state.connected?'Live · saves to your account':'Connecting…') : 'Preview mode',
+      connFg: configured ? '#0b6b60' : '#b4561f',
+      connBg: configured ? '#e7f4f1' : '#fbf0df',
+      rosterBody: h('div',{}, body, this.renderDrawer()),
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      goBack:()=>{ try{ var s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); var m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',support_coordinator:'Support Coordination.dc.html',allied_health:'Allied Health.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html'}; window.location.href=m[s.role]||'Index.dc.html'; }catch(e){ window.location.href='Index.dc.html'; } },
+      signOut:()=>{ try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html'; },
+    };
+  }
+}
+</script>
+</body>
+</html>

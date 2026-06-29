@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes pp-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ====================================================================
+       RESPONSIVE — phones & tablets. Desktop layout is UNCHANGED: every rule
+       below lives inside a media query and overrides inline desktop styles via
+       [style*="…"] attribute selectors + !important. No HTML / JS touched.
+       ==================================================================== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;max-width:100%}
+      /* top wrapper: stack sidebar above content, clip horizontal overflow */
+      [style*="min-height:100vh"][style*="width:100%"]{flex-direction:column !important;overflow-x:hidden !important;width:100% !important;max-width:100% !important}
+      /* main column fills width */
+      main[style*="min-width:0"]{min-width:0 !important;width:100% !important;max-width:100% !important}
+      /* sidebar -> full-width compact top bar */
+      aside[style*="width:260px"]{
+        width:100% !important;max-width:100% !important;flex:0 0 auto !important;height:auto !important;
+        position:static !important;border-right:none !important;border-bottom:1px solid rgba(255,255,255,.07) !important;
+      }
+      /* nav -> horizontally scrollable strip */
+      aside[style*="width:260px"] nav{
+        flex:0 0 auto !important;display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+        overflow-x:auto !important;overflow-y:hidden !important;gap:6px !important;-webkit-overflow-scrolling:touch;
+      }
+      aside[style*="width:260px"] nav button{width:auto !important;flex:0 0 auto !important;white-space:nowrap !important;margin:0 !important}
+      /* header: wrap controls, tighter padding */
+      [style*="backdrop-filter:blur(14px)"]{flex-wrap:wrap !important;gap:10px !important;padding:12px 16px !important}
+      /* scrollable content area: tighter padding */
+      [style*="padding:24px 28px 56px"]{padding:16px 14px 40px !important}
+      /* multi-column grids -> single / fewer columns */
+      [style*="grid-template-columns:1.3fr 1fr"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr) !important}
+      [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+    }
+    @media (max-width:520px){
+      [style*="padding:24px 28px 56px"]{padding:12px 10px 36px !important}
+      [style*="backdrop-filter:blur(14px)"]{padding:10px 12px !important;gap:8px !important}
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:1fr !important}
+      /* readable tap targets in the top nav */
+      aside[style*="width:260px"] nav button{min-height:40px !important}
+      /* Add-note modal -> full-screen sheet */
+      [style*="z-index:70"]{padding:0 !important;align-items:stretch !important}
+      [style*="width:560px"]{width:100% !important;max-width:100% !important;height:100vh !important;max-height:100vh !important;border-radius:0 !important;overflow-y:auto !important}
+    }
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:260px;flex:0 0 260px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">PARTICIPANT PROFILE</div></div>
+    </div>
+
+    <!-- Participant card -->
+    <div style="margin:14px 14px 0;background:rgba(22,184,166,.08);border:1px solid rgba(22,184,166,.15);border-radius:14px;padding:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+        <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex:0 0 44px">{{ profileInit }}</div>
+        <div><div style="font-size:14px;font-weight:800;color:#f4faf8">{{ profileName }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5f7a73;margin-top:2px">{{ profileNdis }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex:0 0 7px"></span><span style="font-size:12px;font-weight:700;color:#7ce0d2">Active · Plan current</span></div>
+      <div style="font-size:11px;color:#5f7a73;line-height:1.5">Plan: 01 Jul 2026 – 30 Jun 2027<br>Review due in <span style="color:#d98b22;font-weight:700">11 days</span></div>
+    </div>
+
+    <nav style="flex:1;overflow-y:auto;padding:10px 12px">
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="7">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:2px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span style="flex:1">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:#16b8a6;color:#06201c">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:7px" style-hover="background:rgba(255,255,255,.05)">{{ dashEl }}Back to dashboard</button>
+      <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.04)">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div>
+        <div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div>
+      </div>
+      <sc-if value="{{ showEditBtn }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ editProfile }}" style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">{{ editEl }}Edit profile</button>
+      </sc-if>
+      <button onClick="{{ openNotifications }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></button>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 56px">
+    <div style="max-width:1200px;margin:0 auto">
+
+      <!-- ===== OVERVIEW ===== -->
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+
+        <!-- Hero funding bar (demo preview only — never shows invented funding to a real user) -->
+        <sc-if value="{{ hasFunding }}" hint-placeholder-val="{{ true }}">
+        <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:20px;padding:22px 26px;margin-bottom:20px;color:#eafaf8;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:0 16px 40px -20px rgba(11,80,71,.7)">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:#7ce0d2;margin-bottom:6px">TOTAL NDIS BUDGET</div>
+            <div style="font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1">$89,500</div>
+            <div style="font-size:13px;color:#a9cfc8;margin-top:5px">Plan year 2026–27 · 3 support categories</div>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <sc-for list="{{ budgetRings }}" as="r" hint-placeholder-count="3">
+              <div style="text-align:center">
+                <div style="position:relative;width:72px;height:72px;margin:0 auto 8px">{{ r.ringEl }}</div>
+                <div style="font-size:12px;font-weight:700;color:#eafaf8">{{ r.label }}</div>
+                <div style="font-size:11px;color:#6aada0">{{ r.spent }} spent</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ !hasFunding }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:22px 26px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:14px;font-weight:800;color:#14302b">NDIS budget</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:5px">No NDIS budget data is linked to this profile yet.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasKpis }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="width:34px;height:34px;border-radius:10px;background:{{ k.tintBg }};display:flex;align-items:center;justify-content:center">{{ k.iconEl }}</div>
+                <span style="font-size:11px;font-weight:700;color:{{ k.dFg }};background:{{ k.dBg }};padding:2px 8px;border-radius:999px">{{ k.delta }}</span>
+              </div>
+              <div style="font-size:26px;font-weight:800;color:#14302b;letter-spacing:-.02em">{{ k.value }}</div>
+              <div style="font-size:12px;color:#6c7f79;margin-top:4px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+
+        <!-- Contact details (email / phone / address from Supabase, demo fallback) -->
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px 20px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Contact details</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+            <div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#9aa8a3;text-transform:uppercase">Email</div>
+              <div style="font-size:13.5px;font-weight:600;color:#14302b;margin-top:3px">{{ profileEmail }}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#9aa8a3;text-transform:uppercase">Phone</div>
+              <div style="font-size:13.5px;font-weight:600;color:#14302b;margin-top:3px">{{ profilePhone }}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#9aa8a3;text-transform:uppercase">Address</div>
+              <div style="font-size:13.5px;font-weight:600;color:#14302b;margin-top:3px">{{ profileAddress }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start">
+          <!-- Recent activity -->
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:16px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Recent activity</div>
+            <sc-for list="{{ activity }}" as="a" hint-placeholder-count="6">
+              <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 20px;border-bottom:1px solid #f4f7f5">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ a.tintBg }};display:flex;align-items:center;justify-content:center;margin-top:1px">{{ a.iconEl }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:700;color:#14302b">{{ a.title }}</div>
+                  <div style="font-size:11.5px;color:#8a9a94;margin-top:2px">{{ a.sub }}</div>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3;white-space:nowrap;padding-top:2px">{{ a.when }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ !hasActivity }}" hint-placeholder-val=""><div style="padding:18px 20px;font-size:12.5px;color:#8a9a94">No recent activity yet.</div></sc-if>
+          </div>
+
+          <!-- Upcoming + quick actions -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Upcoming</div>
+              <sc-for list="{{ upcoming }}" as="u" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #f4f7f5">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3;flex:0 0 56px">{{ u.date }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ u.title }}</div><div style="font-size:11.5px;color:#8a9a94">{{ u.sub }}</div></div>
+                  <span style="font-size:11px;font-weight:700;color:{{ u.fg }};background:{{ u.bg }};padding:2px 8px;border-radius:6px">{{ u.tag }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ !hasUpcoming }}" hint-placeholder-val=""><div style="font-size:12.5px;color:#8a9a94;padding:4px 0">Nothing scheduled yet.</div></sc-if>
+            </div>
+
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Quick actions</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ quickActions }}" as="qa" hint-placeholder-count="4">
+                  <button onClick="{{ qa.action }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1px solid #eef2f0;background:#fbfdfc;cursor:pointer;font-family:inherit;text-align:left" style-hover="border-color:#16b8a6;background:#f0faf8">
+                    <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:{{ qa.tintBg }};display:flex;align-items:center;justify-content:center">{{ qa.iconEl }}</div>
+                    <span style="font-size:13px;font-weight:700;color:#14302b">{{ qa.label }}</span>
+                    <span style="margin-left:auto;display:flex;color:#b6c4be">{{ chevEl }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== NDIS PLAN ===== -->
+      <sc-if value="{{ isPlan }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-if value="{{ hasBudgetLines }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+              <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">NDIS Plan 2026–27</div><div style="font-size:12.5px;color:#6c7f79;margin-top:3px">01 Jul 2026 – 30 Jun 2027 · Review in 11 days</div></div>
+              <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:4px 12px;border-radius:8px">Active</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ budgetLines }}" as="b" hint-placeholder-count="3">
+                <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:14px;padding:14px 18px">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                    <div style="width:10px;height:10px;border-radius:3px;flex:0 0 10px;background:{{ b.color }}"></div>
+                    <div style="font-size:13.5px;font-weight:800;color:#14302b;flex:1">{{ b.category }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:#14302b">{{ b.total }}</div>
+                  </div>
+                  <div style="height:8px;border-radius:99px;background:#e4eae7;overflow:hidden;margin-bottom:8px">
+                    <div style="height:100%;width:{{ b.pct }};border-radius:99px;background:{{ b.color }}"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#8a9a94">
+                    <span>{{ b.spent }} spent · {{ b.remaining }} remaining</span>
+                    <span style="font-weight:700;color:{{ b.color }}">{{ b.pct }} used</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ !hasBudgetLines }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:16px;font-weight:800;color:#14302b">NDIS Plan</div>
+              <div style="font-size:13px;color:#6c7f79;margin-top:5px">No NDIS plan or budget data is linked to this profile yet.</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== GOALS ===== -->
+      <sc-if value="{{ isGoals }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Goals &amp; outcomes</div>
+            <button onClick="{{ addGoal }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ plusEl }}Add goal</button>
+          </div>
+          <sc-for list="{{ goals }}" as="g" hint-placeholder-count="4">
+            <div style="padding:16px 22px;border-bottom:1px solid #f4f7f5">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                <div style="width:10px;height:10px;border-radius:3px;flex:0 0 10px;background:{{ g.color }};margin-top:5px"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <span style="font-size:14px;font-weight:700;color:#14302b">{{ g.title }}</span>
+                    <span style="font-size:11px;font-weight:700;color:{{ g.stFg }};background:{{ g.stBg }};padding:2px 8px;border-radius:6px">{{ g.status }}</span>
+                  </div>
+                  <div style="font-size:12.5px;color:#6c7f79;margin-bottom:8px;line-height:1.5">{{ g.desc }}</div>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;max-width:280px;height:7px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ g.pct }};border-radius:99px;background:{{ g.color }}"></div></div>
+                    <span style="font-size:12px;font-weight:700;color:{{ g.color }}">{{ g.pct }}</span>
+                    <span style="font-size:11.5px;color:#9aa8a3">{{ g.linked }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ !hasGoals }}" hint-placeholder-val=""><div style="padding:18px 22px;font-size:12.5px;color:#8a9a94">No goals recorded yet.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== TEAM ===== -->
+      <sc-if value="{{ isTeam }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ team }}" as="t" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04);display:flex;align-items:center;gap:14px">
+              <div style="width:46px;height:46px;border-radius:14px;flex:0 0 46px;background:{{ t.tint }};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff">{{ t.init }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:800;color:#14302b">{{ t.name }}</div>
+                <div style="font-size:12px;color:#6c7f79;margin-top:2px">{{ t.role }} · {{ t.org }}</div>
+              </div>
+              <div style="text-align:right;flex:0 0 auto">
+                <div style="font-size:11px;font-weight:700;color:{{ t.consFg }};background:{{ t.consBg }};padding:3px 10px;border-radius:7px;margin-bottom:5px">{{ t.consent }}</div>
+                <div style="font-size:11px;color:#9aa8a3">{{ t.contact }}</div>
+              </div>
+              <div style="display:flex;gap:7px">
+                <button onClick="{{ t.msg }}" style="padding:8px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#41635c" style-hover="background:#f4f8f6">{{ msgEl }}</button>
+                <button onClick="{{ t.view }}" style="padding:8px 12px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">View</button>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ !hasTeam }}" hint-placeholder-val=""><div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px;font-size:12.5px;color:#8a9a94;box-shadow:0 1px 2px rgba(20,48,43,.04)">No care team members are linked to this profile yet.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== DOCUMENTS ===== -->
+      <sc-if value="{{ isDocs }}" hint-placeholder-val="">
+        <!-- Header + upload -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="flex:1"><div style="font-size:15.5px;font-weight:800;color:#14302b">Participant documents</div><div style="font-size:12.5px;color:#6c7f79;margin-top:2px">All files — permission-controlled by role</div></div>
+          <button onClick="{{ uploadDoc }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ upEl }}Upload document</button>
+        </div>
+        <!-- Role filter -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;background:#fff;border:1px solid #dde4e1;border-radius:13px;padding:4px;width:fit-content">
+          <sc-for list="{{ docRoleFilters }}" as="rf" hint-placeholder-count="5">
+            <button onClick="{{ rf.onClick }}" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:none;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;background:{{ rf.bg }};color:{{ rf.fg }}">{{ rf.dotEl }}{{ rf.label }}</button>
+          </sc-for>
+        </div>
+        <!-- Categorised sections -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ docCategories }}" as="dc2" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid #eef2f0;background:{{ dc2.headerBg }}">
+                <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ dc2.iconBg }};display:flex;align-items:center;justify-content:center">{{ dc2.iconEl }}</div>
+                <span style="font-size:13.5px;font-weight:800;color:#14302b;flex:1">{{ dc2.title }}</span>
+                <span style="font-size:11px;font-weight:700;color:#6c7f79">{{ dc2.count }} files</span>
+                <span style="font-size:10.5px;font-weight:700;color:{{ dc2.visFg }};background:{{ dc2.visBg }};padding:2px 9px;border-radius:6px">{{ dc2.visibility }}</span>
+              </div>
+              <sc-for list="{{ dc2.files }}" as="f2" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #f4f7f5">
+                  <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:{{ f2.tintBg }};display:flex;align-items:center;justify-content:center">{{ f2.iconEl }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:700;color:#14302b">{{ f2.name }}</div>
+                    <div style="font-size:11.5px;color:#8a9a94;margin-top:1px">{{ f2.meta }}</div>
+                  </div>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8a9a94;white-space:nowrap">{{ f2.date }}</span>
+                  <span style="font-size:11px;font-weight:700;color:{{ f2.stFg }};background:{{ f2.stBg }};padding:2px 8px;border-radius:6px">{{ f2.status }}</span>
+                  <button onClick="{{ f2.dl }}" style="padding:6px 11px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;cursor:pointer;color:#41635c;font-family:inherit;font-size:12px;font-weight:600" style-hover="background:#f4f8f6">View</button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{ !hasDocCats }}" hint-placeholder-val=""><div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 22px;font-size:12.5px;color:#8a9a94;box-shadow:0 1px 2px rgba(20,48,43,.04)">No documents have been uploaded for this participant yet.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== NOTES ===== -->
+      <sc-if value="{{ isNotes }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px"><button onClick="{{ addNote }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ plusEl }}Add note</button></div>
+          <sc-for list="{{ notes }}" as="n" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ n.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ n.init }}</div>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ n.author }}</div><div style="font-size:11.5px;color:#8a9a94">{{ n.role }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ n.typeFg }};background:{{ n.typeBg }};padding:2px 8px;border-radius:6px">{{ n.type }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3">{{ n.when }}</span>
+              </div>
+              <div style="font-size:13px;color:#41635c;line-height:1.6">{{ n.body }}</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ !hasNotes }}" hint-placeholder-val=""><div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px;font-size:12.5px;color:#8a9a94;box-shadow:0 1px 2px rgba(20,48,43,.04)">No notes recorded yet. Use “Add note” to create the first one.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== FILE TIMELINE ===== -->
+      <sc-if value="{{ isTimeline }}" hint-placeholder-val="">
+        <div style="max-width:900px;margin:0 auto">
+          <!-- Filter row -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <sc-for list="{{ timelineFilters }}" as="tf" hint-placeholder-count="5">
+              <button onClick="{{ tf.onClick }}" style="padding:7px 14px;border-radius:10px;border:1.5px solid {{ tf.bd }};background:{{ tf.bg }};color:{{ tf.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ tf.label }}</button>
+            </sc-for>
+          </div>
+          <!-- Timeline -->
+          <div style="position:relative">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:2px;background:#eef2f0"></div>
+            <sc-for list="{{ timeline }}" as="tl" hint-placeholder-count="8">
+              <div style="display:flex;gap:16px;margin-bottom:16px;position:relative">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ tl.tintBg }};display:flex;align-items:center;justify-content:center;z-index:1;border:2px solid #eef2f0">{{ tl.iconEl }}</div>
+                <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                  <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px;font-weight:700;color:#14302b">{{ tl.title }}</div>
+                      <div style="font-size:12px;color:#6c7f79;margin-top:2px">{{ tl.sub }}</div>
+                    </div>
+                    <span style="font-size:11px;font-weight:700;color:{{ tl.catFg }};background:{{ tl.catBg }};padding:3px 9px;border-radius:7px;white-space:nowrap">{{ tl.category }}</span>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:#8a9a94">
+                    <span style="display:flex;align-items:center;gap:4px">{{ tl.uploaderEl }}<b style="color:#14302b">{{ tl.uploader }}</b> · {{ tl.uploaderRole }}</span>
+                    <span>{{ tl.date }}</span>
+                    <span style="font-size:11px;font-weight:700;color:{{ tl.stFg }};background:{{ tl.stBg }};padding:2px 7px;border-radius:6px">{{ tl.status }}</span>
+                    <sc-if value="{{ tl.reviewRelevant }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:2px 7px;border-radius:6px">Review relevant</span></sc-if>
+                    <sc-if value="{{ tl.expiry }}" hint-placeholder-val=""><span style="font-size:11px;color:#b4561f">Expires {{ tl.expiry }}</span></sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ !hasTimeline }}" hint-placeholder-val=""><div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px;font-size:12.5px;color:#8a9a94;box-shadow:0 1px 2px rgba(20,48,43,.04)">No files or updates have been recorded for this participant yet.</div></sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== REVIEW EVIDENCE HUB ===== -->
+      <sc-if value="{{ isReview }}" hint-placeholder-val="">
+        <div style="max-width:1100px;margin:0 auto">
+          <!-- Banner (demo preview only — real banner shown once review evidence exists) -->
+          <sc-if value="{{ hasReviewCats }}" hint-placeholder-val="{{ true }}">
+          <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;color:#eafaf8;box-shadow:0 12px 32px -16px rgba(11,80,71,.7)">
+            <div style="flex:1"><div style="font-size:16px;font-weight:800">Plan review evidence for {{ profileName }}</div><div style="font-size:13px;color:#a9cfc8;margin-top:4px">Review meeting: 21 Jul 2026 · <span style="color:#f97316;font-weight:700">11 days away</span></div></div>
+            <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 20px">
+              <div style="font-size:11px;color:#7ce0d2;letter-spacing:.06em">EVIDENCE READY</div>
+              <div style="font-size:28px;font-weight:800;color:#7ce0d2;line-height:1.1">{{ reviewReadyCount }}/{{ reviewTotalCount }}</div>
+            </div>
+            <button onClick="{{ genEvidencePack }}" style="display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sendEl }}Generate evidence pack</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <sc-for list="{{ reviewCategories }}" as="rc" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #eef2f0;background:{{ rc.headerBg }}">
+                  <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ rc.iconBg }};display:flex;align-items:center;justify-content:center">{{ rc.iconEl }}</div>
+                  <span style="font-size:13.5px;font-weight:800;color:{{ rc.titleFg }};flex:1">{{ rc.title }}</span>
+                  <span style="font-size:11px;font-weight:700;color:{{ rc.countFg }};background:{{ rc.countBg }};padding:3px 9px;border-radius:7px">{{ rc.countLabel }}</span>
+                </div>
+                <sc-for list="{{ rc.items }}" as="ri" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid #f4f7f5">
+                    <span style="display:flex;flex:0 0 18px">{{ ri.statusEl }}</span>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13px;font-weight:600;color:#14302b">{{ ri.name }}</div>
+                      <sc-if value="{{ ri.meta }}" hint-placeholder-val=""><div style="font-size:11px;color:#8a9a94;margin-top:1px">{{ ri.meta }}</div></sc-if>
+                    </div>
+                    <sc-if value="{{ ri.ready }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:2px 8px;border-radius:6px">Ready</span></sc-if>
+                    <sc-if value="{{ ri.missing }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:2px 8px;border-radius:6px">Missing</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ !hasReviewCats }}" hint-placeholder-val=""><div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 22px;font-size:12.5px;color:#8a9a94;box-shadow:0 1px 2px rgba(20,48,43,.04)">No plan review evidence has been collected for this participant yet.</div></sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Note Modal -->
+<sc-if value="{{ noteFormOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:560px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eef2f0">
+      <div style="font-size:16px;font-weight:800;color:#14302b">Add note — {{ profileName }}</div>
+      <button onClick="{{ closeNoteForm }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ closeNoteEl }}</button>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:13px">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">NOTE TYPE</label>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <sc-for list="{{ noteTypeOpts }}" as="nt" hint-placeholder-count="4">
+            <button onClick="{{ nt.onClick }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ nt.bd }};background:{{ nt.bg }};color:{{ nt.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ nt.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">NOTE</label>
+        <textarea onChange="{{ onNoteTextChange }}" placeholder="Write your note here…" style="width:100%;height:120px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button onClick="{{ closeNoteForm }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ submitNote }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save note to participant file</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- Edit Profile Modal -->
+<sc-if value="{{ editFormOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:560px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eef2f0">
+      <div style="font-size:16px;font-weight:800;color:#14302b">Edit profile</div>
+      <button onClick="{{ closeEditForm }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ closeNoteEl }}</button>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:13px">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">PREFERRED NAME</label>
+        <input value="{{ editName }}" onChange="{{ onEditName }}" placeholder="Preferred name" style="width:100%;height:44px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">PHONE</label>
+        <input value="{{ editPhone }}" onChange="{{ onEditPhone }}" placeholder="Phone" style="width:100%;height:44px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">EMAIL</label>
+        <input value="{{ editEmail }}" onChange="{{ onEditEmail }}" placeholder="Email" style="width:100%;height:44px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">ADDRESS</label>
+        <input value="{{ editAddress }}" onChange="{{ onEditAddress }}" placeholder="Address" style="width:100%;height:44px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+      </div>
+      <div style="display:flex;gap:9px">
+        <button onClick="{{ closeEditForm }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ submitEdit }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- Add Goal Modal -->
+<sc-if value="{{ goalFormOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:560px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eef2f0">
+      <div style="font-size:16px;font-weight:800;color:#14302b">Add goal — {{ profileName }}</div>
+      <button onClick="{{ closeGoalForm }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ closeNoteEl }}</button>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:13px">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">GOAL TITLE</label>
+        <input onChange="{{ onGoalTitle }}" placeholder="e.g. Independent mobility & gait" style="width:100%;height:44px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">SUPPORT CATEGORY</label>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <sc-for list="{{ goalCatOpts }}" as="gc" hint-placeholder-count="4">
+            <button onClick="{{ gc.onClick }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ gc.bd }};background:{{ gc.bg }};color:{{ gc.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ gc.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">DESCRIPTION</label>
+        <textarea onChange="{{ onGoalDesc }}" placeholder="Describe the goal and how progress is measured…" style="width:100%;height:100px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button onClick="{{ closeGoalForm }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ submitGoal }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save goal</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- Toast -->
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:pp-rise .25s ease">
+    {{ toastIconEl }}{{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { view:'overview', toast:null, savedNotes:[], noteFormOpen:false, noteText:'', noteType:'Case Note', participantProfile:null, careTeam:[], realNotes:[], realDocs:[], realGoals:[], supabaseConnected:false,
+    goalFormOpen:false, goalTitle:'', goalDesc:'', goalCategory:'core', savingGoal:false,
+    editFormOpen:false, editName:'', editPhone:'', editEmail:'', editAddress:'', savingEdit:false };
+  componentDidMount(){
+    const AD=window.AegisData;
+    if(AD){
+      const notes=AD.get('pp_notes')||[];
+      if(notes.length) this.setState({savedNotes:notes});
+    }
+    this.loadProfile();
+  }
+  // Load the RLS-scoped participant profile from Supabase (email/phone/address
+  // included). Falls back to demo data via the query helper.
+  loadProfile(){
+    const apply=()=>{
+      if(window.queryParticipantProfile){
+        Promise.resolve(window.queryParticipantProfile()).then(profile=>{
+          if(profile){
+            this.setState({ participantProfile:profile, supabaseConnected: window.isSupabaseConfigured?window.isSupabaseConfigured():false });
+            this.loadCareTeam(profile.id);
+            this.loadNotes(profile.id);
+            this.loadGoals(profile.id);
+            this.loadDocs();
+          }
+        }).catch(err=>console.error('loadProfile error:',err));
+      }
+    };
+    try{
+      if(window.queryParticipantProfile){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        script.onerror=()=>this.setState({supabaseConnected:false});
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadProfile error:',err); }
+  }
+
+  // Load the RLS-scoped, consent-respecting care team for this participant.
+  // Real backend helper in supabase-client.js; demo fallback handled in renderVals.
+  loadCareTeam(participantId){
+    if(!window.loadParticipantCareTeam || !participantId) return;
+    try{
+      Promise.resolve(window.loadParticipantCareTeam(participantId)).then(res=>{
+        const list=(res&&res.careTeam)?res.careTeam:[];
+        if(list.length) this.setState({careTeam:list});
+      }).catch(err=>console.error('loadCareTeam error:',err));
+    }catch(err){ console.error('loadCareTeam error:',err); }
+  }
+
+  // Real, RLS-scoped notes for this participant (participant_notes table).
+  // Demo fallback is handled in renderVals via the demoMode flag.
+  loadNotes(participantId){
+    if(!window.listParticipantNotes || !participantId) return;
+    try{
+      Promise.resolve(window.listParticipantNotes(participantId)).then(res=>{
+        const list=(res&&res.notes)?res.notes:[];
+        this.setState({realNotes:list});
+      }).catch(err=>console.error('loadNotes error:',err));
+    }catch(err){ console.error('loadNotes error:',err); }
+  }
+
+  // Real, RLS-scoped goals for this participant (participant_goals table).
+  loadGoals(participantId){
+    if(!window.listParticipantGoals || !participantId) return;
+    try{
+      Promise.resolve(window.listParticipantGoals(participantId)).then(res=>{
+        const list=(res&&res.goals)?res.goals:[];
+        this.setState({realGoals:list});
+      }).catch(err=>console.error('loadGoals error:',err));
+    }catch(err){ console.error('loadGoals error:',err); }
+  }
+
+  // Real, RLS-scoped documents for the signed-in user (documents table).
+  loadDocs(){
+    if(!window.loadDocumentsForCurrentUser) return;
+    try{
+      Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
+        const list=(res&&res.documents)?res.documents:[];
+        this.setState({realDocs:list});
+      }).catch(err=>console.error('loadDocs error:',err));
+    }catch(err){ console.error('loadDocs error:',err); }
+  }
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      target:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 12m-5 0a5 5 0 1 0 10 0 5 5 0 1 0-10 0 M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      note:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      check:'M20 6L9 17l-5-5',
+      plus:'M12 5v14 M5 12h14',
+      chev:'M9 6l6 6-6 6',
+      up:'M12 19V5 M5 12l7-7 7 7',
+      down:'M12 5v14 M5 12l7 7 7-7',
+      edit:'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      msg:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      alert:'M10.3 3.3L1.6 18a2 2 0 0 0 1.7 3h17.4a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      dash:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      building:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      star:'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8-5-4.9 6.9-1z',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  ring(pct,color,size){
+    const r=size*0.42, cx=size/2, cy=size/2;
+    const circ=2*Math.PI*r;
+    const dash=circ*(parseInt(pct)/100);
+    return React.createElement('svg',{width:size,height:size,viewBox:`0 0 ${size} ${size}`},
+      React.createElement('circle',{cx,cy,r,fill:'none',stroke:'#eef2f0',strokeWidth:7}),
+      React.createElement('circle',{cx,cy,r,fill:'none',stroke:color,strokeWidth:7,strokeDasharray:`${dash} ${circ}`,strokeLinecap:'round',transform:`rotate(-90 ${cx} ${cy})`}),
+      React.createElement('text',{x:cx,y:cy+5,textAnchor:'middle',fill:color,fontSize:13,fontWeight:'800',fontFamily:'Hanken Grotesk,sans-serif'},pct)
+    );
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  // Open a real participant document via a short-lived signed URL.
+  openDocument(d){
+    if(!d||!d.storage_path||!window.getDocumentSignedUrl){ this.showToast('This document has no file attached'); return; }
+    this.showToast('Opening document…');
+    Promise.resolve(window.getDocumentSignedUrl(d.storage_path,d.storage_bucket||'participant-documents')).then(res=>{
+      if(res&&res.url&&!res.error){ window.open(res.url,'_blank','noopener'); }
+      else { this.showToast("Couldn't open document: "+((res&&res.error)||'unknown error')); }
+    }).catch(err=>this.showToast("Couldn't open document: "+(err&&err.message||'error')));
+  }
+
+  // Open the real in-app messaging drawer (chat-drawer.js, loaded in helmet).
+  // Falls back to the full Connect inbox page if the drawer isn't available.
+  openCareTeamMessage(name){
+    try{
+      if(window.ChatDrawer && window.ChatDrawer.open){ window.ChatDrawer.open('messages'); this.showToast('Messaging '+(name||'care team')); return; }
+    }catch(e){}
+    window.location.href='CiaraLink Connect.dc.html';
+  }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {view}=this.state;
+
+    // Real mode = Supabase configured. The Margaret Reyes identity is a demo
+    // placeholder and must NEVER be shown to a real user. In real mode we show the
+    // signed-in participant's own record, or an honest '—' where a field is blank.
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const pp=this.state.participantProfile||{};
+    const profileName=pp.full_name||pp.preferred_name||(demoMode?'Margaret Reyes':'Your profile');
+    const profileNdis=pp.ndis_number?('NDI-'+pp.ndis_number):(demoMode?'NDI-4310 887 226':'—');
+    const profileInit=(profileName.split(/\s+/).map(w=>w[0]).join('').substring(0,2).toUpperCase())||(demoMode?'MR':'?');
+    const profileEmail=pp.email||(demoMode?'margaret.reyes@demo.local':'—');
+    const profilePhone=pp.phone||(demoMode?'0438 221 770':'—');
+    const profileAddress=pp.address||(demoMode?'42 Hartley St, Glenroy VIC 3046':'—');
+
+    const navDefs=[
+      {key:'overview', label:'Overview',  icon:'grid',   badge:null},
+      {key:'plan',     label:'NDIS Plan', icon:'wallet', badge:null},
+      {key:'goals',    label:'Goals',     icon:'target', badge:'4'},
+      {key:'team',     label:'Care Team', icon:'users',  badge:'6'},
+      {key:'docs',     label:'Documents', icon:'file',   badge:'2'},
+      {key:'notes',    label:'Notes',       icon:'note',   badge:null},
+      {key:'timeline', label:'File Timeline',icon:'clock',  badge:null},
+      {key:'review',   label:'Review Evidence',icon:'target',badge:'3 missing'},
+    ];
+    const nav=navDefs.map(it=>{
+      const a=view===it.key;
+      return {...it,onClick:()=>this.setState({view:it.key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,a?'#22d3bf':'#7e948e',18)};
+    });
+
+    const titles={overview:'Overview',plan:'NDIS Plan',goals:'Goals & Outcomes',team:'Care Team',docs:'Documents',notes:'Notes & Shift Records',timeline:'File Timeline',review:'Review Evidence Hub'};
+    const subs={overview:profileName+' · complete participant profile',plan:'Budget tracking · support categories · spending',goals:'Therapy and support goals · progress · outcomes',team:'All connected care team members · consent · contact',docs:'All files · categorised by role · permission-controlled',notes:'Shift notes · case notes · clinical records',timeline:'Chronological view of every file, report and update',review:'Evidence collection for '+profileName+' · plan review 21 Jul 2026'};
+
+    const budgetRings=demoMode?[
+      {label:'Core',    spent:'$28k',  ringEl:this.ring('62%','#16b8a6',72)},
+      {label:'Capacity',spent:'$8.4k', ringEl:this.ring('41%','#6366f1',72)},
+      {label:'Capital', spent:'$5.2k', ringEl:this.ring('87%','#d98b22',72)},
+    ]:[];
+
+    const kpis=demoMode?[
+      {value:'62%',label:'Core budget used',delta:'28 wks left',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('wallet','#16b8a6',18),tintBg:'#e7f4f1'},
+      {value:'4/6',label:'Goals on track',delta:'↑ 2 this mo',dFg:'#1e9e6a',dBg:'#e9f6ef',iconEl:ic('target','#1e9e6a',18),tintBg:'#e9f6ef'},
+      {value:'6',label:'Care team members',delta:'All active',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('users','#6366f1',18),tintBg:'#eef0fd'},
+      {value:'11d',label:'Until plan review',delta:'Action needed',dFg:'#b4561f',dBg:'#fbf0df',iconEl:ic('cal','#d98b22',18),tintBg:'#fbf0df'},
+    ]:[];
+
+    const activity=demoMode?[
+      {title:'Shift note submitted',sub:'James Liu · Personal Care · 4h',when:'2h ago',iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1'},
+      {title:'Service agreement signed',sub:'Brightside Care · 2026–27',when:'Yesterday',iconEl:ic('check','#1e9e6a',15),tintBg:'#e9f6ef'},
+      {title:'OT assessment uploaded',sub:'Inner West OT · FCA report',when:'2 days ago',iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe'},
+      {title:'Goal updated — Mobility',sub:'Jordan Pham · 88% complete',when:'3 days ago',iconEl:ic('target','#6366f1',15),tintBg:'#eef0fd'},
+      {title:'Plan review prep started',sub:'Sarah Kelly · 11 days to review',when:'4 days ago',iconEl:ic('cal','#d98b22',15),tintBg:'#fbf0df'},
+      {title:'Document requested',sub:'Missing consent form from family',when:'5 days ago',iconEl:ic('alert','#c0445c',15),tintBg:'#fbe9ed'},
+    ]:[];
+
+    const upcoming=demoMode?[
+      {date:'21 Jul',title:'Plan review meeting',sub:'With Sarah Kelly + NDIS',tag:'Review',fg:'#b4561f',bg:'#fbf0df'},
+      {date:'28 Jun',title:'Physiotherapy — block 12',sub:'Jordan Pham · Glenroy',tag:'Therapy',fg:'#4338ca',bg:'#eef0fd'},
+      {date:'30 Jun',title:'Credential expiry — James Liu',sub:'First Aid renewal due',tag:'Urgent',fg:'#c0445c',bg:'#fbe9ed'},
+    ]:[];
+
+    const quickActions=[
+      {label:'Upload document',action:()=>{window.location.href='AI File Drop.dc.html';},iconEl:ic('up','#16b8a6',15),tintBg:'#e7f4f1'},
+      {label:'Send service agreement',action:()=>{window.location.href='Service Agreement.dc.html';},iconEl:ic('send','#6366f1',15),tintBg:'#eef0fd'},
+      {label:'Add shift note',action:()=>this.setState({view:'notes',noteFormOpen:true,noteText:'',noteType:'Shift Note'}),iconEl:ic('note','#d98b22',15),tintBg:'#fbf0df'},
+      {label:'Message care team',action:()=>this.openCareTeamMessage('care team'),iconEl:ic('msg','#1e9e6a',15),tintBg:'#e9f6ef'},
+    ];
+
+    const budgetLines=demoMode?[
+      {category:'Core Supports',total:'$56,000',spent:'$28,400',remaining:'$27,600',pct:'51%',color:'#16b8a6'},
+      {category:'Capacity Building',total:'$20,500',spent:'$8,400',remaining:'$12,100',pct:'41%',color:'#6366f1'},
+      {category:'Capital Supports',total:'$13,000',spent:'$11,310',remaining:'$1,690',pct:'87%',color:'#d98b22'},
+    ]:[];
+
+    const goals=demoMode?[
+      {title:'Independent mobility & gait',desc:'Increase walking distance to 200m unaided. Currently at 160m — 88% of target.',pct:'88%',color:'#16b8a6',status:'On track',stFg:'#1e7a52',stBg:'#e9f6ef',linked:'Linked to Core Supports'},
+      {title:'Social participation',desc:'Attend community activities 2× per week. Currently averaging 1.5×.',pct:'64%',color:'#6366f1',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',linked:'Capacity Building'},
+      {title:'Communication & AAC',desc:'Trial AAC device (Proloquo2Go). Assessment complete, device on order.',pct:'40%',color:'#0891b2',status:'Starting',stFg:'#0e7490',stBg:'#e0f2f5',linked:'Capital Supports'},
+      {title:'Home independence',desc:'Complete 3 daily living tasks without prompting. Currently 1 of 3.',pct:'33%',color:'#9333ea',status:'Behind',stFg:'#7c3aed',stBg:'#f4e8fe',linked:'Core Supports'},
+    ]:(()=>{
+      const goalColors={core:'#16b8a6',capacity:'#6366f1',capital:'#d98b22',other:'#0891b2'};
+      const goalStatus={
+        starting:{label:'Starting',stFg:'#0e7490',stBg:'#e0f2f5'},
+        in_progress:{label:'In progress',stFg:'#4338ca',stBg:'#eef0fd'},
+        on_track:{label:'On track',stFg:'#1e7a52',stBg:'#e9f6ef'},
+        behind:{label:'Behind',stFg:'#c0445c',stBg:'#fbe9ed'},
+        achieved:{label:'Achieved',stFg:'#1e7a52',stBg:'#e9f6ef'},
+        on_hold:{label:'On hold',stFg:'#b4561f',stBg:'#fbf0df'},
+      };
+      const catLabels={core:'Core Supports',capacity:'Capacity Building',capital:'Capital Supports',other:'Other'};
+      return (this.state.realGoals||[]).map(g=>{
+        const color=goalColors[g.category]||'#16b8a6';
+        const st=goalStatus[g.status]||goalStatus.in_progress;
+        return {title:g.title||'Goal',desc:g.description||'',pct:(g.progress_pct||0)+'%',color,status:st.label,stFg:st.stFg,stBg:st.stBg,linked:g.linked_support||catLabels[g.category]||''};
+      });
+    })();
+
+    const teamDemo=[
+      {name:'Sarah Kelly',init:'SK',tint:'#6366f1',role:'Support Coordinator',org:'CiaraLink SC',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'0438 221 770',msg:()=>this.showToast('Opening message to Sarah…'),view:()=>this.showToast('Viewing Sarah Kelly profile…')},
+      {name:'Brightside Care',init:'BC',tint:'#16b8a6',role:'Provider',org:'NDIS registered',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'(03) 9123 4567',msg:()=>this.showToast('Opening message to Brightside…'),view:()=>{window.location.href='Service Provider.dc.html';}},
+      {name:'James Liu',init:'JL',tint:'#0891b2',role:'Support Worker',org:'Brightside Care',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'0412 000 111',msg:()=>this.showToast('Opening message to James…'),view:()=>this.showToast('Viewing James Liu profile…')},
+      {name:'Jordan Pham',init:'JP',tint:'#9333ea',role:'Physiotherapist',org:'AHPRA registered',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'Via Allied Health',msg:()=>this.showToast('Opening message to Jordan…'),view:()=>{window.location.href='Allied Health.dc.html';}},
+      {name:'Mariam T.',init:'MT',tint:'#d98b22',role:'Family / Guardian',org:'Emergency contact',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'0411 555 901',msg:()=>this.showToast('Opening message to Mariam…'),view:()=>this.showToast('Viewing guardian details…')},
+    ];
+    // Build the Care Team from the real, consent-scoped Supabase rows when loaded;
+    // fall back to demo data so the tab never renders blank.
+    const teamTints=['#6366f1','#16b8a6','#0891b2','#9333ea','#d98b22','#0e7490'];
+    const humanize=(s)=>String(s||'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const careTeamRows=(this.state.careTeam||[]);
+    const team=careTeamRows.length?careTeamRows.map((m,i)=>{
+      const roleLabel=humanize(m.relationship_type||m.role)||'Care team member';
+      const nm=m.full_name||m.name||(m.user_profiles&&(m.user_profiles.full_name||m.user_profiles.preferred_name))||roleLabel;
+      const init=(String(nm).split(/\s+/).map(w=>w[0]).filter(Boolean).join('').substring(0,2).toUpperCase())||'CT';
+      const consentOk=m.consent_given===true||m.consent_given==='true';
+      return {
+        name:nm,
+        init,
+        tint:teamTints[i%teamTints.length],
+        role:roleLabel,
+        org:m.org_id?'Linked organisation':'NDIS care team',
+        consent:consentOk?'Consent given':'Consent pending',
+        consFg:consentOk?'#1e7a52':'#b4561f',
+        consBg:consentOk?'#e9f6ef':'#fbf0df',
+        contact:m.consent_date?('Since '+m.consent_date):'',
+        msg:()=>this.openCareTeamMessage(nm),
+        view:()=>this.showToast(nm+' · '+roleLabel+(m.consent_date?(' · linked since '+m.consent_date):'')),
+      };
+    }):(demoMode?teamDemo:[]);
+
+    const docs=demoMode?[
+      {name:'NDIS Plan 2026–27',type:'Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'01 Jul 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#16b8a6',14),dl:()=>this.showToast('Downloading…')},
+      {name:'Service Agreement — Brightside',type:'Agreement',tagFg:'#4338ca',tagBg:'#eef0fd',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#6366f1',14),dl:()=>this.showToast('Downloading…')},
+      {name:'FCA Report — Inner West OT',type:'Assessment',tagFg:'#7c3aed',tagBg:'#f4e8fe',date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#9333ea',14),dl:()=>this.showToast('Downloading…')},
+      {name:'Consent to Share Information',type:'Consent',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#16b8a6',14),dl:()=>this.showToast('Downloading…')},
+      {name:'Support Plan 2026–27',type:'Support Plan',tagFg:'#b4561f',tagBg:'#fbf0df',date:'15 Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#d98b22',14),dl:()=>this.showToast('Downloading…')},
+      {name:'Risk Assessment',type:'Risk',tagFg:'#c0445c',tagBg:'#fbe9ed',date:'Apr 2026',status:'Needs review',stFg:'#c0445c',stBg:'#fbe9ed',fileEl:ic('file','#e0556e',14),dl:()=>this.showToast('Downloading…')},
+    ]:[];
+
+    const savedNotesForDisplay=(this.state.savedNotes||[]);
+    // Real participant_notes rows mapped to the display shape (no fabricated
+    // authors/dates). Demo narrative notes appear ONLY in unconfigured preview.
+    const noteTints=['#6366f1','#16b8a6','#0891b2','#9333ea','#d98b22'];
+    const realNotes=(this.state.realNotes||[]).map((n,i)=>{
+      const roleLabel=humanize(n.author_role)||'Care team';
+      const nm=roleLabel;
+      const init=(String(nm).split(/\s+/).map(w=>w[0]).filter(Boolean).join('').substring(0,2).toUpperCase())||'CT';
+      return {author:nm,init,tint:noteTints[i%noteTints.length],role:roleLabel,type:humanize(n.note_type)||'Note',typeFg:'#4338ca',typeBg:'#eef0fd',when:n.created_at||'',body:n.body||''};
+    });
+    const notes=demoMode?[...savedNotesForDisplay,
+      {author:'James Liu',init:'JL',tint:'#0891b2',role:'Support Worker · Brightside Care',type:'Shift Note',typeFg:'#0e7490',typeBg:'#e0f2f5',when:'Today 3:14pm',body:'Completed personal care, meal prep and a 30-minute walk to the park. Margaret was in great spirits. Completed hoist transfer independently with minimal prompting. Noted she mentioned lower back discomfort — flagging for Jordan\'s next session.'},
+      {author:'Sarah Kelly',init:'SK',tint:'#6366f1',role:'Support Coordinator · CiaraLink SC',type:'Case Note',typeFg:'#4338ca',typeBg:'#eef0fd',when:'Yesterday 11:20am',body:'Called to discuss plan review prep. Evidence pack at 70% — waiting on physio report and updated OT recommendations. Review meeting confirmed for 21 Jul. Margaret and Mariam both available. Will chase Jordan and Inner West OT this week.'},
+      {author:'Jordan Pham',init:'JP',tint:'#9333ea',role:'Physiotherapist · AHPRA',type:'Clinical Note',typeFg:'#7c3aed',typeBg:'#f4e8fe',when:'3 days ago',body:'Block 12 complete. Gait assessment shows 88% improvement from baseline. Recommending continuation — 12 more sessions at current frequency. Formal progress report submitted to coordinator. AAC device trial commenced in parallel with speech pathology.'},
+    ]:[...savedNotesForDisplay,...realNotes];
+
+    return {
+      profileName, profileNdis, profileInit, profileEmail, profilePhone, profileAddress,
+      logoEl:ic('pulse','#eafaf8',21),
+      logoutEl:ic('logout','#56716a',15),
+      dashEl:ic('dash','#6c8a83',15),
+      editEl:ic('edit','#41635c',15),
+      bellEl:ic('bell','#3a544e',18),
+      chevEl:ic('chev','#b6c4be',15),
+      plusEl:ic('plus','#06201c',15),
+      upEl:ic('up','#06201c',15),
+      downEl:ic('down','#41635c',14),
+      msgEl:ic('msg','#41635c',15),
+      toastIconEl:ic('check','#16b8a6',16),
+      nav,
+      pageTitle:titles[view]||'Overview',
+      pageSub:subs[view]||'',
+      isOverview:view==='overview',
+      isPlan:view==='plan',
+      isGoals:view==='goals',
+      isTeam:view==='team',
+      isDocs:view==='docs',
+      isNotes:view==='notes',
+      isTimeline:view==='timeline',
+      isReview:view==='review',
+      sendEl:ic('send','#06201c',15),
+      genEvidencePack:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      openNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
+      reviewReadyCount:demoMode?13:0,reviewTotalCount:demoMode?16:0,
+      timelineFilters:(()=>{
+        const active='all';
+        const cats=[['all','All files'],['participant','Participant'],['allied','Allied Health'],['sc','Coordinator'],['provider','Provider'],['worker','Worker']];
+        return cats.map(([k,l])=>({label:l,onClick:()=>this.showToast('Filter: '+l),bd:k===active?'#16b8a6':'#dde4e1',bg:k===active?'#f0faf8':'#fff',fg:k===active?'#0b6b60':'#6c7f79'}));
+      })(),
+      timeline:demoMode?[
+        {title:'Physiotherapy Progress Report — Block 12',sub:'Gait improvement documented · 12-session block complete',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Jordan Pham',uploaderRole:'Physiotherapist',uploaderEl:ic('heart','#9333ea',12),date:'20 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
+        {title:'Service Agreement — Brightside Care 2026–27',sub:'Personal Care + Community Access · Signed by Margaret Reyes',category:'Provider',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Brightside Care',uploaderRole:'Provider',uploaderEl:ic('building','#16b8a6',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:'30 Jun 2027',iconEl:ic('check','#16b8a6',16),tintBg:'#e7f4f1'},
+        {title:'Shift note — Personal Care',sub:'James Liu · 4h · Glenroy',category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'James Liu',uploaderRole:'Support Worker',uploaderEl:ic('user','#0891b2',12),date:'19 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5'},
+        {title:'OT Home Assessment Report',sub:'Functional Capacity Assessment · home modifications recommended',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Inner West OT',uploaderRole:'Occupational Therapist',uploaderEl:ic('heart','#9333ea',12),date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
+        {title:'Plan Review Preparation Summary',sub:'Evidence pack 70% complete · review meeting 21 Jul 2026',category:'Coordinator',catFg:'#4338ca',catBg:'#eef0fd',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'18 Jun 2026',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',reviewRelevant:true,expiry:null,iconEl:ic('target','#6366f1',16),tintBg:'#eef0fd'},
+        {title:'NDIS Plan 2026–27',sub:'Core $56k · Capacity $20.5k · Capital $13k',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'NDIS',uploaderRole:'NDIA',uploaderEl:ic('user','#16b8a6',12),date:'01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:'30 Jun 2027',iconEl:ic('wallet','#16b8a6',16),tintBg:'#e7f4f1'},
+        {title:'Risk Assessment',sub:'Hoist transfer protocol · emergency contacts reviewed',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'28 Apr 2026',status:'Needs review',stFg:'#b4561f',stBg:'#fbf0df',reviewRelevant:false,expiry:null,iconEl:ic('alert','#d98b22',16),tintBg:'#fbf0df'},
+        {title:'Consent to Share Information',sub:'Allows care team to share documents across services',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Margaret Reyes',uploaderRole:'Participant',uploaderEl:ic('user','#0891b2',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:null,iconEl:ic('check','#1e9e6a',16),tintBg:'#e9f6ef'},
+      ]:[],
+      reviewCategories:demoMode?(()=>{
+        const G=(ok)=>ok?ic('check','#1e9e6a',15):ic('alert','#c0445c',15);
+        return [
+          {title:'Allied Health — OT',iconEl:ic('heart','#9333ea',16),iconBg:'#f4e8fe',headerBg:'#fdf9ff',titleFg:'#7c3aed',countLabel:'2 of 3',countFg:'#b4561f',countBg:'#fbf0df',
+            items:[{name:'Functional Capacity Assessment',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Home modifications report',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Updated recommendations',meta:'Not yet received',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Allied Health — Physiotherapy',iconEl:ic('heart','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Progress report — Block 12',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Outcome measures',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Allied Health — Speech',iconEl:ic('heart','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'0 of 1',countFg:'#c0445c',countBg:'#fbe9ed',
+            items:[{name:'Speech pathology report',meta:'Northside Speech — not yet received',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Support Coordinator',iconEl:ic('star','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'SC summary & recommendations',meta:'Sarah Kelly · In progress',ready:true,missing:false,statusEl:G(true)},{name:'Budget utilisation report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Service connection update',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Provider Reports',iconEl:ic('building','#16b8a6',16),iconBg:'#e7f4f1',headerBg:'#f0faf8',titleFg:'#0b6b60',countLabel:'1 of 2',countFg:'#b4561f',countBg:'#fbf0df',
+            items:[{name:'Service delivery summary',meta:'Brightside Care · 15 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Progress notes — last quarter',meta:'Not yet submitted',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Goals & Outcomes',iconEl:ic('target','#1e9e6a',16),iconBg:'#e9f6ef',headerBg:'#f4fbf7',titleFg:'#1e7a52',countLabel:'4 of 4',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Goal progress summary',meta:'Jordan Pham + Sarah Kelly',ready:true,missing:false,statusEl:G(true)},{name:'Therapy outcomes',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Functional improvements',meta:'OT + Physio',ready:true,missing:false,statusEl:G(true)},{name:'Goal status report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Funding & Hours',iconEl:ic('wallet','#d98b22',16),iconBg:'#fbf0df',headerBg:'#fdf8f2',titleFg:'#b4561f',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Budget utilisation breakdown',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Hours delivered by support type',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Funding remaining by category',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Worker Records',iconEl:ic('user','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Shift notes — last 3 months',meta:'James Liu + Amara Okafor · 48 shifts',ready:true,missing:false,statusEl:G(true)},{name:'Support worker observations',meta:'James Liu · ongoing',ready:true,missing:false,statusEl:G(true)}]},
+        ];
+      })():[],
+      showEditBtn:true,
+      editProfile:()=>{
+        if(demoMode){ this.showToast('Connect your account and sign in to edit this profile'); return; }
+        this.setState({editFormOpen:true, editName:(pp.preferred_name||pp.full_name||''), editPhone:(pp.phone||''), editEmail:(pp.email||''), editAddress:(pp.address||'')});
+      },
+      // ---- Edit profile modal bindings ----
+      editFormOpen:this.state.editFormOpen,
+      closeEditForm:()=>this.setState({editFormOpen:false}),
+      savingEdit:this.state.savingEdit,
+      editName:this.state.editName,
+      editPhone:this.state.editPhone,
+      editEmail:this.state.editEmail,
+      editAddress:this.state.editAddress,
+      onEditName:(e)=>this.setState({editName:e.target.value}),
+      onEditPhone:(e)=>this.setState({editPhone:e.target.value}),
+      onEditEmail:(e)=>this.setState({editEmail:e.target.value}),
+      onEditAddress:(e)=>this.setState({editAddress:e.target.value}),
+      submitEdit:()=>{
+        const id=pp.id;
+        if(!id||!window.updateParticipant){ this.showToast('Cannot save — profile not loaded'); return; }
+        if(this.state.savingEdit) return;
+        const patch={ preferred_name:(this.state.editName||'').trim()||null, phone:(this.state.editPhone||'').trim()||null, email:(this.state.editEmail||'').trim()||null, address:(this.state.editAddress||'').trim()||null };
+        this.setState({savingEdit:true});
+        Promise.resolve(window.updateParticipant(id,patch)).then(res=>{
+          if(res&&res.participant&&!res.error){
+            this.setState(s=>({savingEdit:false,editFormOpen:false,participantProfile:Object.assign({},s.participantProfile,res.participant)}));
+            this.showToast('Profile updated');
+          } else {
+            this.setState({savingEdit:false});
+            this.showToast("Couldn't update: "+((res&&res.error)||'unknown error'));
+          }
+        }).catch(err=>{ this.setState({savingEdit:false}); this.showToast("Couldn't update: "+(err&&err.message||'error')); });
+      },
+      goBack:()=>{ try{ const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html',guardian_nominee:'Participant Dashboard.dc.html'}; window.location.href=m[s.role]||'Index.dc.html'; }catch(e){ window.location.href='Index.dc.html'; }},
+      signOut:()=>{ try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html'; },
+      budgetRings,kpis,activity,upcoming,quickActions,
+      budgetLines,goals,team,docs,notes,
+      hasFunding:budgetRings.length>0,
+      hasKpis:kpis.length>0,
+      hasActivity:activity.length>0,
+      hasUpcoming:upcoming.length>0,
+      hasBudgetLines:budgetLines.length>0,
+      hasGoals:goals.length>0,
+      hasTeam:team.length>0,
+      hasNotes:notes.length>0,
+      hasTimeline:demoMode,
+      hasReviewCats:demoMode,
+      hasDocCats:demoMode||((this.state.realDocs||[]).length>0),
+      closeNoteEl:React.createElement('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'none',stroke:'#6c7f79',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:'M6 6l12 12 M18 6L6 18'})),
+      addGoal:()=>{
+        if(demoMode){ this.showToast('Connect your account and sign in to add a goal'); return; }
+        if(!pp.id){ this.showToast('Profile still loading — try again in a moment'); return; }
+        this.setState({goalFormOpen:true,goalTitle:'',goalDesc:'',goalCategory:'core'});
+      },
+      // ---- Add goal modal bindings ----
+      goalFormOpen:this.state.goalFormOpen,
+      closeGoalForm:()=>this.setState({goalFormOpen:false}),
+      savingGoal:this.state.savingGoal,
+      goalTitle:this.state.goalTitle,
+      goalDesc:this.state.goalDesc,
+      onGoalTitle:(e)=>this.setState({goalTitle:e.target.value}),
+      onGoalDesc:(e)=>this.setState({goalDesc:e.target.value}),
+      goalCategory:this.state.goalCategory,
+      goalCatOpts:[['core','Core Supports'],['capacity','Capacity Building'],['capital','Capital Supports'],['other','Other']].map(([k,l])=>{
+        const a=this.state.goalCategory===k;
+        return {label:l,onClick:()=>this.setState({goalCategory:k}),bd:a?'#16b8a6':'#dde4e1',bg:a?'#f0faf8':'#fff',fg:a?'#0b6b60':'#6c7f79'};
+      }),
+      submitGoal:()=>{
+        const title=(this.state.goalTitle||'').trim();
+        if(!title){ this.showToast('Please enter a goal title'); return; }
+        if(!pp.id||!window.createParticipantGoal){ this.showToast('Cannot save — profile not loaded'); return; }
+        if(this.state.savingGoal) return;
+        this.setState({savingGoal:true});
+        const payload={participant_id:pp.id,org_id:pp.org_id||null,title,description:(this.state.goalDesc||'').trim()||null,category:this.state.goalCategory||'core',status:'starting',progress_pct:0};
+        Promise.resolve(window.createParticipantGoal(payload)).then(res=>{
+          if(res&&res.goal&&!res.error){
+            this.setState(s=>({savingGoal:false,goalFormOpen:false,goalTitle:'',goalDesc:'',realGoals:[res.goal,...(s.realGoals||[])]}));
+            this.showToast('Goal added to participant plan');
+          } else {
+            this.setState({savingGoal:false});
+            this.showToast("Couldn't save goal: "+((res&&res.error)||'unknown error'));
+          }
+        }).catch(err=>{ this.setState({savingGoal:false}); this.showToast("Couldn't save goal: "+(err&&err.message||'error')); });
+      },
+      addNote:()=>this.setState({noteFormOpen:true,noteText:'',noteType:'Case Note'}),
+      noteFormOpen:this.state.noteFormOpen,
+      closeNoteForm:()=>this.setState({noteFormOpen:false}),
+      noteText:this.state.noteText,
+      onNoteTextChange:(e)=>this.setState({noteText:e.target.value}),
+      noteType:this.state.noteType,
+      noteTypeOpts:['Case Note','Clinical Note','Shift Note','Review Note','Incident Note'].map(t=>{
+        const a=this.state.noteType===t;
+        return {label:t,onClick:()=>this.setState({noteType:t}),bd:a?'#16b8a6':'#dde4e1',bg:a?'#f0faf8':'#fff',fg:a?'#0b6b60':'#6c7f79'};
+      }),
+      submitNote:()=>{
+        const txt=(this.state.noteText||'').trim();
+        if(!txt){this.showToast('Please enter a note before saving');return;}
+        const typeMap={'Case Note':'case_note','Clinical Note':'clinical_note','Shift Note':'shift_note','Review Note':'review_note','Incident Note':'incident_note'};
+        const noteType=typeMap[this.state.noteType]||'case_note';
+        // REAL MODE: persist to participant_notes (no fabricated author — author is
+        // the signed-in user via RLS). Incident notes are compliance-sensitive.
+        if(!demoMode && pp.id && window.createSessionNote){
+          this.setState({noteFormOpen:false,noteText:''});
+          Promise.resolve(window.createSessionNote({org_id:pp.org_id||null,participant_id:pp.id,note_type:noteType,body:txt})).then(res=>{
+            if(res&&res.note&&!res.error){
+              this.loadNotes(pp.id);
+              this.showToast(noteType==='incident_note'?'Incident note saved — flag for compliance review':'Note saved to participant file');
+            } else {
+              this.showToast("Couldn't save note: "+((res&&res.error)||'unknown error'));
+            }
+          }).catch(err=>this.showToast("Couldn't save note: "+(err&&err.message||'error')));
+          return;
+        }
+        // DEMO MODE: local-only preview store (clearly not a real record).
+        const AD=window.AegisData;
+        const now=AD?AD.now():new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});
+        const note={_id:AD?AD.uid():'n'+Date.now(),author:'You (preview)',init:'YOU',tint:'#6366f1',role:humanize(noteType),type:this.state.noteType||'Case Note',typeFg:'#4338ca',typeBg:'#eef0fd',when:now+' (just now)',body:txt};
+        if(AD) AD.push('pp_notes',note);
+        this.setState(s=>({noteFormOpen:false,noteText:'',savedNotes:[note,...(s.savedNotes||[])]}));
+        this.showToast('Note saved (preview)');
+      },
+      uploadDoc:()=>{ window.location.href='AI File Drop.dc.html'; },
+      docRoleFilters:(()=>{
+        const roles=[['all','All files','#14302b','#fff','#0c2622'],['participant','Participant','#0b6b60','#e7f4f1','#16b8a6'],['sc','Coordinator','#4338ca','#eef0fd','#6366f1'],['allied','Allied Health','#7c3aed','#f4e8fe','#9333ea'],['provider','Provider','#0b6b60','#e7f4f1','#16b8a6'],['worker','Worker','#0e7490','#e0f2f5','#0891b2']];
+        const active='all';
+        return roles.map(([k,l,fg,bg,dot])=>({label:l,onClick:()=>this.showToast('Filter: '+l+' documents'),bg:k===active?'#0c2622':bg,fg:k===active?'#f4faf8':fg,dotEl:React.createElement('span',{style:{width:8,height:8,borderRadius:'50%',background:dot,flex:'0 0 8px',display:'inline-block'}})}));
+      })(),
+      docCategories:demoMode?[
+        {title:'Participant Documents',iconEl:ic('user','#0891b2',14),iconBg:'#e0f2f5',headerBg:'#f7fbff',count:5,visibility:'Participant + Care team',visFg:'#0e7490',visBg:'#e0f2f5',files:[
+          {name:'NDIS Plan 2026–27',meta:'NDIA · Core $56k · Capacity $20.5k · Capital $13k',date:'01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('wallet','#16b8a6',14),tintBg:'#e7f4f1',dl:()=>this.showToast('Opening NDIS Plan…')},
+          {name:'Support Plan 2026–27',meta:'Sarah Kelly · goals, routines, preferences',date:'15 Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#6366f1',14),tintBg:'#eef0fd',dl:()=>this.showToast('Opening support plan…')},
+          {name:'Consent to Share Information',meta:'Signed by participant · all roles',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',14),tintBg:'#e9f6ef',dl:()=>this.showToast('Opening consent form…')},
+          {name:'Emergency Information',meta:'Contacts · health alerts · medications',date:'01 Jul 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('alert','#d98b22',14),tintBg:'#fbf0df',dl:()=>this.showToast('Opening emergency info…')},
+          {name:'Risk Assessment',meta:'Hoist transfer · fall risk reviewed Apr 2026',date:'28 Apr 2026',status:'Needs review',stFg:'#b4561f',stBg:'#fbf0df',iconEl:ic('alert','#e0556e',14),tintBg:'#fbe9ed',dl:()=>this.showToast('Opening risk assessment…')},
+        ]},
+        {title:'Allied Health Documents',iconEl:ic('heart','#9333ea',14),iconBg:'#f4e8fe',headerBg:'#fdf9ff',count:4,visibility:'SC + Provider + AH (consent required)',visFg:'#7c3aed',visBg:'#f4e8fe',files:[
+          {name:'Physiotherapy Progress Report',meta:'Jordan Pham · Block 12 complete · 88% goal achievement',date:'20 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#9333ea',14),tintBg:'#f4e8fe',dl:()=>this.showToast('Opening physio report…')},
+          {name:'Functional Capacity Assessment',meta:'Inner West OT · home modifications recommended',date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#9333ea',14),tintBg:'#f4e8fe',dl:()=>this.showToast('Opening FCA…')},
+          {name:'OT Recommendations',meta:'Inner West OT · ceiling hoist + shower rail',date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#9333ea',14),tintBg:'#f4e8fe',dl:()=>this.showToast('Opening OT recommendations…')},
+          {name:'Speech Pathology Report',meta:'Northside Speech — not yet received',date:'—',status:'Missing',stFg:'#c0445c',stBg:'#fbe9ed',iconEl:ic('alert','#e0556e',14),tintBg:'#fbe9ed',dl:()=>this.showToast('Report not yet received')},
+        ]},
+        {title:'Support Coordinator Documents',iconEl:ic('star','#6366f1',14),iconBg:'#eef0fd',headerBg:'#f6f6fe',count:3,visibility:'SC + Provider (summary only)',visFg:'#4338ca',visBg:'#eef0fd',files:[
+          {name:'Plan Review Preparation Summary',meta:'Sarah Kelly · 70% complete · 11 days to review',date:'18 Jun 2026',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',iconEl:ic('target','#6366f1',14),tintBg:'#eef0fd',dl:()=>this.showToast('Opening review prep…')},
+          {name:'Budget Utilisation Report',meta:'Sarah Kelly · Q3 2026 · Core underspend flagged',date:'18 Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('wallet','#6366f1',14),tintBg:'#eef0fd',dl:()=>this.showToast('Opening budget report…')},
+          {name:'Service Connection Update',meta:'Sarah Kelly · Brightside + Jordan Pham + Inner West OT',date:'18 Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('users','#6366f1',14),tintBg:'#eef0fd',dl:()=>this.showToast('Opening connection update…')},
+        ]},
+        {title:'Provider & Service Agreements',iconEl:ic('building','#16b8a6',14),iconBg:'#e7f4f1',headerBg:'#f0faf8',count:3,visibility:'Provider + SC + Participant',visFg:'#0b6b60',visBg:'#e7f4f1',files:[
+          {name:'Service Agreement — Brightside Care 2026–27',meta:'Signed · Personal Care + Community Access · $56k',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',14),tintBg:'#e9f6ef',dl:()=>this.showToast('Opening agreement…')},
+          {name:'Provider Progress Report — Q2',meta:'Brightside Care · service delivery summary',date:'15 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#16b8a6',14),tintBg:'#e7f4f1',dl:()=>this.showToast('Opening provider report…')},
+          {name:'Hours Delivered Report',meta:'Brightside Care · 340h delivered this plan year',date:'Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('clock','#16b8a6',14),tintBg:'#e7f4f1',dl:()=>this.showToast('Opening hours report…')},
+        ]},
+        {title:'Worker Shift Records',iconEl:ic('user','#0891b2',14),iconBg:'#e0f2f5',headerBg:'#f0fbfd',count:48,visibility:'Worker own records + SC summary',visFg:'#0e7490',visBg:'#e0f2f5',files:[
+          {name:'Shift notes — James Liu (latest 3)',meta:'Personal Care · Mon / Wed / Thu · 4h each',date:'19 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',iconEl:ic('note','#0891b2',14),tintBg:'#e0f2f5',dl:()=>this.showToast('Opening shift notes…')},
+          {name:'Shift notes — Amara Okafor (latest)',meta:'Community Access · Friday · 3h',date:'14 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',iconEl:ic('note','#0891b2',14),tintBg:'#e0f2f5',dl:()=>this.showToast('Opening shift notes…')},
+        ]},
+      ]:(()=>{
+        const rows=(this.state.realDocs||[]);
+        if(!rows.length) return [];
+        return [{title:'Documents',iconEl:ic('file','#16b8a6',14),iconBg:'#e7f4f1',headerBg:'#f0faf8',count:rows.length,visibility:'Permission-controlled by role',visFg:'#0b6b60',visBg:'#e7f4f1',files:rows.map(d=>({
+          name:d.title||'Untitled document',
+          meta:humanize(d.type)||(d.description||'Document'),
+          date:d.created_at||'—',
+          status:humanize(d.status)||'',
+          stFg:'#1e7a52',stBg:'#e9f6ef',
+          iconEl:ic('file','#16b8a6',14),tintBg:'#e7f4f1',
+          dl:()=>this.openDocument(d)
+        }))}];
+      })(),
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

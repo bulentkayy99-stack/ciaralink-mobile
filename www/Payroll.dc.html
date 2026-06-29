@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CiaraLink — Payroll (SCHADS)</title>
+<script src="./env.local.js?v=20260629"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260629"></script>
+<style>
+  :root{ --teal:#16b8a6; --teal-d:#0b6b60; --ink:#1f2d2a; --muted:#5f726d; --line:#e3ece9; --bg:#f4faf8; --bg2:#ffffff; --red:#b0314f; --amber:#b4561f; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .back{font-size:13px;color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--teal-d)}
+  h1{font-size:24px;margin:10px 0 2px;letter-spacing:-.4px}
+  h2{font-size:16px;margin:0 0 12px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+  .danger{background:#fbe9ed;border:1px solid #f2c2cf;color:#7c1f33;border-radius:12px;padding:14px 16px;font-size:13.5px;margin-bottom:18px;font-weight:500}
+  .danger b{display:block;font-size:14px;margin-bottom:4px}
+  .banner{background:#fff4e0;border:1px solid #f0dcae;color:#7a5410;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:14px}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:disabled{background:#b7d8d2;cursor:not-allowed}
+  .btn-ghost{background:#f1f5f4;color:var(--ink)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin:0 0 5px}
+  input,select{padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);padding:0 8px 8px;font-weight:600}
+  td{padding:8px;border-top:1px solid var(--line);vertical-align:top}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:#e7f4f1;color:var(--teal-d)}
+  .ot{background:#fbf0df;color:var(--amber)}
+  .muted{color:var(--muted)}
+  .shiftcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .shifthead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .gross{font-size:20px;font-weight:700;letter-spacing:-.3px}
+  .flag{font-size:12.5px;border-radius:8px;padding:7px 10px;margin-top:6px}
+  .flag-critical{background:#fbe9ed;color:var(--red)}
+  .flag-warning{background:#fff4e0;color:var(--amber)}
+  .flag-info{background:#eef5f3;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:24px 0}
+  .totline{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:12px;border-top:2px solid var(--line)}
+  details summary{cursor:pointer;font-size:13px;color:var(--teal-d);font-weight:600;margin-top:6px}
+  .kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px;font-size:13px}
+  .kv div span{color:var(--muted)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1f2d2a;color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;opacity:0;transition:opacity .2s;z-index:60}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="Provider Console.dc.html">← Back to console</a>
+    <a class="back" href="#" id="signout">Sign out</a>
+  </div>
+  <h1>Payroll — SCHADS interpretation</h1>
+  <div class="sub" id="orgname">Compute itemised, audit-defensible gross pay from shifts.</div>
+
+  <!-- HARD-CODED, ALWAYS-ON LEGAL WARNING -->
+  <div class="danger">
+    <b>⚠️ Decision-support only — not certified payroll. Rates require verification.</b>
+    This tool interprets the Social, Community, Home Care and Disability Services Industry Award
+    (MA000100). The award config shipped with this build uses <b>PLACEHOLDER</b> rates,
+    multipliers, spans and allowances — they are illustrative, <b>not</b> the current legal SCHADS
+    figures. Every figure must be confirmed against the current award (and your state public-holiday
+    calendar / any enterprise agreement) before paying anyone. Breakdowns computed from placeholder
+    config are flagged and must not be treated as payable.
+  </div>
+
+  <div id="notadmin" class="banner" style="display:none">
+    You're signed in, but you don't administer any organisation, so there's no payroll to run here.
+  </div>
+
+  <!-- AWARD CONFIG / RATES -->
+  <div class="card" id="ratescard" style="display:none">
+    <h2>Active award configuration</h2>
+    <div id="ratesbanner" class="banner" style="display:none"></div>
+    <div class="kv" id="cfgmeta"></div>
+    <details style="margin-top:12px">
+      <summary>Base hourly rates by classification</summary>
+      <table style="margin-top:10px">
+        <thead><tr><th>Level</th><th>Pay point</th><th class="num">Base hourly</th><th>Source</th></tr></thead>
+        <tbody id="ratesrows"></tbody>
+      </table>
+    </details>
+    <details style="margin-top:10px">
+      <summary>Penalty / overtime / allowance multipliers</summary>
+      <div class="kv" id="multimeta" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <!-- COMPUTE -->
+  <div class="card" id="computecard" style="display:none">
+    <h2>Calculate pay for a worker</h2>
+    <div class="row">
+      <div>
+        <label>Worker</label>
+        <select id="worker"><option value="">Loading…</option></select>
+      </div>
+      <div>
+        <label>From</label>
+        <input type="date" id="from" />
+      </div>
+      <div>
+        <label>To</label>
+        <input type="date" id="to" />
+      </div>
+      <button class="btn btn-ghost" id="preview">Preview (don't save)</button>
+      <button class="btn btn-primary" id="calc">Calculate &amp; save</button>
+    </div>
+    <div class="muted" style="font-size:12.5px;margin-top:10px">
+      Calculation order: ordinary base rate → day/time penalties (evening · Saturday · Sunday ·
+      public holiday) → casual loading → overtime → sleepover / broken-shift allowances. Each
+      component is itemised per shift and saved as an audit record.
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var A = window.CiaraLinkAuth || {};
+  var ORG = null;
+  var el = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+  function toast(m){ var t=el('toast'); t.textContent=m; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2800); }
+  function money(n){ return '$'+(Number(n)||0).toFixed(2); }
+  function hrs(n){ return (Number(n)||0).toFixed(2)+'h'; }
+
+  async function token(){
+    try { var s = await A.getSession(); return s && s.data && s.data.session ? s.data.session.access_token : null; }
+    catch(e){ return null; }
+  }
+
+  async function boot(){
+    if(!window.isSupabaseConfigured || !window.isSupabaseConfigured()){
+      el('orgname').textContent='Supabase not configured — preview mode.';
+      el('notadmin').style.display='block';
+      el('notadmin').textContent='This page needs a live Supabase connection.';
+      return;
+    }
+    var who = await A.getCurrentUser();
+    if(!who || !who.user){ window.location.href='signin.html'; return; }
+
+    var res = await A.getMyOrgSeatUsage();
+    var orgs = (res && res.orgs) || [];
+    if(!orgs.length){ el('notadmin').style.display='block'; return; }
+    ORG = orgs[0];
+    el('orgname').textContent = (ORG.org_name||'Your organisation') + ' · SCHADS payroll';
+    el('ratescard').style.display='block';
+    el('computecard').style.display='block';
+
+    // sensible default range: last 14 days
+    var today = new Date(), past = new Date(Date.now()-13*86400000);
+    el('to').value = today.toISOString().slice(0,10);
+    el('from').value = past.toISOString().slice(0,10);
+
+    loadRates();
+    loadWorkers();
+  }
+
+  async function loadRates(){
+    var t = await token();
+    if(!t) return;
+    try {
+      var r = await fetch('/api/payroll-rates?orgId='+encodeURIComponent(ORG.org_id), { headers:{ Authorization:'Bearer '+t } });
+      var d = await r.json().catch(function(){return{};});
+      if(!r.ok){ el('cfgmeta').innerHTML='<div class="muted">Could not load rates: '+esc(d.error||r.status)+'</div>'; return; }
+      if(d.isPlaceholder){ el('ratesbanner').style.display='block'; el('ratesbanner').textContent=d.warning; }
+      var c = d.config||{};
+      el('cfgmeta').innerHTML =
+        kv('Award', c.awardCode) + kv('Version', c.versionLabel) + kv('Currency', c.currency) +
+        kv('Timezone', c.timeZone) + kv('Effective from', c.effectiveFrom||'—');
+      el('ratesrows').innerHTML = (d.rates||[]).map(function(x){
+        return '<tr><td>'+esc(x.classification_level)+'</td><td>'+esc(x.pay_point)+'</td>'+
+          '<td class="num">'+money(x.base_hourly_rate)+'</td>'+
+          '<td>'+(x.is_placeholder?'<span class="pill ot">placeholder</span>':'<span class="pill">verified</span>')+'</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="muted">No rates configured.</td></tr>';
+      var p=c.penalties||{}, o=c.overtime||{}, al=c.allowances||{};
+      el('multimeta').innerHTML =
+        kv('Weekday evening', x(p.weekdayEvening)) + kv('Weekday night', x(p.weekdayNight)) +
+        kv('Saturday', x(p.saturday)) + kv('Sunday', x(p.sunday)) + kv('Public holiday', x(p.publicHoliday)) +
+        kv('Casual loading', c.casualLoading!=null?('+'+c.casualLoading):'—') +
+        kv('OT first 2h', x(o.first2hMultiplier)) + kv('OT after 2h', x(o.after2hMultiplier)) +
+        kv('Daily ord. cap', (o.dailyOrdinaryHoursCap!=null?o.dailyOrdinaryHoursCap+'h':'—')) +
+        kv('Weekly ord. cap', (o.weeklyOrdinaryHoursCap!=null?o.weeklyOrdinaryHoursCap+'h':'—')) +
+        kv('Sleepover/night', al.sleepoverPerNight!=null?money(al.sleepoverPerNight):'—') +
+        kv('Broken shift/day', al.brokenShiftPerDay!=null?money(al.brokenShiftPerDay):'—');
+    } catch(e){ el('cfgmeta').innerHTML='<div class="muted">Network error loading rates.</div>'; }
+  }
+  function x(m){ return m!=null? ('×'+m) : '—'; }
+  function kv(k,v){ return '<div><span>'+esc(k)+'</span><br><b>'+esc(v==null?'—':v)+'</b></div>'; }
+
+  async function loadWorkers(){
+    var sel = el('worker');
+    try {
+      var res = await A.loadOrgTeam(ORG.org_id);
+      var members = (res && res.members) || [];
+      var workers = members.filter(function(m){ return m.status==='active'; });
+      if(!workers.length){ sel.innerHTML='<option value="">No team members</option>'; return; }
+      sel.innerHTML = '<option value="">Select a worker…</option>' + workers.map(function(m){
+        return '<option value="'+esc(m.user_id)+'">'+esc(m.full_name||m.email||m.user_id)+' ('+esc(m.role)+')</option>';
+      }).join('');
+    } catch(e){ sel.innerHTML='<option value="">Could not load workers</option>'; }
+  }
+
+  async function run(persist){
+    var workerId = el('worker').value, from=el('from').value, to=el('to').value;
+    if(!workerId){ toast('Pick a worker first'); return; }
+    if(!from||!to){ toast('Pick a date range'); return; }
+    var t = await token(); if(!t){ toast('Session expired — sign in again'); return; }
+    var btnP=el('preview'), btnC=el('calc'); btnP.disabled=true; btnC.disabled=true;
+    el('results').innerHTML='<div class="card"><div class="empty">Calculating…</div></div>';
+    try {
+      var r = await fetch('/api/payroll-calculate', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+t },
+        body: JSON.stringify({ orgId:ORG.org_id, workerId:workerId, from:from, to:to, persist:!!persist })
+      });
+      var d = await r.json().catch(function(){return{};});
+      if(!r.ok){ el('results').innerHTML='<div class="card"><div class="empty">Error: '+esc(d.error||r.status)+'</div></div>'; }
+      else { renderResults(d, persist); if(persist && d.persisted) toast('Saved '+d.persisted+' breakdown(s)'); }
+    } catch(e){ el('results').innerHTML='<div class="card"><div class="empty">Network error.</div></div>'; }
+    btnP.disabled=false; btnC.disabled=false;
+  }
+
+  function renderResults(d, persisted){
+    var bs = d.breakdowns||[];
+    var html = '<div class="card">';
+    html += '<h2>Result — '+esc(d.shiftCount||0)+' shift(s)</h2>';
+    if(d.warning){ html += '<div class="danger"><b>⚠️ Placeholder rates</b>'+esc(d.warning)+'</div>'; }
+    if(!bs.length){ html += '<div class="empty">No shifts matched this worker / range.</div></div>'; el('results').innerHTML=html; return; }
+
+    bs.forEach(function(b){
+      html += '<div class="shiftcard">';
+      html += '<div class="shifthead"><div><b>'+esc(b.shiftTitle||'Shift')+'</b> '+
+        '<span class="muted">'+esc(fmtDate(b.shiftStart))+' → '+esc(fmtTime(b.shiftEnd))+'</span></div>'+
+        '<div class="gross">'+money(b.grossPay)+'</div></div>';
+      html += '<div class="muted" style="font-size:12.5px;margin-bottom:6px">'+
+        'Base '+money(b.baseHourlyRate)+'/h · '+hrs(b.ordinaryHours)+' ordinary · '+hrs(b.overtimeHours)+' overtime'+
+        (b.classification&&b.classification.employmentType?(' · '+esc(b.classification.employmentType)):'')+'</div>';
+
+      if((b.lineItems||[]).length){
+        html += '<table><thead><tr><th>Component</th><th>Band</th><th class="num">Hours</th>'+
+          '<th class="num">Base</th><th class="num">×</th><th class="num">Eff. rate</th><th class="num">Amount</th></tr></thead><tbody>';
+        b.lineItems.forEach(function(li){
+          html += '<tr><td>'+esc(li.label)+(li.isOvertime?' <span class="pill ot">OT</span>':'')+'</td>'+
+            '<td>'+esc(li.band)+'</td>'+
+            '<td class="num">'+hrs(li.hours)+'</td>'+
+            '<td class="num">'+money(li.baseHourlyRate)+'</td>'+
+            '<td class="num">'+li.effectiveMultiplier+(li.casualLoading?(' <span class="muted">(+'+li.casualLoading+' csl)</span>'):'')+'</td>'+
+            '<td class="num">'+money(li.effectiveHourlyRate)+'</td>'+
+            '<td class="num">'+money(li.amount)+'</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+      (b.allowances||[]).forEach(function(a){
+        html += '<div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px">'+
+          '<span>'+esc(a.label)+'</span><span class="num">'+money(a.amount)+'</span></div>';
+      });
+      (b.flags||[]).forEach(function(f){
+        html += '<div class="flag flag-'+esc(f.level)+'">['+esc(f.level)+'] '+esc(f.message)+'</div>';
+      });
+      html += '</div>';
+    });
+
+    html += '<div class="totline"><b>Total gross ('+(persisted?'saved':'preview')+')</b>'+
+      '<span class="gross">'+money(d.totalGross)+'</span></div>';
+    html += '</div>';
+    el('results').innerHTML = html;
+  }
+
+  function fmtDate(iso){ try{ return new Date(iso).toLocaleString(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+  function fmtTime(iso){ try{ return new Date(iso).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    el('preview').addEventListener('click', function(){ run(false); });
+    el('calc').addEventListener('click', function(){ run(true); });
+    el('signout').addEventListener('click', async function(e){ e.preventDefault(); if(A.signOut) await A.signOut(); window.location.href='signin.html'; });
+    boot();
+  });
+})();
+</script>
+</body>
+</html>

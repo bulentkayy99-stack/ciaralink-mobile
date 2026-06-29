@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — CiaraLink</title>
+<meta name="description" content="CiaraLink Terms of Service — the rules for using the CiaraLink connected-care platform.">
+<meta name="robots" content="index,follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#16b8a6;--teal-2:#11d4be;--teal-d:#0b6b60;--ink:#0a1c19;--ink-2:#0c2622;--ink-3:#091815;--paper:#f5f8f7;--tx:#14302b;--tx-2:#52716b;--tx-3:#8a9a94;--on-dark:#f4faf8;--on-dark-2:#9fc1bb;--on-dark-3:#4e726b;--line:#e2eae7;--line-d:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.6}
+a{color:var(--teal-d);text-decoration:none;font-weight:600}
+a:hover{text-decoration:underline}
+.wrap{max-width:840px;margin:0 auto;padding:0 28px;width:100%}
+/* nav */
+.nav{position:sticky;top:0;z-index:40;background:rgba(245,248,247,.82);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
+.nav-in{height:68px;display:flex;align-items:center;gap:14px;max-width:1240px;margin:0 auto;padding:0 28px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -8px rgba(14,147,132,.8)}
+.brand-name{font-size:18px;font-weight:900;letter-spacing:-.03em;color:var(--tx)}
+.brand-tag{font-size:9px;letter-spacing:.22em;font-weight:800;color:var(--tx-3);margin-top:1px}
+.nav-r{margin-left:auto;display:flex;gap:18px;align-items:center}
+.nav-r a{font-size:14px;color:var(--tx-2)}
+.nav-r a:hover{color:var(--tx);text-decoration:none}
+/* doc */
+.doc{padding:64px 0 40px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-d)}
+.doc h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.03em;color:var(--tx);margin:14px 0 10px;line-height:1.05}
+.meta{font-size:14px;color:var(--tx-3);font-weight:600}
+.note{margin:26px 0 8px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid var(--line);font-size:14px;color:var(--tx-2);line-height:1.6}
+.note b{color:var(--tx)}
+.toc{margin:34px 0 10px;padding:20px 22px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.toc h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);margin-bottom:12px;font-weight:800}
+.toc ol{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;counter-reset:t}
+.toc li{counter-increment:t;font-size:14px}
+.toc li::before{content:counter(t) ". ";color:var(--teal-d);font-weight:800}
+@media(max-width:600px){.toc ol{grid-template-columns:1fr}}
+.body{padding:34px 0 0}
+.body section{margin-bottom:34px;scroll-margin-top:84px}
+.body h2{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--tx);margin-bottom:10px;display:flex;gap:11px;align-items:baseline}
+.body h2 .num{font-size:14px;font-weight:800;color:var(--teal-d);flex:0 0 auto}
+.body p{font-size:16px;color:var(--tx-2);margin-bottom:12px}
+.body ul{margin:0 0 12px 0;padding-left:20px}
+.body li{font-size:16px;color:var(--tx-2);margin-bottom:8px}
+.body b{color:var(--tx);font-weight:700}
+.callout{padding:18px 20px;border-radius:14px;background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:var(--on-dark-2);font-size:15px;line-height:1.6}
+.callout b{color:var(--on-dark)}
+/* footer */
+footer{background:var(--ink-3);color:var(--on-dark-3);padding:44px 0 30px;margin-top:50px}
+.foot-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--line-d)}
+.foot-row a{color:var(--on-dark-2);font-size:14px}
+.foot-links{display:flex;gap:20px;flex-wrap:wrap}
+.foot-disc{font-size:12px;line-height:1.6;color:var(--on-dark-3);margin-top:20px;font-weight:500;opacity:.85;max-width:880px}
+.foot-disc b{color:var(--on-dark-2);font-weight:800}
+.foot-bot{font-size:12.5px;color:var(--on-dark-3);margin-top:18px;font-weight:600}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="./landing.html">
+      <span class="logo"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
+    </a>
+    <div class="nav-r">
+      <a href="./privacy.html">Privacy</a>
+      <a href="./landing.html">← Back to home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap doc">
+  <div class="eyebrow">Legal</div>
+  <h1>Terms of Service</h1>
+  <div class="meta">Launch preview · Last updated 25 June 2026</div>
+
+  <div class="note">
+    These Terms are the launch-preview version for CiaraLink and may be updated as the platform develops. <b>CiaraLink is a software tool for coordinating care — not a legal, compliance, audit, financial, or clinical service.</b> If anything here affects an important decision, please seek your own qualified professional advice.
+  </div>
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#accept">Acceptance of these Terms</a></li>
+      <li><a href="#what">What CiaraLink is</a></li>
+      <li><a href="#accounts">Accounts &amp; eligibility</a></li>
+      <li><a href="#use">Acceptable use</a></li>
+      <li><a href="#data">Your data &amp; content</a></li>
+      <li><a href="#preview">Launch-preview status</a></li>
+      <li><a href="#fees">Plans, fees &amp; trials</a></li>
+      <li><a href="#advice">No professional advice</a></li>
+      <li><a href="#liability">Disclaimers &amp; liability</a></li>
+      <li><a href="#term">Suspension &amp; termination</a></li>
+      <li><a href="#changes">Changes to these Terms</a></li>
+      <li><a href="#law">Governing law &amp; contact</a></li>
+    </ol>
+  </div>
+
+  <div class="body">
+    <section id="accept"><h2><span class="num">01</span> Acceptance of these Terms</h2>
+      <p>By creating an account or using CiaraLink (the “platform”, “we”, “us”), you agree to these Terms of Service. If you’re using CiaraLink on behalf of an organisation, you confirm you’re authorised to accept these Terms for that organisation. If you don’t agree, please don’t use the platform.</p>
+    </section>
+
+    <section id="what"><h2><span class="num">02</span> What CiaraLink is</h2>
+      <p>CiaraLink is a connected-care software platform that helps health and disability care teams — including providers, support coordinators, allied health, support workers, participants and their nominees — organise, record and share their own work in one place.</p>
+      <p>CiaraLink is a <b>tool you use to manage your information</b>. We don’t provide care, clinical services, legal, compliance, audit or financial services, and we don’t supervise or verify the work recorded on the platform.</p>
+    </section>
+
+    <section id="accounts"><h2><span class="num">03</span> Accounts &amp; eligibility</h2>
+      <p>You’re responsible for your account, your login details and everything done under your account. Keep your credentials secure and let us know promptly if you suspect unauthorised access. You must provide accurate information and use CiaraLink only where you’re legally permitted to handle the information you put into it.</p>
+    </section>
+
+    <section id="use"><h2><span class="num">04</span> Acceptable use</h2>
+      <p>When using CiaraLink, you agree not to:</p>
+      <ul>
+        <li>Upload information you don’t have the right or consent to share;</li>
+        <li>Use the platform for anything unlawful, harmful, or misleading;</li>
+        <li>Attempt to access data, accounts or systems that aren’t yours;</li>
+        <li>Interfere with, probe or disrupt the platform’s security or operation;</li>
+        <li>Resell, copy or reverse-engineer the platform except as the law allows.</li>
+      </ul>
+    </section>
+
+    <section id="data"><h2><span class="num">05</span> Your data &amp; content</h2>
+      <p>You keep ownership of the information and content you put into CiaraLink. You grant us a limited licence to store, process and display that content only as needed to provide the platform to you and your care team, and as described in our <a href="./privacy.html">Privacy Policy</a>.</p>
+      <p>You’re responsible for the accuracy of your records, for having the right consents to record and share information, and for keeping your own copies of anything you need to retain.</p>
+    </section>
+
+    <section id="preview"><h2><span class="num">06</span> Launch-preview status</h2>
+      <div class="callout"><b>CiaraLink is currently a launch preview.</b> Some features are still in development and may be labelled “preview” or “coming soon”. The platform is connected to a controlled development environment for testing. Features, data and availability may change, and you shouldn’t rely on the preview as your sole system of record.</div>
+    </section>
+
+    <section id="fees"><h2><span class="num">07</span> Plans, fees &amp; trials</h2>
+      <p>CiaraLink is offered on subscription plans priced by your size (for example, by participant or team count), with every feature included and <b>0% commission</b> on the care you deliver. Paid plans may include a free trial. Prices are in AUD and exclude GST unless stated. Where a trial or plan applies, the pricing and billing terms shown at sign-up form part of these Terms.</p>
+    </section>
+
+    <section id="advice"><h2><span class="num">08</span> No professional advice</h2>
+      <p>CiaraLink does not provide legal, compliance, audit, financial, medical or clinical advice, and is <b>not a registered auditor, legal practice or compliance authority</b>. Nothing on the platform should be relied on as professional advice. We are not lawyers, compliance officers or audit officers — please don’t ask our team for professional advice. For decisions that matter, consult a suitably qualified professional.</p>
+    </section>
+
+    <section id="liability"><h2><span class="num">09</span> Disclaimers &amp; liability</h2>
+      <p>CiaraLink is provided “as is” and “as available”. To the extent permitted by law, we exclude implied warranties and aren’t liable for indirect or consequential loss, lost data, or loss arising from your reliance on the platform or on information recorded in it. Nothing in these Terms limits rights you have under the Australian Consumer Law that can’t lawfully be excluded.</p>
+    </section>
+
+    <section id="term"><h2><span class="num">10</span> Suspension &amp; termination</h2>
+      <p>You can stop using CiaraLink at any time. We may suspend or end access if these Terms are breached, if needed to protect the platform or other users, or if we discontinue the service. On termination, your right to use the platform ends; we’ll handle your data as described in the <a href="./privacy.html">Privacy Policy</a>.</p>
+    </section>
+
+    <section id="changes"><h2><span class="num">11</span> Changes to these Terms</h2>
+      <p>We may update these Terms as CiaraLink develops. If we make material changes, we’ll update the “last updated” date and, where appropriate, let you know. Continuing to use the platform after changes take effect means you accept the updated Terms.</p>
+    </section>
+
+    <section id="law"><h2><span class="num">12</span> Governing law &amp; contact</h2>
+      <p>These Terms are governed by the laws of Australia. Questions about these Terms? Contact us through the <a href="./landing.html#early">CiaraLink site</a> and we’ll help.</p>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <a class="brand" href="./landing.html" style="gap:10px">
+        <span class="logo" style="width:32px;height:32px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="brand-name" style="color:var(--on-dark)">CiaraLink</span>
+      </a>
+      <div class="foot-links">
+        <a href="./landing.html">Home</a><a href="./privacy.html">Privacy</a><a href="./terms.html">Terms</a><a href="./landing.html#early">Contact</a>
+      </div>
+    </div>
+    <p class="foot-disc"><b>Important.</b> CiaraLink is a care-coordination software tool — not a registered auditor, legal practice, or compliance authority. We are not lawyers, compliance officers, or audit officers, and nothing on this platform is legal, financial, clinical, or compliance advice. CiaraLink is intended only to help health and disability care teams organise and share their own work; you remain responsible for your own obligations and decisions. Please don’t ask our team for professional advice — speak to a suitably qualified professional instead.</p>
+    <div class="foot-bot">© 2026 CiaraLink. All rights reserved. · Launch preview.</div>
+  </div>
+</footer>
+</body>
+</html>

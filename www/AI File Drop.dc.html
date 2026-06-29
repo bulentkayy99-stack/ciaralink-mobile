@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="data.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <!-- AI auto-scan text extractors (loaded defensively; scan is skipped per-type if missing) -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px} ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes fd-spin{to{transform:rotate(360deg)}}
+
+    /* ====================================================================
+       RESPONSIVE — phones & tablets. Desktop layout is UNCHANGED: every rule
+       below lives inside a media query and overrides inline desktop styles via
+       [style*="…"] attribute selectors + !important. No HTML / JS touched.
+       ==================================================================== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;max-width:100%}
+      /* top wrapper: clip horizontal overflow */
+      [style*="min-height:100vh"][style*="flex-direction:column"]{overflow-x:hidden !important;max-width:100% !important}
+      /* header: wrap controls, tighter padding */
+      [style*="backdrop-filter:blur(14px)"]{flex-wrap:wrap !important;gap:10px !important;padding:12px 16px !important}
+      /* content area: tighter padding */
+      [style*="padding:24px 28px 48px"]{padding:16px 14px 40px !important}
+      /* drop zone | client folders/Your files -> stacked single column */
+      [style*="grid-template-columns:1.3fr 1fr"]{grid-template-columns:1fr !important;gap:14px !important}
+      [style*="grid-template-columns:1.3fr 1fr"]>div{min-width:0 !important}
+      /* client-file section cards 2-up -> single column */
+      [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+    }
+    @media (max-width:520px){
+      [style*="padding:24px 28px 48px"]{padding:12px 10px 36px !important}
+      [style*="backdrop-filter:blur(14px)"]{padding:10px 12px !important;gap:8px !important}
+      /* new-client name + NDIS inputs stack cleanly */
+      [style*="display:flex;gap:8px;flex-wrap:wrap"]{flex-direction:column !important}
+    }
+  </style>
+</helmet>
+<div style="min-height:100vh;background:#eaeeec;display:flex;flex-direction:column">
+
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">{{ logoEl }}</div>
+    <div style="font-size:17px;font-weight:800;color:#14302b">CiaraLink <span style="color:#9aa8a3;font-weight:500">/ AI File Drop</span></div>
+    <div style="flex:1"></div>
+    <button onClick="{{ goBack }}" style="padding:9px 16px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">← Dashboard</button>
+    <button onClick="{{ signOut }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#6c7f79;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">{{ logoutSmEl }}Sign out</button>
+  </header>
+
+  <div style="flex:1;overflow-y:auto;padding:24px 28px 48px;max-width:1160px;margin:0 auto;width:100%">
+
+    <!-- client switcher buttons -->
+    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px">
+      <sc-for list="{{ clientFolders }}" as="c" hint-placeholder-count="4">
+        <button onClick="{{ c.onClick }}" style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid {{ c.selBd }};background:{{ c.selBg }};color:{{ c.selFg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">
+          <span style="width:22px;height:22px;border-radius:6px;background:{{ c.tint }};display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">{{ c.init }}</span>
+          {{ c.name }}
+        </button>
+      </sc-for>
+    </div>
+
+    <!-- client file view (always shown when client selected) -->
+    <sc-if value="{{ isClientFile }}" hint-placeholder-val="">
+      <div style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px 22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex:0 0 44px">{{ clientInitials }}</div>
+        <div style="flex:1"><div style="font-size:18px;font-weight:800;color:#14302b">{{ clientFileName }}</div><div style="font-size:12.5px;color:#6c7f79">{{ clientFileSubtitle }}</div></div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:6px 12px;border-radius:999px">{{ sparkSmEl }}AI maintained</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+        <sc-for list="{{ clientFileSections }}" as="s" hint-placeholder-count="14">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #eef2f0">
+              <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ s.tintBg }};display:flex;align-items:center;justify-content:center">{{ s.iconEl }}</div>
+              <span style="flex:1;font-size:12.5px;font-weight:800;color:#14302b">{{ s.label }}</span>
+              <span style="font-size:10.5px;font-weight:700;color:{{ s.stFg }};background:{{ s.stBg }};padding:2px 8px;border-radius:6px">{{ s.status }}</span>
+            </div>
+            <div style="padding:9px 14px;display:flex;gap:8px;align-items:center">
+              <span style="font-size:10px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 7px;border-radius:5px;white-space:nowrap;flex:0 0 auto">{{ s.count }}</span>
+              <span style="flex:1;min-width:0;font-size:11.5px;color:#6c7f79;line-height:1.4">{{ s.detail }}</span>
+              <sc-if value="{{ s.canDownload }}" hint-placeholder-val="">
+                <button onClick="{{ s.onDownload }}" style="flex:0 0 auto;padding:4px 10px;border-radius:7px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Download ↓</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ clientFileEmpty }}" hint-placeholder-val="">
+        <div style="padding:22px 17px;font-size:12.5px;color:#8a9a94;text-align:center;background:#fff;border:1px solid #e7ece9;border-radius:14px;margin-bottom:24px">No documents yet for this client.</div>
+      </sc-if>
+    </sc-if>
+
+    <!-- drop zone (shown when no client selected) -->
+    <sc-if value="{{ showDrop }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:14px;padding:14px 20px;margin-bottom:18px;color:#eafaf8">
+        <span style="display:flex">{{ sparkWEl }}</span>
+        <div style="flex:1;font-size:13.5px">Drop any file. I'll read it, figure out who it belongs to, rename it clearly, and file it in the right folder — automatically.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <!-- drop zone -->
+          <button id="fd-dropzone" onClick="{{ uploadFiles }}" style="border:2px dashed {{ dropBd }};border-radius:18px;padding:28px 22px;text-align:center;background:{{ dropBg }};cursor:pointer;font-family:inherit;width:100%">
+            <div style="width:54px;height:54px;border-radius:15px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;margin:0 auto;pointer-events:none">{{ uploadBigEl }}</div>
+            <div style="font-size:16px;font-weight:800;color:#14302b;margin-top:12px;pointer-events:none">Drop files here</div>
+            <div style="font-size:12.5px;color:#6c7f79;margin-top:4px;pointer-events:none">PDF, Word, Excel or image — up to 50MB each.</div>
+            <div style="display:flex;gap:6px;justify-content:center;margin-top:11px;flex-wrap:wrap;pointer-events:none">
+              <sc-for list="{{ supportedTypes }}" as="t" hint-placeholder-count="6"><span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e0f0ec;padding:3px 9px;border-radius:7px">{{ t }}</span></sc-for>
+            </div>
+            <div style="margin-top:13px;font-size:13px;font-weight:700;color:#0b6b60;background:#e7f4f1;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;pointer-events:none">{{ sparkSmEl }}Click to browse, or drag files here</div>
+          </button>
+
+          <!-- pending: assign a client + type before filing -->
+          <sc-if value="{{ hasPending }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #eef2f0">
+                <div><div style="font-size:13.5px;font-weight:800;color:#14302b">File under a client</div><div style="font-size:11px;color:#8a9a94;margin-top:1px">Choose who each file belongs to, then file it.</div></div>
+                <button onClick="{{ fileAll }}" style="padding:6px 13px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">File all</button>
+              </div>
+              <sc-if value="{{ scanBanner }}" hint-placeholder-val="">
+                <div style="padding:10px 18px;background:#fbf6ec;border-bottom:1px solid #f0e7d4;font-size:11.5px;color:#8a6d2f">Auto-scan is off (add an AI key to enable) — choose the client manually.</div>
+              </sc-if>
+              <sc-for list="{{ pending }}" as="p" hint-placeholder-count="2">
+                <div style="padding:14px 18px;border-bottom:1px solid #f4f7f5">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+                    <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ p.iconEl }}</div>
+                    <div style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</div>
+                    <sc-if value="{{ p.scanning }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;font-weight:700;color:#b4561f;background:#fbf0df;padding:2px 8px;border-radius:6px;white-space:nowrap">Scanning…</span></sc-if>
+                  </div>
+                  <sc-if value="{{ p.scanned }}" hint-placeholder-val="">
+                    <div style="font-size:11px;font-weight:700;color:#7a5cd0;background:#f1ecfd;padding:6px 10px;border-radius:8px;margin-bottom:9px">✨ AI suggested — review &amp; confirm</div>
+                  </sc-if>
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Client
+                      <select value="{{ p.clientValue }}" onChange="{{ p.onClientChange }}" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px">
+                        <option value="">Choose client…</option>
+                        <sc-for list="{{ p.clientOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                        <option value="__new__">+ New client…</option>
+                      </select>
+                    </label>
+                    <sc-if value="{{ p.isNew }}" hint-placeholder-val="">
+                      <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <input value="{{ p.newName }}" onChange="{{ p.onNewNameChange }}" placeholder="New client full name" style="flex:1;min-width:140px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                        <input value="{{ p.newNdis }}" onChange="{{ p.onNewNdisChange }}" placeholder="NDIS number (optional)" style="flex:1;min-width:140px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                      </div>
+                    </sc-if>
+                    <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Document type
+                      <select value="{{ p.docType }}" onChange="{{ p.onDocTypeChange }}" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px">
+                        <option value="ndis_plan">NDIS Plan</option>
+                        <option value="service_agreement">Service Agreement</option>
+                        <option value="worker_agreement">Worker Agreement</option>
+                        <option value="consent_form">Consent Form</option>
+                        <option value="intake_form">Intake Form</option>
+                        <option value="allied_health_report">Allied Health Report</option>
+                        <option value="functional_capacity_assessment">Functional Capacity Assessment</option>
+                        <option value="support_plan">Support Plan</option>
+                        <option value="risk_assessment">Risk Assessment</option>
+                        <option value="police_check">Police Check</option>
+                        <option value="wwcc">Working With Children Check</option>
+                        <option value="first_aid">First Aid Certificate</option>
+                        <option value="insurance">Insurance</option>
+                        <option value="abn_document">ABN Document</option>
+                        <option value="progress_report">Progress Report</option>
+                        <option value="invoice">Invoice</option>
+                        <option value="timesheet">Timesheet</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </label>
+                    <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Title
+                      <input value="{{ p.title }}" onChange="{{ p.onTitleChange }}" placeholder="Document title" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:9px;justify-content:flex-end;margin-top:2px">
+                      <sc-if value="{{ p.filing }}" hint-placeholder-val=""><span style="font-size:11px;color:#6c8c83">Filing…</span></sc-if>
+                      <button onClick="{{ p.onRemove }}" style="padding:7px 13px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#8a9a94;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">Discard</button>
+                      <button onClick="{{ p.onFileIt }}" style="padding:7px 15px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">File it →</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- upload queue (real) -->
+          <sc-if value="{{ hasQueue }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:13.5px;font-weight:800;color:#14302b">Uploads</span><span style="font-size:11.5px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:999px">{{ queueCount }}</span></div>
+              <sc-for list="{{ queue }}" as="f" hint-placeholder-count="3">
+                <div style="padding:12px 18px;border-bottom:1px solid #f4f7f5">
+                  <div style="display:flex;align-items:center;gap:11px">
+                    <div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;background:{{ f.iconBg }};display:flex;align-items:center;justify-content:center;position:relative">{{ f.iconEl }}<sc-if value="{{ f.isUploading }}" hint-placeholder-val=""><div style="position:absolute;inset:-3px;border-radius:12px;border:2px solid #16b8a6;border-top-color:transparent;animation:fd-spin 1s linear infinite"></div></sc-if></div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:12.5px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+                      <div style="font-size:11px;color:{{ f.msgFg }};margin-top:2px">{{ f.msg }}</div>
+                    </div>
+                    <span style="font-size:10px;font-weight:700;color:{{ f.stageFg }};background:{{ f.stageBg }};padding:2px 8px;border-radius:6px;white-space:nowrap">{{ f.stage }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- folder browser -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:13px 17px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">Client folders</div>
+            <sc-for list="{{ clientFolders }}" as="c" hint-placeholder-count="4">
+              <div style="padding:12px 17px;border-bottom:1px solid #f4f7f5">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:{{ c.tint }}">{{ c.init }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:11px;color:#8a9a94">{{ c.fileCount }} files · {{ c.lastUpdated }}</div></div>
+                  <sc-if value="{{ c.newCount }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 7px;border-radius:6px">{{ c.newCount }}</span></sc-if>
+                  <button onClick="{{ c.onClick }}" style="padding:5px 11px;border-radius:8px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">Open →</button>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noClients }}" hint-placeholder-val="">
+              <div style="padding:18px 17px;font-size:12px;color:#8a9a94;text-align:center">No clients yet — drop a file to create one.</div>
+            </sc-if>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:13px 17px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">Your files</div>
+            <sc-if value="{{ hasDocs }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ docs }}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 17px;border-bottom:1px solid #f4f7f5">
+                  <div style="width:28px;height:28px;border-radius:7px;flex:0 0 28px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ fileSmEl }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.title }}</div><div style="font-size:11px;color:#8a9a94">{{ r.typeLabel }} · {{ r.dateLabel }}</div></div>
+                  <button onClick="{{ r.onDownload }}" style="padding:4px 10px;border-radius:7px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap" style-hover="background:#f0faf8;border-color:#16b8a6">Download ↓</button>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ noDocs }}" hint-placeholder-val="">
+              <div style="padding:22px 17px;font-size:12.5px;color:#8a9a94;text-align:center">No files uploaded yet — drag a file here to get started.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { dragging:false, uploads:[], docs:[], docsLoaded:false, openClient:null, toast:null, pending:[], participants:[], participantsLoaded:false, scanBanner:false };
+
+  componentDidMount(){
+    this.setupFileDrop();
+    this.refreshDocs();
+    this.refreshParticipants();
+  }
+  componentWillUnmount(){
+    try{
+      if(this._onDragOver) document.removeEventListener('dragover',this._onDragOver);
+      if(this._onDragLeave) document.removeEventListener('dragleave',this._onDragLeave);
+      if(this._onDrop) document.removeEventListener('drop',this._onDrop);
+      if(this._fileInput && this._fileInput.parentNode) this._fileInput.parentNode.removeChild(this._fileInput);
+    }catch(e){}
+  }
+  setupFileDrop(){
+    try{
+      // hidden file input — created once, persists across DC re-renders
+      if(!this._fileInput){
+        const input=document.createElement('input');
+        input.type='file'; input.multiple=true;
+        input.accept='.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx';
+        input.style.display='none';
+        input.addEventListener('change',()=>{ const files=input.files; if(files&&files.length) this.handleFiles(files); input.value=''; });
+        document.body.appendChild(input);
+        this._fileInput=input;
+      }
+      // document-level delegation survives re-renders of the drop zone node
+      const inZone=(t)=> t && t.closest && t.closest('#fd-dropzone');
+      this._onDragOver=(e)=>{ if(inZone(e.target)){ e.preventDefault(); if(!this.state.dragging) this.setState({dragging:true}); } };
+      this._onDragLeave=(e)=>{ const z=inZone(e.target); if(z && (!e.relatedTarget || !z.contains(e.relatedTarget))){ this.setState({dragging:false}); } };
+      this._onDrop=(e)=>{ if(inZone(e.target)){ e.preventDefault(); this.setState({dragging:false}); const files=e.dataTransfer&&e.dataTransfer.files; if(files&&files.length) this.handleFiles(files); } };
+      document.addEventListener('dragover',this._onDragOver);
+      document.addEventListener('dragleave',this._onDragLeave);
+      document.addEventListener('drop',this._onDrop);
+    }catch(e){ console.error('setupFileDrop',e); }
+  }
+  browse(){ if(this._fileInput) this._fileInput.click(); }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3500); }
+  prettyType(t){
+    const m={service_agreement:'Service Agreement',consent_form:'Consent Form',shift_note:'Shift Note',risk_assessment:'Risk Assessment',care_plan:'Care Plan',support_plan:'Support Plan',incident_report:'Incident Report',invoice:'Invoice',other:'Document'};
+    if(!t) return 'Document';
+    return m[t]||String(t).replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+  }
+  validateFile(file){
+    const MAX=50*1024*1024;
+    const ALLOWED=['pdf','jpg','jpeg','png','webp','doc','docx','xls','xlsx'];
+    const name=file.name||'file';
+    const ext=(name.indexOf('.')>=0?name.split('.').pop():'').toLowerCase();
+    if(ALLOWED.indexOf(ext)===-1) return 'Unsupported file type'+(ext?' (.'+ext+')':'');
+    if(file.size>MAX) return 'File is larger than 50MB';
+    return null;
+  }
+  addUpload(u){ this.setState(function(s){ return {uploads:[u].concat(s.uploads||[]).slice(0,12)}; }); }
+  updateUpload(id,patch){ this.setState(function(s){ return {uploads:(s.uploads||[]).map(function(u){ return u.id===id?Object.assign({},u,patch):u; })}; }); }
+  async refreshDocs(attempt){
+    attempt=attempt||0;
+    if(typeof window.loadDocumentsForCurrentUser!=='function'){
+      if(attempt<20){ setTimeout(()=>this.refreshDocs(attempt+1),250); }
+      else { this.setState({docsLoaded:true}); }
+      return;
+    }
+    try{
+      const res=await window.loadDocumentsForCurrentUser();
+      this.setState({docs:(res&&res.documents)||[],docsLoaded:true});
+    }catch(e){ this.setState({docsLoaded:true}); }
+  }
+  // Drop/select -> stage each file in the "pending" queue so the user can
+  // assign it to a client + a document type before it's actually filed.
+  handleFiles(fileList){
+    const files=Array.prototype.slice.call(fileList||[]);
+    if(!files.length) return;
+    const added=[];
+    for(const file of files){
+      const nm=file.name||'file';
+      const vErr=this.validateFile(file);
+      if(vErr){ this.showToast("Can't add "+nm+": "+vErr); continue; }
+      const id='p'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+      added.push({id:id,file:file,name:nm,clientChoice:'',newName:'',newNdis:'',docType:'other',title:nm,filing:false,scanning:true,scanned:false});
+    }
+    if(added.length){
+      this.setState(function(s){ return {pending:(s.pending||[]).concat(added)}; });
+      // refresh the client list each time the panel gains files
+      this.refreshParticipants();
+      // kick off AI auto-scan for each new file (non-blocking; manual stays as fallback)
+      added.forEach((item)=>{ this.scanFile(item); });
+    }
+  }
+  // ── AI auto-scan ──────────────────────────────────────────────────────────
+  // Reads a dropped file, asks /api/scan-document to identify it, and pre-fills
+  // the client + document type + title. Silently falls back to manual on any
+  // failure, missing token, missing lib, or {configured:false}.
+  fileToBase64(file){
+    return new Promise(function(resolve){
+      try{
+        const reader=new FileReader();
+        reader.onload=function(){ const r=String(reader.result||''); const i=r.indexOf('base64,'); resolve(i>=0?r.slice(i+7):''); };
+        reader.onerror=function(){ resolve(''); };
+        reader.readAsDataURL(file);
+      }catch(e){ resolve(''); }
+    });
+  }
+  async buildScanPayload(file){
+    const name=file.name||'file';
+    const type=file.type||'';
+    const ext=(name.indexOf('.')>=0?name.split('.').pop():'').toLowerCase();
+    try{
+      if(ext==='pdf'||type==='application/pdf'){
+        const data=await this.fileToBase64(file);
+        if(!data) return null;
+        return {kind:'pdf',filename:name,data:data};
+      }
+      if(ext==='jpg'||ext==='jpeg'||ext==='png'||ext==='webp'||(type&&type.indexOf('image/')===0)){
+        const data=await this.fileToBase64(file);
+        if(!data) return null;
+        return {kind:'image',filename:name,mediaType:(type||('image/'+(ext==='jpg'?'jpeg':ext))),data:data};
+      }
+      if(ext==='docx'){
+        if(typeof window.mammoth==='undefined'||typeof window.mammoth.extractRawText!=='function') return null;
+        const buf=await file.arrayBuffer();
+        const out=await window.mammoth.extractRawText({arrayBuffer:buf});
+        const text=(out&&out.value)?out.value:'';
+        if(!text) return null;
+        return {kind:'text',filename:name,text:text};
+      }
+      if(ext==='xls'||ext==='xlsx'){
+        if(typeof window.XLSX==='undefined'||typeof window.XLSX.read!=='function') return null;
+        const buf=await file.arrayBuffer();
+        const wb=window.XLSX.read(new Uint8Array(buf),{type:'array'});
+        let text='';
+        (wb.SheetNames||[]).forEach(function(sn){ try{ text+=window.XLSX.utils.sheet_to_csv(wb.Sheets[sn])+'\n'; }catch(e){} });
+        if(!text) return null;
+        return {kind:'text',filename:name,text:text};
+      }
+    }catch(e){ return null; }
+    return null;
+  }
+  async scanFile(item){
+    const id=item&&item.id, file=item&&item.file;
+    if(!id||!file){ return; }
+    try{
+      if(typeof window.getSupabaseClient!=='function'){ this.updatePending(id,{scanning:false}); return; }
+      let token=null;
+      try{
+        const sres=await window.getSupabaseClient().auth.getSession();
+        const session=sres&&sres.data&&sres.data.session;
+        token=session&&session.access_token;
+      }catch(e){ token=null; }
+      if(!token){ this.updatePending(id,{scanning:false}); return; }
+      const payload=await this.buildScanPayload(file);
+      if(!payload){ this.updatePending(id,{scanning:false}); return; }
+      let resp=null;
+      try{
+        resp=await fetch('/api/scan-document',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      }catch(e){ this.updatePending(id,{scanning:false}); return; }
+      if(!resp||!resp.ok){ this.updatePending(id,{scanning:false}); return; }
+      let result=null;
+      try{ result=await resp.json(); }catch(e){ result=null; }
+      if(!result){ this.updatePending(id,{scanning:false}); return; }
+      if(result.configured===false){ this.updatePending(id,{scanning:false}); this.setState({scanBanner:true}); return; }
+      if(result.configured===true){ await this.applyScan(id,result); return; }
+      this.updatePending(id,{scanning:false});
+    }catch(e){ this.updatePending(id,{scanning:false}); }
+  }
+  async applyScan(id,result){
+    // ensure we have a participant list to fuzzy-match the detected person against
+    let participants=this.state.participants||[];
+    if((!participants.length||!this.state.participantsLoaded)&&typeof window.loadParticipantsForCurrentUser==='function'){
+      try{ const res=await window.loadParticipantsForCurrentUser(); participants=(res&&res.participants)||participants; this.setState({participants:participants,participantsLoaded:true}); }catch(e){}
+    }
+    const VALID=['ndis_plan','service_agreement','worker_agreement','consent_form','intake_form','allied_health_report','functional_capacity_assessment','support_plan','risk_assessment','police_check','wwcc','first_aid','insurance','abn_document','progress_report','invoice','timesheet','other'];
+    const patch={scanning:false,scanned:true};
+    if(result.doc_type&&VALID.indexOf(result.doc_type)!==-1){ patch.docType=result.doc_type; }
+    if(result.suggested_title){ patch.title=String(result.suggested_title); }
+    const person=(result.person_name||'').trim();
+    if(person){
+      const lc=person.toLowerCase();
+      const match=participants.find(function(p){
+        const fn=(p.full_name||'').toLowerCase().trim();
+        const pn=(p.preferred_name||'').toLowerCase().trim();
+        if(fn&&fn===lc) return true;
+        if(pn&&pn===lc) return true;
+        if(fn&&(fn.indexOf(lc)!==-1||lc.indexOf(fn)!==-1)) return true;
+        if(pn&&(pn.indexOf(lc)!==-1||lc.indexOf(pn)!==-1)) return true;
+        return false;
+      });
+      if(match){ patch.clientChoice=match.id; }
+      else { patch.clientChoice='__new__'; patch.newName=person; }
+    }
+    this.updatePending(id,patch);
+  }
+  updatePending(id,patch){ this.setState(function(s){ return {pending:(s.pending||[]).map(function(p){ return p.id===id?Object.assign({},p,patch):p; })}; }); }
+  removePending(id){ this.setState(function(s){ return {pending:(s.pending||[]).filter(function(p){ return p.id!==id; })}; }); }
+  async refreshParticipants(){
+    if(typeof window.loadParticipantsForCurrentUser!=='function'){ return; }
+    try{
+      const res=await window.loadParticipantsForCurrentUser();
+      this.setState({participants:(res&&res.participants)||[],participantsLoaded:true});
+    }catch(e){ this.setState({participantsLoaded:true}); }
+  }
+  async fileOne(id){
+    const item=(this.state.pending||[]).find(function(p){ return p.id===id; });
+    if(!item||item.filing) return;
+    if(typeof window.uploadDocument!=='function'){ this.showToast("Upload isn't ready yet — please reload the page"); return; }
+    let participant_id=null, clientName='';
+    const isNew=item.clientChoice==='__new__';
+    if(isNew){
+      const fullName=(item.newName||'').trim();
+      if(!fullName){ this.showToast('Enter a name for the new client'); return; }
+      if(typeof window.createParticipant!=='function'||typeof window.loadCurrentUserContext!=='function'){ this.showToast("Can't create clients right now — please reload"); return; }
+      this.updatePending(id,{filing:true});
+      let org=null;
+      try{ org=await window.loadCurrentUserContext(); }catch(e){ org=null; }
+      const orgId=org&&org.organisationId;
+      if(!orgId){ this.updatePending(id,{filing:false}); this.showToast("Couldn't find your organisation — please reload"); return; }
+      let cres;
+      try{ cres=await window.createParticipant({org_id:orgId,full_name:fullName,ndis_number:(item.newNdis||'').trim()||undefined}); }
+      catch(e){ cres={error:e&&e.message?e.message:String(e)}; }
+      if(!cres||!cres.participant||cres.error){
+        this.updatePending(id,{filing:false});
+        this.showToast("Couldn't create client: "+((cres&&cres.error)||'unknown error'));
+        return;
+      }
+      participant_id=cres.participant.id;
+      clientName=cres.participant.full_name||fullName;
+      // make the new client selectable for the next file
+      this.setState(function(s){ return {participants:[cres.participant].concat(s.participants||[])}; });
+    }else{
+      participant_id=item.clientChoice;
+      if(!participant_id){ this.showToast('Choose a client for this file first'); return; }
+      const match=(this.state.participants||[]).find(function(p){ return p.id===participant_id; });
+      clientName=(match&&(match.full_name||match.preferred_name))||'the client';
+      this.updatePending(id,{filing:true});
+    }
+    let res;
+    try{ res=await window.uploadDocument({file:item.file,participant_id:participant_id,doc_type:item.docType,title:((item.title&&String(item.title).trim())||item.name)}); }
+    catch(e){ res={error:e&&e.message?e.message:String(e)}; }
+    if(res&&res.document&&!res.error){
+      this.removePending(id);
+      this.addUpload({id:'u'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:item.name,stage:'Filed ✓',state:'done',msg:'Filed under '+clientName});
+      this.showToast('Filed '+item.name+' under '+clientName);
+      this.refreshDocs();
+    }else{
+      this.updatePending(id,{filing:false});
+      this.showToast("Couldn't file "+item.name+": "+((res&&res.error)||'unknown error'));
+    }
+  }
+  async fileAllPending(){
+    const ids=(this.state.pending||[]).map(function(p){ return p.id; });
+    for(const id of ids){ await this.fileOne(id); }
+  }
+  ic(n,c,s,sw){
+    const stroke=c||'#5f726d',sz=s||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      upload:'M12 16V4 M7 9l5-5 5 5 M4 20h16',
+      checkCirc:'M12 12m-10 0a10 10 0 1 0 20 0 10 10 0 1 0-20 0 M8 12l3 3 5-5',
+      alert:'M12 9v4 M12 17h.01 M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0z',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      note:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'
+    };
+    return React.createElement('svg',{width:sz,height:sz,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.file}));
+  }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const drag=!!this.state.dragging;
+    const oc=this.state.openClient;
+
+    // ── REAL uploaded documents (org-scoped) ──
+    const docs=(this.state.docs||[]).map(d=>{
+      const dt=d.created_at?new Date(d.created_at):null;
+      const dateLabel=(dt&&!isNaN(dt.getTime()))?dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'';
+      const path=d.storage_path, bucket=d.storage_bucket||'participant-documents';
+      return {
+        title:d.title||'Untitled',
+        typeLabel:this.prettyType(d.type),
+        dateLabel:dateLabel,
+        onDownload:async()=>{
+          if(typeof window.getDocumentSignedUrl!=='function'){ this.showToast('Download not available'); return; }
+          if(!path){ this.showToast('No file path for this document'); return; }
+          const r=await window.getDocumentSignedUrl(path,bucket);
+          if(r&&r.url){ window.open(r.url,'_blank','noopener'); }
+          else this.showToast("Couldn't open file: "+((r&&r.error)||'no link'));
+        }
+      };
+    });
+    const hasDocs=docs.length>0;
+    const noDocs=this.state.docsLoaded&&docs.length===0;
+
+    // ── PENDING files awaiting client + type assignment ──
+    const participants=this.state.participants||[];
+    const clientOptions=participants.map(function(p){ return {value:p.id,label:(p.full_name||p.preferred_name||'Unnamed client')}; });
+    const pending=(this.state.pending||[]).map(p=>({
+      name:p.name,
+      iconEl:ic('file','#0b6b60',16),
+      clientValue:p.clientChoice||'',
+      clientOptions:clientOptions,
+      isNew:p.clientChoice==='__new__',
+      newName:p.newName||'',
+      newNdis:p.newNdis||'',
+      docType:p.docType||'other',
+      title:p.title||p.name||'',
+      filing:!!p.filing,
+      scanning:!!p.scanning,
+      scanned:!!p.scanned,
+      onClientChange:(e)=>{ const v=e&&e.target?e.target.value:''; this.updatePending(p.id,{clientChoice:v}); },
+      onNewNameChange:(e)=>{ const v=e&&e.target?e.target.value:''; this.updatePending(p.id,{newName:v}); },
+      onNewNdisChange:(e)=>{ const v=e&&e.target?e.target.value:''; this.updatePending(p.id,{newNdis:v}); },
+      onDocTypeChange:(e)=>{ const v=e&&e.target?e.target.value:'other'; this.updatePending(p.id,{docType:v}); },
+      onTitleChange:(e)=>{ const v=e&&e.target?e.target.value:''; this.updatePending(p.id,{title:v}); },
+      onFileIt:()=>this.fileOne(p.id),
+      onRemove:()=>this.removePending(p.id)
+    }));
+    const hasPending=pending.length>0;
+
+    // ── REAL upload queue (in-flight + results) ──
+    const queue=(this.state.uploads||[]).map(u=>{
+      const isUploading=u.state==='uploading';
+      const isErr=u.state==='error';
+      const isDone=u.state==='done';
+      const accent=isErr?'#e0556e':(isDone?'#1e9e6a':'#d98b22');
+      return {
+        name:u.name,
+        msg:u.msg,
+        msgFg:isErr?'#c0445c':'#6c8c83',
+        stage:u.stage,
+        stageFg:isErr?'#c0445c':(isDone?'#1e7a52':'#b4561f'),
+        stageBg:isErr?'#fbe9ed':(isDone?'#e9f6ef':'#fbf0df'),
+        iconBg:isErr?'#fbe9ed':(isDone?'#e9f6ef':'#e7f4f1'),
+        iconEl:ic('file',accent,16),
+        isUploading:isUploading
+      };
+    });
+
+    const sections14=[
+      {label:'Profile & NDIS Details',icon:'user',color:'#16b8a6',tintBg:'#e7f4f1',status:'Complete',stFg:'#1e7a52',stBg:'#e9f6ef',count:'1 file',detail:'DOB 22/07/1979 · NDIS 4118 224 770 · Glenroy VIC · Plan-managed · MyPlan Co'},
+      {label:'Service Agreements',icon:'doc',color:'#6366f1',tintBg:'#eef0fd',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',count:'2 files',detail:'Service Agreement Signed 2026 · Service Agreement 2025 (archived)'},
+      {label:'Consent Forms',icon:'shield',color:'#0891b2',tintBg:'#e0f2f5',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',count:'1 file',detail:'Consent to Share Information — Signed 01 Jul 2026'},
+      {label:'Support Plan / Care Plan',icon:'note',color:'#d98b22',tintBg:'#fbf0df',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',count:'1 file',detail:'Support Plan — Community Access — Updated May 2026'},
+      {label:'Shift Notes',icon:'clock',color:'#1e9e6a',tintBg:'#e9f6ef',status:'4 files',stFg:'#0b6b60',stBg:'#e7f4f1',count:'4 files',detail:'21 Jun · 18 Jun · 15 Jun · 12 Jun — all GPS-verified by CiaraLink'},
+      {label:'Support Worker Details',icon:'users',color:'#9333ea',tintBg:'#f3e8ff',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',count:'2 files',detail:'Amara Okafor · Lena Sorensen — both active with Brightside Care'},
+      {label:'Incident Reports',icon:'alert',color:'#e0556e',tintBg:'#fbe9ed',status:'None',stFg:'#8a9a94',stBg:'#f1f4f2',count:'0 files',detail:'No incidents on record — AI will file here automatically when one arrives'},
+      {label:'Risk Assessments',icon:'alert',color:'#d98b22',tintBg:'#fbf0df',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',count:'2 files',detail:'Community Access Apr 2026 · Manual Handling Jul 2025 (archived)'},
+      {label:'Health Information',icon:'heart',color:'#e0556e',tintBg:'#fbe9ed',status:'On file',stFg:'#0b6b60',stBg:'#e7f4f1',count:'1 file',detail:'Health Summary — GP Glenroy Medical — Mar 2026'},
+      {label:'Appointments',icon:'cal',color:'#6366f1',tintBg:'#eef0fd',status:'3 upcoming',stFg:'#4338ca',stBg:'#eef0fd',count:'3 items',detail:'Physio 25 Jun · GP Review 02 Jul · Plan Review Meeting 21 Jul 2026'},
+      {label:'Invoices / Billing',icon:'wallet',color:'#16b8a6',tintBg:'#e7f4f1',status:'Filed',stFg:'#0b6b60',stBg:'#e7f4f1',count:'4 files',detail:'Fortnightly 16–29 Jun (filed) · 01–14 Jun (paid) · May (paid) · Apr (paid)'},
+      {label:'Communication Log',icon:'doc',color:'#0891b2',tintBg:'#e0f2f5',status:'3 entries',stFg:'#0b6b60',stBg:'#e7f4f1',count:'3 entries',detail:'Call SC Sarah Kelly 19 Jun · Email 15 Jun · Call family 10 Jun'},
+      {label:'Compliance Documents',icon:'shield',color:'#16b8a6',tintBg:'#e7f4f1',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',count:'2 files',detail:'Privacy Notice (signed) · NDIS Participant Statement (filed)'},
+      {label:'Uploaded Files',icon:'upload',color:'#8a9a94',tintBg:'#f1f4f2',status:'5 files',stFg:'#5f726d',stBg:'#f1f4f2',count:'5 files',detail:'IMG_3847.jpg → Risk Assessment (AI filed) · scan001.pdf → Service Agreement (AI filed)'}
+    ].map(s=>({...s,iconEl:ic(s.icon,s.color,16),canDownload:false}));
+    // ── demoMode: only fabricate clients/sections when Supabase is NOT configured ──
+    const demoMode=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+
+    // group REAL documents by participant for folder counts + per-client file lists
+    const docsByClient={};
+    (this.state.docs||[]).forEach(function(d){ const k=d&&d.participant_id; if(!k) return; (docsByClient[k]=docsByClient[k]||[]).push(d); });
+    const fmtDate=(v)=>{ const dt=v?new Date(v):null; return (dt&&!isNaN(dt.getTime()))?dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):''; };
+    const initialsOf=(nm)=>{ const parts=String(nm||'').trim().split(/\s+/).filter(Boolean); const a=(parts[0]||'')[0]||''; const b=parts.length>1?(parts[parts.length-1][0]||''):''; return ((a+b)||String(nm||'').slice(0,2)).toUpperCase(); };
+    const tints=['#16b8a6','#0e5147','#6366f1','#9333ea','#0891b2','#d98b22','#e0556e','#1e9e6a'];
+
+    const demoFolders=[
+      {name:'Max Becker',init:'MB',tint:'#16b8a6',fileCount:14,lastUpdated:'today',newCount:'3 new'},
+      {name:'Margaret Reyes',init:'MR',tint:'#0e5147',fileCount:22,lastUpdated:'today',newCount:'2 new'},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',fileCount:9,lastUpdated:'3 days ago',newCount:''},
+      {name:'Priya Sharma',init:'PS',tint:'#9333ea',fileCount:6,lastUpdated:'1 week ago',newCount:''}
+    ].map(c=>({...c,key:c.name}));
+    const realFolders=participants.map((p,i)=>{
+      const nm=p.full_name||p.preferred_name||'Unnamed client';
+      const cdocs=docsByClient[p.id]||[];
+      const times=cdocs.map(function(d){ return d.created_at?new Date(d.created_at).getTime():0; }).filter(Boolean);
+      const last=times.length?fmtDate(Math.max.apply(null,times)):'';
+      return {key:p.id,id:p.id,name:nm,init:initialsOf(nm),tint:tints[i%tints.length],fileCount:cdocs.length,lastUpdated:last||'no files yet',newCount:''};
+    });
+    const clientFolders=(demoMode?demoFolders:realFolders).map(c=>({...c,selBd:oc===c.key?'#16b8a6':'#e2e9e6',selBg:oc===c.key?'#e7f4f1':'#fff',selFg:oc===c.key?'#0b6b60':'#5f726d',onClick:()=>this.setState({openClient:oc===c.key?null:c.key})}));
+
+    // selected client — real mode resolves the participant by id; demo uses the name as the key
+    const selParticipant=(!demoMode&&oc)?participants.find(function(p){return p.id===oc;}):null;
+    const selDocs=selParticipant?(docsByClient[oc]||[]):[];
+    const realSections=selDocs.map(d=>{
+      const path=d.storage_path, bucket=d.storage_bucket||'participant-documents';
+      return {
+        tintBg:'#eef0fd', iconEl:ic('file','#6366f1',16),
+        label:d.title||'Untitled', status:this.prettyType(d.type), stFg:'#0b6b60', stBg:'#e7f4f1',
+        count:fmtDate(d.created_at)||'—', detail:'', canDownload:!!path,
+        onDownload:async()=>{
+          if(typeof window.getDocumentSignedUrl!=='function'){ this.showToast('Download not available'); return; }
+          if(!path){ this.showToast('No file path for this document'); return; }
+          const r=await window.getDocumentSignedUrl(path,bucket);
+          if(r&&r.url){ window.open(r.url,'_blank','noopener'); }
+          else this.showToast("Couldn't open file: "+((r&&r.error)||'no link'));
+        }
+      };
+    });
+    const clientSelected=demoMode?!!oc:!!selParticipant;
+    const clientName=demoMode?(oc||''):(selParticipant?(selParticipant.full_name||selParticipant.preferred_name||'Client'):'');
+    const clientFileSections=demoMode?(oc?sections14:[]):realSections;
+    const clientFileSubtitle=demoMode
+      ?'Complete AI-maintained client file · 14 sections · last updated today'
+      :(selDocs.length+(selDocs.length===1?' document':' documents')+' on file');
+    const clientFileEmpty=!demoMode&&!!selParticipant&&selDocs.length===0;
+    const noClients=!demoMode&&participants.length===0;
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      logoutSmEl:ic('logout','#6c7f79',15),
+      logoEl:ic('logo','#eafaf8',20),sparkWEl:ic('spark','#eafaf8',16),sparkSmEl:ic('spark','#0b6b60',14),
+      uploadBigEl:ic('upload','#16b8a6',26),
+      goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      uploadFiles:()=>{ this.browse(); },
+      dropBd:drag?'#16b8a6':'#b6d8d0',dropBg:drag?'#e3f6f2':'#f1faf8',
+      supportedTypes:['PDF','JPG','PNG','WEBP','DOC','DOCX','XLS','XLSX'],
+      hasQueue:queue.length>0, queueCount:queue.length,
+      queue:queue,
+      pending:pending, hasPending:hasPending, fileAll:()=>this.fileAllPending(),
+      scanBanner:!!this.state.scanBanner,
+      docs:docs, hasDocs:hasDocs, noDocs:noDocs,
+      isClientFile:clientSelected,
+      showDrop:!clientSelected,
+      clientFileName:clientName,
+      clientInitials:clientName?initialsOf(clientName):'',
+      clientFileSections:clientFileSections,
+      clientFileSubtitle:clientFileSubtitle,
+      clientFileEmpty:clientFileEmpty,
+      noClients:noClients,
+      clientFolders,
+      fileSmEl:ic('file','#6366f1',14)
+    };
+  }
+}
+</script>
+</body>
+</html>

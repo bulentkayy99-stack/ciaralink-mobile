@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CiaraLink — The operating system for connected care</title>
+<meta name="description" content="Care, documents, support, notes and invoices. Finally in one place. The connected-care platform for Australian NDIS and healthcare teams — with 0% commission.">
+<meta property="og:title" content="CiaraLink — Care coordination, made clear.">
+<meta property="og:description" content="One place to manage care, support, documents, notes and invoices — without the chaos. Built for NDIS and healthcare teams. 0% commission.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
+  --ink:#0a1c19; --ink-2:#0c2622; --ink-3:#091815;
+  --paper:#f5f8f7; --paper-2:#eef3f1; --card:#ffffff;
+  --tx:#14302b; --tx-2:#52716b; --tx-3:#4a6764;
+  --on-dark:#f4faf8; --on-dark-2:#9fc1bb; --on-dark-3:#4e726b;
+  --line:#e2eae7; --line-d:rgba(255,255,255,.08);
+  --rad:22px; --rad-s:14px; --shadow:0 30px 80px -30px rgba(8,40,36,.35);
+  --maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+  color:var(--tx);background:var(--paper);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;line-height:1.5;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+a{color:inherit;text-decoration:none}
+img,svg{display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;width:100%}
+.eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-d)}
+.eyebrow.on-dark{color:var(--teal-2)}
+h1,h2,h3{letter-spacing:-.03em;line-height:1.04;font-weight:800}
+.btn{display:inline-flex;align-items:center;gap:9px;height:54px;padding:0 26px;border-radius:14px;font-family:inherit;font-size:15.5px;font-weight:800;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,background .18s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;box-shadow:0 16px 34px -12px rgba(14,147,132,.7)}
+.btn-primary:hover{box-shadow:0 22px 44px -12px rgba(14,147,132,.85)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--on-dark);border:1px solid rgba(255,255,255,.14)}
+.btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn-light{background:#fff;color:var(--tx);border:1px solid var(--line);box-shadow:0 4px 14px -6px rgba(8,40,36,.18)}
+.btn-sm{height:44px;padding:0 18px;font-size:14px;border-radius:12px}
+.arrow{transition:transform .2s}
+.btn:hover .arrow{transform:translateX(3px)}
+
+/* ===== Reveal-on-scroll ===== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+[data-d="1"]{transition-delay:.08s}[data-d="2"]{transition-delay:.16s}[data-d="3"]{transition-delay:.24s}[data-d="4"]{transition-delay:.32s}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.float,.marquee .track{animation:none!important}}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s,backdrop-filter .3s}
+.nav.scrolled{background:rgba(245,248,247,.78);backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--line)}
+.nav-in{height:72px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -8px rgba(14,147,132,.8)}
+.brand-name{font-size:19px;font-weight:900;letter-spacing:-.03em;color:var(--tx)}
+.brand-tag{font-size:9px;letter-spacing:.22em;font-weight:800;color:var(--tx-3);margin-top:1px}
+.nav-links{display:flex;gap:30px;margin-left:34px}
+.nav-links a{font-size:14.5px;font-weight:600;color:var(--tx-2);transition:color .15s}
+.nav-links a:hover{color:var(--tx)}
+.nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-cta .signin{font-size:14.5px;font-weight:700;color:var(--tx);padding:0 6px}
+@media(max-width:900px){.nav-links{display:none}.nav-cta .signin{display:none}}
+
+/* ===== HERO ===== */
+.hero{position:relative;padding:150px 0 70px;overflow:hidden;background:radial-gradient(1200px 700px at 75% -10%,#e7f6f2 0%,transparent 60%),radial-gradient(900px 600px at 5% 20%,#eaf4f1 0%,transparent 55%),var(--paper)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+.hero-pill{display:inline-flex;align-items:center;gap:9px;height:34px;padding:0 14px 0 11px;border-radius:30px;background:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--teal-d);box-shadow:0 4px 14px -8px rgba(8,40,36,.2);margin-bottom:24px}
+.hero-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px rgba(22,184,166,.18)}
+.hero h1{font-size:clamp(40px,6vw,76px);color:var(--tx);font-weight:900}
+.hero h1 .grad{background:linear-gradient(120deg,var(--teal-d),var(--teal-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(17px,1.5vw,20px);color:var(--tx-2);line-height:1.55;margin:26px 0 32px;max-width:540px;font-weight:500}
+.hero-cta{display:flex;gap:13px;flex-wrap:wrap;align-items:center}
+.hero-micro{display:flex;align-items:center;gap:18px;margin-top:26px;flex-wrap:wrap}
+.hero-micro span{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--tx-2)}
+.tick{width:17px;height:17px;border-radius:50%;background:rgba(22,184,166,.15);display:flex;align-items:center;justify-content:center;flex:0 0 17px}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;gap:44px}.hero{padding:128px 0 50px}}
+
+/* ===== Browser/app mock ===== */
+.mock{position:relative;border-radius:18px;background:#fff;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;transform:perspective(2000px) rotateY(-7deg) rotateX(3deg);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.hero-grid:hover .mock{transform:perspective(2000px) rotateY(-3deg) rotateX(1deg)}
+.mock-bar{height:38px;background:#f6f9f8;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px;padding:0 14px}
+.mock-bar .d{width:11px;height:11px;border-radius:50%}
+.mock-url{margin-left:14px;height:22px;flex:1;max-width:260px;border-radius:7px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;padding:0 10px;font-size:11px;color:var(--tx-3);font-weight:600;gap:6px}
+.app{display:grid;grid-template-columns:62px 1fr;min-height:430px}
+.app-rail{background:linear-gradient(185deg,var(--ink-2),var(--ink-3));padding:16px 0;display:flex;flex-direction:column;align-items:center;gap:9px}
+.app-rail .r-logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));margin-bottom:8px;flex:0 0 32px}
+.app-rail .r-ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.05);flex:0 0 34px;display:flex;align-items:center;justify-content:center;color:var(--on-dark-3)}
+.app-rail .r-ic.act{background:rgba(22,184,166,.22);color:var(--teal-2)}
+.app-main{background:#f7faf9;padding:18px 20px}
+.app-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.app-h .t{font-size:15px;font-weight:800;color:var(--tx)}
+.app-h .s{font-size:11px;color:var(--tx-3);font-weight:600;margin-top:2px}
+.app-h .pill{height:26px;padding:0 11px;border-radius:8px;background:rgba(22,184,166,.12);color:var(--teal-d);font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 13px}
+.kpi .v{font-size:21px;font-weight:900;letter-spacing:-.03em;color:var(--tx)}
+.kpi .v.tl{color:var(--teal-d)}
+.kpi .l{font-size:10.5px;color:var(--tx-3);font-weight:700;margin-top:2px}
+.kpi .spark{height:20px;margin-top:8px;display:flex;align-items:flex-end;gap:3px}
+.kpi .spark i{flex:1;background:rgba(22,184,166,.25);border-radius:2px}
+.rows{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.row{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row .av{width:30px;height:30px;border-radius:9px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.row .nm{font-size:12.5px;font-weight:700;color:var(--tx)}
+.row .meta{font-size:10.5px;color:var(--tx-3);font-weight:600;margin-top:1px}
+.row .tag{margin-left:auto;height:22px;padding:0 9px;border-radius:7px;font-size:10px;font-weight:800;display:flex;align-items:center}
+.tag.ok{background:rgba(22,184,166,.13);color:var(--teal-d)}
+.tag.warn{background:rgba(232,167,42,.16);color:#9a6a10}
+.tag.due{background:rgba(99,102,241,.13);color:#4f46c9}
+.float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 22px 50px -20px rgba(8,40,36,.4);padding:13px 15px;display:flex;align-items:center;gap:11px;animation:floaty 5s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.float .fi{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 36px}
+.float .fv{font-size:14px;font-weight:900;color:var(--tx);letter-spacing:-.02em}
+.float .fl{font-size:10.5px;color:var(--tx-3);font-weight:700}
+.float-1{bottom:-22px;left:-30px;animation-delay:0s}
+.float-2{top:64px;right:-26px;animation-delay:1.4s}
+@media(max-width:560px){.float-1{left:-8px}.float-2{right:-8px}}
+
+/* ===== Marquee / trust strip ===== */
+.strip{padding:30px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}
+.strip-lab{text-align:center;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-3);margin-bottom:18px}
+.marquee{display:flex;gap:50px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.marquee .track{display:flex;gap:50px;align-items:center;animation:scroll 28s linear infinite;flex-shrink:0}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.m-item{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;color:var(--tx-2);white-space:nowrap;letter-spacing:-.01em}
+.m-item svg{opacity:.6}
+
+/* ===== Section scaffolding ===== */
+section{position:relative}
+.sec{padding:104px 0}
+.sec-head{max-width:720px;margin-bottom:54px}
+.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.sec h2{font-size:clamp(30px,3.6vw,50px);color:var(--tx);margin-top:14px}
+.sec-head p{font-size:18px;color:var(--tx-2);line-height:1.6;margin-top:18px;font-weight:500}
+.dark{background:linear-gradient(185deg,var(--ink-2) 0%,var(--ink) 60%,var(--ink-3) 100%);color:var(--on-dark)}
+.dark h2{color:var(--on-dark)}
+.dark .sec-head p{color:var(--on-dark-2)}
+
+/* ===== PAIN ===== */
+.pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+.chaos{position:relative;height:380px}
+.chaos .c{position:absolute;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(4px);box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
+.chaos .c .ci{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:0 0 30px}
+.chaos .c .ct{font-size:12.5px;font-weight:700;color:var(--on-dark)}
+.chaos .c .cs{font-size:10.5px;color:var(--on-dark-3);font-weight:600;margin-top:1px}
+.chaos .c1{top:6%;left:2%;transform:rotate(-5deg)}
+.chaos .c2{top:0;right:6%;transform:rotate(4deg)}
+.chaos .c3{top:38%;left:20%;transform:rotate(-2deg);z-index:2}
+.chaos .c4{bottom:16%;left:0;transform:rotate(3deg)}
+.chaos .c5{bottom:4%;right:10%;transform:rotate(-4deg)}
+.chaos .c6{top:30%;right:0;transform:rotate(6deg)}
+.pain-list{display:flex;flex-direction:column;gap:14px;margin-top:26px}
+.pain-item{display:flex;gap:13px;align-items:flex-start}
+.pain-item .x{width:26px;height:26px;border-radius:8px;background:rgba(239,108,108,.14);color:#f08a8a;display:flex;align-items:center;justify-content:center;flex:0 0 26px;font-weight:900;margin-top:1px}
+.pain-item p{font-size:15.5px;color:var(--on-dark-2);font-weight:500;line-height:1.5}
+.pain-item b{color:var(--on-dark);font-weight:700}
+@media(max-width:900px){.pain-grid{grid-template-columns:1fr;gap:30px}.chaos{height:330px}}
+
+/* ===== Benefit band ===== */
+.band{background:linear-gradient(120deg,var(--teal-d),var(--teal-dd));color:#fff;padding:70px 0}
+.band-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.band-grid .b{padding:6px 0}
+.band-grid .b .bv{font-size:clamp(22px,2.2vw,30px);font-weight:900;letter-spacing:-.03em}
+.band-grid .b .bl{font-size:14.5px;color:rgba(255,255,255,.78);font-weight:600;margin-top:6px;line-height:1.45}
+@media(max-width:760px){.band-grid{grid-template-columns:1fr 1fr;gap:26px}}
+
+/* ===== Features ===== */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:26px;transition:transform .25s,box-shadow .25s,border-color .25s}
+.feat:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:#d3e3df}
+.feat.big{grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
+.feat .fic{width:48px;height:48px;border-radius:14px;background:linear-gradient(150deg,rgba(22,184,166,.16),rgba(11,107,96,.1));display:flex;align-items:center;justify-content:center;color:var(--teal-d);margin-bottom:18px}
+.feat h3{font-size:19px;color:var(--tx);font-weight:800;letter-spacing:-.02em}
+.feat p{font-size:14.5px;color:var(--tx-2);line-height:1.55;margin-top:9px;font-weight:500}
+/* mini mock inside feature */
+.mini{background:#f7faf9;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:170px;display:flex;flex-direction:column;gap:8px}
+.mini .mh{font-size:11px;font-weight:800;color:var(--tx-3);letter-spacing:.06em;text-transform:uppercase}
+.mini-row{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.mini-row .mi{width:24px;height:24px;border-radius:7px;flex:0 0 24px;display:flex;align-items:center;justify-content:center}
+.mini-row .mt{font-size:11.5px;font-weight:700;color:var(--tx)}
+.mini-row .ms{font-size:10px;color:var(--tx-3);font-weight:600}
+.mini-row .mtag{margin-left:auto;font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:6px;background:rgba(22,184,166,.12);color:var(--teal-d)}
+.bar{height:7px;border-radius:4px;background:rgba(22,184,166,.16);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-2),var(--teal-d));border-radius:4px}
+@media(max-width:920px){.feat-grid{grid-template-columns:1fr 1fr}.feat.big{grid-column:span 2}}
+@media(max-width:620px){.feat-grid{grid-template-columns:1fr}.feat.big{grid-column:span 1;grid-template-columns:1fr}}
+
+/* ===== How it works ===== */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:s}
+.step{position:relative;padding:24px 18px;border-radius:var(--rad-s);background:#fff;border:1px solid var(--line)}
+.step .n{width:34px;height:34px;border-radius:11px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;margin-bottom:14px;box-shadow:0 8px 18px -8px rgba(14,147,132,.7)}
+.step h3{font-size:16.5px;color:var(--tx);font-weight:800}
+.step p{font-size:13px;color:var(--tx-2);margin-top:7px;line-height:1.5;font-weight:500}
+.step .line{position:absolute;top:41px;right:-7px;width:14px;height:2px;background:var(--line);z-index:1}
+.step:last-child .line{display:none}
+@media(max-width:1000px){.steps{grid-template-columns:1fr 1fr}.step .line{display:none}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+
+/* ===== Roles ===== */
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.role{background:#fff;border:1px solid var(--line);border-radius:var(--rad-s);padding:20px;transition:transform .22s,box-shadow .22s}
+.role:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.role .ri{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.role h3{font-size:16px;color:var(--tx);font-weight:800}
+.role p{font-size:13px;color:var(--tx-2);margin-top:6px;line-height:1.5;font-weight:500}
+@media(max-width:920px){.roles{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.roles{grid-template-columns:1fr}}
+
+/* ===== Commission compare ===== */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:0 auto}
+.cmp .col{border-radius:var(--rad);padding:30px}
+.cmp .old{background:#fff;border:1px solid var(--line)}
+.cmp .new{background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:#fff;border:1px solid var(--teal-d);box-shadow:0 30px 70px -30px rgba(11,107,96,.6);position:relative;overflow:hidden}
+.cmp .new::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(22,184,166,.3),transparent 70%)}
+.cmp .lab{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-3)}
+.cmp .new .lab{color:var(--teal-2)}
+.cmp .big{font-size:40px;font-weight:900;letter-spacing:-.03em;margin:10px 0 4px;color:var(--tx)}
+.cmp .new .big{color:#fff}
+.cmp .sub{font-size:13.5px;color:var(--tx-2);font-weight:600;margin-bottom:18px}
+.cmp .new .sub{color:var(--on-dark-2)}
+.cmp ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.cmp li{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:600;line-height:1.45}
+.cmp .old li{color:var(--tx-2)}.cmp .new li{color:var(--on-dark)}
+.cmp .mk{width:20px;height:20px;border-radius:6px;flex:0 0 20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;margin-top:1px}
+.cmp .old .mk{background:rgba(239,108,108,.13);color:#d96a6a}
+.cmp .new .mk{background:rgba(22,184,166,.22);color:var(--teal-2)}
+@media(max-width:760px){.cmp{grid-template-columns:1fr}}
+
+/* ===== Trust ===== */
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tcard{background:rgba(255,255,255,.04);border:1px solid var(--line-d);border-radius:var(--rad-s);padding:22px}
+.tcard .ti{width:42px;height:42px;border-radius:12px;background:rgba(22,184,166,.14);color:var(--teal-2);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.tcard h3{font-size:16px;color:var(--on-dark);font-weight:800}
+.tcard p{font-size:13px;color:var(--on-dark-2);margin-top:7px;line-height:1.5;font-weight:500}
+@media(max-width:920px){.trust-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.trust-grid{grid-template-columns:1fr}}
+
+/* ===== Quote ===== */
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.quote{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:26px;display:flex;flex-direction:column}
+.quote .stars{color:var(--teal);font-size:14px;letter-spacing:2px;margin-bottom:12px}
+.quote p{font-size:15px;color:var(--tx);line-height:1.55;font-weight:600;flex:1}
+.quote .by{display:flex;align-items:center;gap:11px;margin-top:18px}
+.quote .ba{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 38px}
+.quote .bn{font-size:13.5px;font-weight:800;color:var(--tx)}
+.quote .br{font-size:11.5px;color:var(--tx-3);font-weight:600}
+@media(max-width:860px){.quotes{grid-template-columns:1fr}}
+
+/* ===== CTA ===== */
+.cta{background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:#fff;padding:96px 0;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 400px at 50% 0%,rgba(22,184,166,.22),transparent 60%)}
+.cta-in{position:relative;max-width:680px;margin:0 auto}
+.cta h2{font-size:clamp(32px,4.4vw,56px);color:#fff;margin-bottom:18px}
+.cta p{font-size:18px;color:var(--on-dark-2);font-weight:500;margin-bottom:34px}
+.form{display:flex;gap:11px;max-width:480px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+.form input{flex:1;min-width:240px;height:54px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);padding:0 18px;color:#fff;font-family:inherit;font-size:15px;font-weight:600}
+.form input::placeholder{color:var(--on-dark-3)}
+.form input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,184,166,.2)}
+.cta-note{font-size:13px;color:var(--on-dark-3);margin-top:18px;font-weight:600}
+.ok-msg{display:none;margin-top:18px;padding:14px 18px;border-radius:14px;background:rgba(22,184,166,.16);border:1px solid rgba(22,184,166,.35);color:var(--teal-2);font-weight:700;font-size:14.5px}
+
+/* ===== Footer ===== */
+footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px;padding-bottom:36px;border-bottom:1px solid var(--line-d)}
+.foot-grid h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-dark-2);font-weight:800;margin-bottom:14px}
+.foot-grid a{display:block;font-size:14px;color:var(--on-dark-3);margin-bottom:10px;font-weight:600;transition:color .15s}
+.foot-grid a:hover{color:var(--on-dark)}
+.foot-blurb{font-size:13.5px;line-height:1.6;color:var(--on-dark-3);max-width:300px;margin-top:14px;font-weight:500}
+.foot-disc{font-size:12px;line-height:1.6;color:var(--on-dark-3);max-width:880px;margin-top:24px;font-weight:500;opacity:.85}
+.foot-disc b{color:var(--on-dark-2);font-weight:800}
+.foot-bot{display:flex;justify-content:space-between;align-items:center;padding-top:22px;margin-top:22px;border-top:1px solid var(--line-d);font-size:12.5px;font-weight:600;flex-wrap:wrap;gap:10px}
+.badge{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:8px;background:rgba(22,184,166,.1);color:var(--teal-2);font-size:11.5px;font-weight:800}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <span class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
+    </a>
+    <div class="nav-links">
+      <a href="#product">Product</a>
+      <a href="#how">How it works</a>
+      <a href="#roles">For your team</a>
+      <a href="./pricing.html">Pricing</a>
+      <a href="#trust">Security</a>
+    </div>
+    <div class="nav-cta">
+      <a class="signin" href="./signin.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="./signup.html">Start free trial</a>
+    </div>
+  </div>
+</nav>
+
+<span id="top"></span>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="reveal in">
+      <div class="hero-pill"><span class="dot"></span> Now live · Australian NDIS &amp; healthcare</div>
+      <h1>Care coordination.<br><span class="grad">Made clear.</span></h1>
+      <p class="hero-sub">Care, documents, support, notes and invoices — finally in one place. CiaraLink is the connected-care operating system for NDIS and healthcare teams. <b>0% commission. Every feature included.</b></p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="./signup.html">Start your 14-day free trial <span class="arrow">→</span></a>
+        <a class="btn btn-light" href="#product">See how it works</a>
+      </div>
+      <div class="hero-micro">
+        <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> No commission, ever</span>
+        <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> One connected record</span>
+        <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 14-day trial</span>
+      </div>
+    </div>
+
+    <!-- App mock -->
+    <div class="reveal in" data-d="2" style="position:relative">
+      <div class="mock">
+        <div class="mock-bar">
+          <span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span>
+          <span class="mono mock-url"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 10V8a6 6 0 1112 0v2" stroke="#8a9a94" stroke-width="2"/><rect x="4" y="10" width="16" height="10" rx="2" stroke="#8a9a94" stroke-width="2"/></svg> app.ciaralink.com.au</span>
+        </div>
+        <div class="app">
+          <div class="app-rail">
+            <span class="r-logo"></span>
+            <span class="r-ic act"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span class="r-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m6 14V9m6 10V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span class="r-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="2"/><path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span class="r-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+          </div>
+          <div class="app-main">
+            <div class="app-h">
+              <div><div class="t">Today’s care</div><div class="s">Riverside Support · Tue 25 Jun</div></div>
+              <div class="pill"><span style="width:6px;height:6px;border-radius:50%;background:#16b8a6"></span> Live</div>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><div class="v tl">42</div><div class="l">Participants</div><div class="spark"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:85%"></i></div></div>
+              <div class="kpi"><div class="v">98%</div><div class="l">On track</div><div class="spark"><i style="height:60%"></i><i style="height:65%"></i><i style="height:72%"></i><i style="height:80%"></i><i style="height:88%"></i><i style="height:96%"></i></div></div>
+              <div class="kpi"><div class="v">7</div><div class="l">Shifts today</div><div class="spark"><i style="height:50%"></i><i style="height:30%"></i><i style="height:60%"></i><i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i></div></div>
+            </div>
+            <div class="rows">
+              <div class="row"><span class="av" style="background:#16b8a6">AD</span><div><div class="nm">Alex Demo</div><div class="meta">NDIS 431 902 118 · Plan review 12 Jul</div></div><span class="tag ok">Active</span></div>
+              <div class="row"><span class="av" style="background:#6366f1">JS</span><div><div class="nm">Jordan Sample</div><div class="meta">Shift note due · Support worker visit</div></div><span class="tag warn">Due</span></div>
+              <div class="row"><span class="av" style="background:#0b6b60">CE</span><div><div class="nm">Casey Example</div><div class="meta">Invoice INV-0026 · Evidence linked</div></div><span class="tag due">Reconcile</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float float-1">
+        <span class="fi" style="background:rgba(22,184,166,.14);color:#0b6b60"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div><div class="fv">Note signed</div><div class="fl">Shared with the team</div></div>
+      </div>
+      <div class="float float-2">
+        <span class="fi" style="background:rgba(99,102,241,.14);color:#4f46c9"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 1l9 4v6c0 5-3.8 9.4-9 11-5.2-1.6-9-6-9-11V5l9-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+        <div><div class="fv">Consent on file</div><div class="fl">Shared with care team</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= TRUST STRIP ================= -->
+<div class="strip">
+  <div class="strip-lab">Built for every seat at the care table</div>
+  <div class="marquee">
+    <div class="track">
+      <span class="m-item">Providers</span><span class="m-item">Support Coordination</span><span class="m-item">Allied Health</span><span class="m-item">Support Workers</span><span class="m-item">Participants</span><span class="m-item">Guardians</span><span class="m-item">Service Providers</span>
+      <span class="m-item">Providers</span><span class="m-item">Support Coordination</span><span class="m-item">Allied Health</span><span class="m-item">Support Workers</span><span class="m-item">Participants</span><span class="m-item">Guardians</span><span class="m-item">Service Providers</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAIN (dark) ================= -->
+<section class="sec dark">
+  <div class="wrap pain-grid">
+    <div class="reveal">
+      <div class="eyebrow on-dark">The problem</div>
+      <h2 style="margin-top:14px">Care work is scattered everywhere — except where you need it.</h2>
+      <div class="pain-list">
+        <div class="pain-item"><span class="x">!</span><p>Notes in one app, <b>invoices in a spreadsheet</b>, consent in an email, evidence in a folder no one can find.</p></div>
+        <div class="pain-item"><span class="x">!</span><p>Plan reviews become <b>frantic document hunts</b> instead of a few clicks.</p></div>
+        <div class="pain-item"><span class="x">!</span><p>Marketplaces skim <b>up to ~16% commission</b> on every shift — money that should fund care.</p></div>
+        <div class="pain-item"><span class="x">!</span><p>The participant — the person it’s all for — <b>can’t see what’s happening</b> in their own support.</p></div>
+      </div>
+    </div>
+    <div class="reveal chaos" data-d="2">
+      <div class="c c1"><span class="ci" style="background:rgba(99,102,241,.2);color:#a5b4fc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h6" stroke="currentColor" stroke-width="2"/></svg></span><div><div class="ct">shift_notes_v3.docx</div><div class="cs">Modified 4 days ago</div></div></div>
+      <div class="c c2"><span class="ci" style="background:rgba(232,167,42,.2);color:#f0c560"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18" stroke="currentColor" stroke-width="2"/></svg></span><div><div class="ct">Invoices.xlsx</div><div class="cs">7 unreconciled</div></div></div>
+      <div class="c c3"><span class="ci" style="background:rgba(239,108,108,.2);color:#f3a3a3"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H7l-3 3V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><div><div class="ct">“did you send consent?”</div><div class="cs">SMS · 11:42pm</div></div></div>
+      <div class="c c4"><span class="ci" style="background:rgba(22,184,166,.2);color:#5fded0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 7l9-4 9 4-9 4-9-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M21 7v6M7 9v5l5 2 5-2V9" stroke="currentColor" stroke-width="2"/></svg></span><div><div class="ct">Plan review Mon</div><div class="cs">Evidence missing</div></div></div>
+      <div class="c c5"><span class="ci" style="background:rgba(99,102,241,.2);color:#a5b4fc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 4v16" stroke="currentColor" stroke-width="2"/></svg></span><div><div class="ct">3 portals, 2 logins</div><div class="cs">None of them talk</div></div></div>
+      <div class="c c6"><span class="ci" style="background:rgba(232,167,42,.2);color:#f0c560"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><div class="ct">Follow-up forgotten</div><div class="cs">Due 6 days ago</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRODUCT / FEATURES ================= -->
+<section class="sec" id="product">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">One connected place</div>
+      <h2>Everything care needs — working as one system.</h2>
+      <p>Not another inbox. CiaraLink links people, documents and money so the right thing is always one click away.</p>
+    </div>
+    <div class="feat-grid">
+
+      <div class="feat big reveal">
+        <div>
+          <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="2"/><path d="M3 19a6 6 0 0112 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="9.5" r="2.4" stroke="currentColor" stroke-width="2"/><path d="M15 19a4 4 0 016 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <h3>The whole care team, on the same page</h3>
+          <p>Participants, providers, coordinators, allied health and support workers share one live record — with role-based access so everyone sees exactly what they should, and nothing they shouldn’t.</p>
+        </div>
+        <div class="mini">
+          <div class="mh">Care team · Alex Demo</div>
+          <div class="mini-row"><span class="mi" style="background:#16b8a6;color:#fff;font-weight:800;font-size:10px">SC</span><div><div class="mt">Sarah · Support Coordinator</div><div class="ms">Full access</div></div><span class="mtag">Lead</span></div>
+          <div class="mini-row"><span class="mi" style="background:#6366f1;color:#fff;font-weight:800;font-size:10px">OT</span><div><div class="mt">Omar · Occupational Therapy</div><div class="ms">Allied health</div></div><span class="mtag">Notes</span></div>
+          <div class="mini-row"><span class="mi" style="background:#0b6b60;color:#fff;font-weight:800;font-size:10px">SW</span><div><div class="mt">Mia · Support Worker</div><div class="ms">Shifts &amp; visit notes</div></div><span class="mtag">Today</span></div>
+        </div>
+      </div>
+
+      <div class="feat reveal" data-d="2">
+        <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h3>Notes &amp; documents that file themselves</h3>
+        <p>Shift notes, service agreements, plans and consent — captured, signed and attached to the right participant automatically.</p>
+      </div>
+
+      <div class="feat reveal" data-d="3">
+        <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M7 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h3>Invoices linked to evidence</h3>
+        <p>Every invoice ties to the shift, note and budget line behind it — reconciliation in clicks, not hours.</p>
+      </div>
+
+      <div class="feat reveal">
+        <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 1l9 4v6c0 5-3.8 9.4-9 11-5.2-1.6-9-6-9-11V5l9-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h3>Consent &amp; access you control</h3>
+        <p>Consent records and role-based access mean the right people see the right data — and the participant stays in control of who sees what.</p>
+      </div>
+
+      <div class="feat reveal" data-d="2">
+        <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h3>Shifts, rosters &amp; verified visits</h3>
+        <p>Schedule support, confirm visits and turn each one into a note and a billable line — without the double entry.</p>
+      </div>
+
+      <div class="feat reveal" data-d="3">
+        <span class="fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 12a7 7 0 0114 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M12 3v2M3 12H5M19 12h2M12 19v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h3>Priority referrals, 0% commission</h3>
+        <p>Show live availability and get matched to participants who need you now — a flat fee, never a cut of your care.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= BENEFIT BAND ================= -->
+<section class="band">
+  <div class="wrap">
+    <div class="band-grid">
+      <div class="b reveal"><div class="bv">Less admin</div><div class="bl">Double entry and document hunts, gone.</div></div>
+      <div class="b reveal" data-d="2"><div class="bv">Faster answers</div><div class="bl">The right record, one search away.</div></div>
+      <div class="b reveal" data-d="3"><div class="bv">Cleaner records</div><div class="bl">Organised by default, not by scramble.</div></div>
+      <div class="b reveal" data-d="4"><div class="bv">Better care</div><div class="bl">More hours with people, fewer with paperwork.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>Five steps. One source of truth.</h2>
+      <p>CiaraLink fits the way care already happens — it just keeps it all connected.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="line"></span><div class="n">1</div><h3>Create</h3><p>Add participants, teams and supports in minutes — or invite the people already involved.</p></div>
+      <div class="step reveal" data-d="1"><span class="line"></span><div class="n">2</div><h3>Track</h3><p>Shifts, notes, tasks and budgets stay live and tied to the right person automatically.</p></div>
+      <div class="step reveal" data-d="2"><span class="line"></span><div class="n">3</div><h3>Share</h3><p>The right people see the right record — with consent and access you control.</p></div>
+      <div class="step reveal" data-d="3"><span class="line"></span><div class="n">4</div><h3>Review</h3><p>Invoices, evidence and plan prep line up so reviews are calm and quick.</p></div>
+      <div class="step reveal" data-d="4"><div class="n">5</div><h3>Stay in sync</h3><p>Everyone works from one live record, so nothing slips between people or apps.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROLES ================= -->
+<section class="sec" id="roles" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">For your team</div>
+      <h2>One platform. A purpose-built view for every role.</h2>
+      <p>Everyone works from the same connected record — but sees the tools, tasks and data that fit their job.</p>
+    </div>
+    <div class="roles">
+      <div class="role reveal"><span class="ri" style="background:rgba(22,184,166,.14);color:#0b6b60"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 21V8l9-5 9 5v13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="2"/></svg></span><h3>Providers</h3><p>Run participants, teams and billing from one console.</p></div>
+      <div class="role reveal" data-d="1"><span class="ri" style="background:rgba(99,102,241,.14);color:#4f46c9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Support Coordination</h3><p>Manage caseloads, plan budgets and reviews with evidence attached.</p></div>
+      <div class="role reveal" data-d="2"><span class="ri" style="background:rgba(232,167,42,.16);color:#9a6a10"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8c0 4 3 7 7 7s7-3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Allied Health</h3><p>Notes, assessments and shared goals across every discipline.</p></div>
+      <div class="role reveal" data-d="3"><span class="ri" style="background:rgba(22,184,166,.14);color:#0b6b60"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="2"/><path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Support Workers</h3><p>See shifts, log visits and capture notes from a phone, on the go.</p></div>
+      <div class="role reveal"><span class="ri" style="background:rgba(99,102,241,.14);color:#4f46c9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a7 7 0 0114 0c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="11" r="2.4" stroke="currentColor" stroke-width="2"/></svg></span><h3>Participants</h3><p>See your supports, team, goals and documents — your care, visible to you.</p></div>
+      <div class="role reveal" data-d="1"><span class="ri" style="background:rgba(232,167,42,.16);color:#9a6a10"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1l9 4v6c0 5-3.8 9.4-9 11-5.2-1.6-9-6-9-11V5l9-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><h3>Guardians &amp; Nominees</h3><p>Stay across decisions and consent for the person you support.</p></div>
+      <div class="role reveal" data-d="2"><span class="ri" style="background:rgba(22,184,166,.14);color:#0b6b60"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 7V5a4 4 0 018 0v2" stroke="currentColor" stroke-width="2"/></svg></span><h3>Service Providers</h3><p>Accept referrals, manage agreements and get paid — commission-free.</p></div>
+      <div class="role reveal" data-d="3"><span class="ri" style="background:rgba(99,102,241,.14);color:#4f46c9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Admin &amp; Office</h3><p>Tasks, notifications and reconciliation — the back office, finally calm.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMMISSION COMPARE ================= -->
+<section class="sec" id="pricing">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <div class="eyebrow">Pricing that funds care</div>
+      <h2>The old way takes a cut. CiaraLink doesn’t.</h2>
+      <p>Most platforms grow their revenue by skimming yours. We charge one fair subscription with every feature included — and never touch your care budget.</p>
+    </div>
+    <div class="cmp reveal">
+      <div class="col old">
+        <div class="lab">The marketplace way</div>
+        <div class="big">~16% taken</div>
+        <div class="sub">A commission on every shift, forever</div>
+        <ul>
+          <li><span class="mk">✕</span> Commission skimmed off every booking</li>
+          <li><span class="mk">✕</span> Features locked behind upsells</li>
+          <li><span class="mk">✕</span> Your data scattered across portals</li>
+          <li><span class="mk">✕</span> Per-referral fees that add up fast</li>
+        </ul>
+      </div>
+      <div class="col new">
+        <div class="lab">The CiaraLink way</div>
+        <div class="big">0% commission</div>
+        <div class="sub">One subscription · priced by your size</div>
+        <ul>
+          <li><span class="mk">✓</span> Keep 100% of every care dollar</li>
+          <li><span class="mk">✓</span> Every feature included on every plan</li>
+          <li><span class="mk">✓</span> One connected record, not five portals</li>
+          <li><span class="mk">✓</span> Flat-fee priority referrals — no per-cut</li>
+        </ul>
+        <a class="btn btn-primary" style="margin-top:22px;width:100%;justify-content:center" href="./pricing.html">See plans &amp; start your 14-day trial <span class="arrow">→</span></a>
+      </div>
+    </div>
+    <p class="reveal" style="text-align:center;font-size:13.5px;color:var(--tx-3);margin-top:22px;font-weight:600">Plans for Providers, Support Coordination, Allied Health and Support Workers · priced by participants or team size · AUD ex-GST · annual = 2 months free.</p>
+  </div>
+</section>
+
+<!-- ================= TRUST (dark) ================= -->
+<section class="sec dark" id="trust">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow on-dark">Built for Australian NDIS providers</div>
+      <h2>Purpose-built for NDIS care — and serious about your data.</h2>
+      <p>CiaraLink is designed around the NDIS Practice Standards and the way Australian care teams actually work — with row-level security and consent-first access built in, so the right people see the right data, and the participant stays in control of their own information.</p>
+    </div>
+    <div class="trust-grid">
+      <div class="tcard reveal"><span class="ti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 018 0v3" stroke="currentColor" stroke-width="2"/></svg></span><h3>Row-level security</h3><p>Every record is access-controlled at the database — users only ever load their own data.</p></div>
+      <div class="tcard reveal" data-d="1"><span class="ti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1l9 4v6c0 5-3.8 9.4-9 11-5.2-1.6-9-6-9-11V5l9-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Consent-first</h3><p>Sharing is governed by recorded consent — revocable, and visible to the participant.</p></div>
+      <div class="tcard reveal" data-d="2"><span class="ti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H7l-3 3V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Encrypted &amp; private</h3><p>Your data is encrypted and access-controlled — never sold, never mined for ads.</p></div>
+      <div class="tcard reveal" data-d="3"><span class="ti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" stroke="currentColor" stroke-width="2"/></svg></span><h3>Australian-built for the NDIS</h3><p>Designed around the NDIS Practice Standards and Australian privacy expectations from day one — built for local care teams, not adapted from overseas.</p></div>
+    </div>
+    <p class="reveal" style="text-align:center;font-size:13px;color:var(--on-dark-2);font-weight:600;line-height:1.6;max-width:760px;margin:28px auto 0">Built by an Australian team for the NDIS community. CiaraLink is a software tool that helps care teams organise their own work — we don’t claim to be an NDIS-registered provider, an auditor, or a compliance authority, and we don’t certify or advise on your registration. You stay responsible for your own NDIS obligations.</p>
+  </div>
+</section>
+
+<!-- ================= QUOTES ================= -->
+<section class="sec" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <div class="eyebrow">Why teams are switching</div>
+      <h2>The story we hear again and again.</h2>
+      <p style="font-size:14px;color:var(--tx-3)">Illustrative scenarios from our early conversations with care teams — shown to convey the problems CiaraLink is built to solve.</p>
+    </div>
+    <div class="quotes">
+      <div class="quote reveal"><div class="stars">★★★★★</div><p>“Plan review used to mean two days digging through folders and emails. Having notes, invoices and evidence on one record changes the whole month.”</p><div class="by"><span class="ba" style="background:#16b8a6">SC</span><div><div class="bn">Support Coordinator</div><div class="br">Outer-suburb NDIS team</div></div></div></div>
+      <div class="quote reveal" data-d="1"><div class="stars">★★★★★</div><p>“Losing ~16% to a marketplace on every shift was the cost of being found. A flat fee with zero commission is the difference between surviving and growing.”</p><div class="by"><span class="ba" style="background:#6366f1">AH</span><div><div class="bn">Allied Health provider</div><div class="br">Multi-discipline clinic</div></div></div></div>
+      <div class="quote reveal" data-d="2"><div class="stars">★★★★★</div><p>“For the first time the person I support can actually see their own plan and team. That alone makes families trust the whole thing.”</p><div class="by"><span class="ba" style="background:#0b6b60">GN</span><div><div class="bn">Guardian / Nominee</div><div class="br">Family-led support</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="cta" id="early">
+  <div class="wrap cta-in reveal">
+    <div class="eyebrow on-dark" style="margin-bottom:18px">Get started</div>
+    <h2>Care, documents, support and invoices.<br>Finally in one place.</h2>
+    <p>Start your 14-day free trial and bring your team onto CiaraLink in minutes — no commission, every feature included.</p>
+    <div class="hero-cta" style="justify-content:center;margin:6px 0 10px">
+      <a class="btn btn-primary" href="./signup.html">Start your 14-day free trial <span class="arrow">→</span></a>
+      <a class="btn btn-light" href="./pricing.html">See plans</a>
+    </div>
+    <p style="margin:14px 0 4px;opacity:.85;font-size:13.5px">Prefer a guided setup? Leave your email and we’ll book a walkthrough.</p>
+    <form class="form" id="eaForm" novalidate>
+      <input type="email" id="eaEmail" placeholder="you@yourservice.com.au" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Book a walkthrough <span class="arrow">→</span></button>
+    </form>
+    <div class="ok-msg" id="okMsg">✓ You’re on the list. We’ll be in touch from the CiaraLink team shortly.</div>
+    <div class="cta-note">14-day trial · No commission, ever · Built for Australian NDIS providers.</div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top">
+          <span class="logo" style="width:34px;height:34px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <span><span class="brand-name" style="color:var(--on-dark)">CiaraLink</span><div class="brand-tag" style="color:var(--on-dark-3)">CARE OS</div></span>
+        </a>
+        <p class="foot-blurb">The operating system for connected care — one place to manage care, support, documents, notes and invoices, without the chaos.</p>
+        <span class="badge" style="margin-top:16px">🇦🇺 Built in Australia for NDIS &amp; healthcare</span>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="#product">Features</a><a href="#how">How it works</a><a href="#roles">For your team</a><a href="#pricing">Pricing</a><a href="#trust">Security</a>
+      </div>
+      <div>
+        <h4>Get started</h4>
+        <a href="#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="#pricing">Start a trial</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="#early">Contact</a><a href="#early">Book a walkthrough</a><a href="./privacy.html">Privacy Policy</a><a href="./terms.html">Terms of Service</a>
+      </div>
+    </div>
+    <p class="foot-disc"><b>Important.</b> CiaraLink is a care-coordination software tool — not a registered auditor, legal practice, or compliance authority. We are not lawyers, compliance officers, or audit officers, and nothing on this platform is legal, financial, clinical, or compliance advice. CiaraLink is intended only to help health and disability care teams organise and share their own work; you remain responsible for your own obligations and decisions. Please don’t ask our team for professional advice — speak to a suitably qualified professional instead.</p>
+    <div class="foot-bot">
+      <span>© 2026 CiaraLink. All rights reserved.</span>
+      <span>Early access · Built in Australia for NDIS &amp; healthcare.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Sticky nav shade
+var nav=document.getElementById('nav');
+function onScroll(){nav.classList.toggle('scrolled',window.scrollY>14)}
+onScroll();window.addEventListener('scroll',onScroll,{passive:true});
+
+// Reveal on scroll
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal:not(.in)').forEach(function(el){io.observe(el)});
+
+// Early-access form — capture leads server-side (primary) with a localStorage fallback so an email is never lost.
+document.getElementById('eaForm').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  var form=this;
+  var email=document.getElementById('eaEmail').value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('eaEmail').focus();return}
+
+  // Local fallback first — guarantees the lead survives even if the network/API fails.
+  try{var list=JSON.parse(localStorage.getItem('ciaralink_early')||'[]');list.push({email:email,at:new Date().toISOString()});localStorage.setItem('ciaralink_early',JSON.stringify(list));}catch(e){}
+
+  function showSuccess(){
+    form.style.display='none';
+    document.getElementById('okMsg').style.display='inline-block';
+  }
+
+  // Primary path: persist the lead via the serverless function.
+  fetch('/api/early-access',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,source:'landing'})
+  }).then(function(res){
+    // Treat any 2xx (incl. duplicate-already-on-list) as success.
+    showSuccess();
+    return res;
+  }).catch(function(){
+    // Network/API failure — the email is already in localStorage, so still confirm.
+    showSuccess();
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CiaraLink</string>
+    <string name="title_activity_main">CiaraLink</string>
+    <string name="package_name">au.com.ciaralink.app</string>
+    <string name="custom_url_scheme">au.com.ciaralink.app</string>
+</resources>

@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes sp-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ====================================================================
+       RESPONSIVE — phones & tablets. Desktop layout is UNCHANGED: every rule
+       below lives inside a media query and overrides the inline desktop
+       styles via [style*="…"] attribute selectors + !important. No HTML or
+       JS bindings are touched.
+       ==================================================================== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;max-width:100%}
+      /* top wrapper: stack sidebar above content, clip horizontal overflow */
+      [style*="min-height:100vh"][style*="width:100%"]{flex-direction:column !important;overflow-x:hidden !important;width:100% !important;max-width:100% !important}
+      /* main column fills width, never forces overflow */
+      main[style*="min-width:0"]{min-width:0 !important;width:100% !important;max-width:100% !important}
+      /* sidebar -> full-width top bar with a horizontally scrollable nav */
+      aside[style*="width:248px"]{
+        width:100% !important;max-width:100% !important;flex:0 0 auto !important;height:auto !important;
+        position:static !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;
+        gap:6px !important;border-right:none !important;border-bottom:1px solid rgba(255,255,255,.07) !important;padding:8px 12px !important;
+      }
+      aside[style*="width:248px"]>div:first-child{padding:4px 6px !important;flex:0 0 auto !important}
+      aside[style*="width:248px"] nav{
+        flex:1 1 100% !important;min-width:0 !important;display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+        overflow-x:auto !important;overflow-y:hidden !important;gap:6px !important;padding:4px 0 2px !important;-webkit-overflow-scrolling:touch;
+      }
+      aside[style*="width:248px"] nav [style*="margin-top:14px"]{margin-top:0 !important;display:flex !important;flex-direction:row !important;align-items:center !important;gap:4px !important;flex:0 0 auto !important}
+      aside[style*="width:248px"] nav [style*="letter-spacing:.15em"]{display:none !important}
+      aside[style*="width:248px"] nav button{width:auto !important;flex:0 0 auto !important;white-space:nowrap !important;margin:0 !important;padding:8px 12px !important}
+      aside[style*="width:248px"]>div:last-child{flex:1 1 100% !important;border-top:none !important;padding:6px !important}
+      /* header: wrap controls, tighter padding */
+      [style*="backdrop-filter:blur(14px)"]{flex-wrap:wrap !important;gap:10px !important;padding:12px 16px !important}
+      /* scrollable content area: tighter padding */
+      [style*="padding:26px 28px 48px"]{padding:16px 14px 40px !important}
+      /* multi-column data tables -> single stacked column (the 4-col prefix also
+         covers the 5-col workers variant) */
+      [style*="grid-template-columns:1.6fr 1fr 1fr 1fr 120px"]{grid-template-columns:1fr !important;gap:4px !important}
+      [style*="grid-template-columns:1.4fr 1fr 1fr 1fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      /* hide the now-meaningless column-label header rows */
+      [style*="grid-template-columns"][style*="letter-spacing:.06em"]{display:none !important}
+      /* overview + summary grids */
+      [style*="grid-template-columns:1.6fr 1fr"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr) !important}
+    }
+    @media (max-width:520px){
+      [style*="padding:26px 28px 48px"]{padding:12px 10px 36px !important}
+      [style*="backdrop-filter:blur(14px)"]{padding:10px 12px !important;gap:8px !important}
+      /* collapse remaining multi-up grids to one column */
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+      /* readable tap targets in the top nav */
+      aside[style*="width:248px"] nav button{min-height:40px !important}
+      /* Upload + Invite modals -> full-screen sheets */
+      [style*="z-index:60"]{padding:0 !important;align-items:stretch !important}
+      [style*="width:480px"]{width:100% !important;max-width:100% !important;height:100vh !important;max-height:100vh !important;border-radius:0 !important;overflow-y:auto !important}
+      [style*="width:460px"]{width:100% !important;max-width:100% !important;height:100vh !important;max-height:100vh !important;border-radius:0 !important;overflow-y:auto !important}
+    }
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:248px;flex:0 0 248px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:3px">SERVICE PROVIDER</div></div>
+    </div>
+
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="2">
+        <div style="margin-top:14px">
+          <div style="font-size:10px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:0 10px 7px">{{ sec.title }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="4">
+            <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;margin-bottom:2px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+              <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+              <span style="flex:1">{{ it.label }}</span>
+              <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:#16b8a6;color:#06201c">{{ it.badge }}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(150deg,#2f9e8f,#1c6b61);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#eafaf7;flex:0 0 36px">{{ orgInitials }}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e7f2ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ orgName }}</div><div style="font-size:11px;color:#5f7a73">Provider Admin</div></div>
+      </div>
+      <button onClick="{{ goBilling }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:transparent;color:#9fb4ae;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05)"><span style="font-size:13px">💳</span><span style="flex:1;text-align:left">Billing &amp; plan</span></button>
+      <button onClick="{{ logout }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05);color:#9fb4ae">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0;flex:1">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div>
+        <div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <sc-if value="{{ showSaveBtn }}" hint-placeholder-val="">
+          <button onClick="{{ saveProfile }}" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ saveIcon }}Save changes</button>
+        </sc-if>
+        <sc-if value="{{ showAddBtn }}" hint-placeholder-val="">
+          <button onClick="{{ addAction }}" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}{{ addLabel }}</button>
+        </sc-if>
+        <button onClick="{{ goBack }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">{{ dashIcon }}Dashboard</button>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 28px 48px">
+    <div style="max-width:1240px;margin:0 auto">
+
+      <!-- ===== OVERVIEW ===== -->
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <!-- Org header card -->
+        <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:20px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;gap:20px;box-shadow:0 8px 24px -12px rgba(12,38,34,.5)">
+          <div style="width:68px;height:68px;border-radius:18px;background:rgba(255,255,255,.1);border:2px solid rgba(22,184,166,.3);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#eafaf7;flex:0 0 68px">{{ orgInitials }}</div>
+          <div style="flex:1">
+            <div style="font-size:22px;font-weight:800;color:#f4faf8;letter-spacing:-.02em">{{ orgName }}</div>
+            <!-- ABN / registration / expiry are fabricated compliance signals — demo-only -->
+            <sc-if value="{{ showOrgCompliance }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13px;color:#6aada0;margin-top:4px">NDIS Registered Provider · ABN 44 123 456 789</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+              <span style="font-size:11px;font-weight:700;color:#22c55e;background:rgba(34,197,94,.15);padding:3px 10px;border-radius:7px">● Registered &amp; Active</span>
+              <span style="font-size:11px;font-weight:600;color:#9fb4ae;background:rgba(255,255,255,.08);padding:3px 10px;border-radius:7px">Registration expires Nov 2026</span>
+            </div>
+            </sc-if>
+          </div>
+          <button onClick="{{ goEdit }}" style="padding:9px 16px;border-radius:11px;border:1px solid rgba(22,184,166,.3);background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.2)">{{ editEl }}Edit profile</button>
+        </div>
+
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div style="width:36px;height:36px;border-radius:10px;background:{{ k.tintBg }};display:flex;align-items:center;justify-content:center">{{ k.iconEl }}</div>
+                <span style="font-size:11px;font-weight:700;color:{{ k.deltaFg }};background:{{ k.deltaBg }};padding:2px 8px;border-radius:999px">{{ k.delta }}</span>
+              </div>
+              <div style="font-size:28px;font-weight:800;color:#14302b;letter-spacing:-.02em;line-height:1">{{ k.value }}</div>
+              <div style="font-size:12.5px;color:#6c7f79;margin-top:5px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start">
+
+          <!-- Active participants -->
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+              <div style="font-size:14px;font-weight:800;color:#14302b">Participants</div>
+              <button onClick="{{ goParticipants }}" style="font-size:12px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit">View all</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+              <span>NAME</span><span>PLAN BUDGET</span><span>HOURS LEFT</span><span>STATUS</span>
+            </div>
+            <sc-for list="{{ participants }}" as="p" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ p.init }}</div>
+                  <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:11px;color:#9aa8a3">{{ p.id }}</div></div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#41635c;font-weight:600">{{ p.budget }}</span>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:#14302b">{{ p.hours }}</div>
+                  <div style="height:5px;border-radius:999px;background:#eef2f0;overflow:hidden;margin-top:4px;max-width:80px"><div style="height:100%;width:{{ p.pct }};background:{{ p.barColor }};border-radius:999px"></div></div>
+                </div>
+                <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ p.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- Right column -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Service areas (demo-only trust signal; hidden for real users) -->
+            <sc-if value="{{ showServiceAreas }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Service areas</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                <sc-for list="{{ serviceAreas }}" as="a" hint-placeholder-count="6">
+                  <span style="font-size:12px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:8px">{{ a }}</span>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- Compliance (demo-only trust signal; hidden for real users) -->
+            <sc-if value="{{ showCompliance }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Compliance &amp; registrations</div>
+              <sc-for list="{{ compliance }}" as="c" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f4f7f5">
+                  <span style="display:flex">{{ c.iconEl }}</span>
+                  <span style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ c.label }}</span>
+                  <span style="font-size:11px;font-weight:700;color:{{ c.stFg }};background:{{ c.stBg }};padding:2px 8px;border-radius:6px">{{ c.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+
+            <!-- Quick actions -->
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:12px">Quick actions</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ quickActions }}" as="qa" hint-placeholder-count="4">
+                  <button onClick="{{ qa.action }}" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;border:1px solid #eef2f0;background:#fbfdfc;cursor:pointer;font-family:inherit;text-align:left" style-hover="border-color:#16b8a6;background:#f4faf8">
+                    <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;background:{{ qa.tintBg }}">{{ qa.iconEl }}</div>
+                    <span style="font-size:13px;font-weight:700;color:#14302b">{{ qa.label }}</span>
+                    <span style="margin-left:auto;display:flex;color:#b6c4be">{{ chevEl }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== PROFILE / EDIT ===== -->
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="">
+        <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:18px">Organisation details</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ profileFields }}" as="f" hint-placeholder-count="6">
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">{{ f.label }}</label>
+                  <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:18px">Service types offered</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ serviceTypes }}" as="st" hint-placeholder-count="8">
+                <button onClick="{{ st.toggle }}" style="padding:7px 14px;border-radius:10px;border:1.5px solid {{ st.bd }};background:{{ st.bg }};color:{{ st.fg }};font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">{{ st.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Contact &amp; location</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <sc-for list="{{ contactFields }}" as="cf" hint-placeholder-count="4">
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">{{ cf.label }}</label>
+                  <input value="{{ cf.value }}" onChange="{{ cf.onChange }}" placeholder="{{ cf.placeholder }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff" />
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== WORKERS ===== -->
+      <sc-if value="{{ isWorkers }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Worker roster</div>
+            <div style="display:flex;gap:9px">
+              <button onClick="{{ inviteWorker }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ plusEl }}Invite worker</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+            <span>WORKER</span><span>ROLE</span><span>HOURS THIS WK</span><span>PARTICIPANTS</span><span>STATUS</span>
+          </div>
+          <sc-for list="{{ workers }}" as="w" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ w.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ w.init }}</div>
+                <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ w.name }}</div><div style="font-size:11px;color:#9aa8a3">{{ w.id }}</div></div>
+              </div>
+              <span style="font-size:12.5px;color:#41635c;font-weight:600">{{ w.role }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#14302b">{{ w.hours }}</span>
+              <span style="font-size:13px;font-weight:700;color:#14302b">{{ w.pts }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ w.stFg }};background:{{ w.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ w.status }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ workersEmpty }}" hint-placeholder-val="">
+            <div style="padding:44px 24px;text-align:center;color:#6c7f79;font-size:13.5px">No workers yet — invite your team.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== DOCUMENTS ===== -->
+      <sc-if value="{{ isDocs }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Organisation documents</div>
+            <button onClick="{{ uploadDoc }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ upEl }}Upload document</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 120px;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+            <span>DOCUMENT</span><span>TYPE</span><span>UPLOADED</span><span>STATUS</span><span></span>
+          </div>
+          <sc-for list="{{ docs }}" as="d" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 120px;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:{{ d.tagBg }};display:flex;align-items:center;justify-content:center">{{ d.fileEl }}</div>
+                <span style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span>
+              </div>
+              <span style="font-size:11.5px;font-weight:700;color:{{ d.tagFg }};background:{{ d.tagBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ d.type }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ d.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ d.stFg }};background:{{ d.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ d.status }}</span>
+              <div style="display:flex;gap:6px">
+                <button onClick="{{ d.download }}" style="flex:1;padding:6px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#41635c" style-hover="background:#f4f8f6">{{ downEl }}</button>
+                <button onClick="{{ d.del }}" style="flex:1;padding:6px;border-radius:8px;border:1px solid #fce4e9;background:#fff8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#c0445c" style-hover="background:#fbe9ed">{{ trashEl }}</button>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ docsEmpty }}" hint-placeholder-val="">
+            <div style="padding:44px 24px;text-align:center;color:#6c7f79;font-size:13.5px">No documents yet — upload your first.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== PARTICIPANTS ===== -->
+      <sc-if value="{{ isParticipants }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Participants</div>
+            <button onClick="{{ addAction }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}Add participant</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+            <span>NAME</span><span>PLAN BUDGET</span><span>HOURS LEFT</span><span>STATUS</span>
+          </div>
+          <sc-for list="{{ participants }}" as="p" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ p.init }}</div>
+                <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:11px;color:#9aa8a3">{{ p.id }}</div></div>
+              </div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#41635c;font-weight:600">{{ p.budget }}</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#14302b">{{ p.hours }}</div>
+                <div style="height:5px;border-radius:999px;background:#eef2f0;overflow:hidden;margin-top:4px;max-width:80px"><div style="height:100%;width:{{ p.pct }};background:{{ p.barColor }};border-radius:999px"></div></div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ p.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===== AGREEMENTS (real signature-request log) ===== -->
+      <sc-if value="{{ isAgreements }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <div style="font-size:14px;font-weight:800;color:#14302b">Service agreements</div>
+            <button onClick="{{ goServiceAgreement }}" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sendEl }}New service agreement</button>
+          </div>
+          <!-- COMPLIANCE: this is a tracking log, not a legally executed e-signature. -->
+          <div style="display:flex;align-items:flex-start;gap:9px;padding:11px 20px;background:#fbf6ec;border-bottom:1px solid #f0e6d2;font-size:12px;color:#7a5a1f;line-height:1.45">
+            <span style="flex:0 0 auto;margin-top:1px">{{ shieldSmallEl }}</span>
+            <span>This log tracks agreements you've sent for signing. It is a record only — it is not a legally binding e-signature. Agreements that must be legally executed require a compliant e-sign provider or a witnessed signature.</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.6fr 1.2fr 1fr 1fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+            <span>AGREEMENT</span><span>PARTICIPANT</span><span>SENT</span><span>STATUS</span>
+          </div>
+          <sc-for list="{{ agreements }}" as="ag" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:1.6fr 1.2fr 1fr 1fr;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#f0faf8;display:flex;align-items:center;justify-content:center">{{ ag.iconEl }}</div>
+                <span style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ag.title }}</span>
+              </div>
+              <span style="font-size:12.5px;color:#41635c;font-weight:600">{{ ag.participant }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ ag.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ ag.stFg }};background:{{ ag.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ ag.status }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ agreementsEmpty }}" hint-placeholder-val="">
+            <div style="padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
+              <div style="width:60px;height:60px;border-radius:16px;background:#f0faf8;display:flex;align-items:center;justify-content:center">{{ agreementsBigEl }}</div>
+              <div>
+                <div style="font-size:16px;font-weight:800;color:#14302b;margin-bottom:6px">No agreements yet</div>
+                <div style="font-size:13px;color:#6c7f79;max-width:420px;line-height:1.5">Create and send a service agreement to a participant — it will appear here so you can track its status.</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:sp-rise .25s ease">
+    {{ toastIcon }}{{ toast }}
+    <button onClick="{{ clearToast }}" style="margin-left:8px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+<!-- Upload modal -->
+<sc-if value="{{ uploadOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:60;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:480px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef2f0">
+        <div style="font-size:16px;font-weight:800;color:#14302b">Upload document</div>
+        <button onClick="{{ closeUpload }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xEl }}</button>
+      </div>
+      <div style="padding:22px">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">DOCUMENT TYPE</label>
+          <select style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+            <option>NDIS Registration</option>
+            <option>Insurance certificate</option>
+            <option>Policy document</option>
+            <option>Worker checks</option>
+            <option>Service agreement template</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div onClick="{{ triggerUpload }}" style="border:2px dashed #cdd8d3;border-radius:14px;padding:36px;text-align:center;cursor:pointer;background:#f7faf9;margin-bottom:16px" style-hover="border-color:#16b8a6;background:#f0faf8">
+          <div style="display:flex;justify-content:center;margin-bottom:10px">{{ upBigEl }}</div>
+          <div style="font-size:14px;font-weight:700;color:#14302b;margin-bottom:4px">Drop file here or click to browse</div>
+          <div style="font-size:12px;color:#9aa8a3">PDF, DOC, DOCX, JPG, PNG — max 20MB</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ closeUpload }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmUpload }}" style="flex:1;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Upload &amp; save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- Invite modal -->
+<sc-if value="{{ inviteOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:60;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:460px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef2f0">
+        <div style="font-size:16px;font-weight:800;color:#14302b">Invite a worker</div>
+        <button onClick="{{ closeInvite }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xEl }}</button>
+      </div>
+      <div style="padding:22px;display:flex;flex-direction:column;gap:12px">
+        <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">FULL NAME</label><input value="{{ inviteName }}" onChange="{{ onInviteName }}" placeholder="Worker name" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+        <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">WORKER EMAIL</label><input type="email" value="{{ inviteEmail }}" onChange="{{ onInviteEmail }}" placeholder="worker@example.com" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+        <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">ROLE</label><select value="{{ inviteRole }}" onChange="{{ onInviteRole }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"><option>Support Worker</option><option>Team Leader</option><option>Senior Support Worker</option></select></div>
+        <div style="font-size:11.5px;color:#8a9a94;line-height:1.4">A worker account is created with a temporary password you can share securely. They'll be prompted to change it on first sign-in.</div>
+        <div style="display:flex;gap:9px;margin-top:4px">
+          <button onClick="{{ closeInvite }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onClick="{{ sendInvite }}" style="flex:1;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Send invitation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- Add participant modal -->
+<sc-if value="{{ addPartOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:60;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:460px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef2f0">
+        <div style="font-size:16px;font-weight:800;color:#14302b">Add participant</div>
+        <button onClick="{{ closeAddPart }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xEl }}</button>
+      </div>
+      <div style="padding:22px;display:flex;flex-direction:column;gap:12px">
+        <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">FULL NAME</label><input value="{{ partName }}" onChange="{{ onPartName }}" placeholder="Participant full name" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+        <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">NDIS NUMBER (optional)</label><input value="{{ partNdis }}" onChange="{{ onPartNdis }}" placeholder="e.g. 4300000001" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+        <div style="display:flex;gap:9px;margin-top:4px">
+          <button onClick="{{ closeAddPart }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onClick="{{ confirmAddPart }}" style="flex:1;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Add participant</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { view:'overview', toast:null, uploadOpen:false, inviteOpen:false, addPartOpen:false, saved:false, savedWorkers:[], inviteName:'', inviteEmail:'', inviteRole:'Support Worker', savingInvite:false, partName:'', partNdis:'', savingPart:false, supabaseParticipants:[], supabaseConnected:false, orgContext:null, supabaseDocs:[], agreements:[], orgProfile:null, profileDraft:null, selectedServiceTypes:null, savingProfile:false };
+  componentDidMount(){
+    const AD=window.AegisData;
+    if(AD){
+      const w=AD.get('sp_workers')||[];
+      if(w.length) this.setState({savedWorkers:w});
+    }
+    this.loadParticipants();
+    this.loadOrgContext();
+    this.loadDocuments();
+    this.loadAgreements();
+    this.loadOrgProfile();
+  }
+  // Load real service agreements (signature requests) for the org. RLS-scoped.
+  loadAgreements(){
+    try{
+      if(window.loadSignatureRequests){
+        Promise.resolve(window.loadSignatureRequests()).then(res=>{
+          if(res && Array.isArray(res.requests)) this.setState({agreements:res.requests});
+        }).catch(err=>console.error('loadAgreements error:',err));
+      }
+    }catch(err){ console.error('loadAgreements error:',err); }
+  }
+  // Load the org's extended profile (ABN, provider #, service types, …) if present.
+  loadOrgProfile(){
+    try{
+      const client=window.getSupabaseClient && window.getSupabaseClient();
+      if(!client || !(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+      Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+        const orgId=ctx && ctx.organisationId;
+        if(!orgId) return;
+        return client.from('organisation_profiles').select('*').eq('org_id',orgId).maybeSingle().then(({data})=>{
+          if(data) this.setState({orgProfile:data, selectedServiceTypes:(data.service_types||[])});
+        });
+      }).catch(err=>console.error('loadOrgProfile error:',err));
+    }catch(err){ console.error('loadOrgProfile error:',err); }
+  }
+  // Load the signed-in provider's real org/profile context (real mode only).
+  loadOrgContext(){
+    try{
+      if(window.loadCurrentUserContext){
+        Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+          if(ctx && (ctx.organisationName||ctx.profile)) this.setState({orgContext:ctx});
+        }).catch(err=>console.error('loadOrgContext error:',err));
+      }
+    }catch(err){ console.error('loadOrgContext error:',err); }
+  }
+  // Load the org's real documents (RLS-scoped). Empty list => honest empty-state.
+  loadDocuments(){
+    try{
+      if(window.loadDocumentsForCurrentUser){
+        Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
+          if(res && Array.isArray(res.documents)) this.setState({supabaseDocs:res.documents});
+        }).catch(err=>console.error('loadDocuments error:',err));
+      }
+    }catch(err){ console.error('loadDocuments error:',err); }
+  }
+  // Load this provider's RLS-scoped participants (reuses the Provider helper).
+  // Falls back to demo data via the query helper.
+  loadParticipants(){
+    const apply=()=>{
+      if(window.queryParticipantsByProvider){
+        Promise.resolve(window.queryParticipantsByProvider()).then(parts=>{
+          if(parts && parts.length>0){
+            this.setState({ supabaseParticipants:parts, supabaseConnected: window.isSupabaseConfigured?window.isSupabaseConfigured():false });
+          }
+        }).catch(err=>console.error('loadParticipants error:',err));
+      }
+    };
+    try{
+      if(window.queryParticipantsByProvider){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        script.onerror=()=>this.setState({supabaseConnected:false});
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadParticipants error:',err); }
+  }
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      building:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      check:'M20 6L9 17l-5-5',
+      plus:'M12 5v14 M5 12h14',
+      chev:'M9 6l6 6-6 6',
+      up:'M12 19V5 M5 12l7-7 7 7',
+      down:'M12 5v14 M5 12l7 7 7-7',
+      trash:'M3 6h18 M8 6V4h8v2 M19 6l-1 14H6L5 6',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      edit:'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z',
+      x:'M6 6l12 12 M18 6L6 18',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  showToast(msg){
+    this.setState({toast:msg});
+    setTimeout(()=>this.setState({toast:null}),3000);
+  }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {view,toast,uploadOpen,inviteOpen}=this.state;
+    // Real mode = Supabase configured. Fabricated demo content renders ONLY in the
+    // unconfigured preview; real users see real data or an honest empty/placeholder.
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const sbParts=this.state.supabaseParticipants||[];
+    const sbDocs=this.state.supabaseDocs||[];
+    const ctx=this.state.orgContext;
+    // Real org identity from membership; never a fabricated name/ABN/registration.
+    const orgName = demoMode ? 'Brightside Care' : ((ctx && ctx.organisationName) || 'Your organisation');
+    const orgInitials = ((orgName||'').trim().split(/\s+/).map(w=>w[0]||'').join('').substring(0,2).toUpperCase()) || 'OR';
+    const fmtDate=(iso)=>{ try{ return iso ? new Date(iso).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}) : ''; }catch(e){ return ''; } };
+    const cap=(s)=>{ s=(s==null?'':String(s)); return s ? (s.charAt(0).toUpperCase()+s.slice(1)) : s; };
+
+    const navSections=[
+      {title:'ORGANISATION',items:[
+        {key:'overview',label:'Overview',    icon:'grid',  badge:null},
+        {key:'profile', label:'Edit profile',icon:'edit',  badge:null},
+        {key:'docs',    label:'Documents',   icon:'file',  badge: demoMode ? '3' : (sbDocs.length ? String(sbDocs.length) : null)},
+      ]},
+      {title:'OPERATIONS',items:[
+        {key:'participants',label:'Participants',icon:'users', badge: demoMode ? '18' : (sbParts.length ? String(sbParts.length) : null)},
+        {key:'workers',    label:'Workers',     icon:'users', badge:null},
+        {key:'agreements', label:'Agreements',  icon:'file',  badge:null},
+      ]},
+    ].map(sec=>({...sec,items:sec.items.map(it=>{
+      const active=view===it.key;
+      return {...it,onClick:()=>this.setState({view:it.key}),bg:active?'rgba(255,255,255,.08)':'transparent',color:active?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,active?'#22d3bf':'#7e948e',18)};
+    })}));
+
+    const pageTitles={overview:'Overview',profile:'Edit Profile',docs:'Documents',participants:'Participants',workers:'Workers',agreements:'Service Agreements'};
+    const pageSubs={overview:orgName+' — provider summary',profile:'Update your organisation profile',docs:'Manage compliance and organisation documents',participants:'Active participants under '+orgName,workers:'Your worker roster',agreements:'Service agreements with participants'};
+
+    // KPIs: demo figures only in preview. In real mode show the one figure we can
+    // truly derive (participant count) and '—' for the rest — never invented
+    // workforce, funding or compliance numbers, and no fake growth deltas.
+    const kpis = demoMode ? [
+      {value:'18',label:'Active participants',delta:'+3 this month',deltaFg:'#1e9e6a',deltaBg:'#e9f6ef',iconEl:ic('users','#16b8a6',19),tintBg:'#e7f4f1'},
+      {value:'24',label:'Active workers',delta:'+2',deltaFg:'#1e9e6a',deltaBg:'#e9f6ef',iconEl:ic('users','#6366f1',19),tintBg:'#eef0fd'},
+      {value:'$48.2k',label:'Plan funds managed',delta:'This month',deltaFg:'#0b6b60',deltaBg:'#e7f4f1',iconEl:ic('wallet','#1e9e6a',19),tintBg:'#e9f6ef'},
+      {value:'96%',label:'Compliance score',delta:'↑ 2%',deltaFg:'#1e9e6a',deltaBg:'#e9f6ef',iconEl:ic('shield','#d98b22',19),tintBg:'#fbf0df'},
+    ] : [
+      {value:String(sbParts.length),label:'Active participants',delta:'',deltaFg:'#6c7f79',deltaBg:'#f1f4f2',iconEl:ic('users','#16b8a6',19),tintBg:'#e7f4f1'},
+      {value:'—',label:'Active workers',delta:'',deltaFg:'#6c7f79',deltaBg:'#f1f4f2',iconEl:ic('users','#6366f1',19),tintBg:'#eef0fd'},
+      {value:'—',label:'Plan funds managed',delta:'',deltaFg:'#6c7f79',deltaBg:'#f1f4f2',iconEl:ic('wallet','#1e9e6a',19),tintBg:'#e9f6ef'},
+      {value:'—',label:'Compliance score',delta:'',deltaFg:'#6c7f79',deltaBg:'#f1f4f2',iconEl:ic('shield','#d98b22',19),tintBg:'#fbf0df'},
+    ];
+
+    const demoParticipants=[
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',id:'NDI-001',budget:'$42,000',hours:'86h left',pct:'72%',barColor:'#16b8a6',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',id:'NDI-002',budget:'$28,500',hours:'120h left',pct:'55%',barColor:'#6366f1',status:'Active',stFg:'#4338ca',stBg:'#eef0fd'},
+      {name:'Ruth Kim',init:'RK',tint:'#0891b2',id:'NDI-003',budget:'$35,000',hours:'44h left',pct:'88%',barColor:'#e05252',status:'Review needed',stFg:'#c0445c',stBg:'#fbe9ed'},
+      {name:'Tom Becker',init:'TB',tint:'#9333ea',id:'NDI-004',budget:'$19,200',hours:'95h left',pct:'40%',barColor:'#1e9e6a',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Priya Sharma',init:'PS',tint:'#d98b22',id:'NDI-005',budget:'$31,000',hours:'18h left',pct:'94%',barColor:'#e05252',status:'Urgent review',stFg:'#c0445c',stBg:'#fbe9ed'},
+    ];
+    // Real mode: render ONLY real DB fields (name, NDIS, status). Budget/hours/%
+    // are NOT stored in the DB, so they show as neutral placeholders — never the
+    // demo budgets recycled per-client via modulo. Empty list = honest empty-state.
+    const partTints=['#16b8a6','#6366f1','#0891b2','#9333ea','#d98b22'];
+    const participants = demoMode ? demoParticipants : sbParts.map((p,i)=>{
+      const nm=p.full_name||p.preferred_name||'Participant';
+      const st=(p.status||'').toString();
+      return {
+        name:nm,
+        init:(p.preferred_name||nm).substring(0,2).toUpperCase(),
+        tint:partTints[i%partTints.length],
+        id:p.ndis_number?('NDIS '+p.ndis_number):'',
+        budget:'—',
+        hours:'',
+        pct:'0%',
+        barColor:'#cdd8d3',
+        status:st?(st.charAt(0).toUpperCase()+st.slice(1)):'Active',
+        stFg:'#1e7a52',stBg:'#e9f6ef'};
+    });
+
+    // Service areas are not backed by real org data — demo-only trust signal; the
+    // card is hidden in real mode (showServiceAreas) rather than inventing suburbs.
+    const serviceAreas = demoMode ? ['Glenroy','Brunswick','Coburg','Pascoe Vale','Fawkner','Thornbury','Preston','Northcote'] : [];
+
+    // Compliance/registration statuses are not backed by real org data — they are
+    // demo-only trust signals. In real mode the card is hidden (showCompliance)
+    // rather than asserting a fabricated 'Valid' registration status.
+    const compliance = demoMode ? [
+      {label:'NDIS Registration',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e7a52',16)},
+      {label:'Public Liability Insurance',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e7a52',16)},
+      {label:'Workers Compensation',status:'Expiring soon',stFg:'#b4561f',stBg:'#fbf0df',iconEl:ic('shield','#d98b22',16)},
+      {label:'Quality & Safeguards',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e7a52',16)},
+    ] : [];
+
+    const quickActions=[
+      {label:'Add participant',action:()=>{ if(demoMode){ this.showToast('Add participant is available once your workspace is connected'); } else { this.setState({addPartOpen:true}); } },iconEl:ic('users','#16b8a6',16),tintBg:'#e7f4f1'},
+      {label:'Send service agreement',action:()=>{window.location.href='Service Agreement.dc.html';},iconEl:ic('send','#6366f1',16),tintBg:'#eef0fd'},
+      {label:'Send worker agreement',action:()=>{window.location.href='Worker Agreement.dc.html';},iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
+      {label:'Search available workers',action:()=>{window.location.href='CiaraLink Provider Dashboard.dc.html';},iconEl:ic('search','#d98b22',16),tintBg:'#fbf0df'},
+      {label:'Upload document',action:()=>this.setState({uploadOpen:true}),iconEl:ic('up','#1e9e6a',16),tintBg:'#e9f6ef'},
+    ];
+
+    // Workers: no org-members→worker query helper exists, so real mode shows only
+    // workers the provider has actually invited (savedWorkers) and an honest
+    // empty-state otherwise — never the fabricated demo roster.
+    const demoWorkers=[
+      {name:'James Liu',init:'JL',tint:'#16b8a6',id:'WKR-081',role:'Support Worker',hours:'32h',pts:'4',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Amara Osei',init:'AO',tint:'#6366f1',id:'WKR-092',role:'Senior SW',hours:'38h',pts:'6',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Nina Petrov',init:'NP',tint:'#d98b22',id:'WKR-103',role:'Support Worker',hours:'24h',pts:'3',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Omar Hassan',init:'OH',tint:'#9333ea',id:'WKR-114',role:'Team Leader',hours:'40h',pts:'8',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Chloe Martin',init:'CM',tint:'#0891b2',id:'WKR-125',role:'Support Worker',hours:'0h',pts:'0',status:'On leave',stFg:'#6c7f79',stBg:'#f1f4f2'},
+    ];
+    const workers = demoMode ? [...(this.state.savedWorkers||[]), ...demoWorkers] : [...(this.state.savedWorkers||[])];
+    const workersEmpty = !demoMode && workers.length===0;
+
+    // Documents: real mode uses the org's RLS-scoped documents. Empty list shows an
+    // honest empty-state instead of the fabricated demo certificates/insurance docs.
+    const demoDocs=[
+      {name:'NDIS Registration Certificate 2025-26',type:'Registration',tagFg:'#1e7a52',tagBg:'#e9f6ef',date:'01 Jul 2025',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#1e9e6a',14),download:()=>this.showToast('Downloading…'),del:()=>this.showToast('Document deleted')},
+      {name:'Public Liability Insurance — Allianz',type:'Insurance',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'15 Mar 2025',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#16b8a6',14),download:()=>this.showToast('Downloading…'),del:()=>this.showToast('Document deleted')},
+      {name:'Workers Compensation Policy',type:'Insurance',tagFg:'#b4561f',tagBg:'#fbf0df',date:'01 Aug 2024',status:'Expiring',stFg:'#b4561f',stBg:'#fbf0df',fileEl:ic('file','#d98b22',14),download:()=>this.showToast('Downloading…'),del:()=>this.showToast('Document deleted')},
+      {name:'Quality & Safeguards Certificate',type:'Compliance',tagFg:'#4338ca',tagBg:'#eef0fd',date:'01 Jan 2025',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#6366f1',14),download:()=>this.showToast('Downloading…'),del:()=>this.showToast('Document deleted')},
+    ];
+    const docs = demoMode ? demoDocs : sbDocs.map(d=>({
+      name:d.title||'Document',
+      type:cap(d.type)||'Document',tagFg:'#0b6b60',tagBg:'#e7f4f1',
+      date:fmtDate(d.created_at),
+      status:cap(d.status)||'Current',stFg:'#1e7a52',stBg:'#e9f6ef',
+      fileEl:ic('file','#16b8a6',14),
+      download:()=>{
+        if(window.getDocumentSignedUrl && d.storage_path){
+          Promise.resolve(window.getDocumentSignedUrl(d.storage_path,d.storage_bucket)).then(r=>{
+            if(r && r.url){ window.open(r.url,'_blank'); } else { this.showToast('Download unavailable'); }
+          }).catch(()=>this.showToast('Download unavailable'));
+        } else { this.showToast('Download unavailable'); }
+      },
+      del:()=>{
+        if(!window.confirm('Delete "'+(d.title||'this document')+'"? This cannot be undone.')) return;
+        const client=window.getSupabaseClient && window.getSupabaseClient();
+        if(!client){ this.showToast('Delete unavailable — not connected'); return; }
+        this.showToast('Deleting…');
+        (async()=>{
+          try{
+            // Remove the storage object first (org-scoped delete policy), then the row.
+            if(d.storage_path){
+              try{ await client.storage.from(d.storage_bucket||'participant-documents').remove([d.storage_path]); }catch(e){ console.warn('storage remove failed:',e&&e.message); }
+            }
+            const r=await client.from('documents').delete().eq('id',d.id);
+            if(r.error){ this.showToast("Couldn't delete: "+r.error.message); return; }
+            this.showToast('Document deleted');
+            this.loadDocuments();
+          }catch(e){ this.showToast("Couldn't delete: "+(e.message||'error')); }
+        })();
+      }
+    }));
+    const docsEmpty = !demoMode && docs.length===0;
+
+    // Profile/contact: real mode pre-fills only fields we truly have (org name from
+    // membership; contact name/email/phone from the signed-in user profile). ABN,
+    // provider number, registration expiry, website are NOT stored, so they render
+    // as empty editable inputs — never a fabricated ABN or registration value.
+    const profile = (ctx && ctx.profile) || null;
+    const userEmail = (ctx && ctx.user && ctx.user.email) || (profile && profile.email) || '';
+    // Extended org profile (ABN, provider #, address, …) from organisation_profiles.
+    const op = this.state.orgProfile || {};
+    // Live edit draft: typed values override stored ones until Save persists them.
+    const draft = this.state.profileDraft || {};
+    const dv = (k, fallback)=> (draft[k] != null ? draft[k] : (fallback || ''));
+    const oc = (k)=>(e)=>{ const v=e && e.target ? e.target.value : e; this.setState(s=>({profileDraft:Object.assign({}, s.profileDraft, {[k]:v})})); };
+    const demoProfileFields=[
+      {label:'ORGANISATION NAME',value:'Brightside Care',placeholder:'Organisation name',onChange:()=>{}},
+      {label:'ABN',value:'44 123 456 789',placeholder:'ABN',onChange:()=>{}},
+      {label:'NDIS PROVIDER NUMBER',value:'4050032871',placeholder:'Provider number',onChange:()=>{}},
+      {label:'REGISTRATION EXPIRY',value:'30 Nov 2026',placeholder:'Expiry date',onChange:()=>{}},
+      {label:'WEBSITE',value:'https://brightsidecare.com.au',placeholder:'Website URL',onChange:()=>{}},
+      {label:'PRIMARY CONTACT',value:'Sarah Thompson',placeholder:'Contact name',onChange:()=>{}},
+    ];
+    const profileFields = demoMode ? demoProfileFields : [
+      {label:'ORGANISATION NAME',value:dv('orgName',(ctx && ctx.organisationName)||''),placeholder:'Organisation name',onChange:oc('orgName')},
+      {label:'ABN',value:dv('abn',op.abn),placeholder:'ABN',onChange:oc('abn')},
+      {label:'NDIS PROVIDER NUMBER',value:dv('ndis_provider_number',op.ndis_provider_number),placeholder:'Provider number',onChange:oc('ndis_provider_number')},
+      {label:'REGISTRATION EXPIRY',value:dv('registration_expiry',op.registration_expiry),placeholder:'Expiry date',onChange:oc('registration_expiry')},
+      {label:'WEBSITE',value:dv('website',op.website),placeholder:'Website URL',onChange:oc('website')},
+      {label:'PRIMARY CONTACT',value:dv('primary_contact',op.primary_contact || (profile && profile.full_name) || ''),placeholder:'Contact name',onChange:oc('primary_contact')},
+    ];
+
+    const demoContactFields=[
+      {label:'PHONE',value:'(03) 9123 4567',placeholder:'Phone number',onChange:()=>{}},
+      {label:'EMAIL',value:'admin@brightsidecare.com.au',placeholder:'Email address',onChange:()=>{}},
+      {label:'STREET ADDRESS',value:'42 Albert St, Preston VIC 3072',placeholder:'Street address',onChange:()=>{}},
+      {label:'POSTCODE',value:'3072',placeholder:'Postcode',onChange:()=>{}},
+    ];
+    const contactFields = demoMode ? demoContactFields : [
+      {label:'PHONE',value:dv('phone',op.phone || (profile && profile.phone) || ''),placeholder:'Phone number',onChange:oc('phone')},
+      {label:'EMAIL',value:userEmail,placeholder:'Email address',onChange:()=>this.showToast('Email is managed in account settings')},
+      {label:'STREET ADDRESS',value:dv('street_address',op.street_address),placeholder:'Street address',onChange:oc('street_address')},
+      {label:'POSTCODE',value:dv('postcode',op.postcode),placeholder:'Postcode',onChange:oc('postcode')},
+    ];
+
+    const stTypes=['Daily Activities','Community Participation','Capacity Building','Household Tasks','Personal Care','Transport','High Intensity','Behaviour Support','Allied Health','Respite'];
+    // Real mode: selected service types come from organisation_profiles and are
+    // editable; the toggle updates state and is persisted on Save. Demo mode keeps
+    // a static preview selection with a non-persisting toast.
+    const realSelectedST = this.state.selectedServiceTypes || (op.service_types || []);
+    const activeST = demoMode ? ['Daily Activities','Community Participation','Personal Care','Transport'] : realSelectedST;
+    const serviceTypes=stTypes.map(st=>{
+      const active=activeST.indexOf(st)!==-1;
+      const toggle = demoMode
+        ? ()=>this.showToast(`Toggled: ${st}`)
+        : ()=>{ this.setState(s=>{ const cur=(s.selectedServiceTypes || (this.state.orgProfile && this.state.orgProfile.service_types) || []).slice(); const i=cur.indexOf(st); if(i===-1) cur.push(st); else cur.splice(i,1); return {selectedServiceTypes:cur}; }); };
+      return {label:st,toggle,bd:active?'#16b8a6':'#dde4e1',bg:active?'#f0faf8':'#fff',fg:active?'#0b6b60':'#6c7f79'};
+    });
+
+    // Agreements (real signature-request log) — demo mode shows a small sample.
+    const agStatusColor=(s)=>{ s=(s||'').toLowerCase(); if(s==='signed') return {fg:'#1e7a52',bg:'#e9f6ef'}; if(s==='declined'||s==='cancelled') return {fg:'#c0445c',bg:'#fbe9ed'}; if(s==='viewed') return {fg:'#4338ca',bg:'#eef0fd'}; return {fg:'#b4561f',bg:'#fbf0df'}; };
+    const demoAgreements=[
+      {title:'Service Agreement — Margaret Reyes',participant:'Margaret Reyes',date:'12 Jun 2025',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('file','#16b8a6',14)},
+      {title:'Service Agreement — David Lowe',participant:'David Lowe',date:'03 Jun 2025',status:'Sent',stFg:'#b4561f',stBg:'#fbf0df',iconEl:ic('file','#16b8a6',14)},
+    ];
+    const realAgreements=(this.state.agreements||[]).map(r=>{ const c=agStatusColor(r.status); return {
+      title:r.document_title||'Service agreement',
+      participant:r.participant_name||'—',
+      date:fmtDate(r.created_at),
+      status:cap(r.status)||'Sent',stFg:c.fg,stBg:c.bg,
+      iconEl:ic('file','#16b8a6',14)
+    };});
+    const agreements = demoMode ? demoAgreements : realAgreements;
+    const agreementsEmpty = agreements.length===0;
+
+    return {
+      logoEl:ic('pulse','#eafaf8',21),logoutEl:ic('logout','#6c8a83',15),
+      logout:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goBilling:()=>{ window.location.href='billing.html'; },
+      chevEl:ic('chev','#b6c4be',15),plusEl:ic('plus','#06201c',16),
+      editEl:ic('edit','#16b8a6',15),saveIcon:ic('check','#06201c',15),
+      upEl:ic('up','#06201c',15),upBigEl:ic('up','#9aa8a3',28),
+      downEl:ic('down','#41635c',14),trashEl:ic('trash','#c0445c',14),
+      fileEl:ic('file','#6366f1',14),xEl:ic('x','#6c7f79',16),
+      toastIcon:ic('check','#16b8a6',16),
+      navSections,
+      pageTitle:pageTitles[view]||'Overview',
+      pageSub:pageSubs[view]||'',
+      isOverview:view==='overview',
+      isProfile:view==='profile',
+      isWorkers:view==='workers',
+      isDocs:view==='docs',
+      isParticipants:view==='participants',
+      isAgreements:view==='agreements',
+      showSaveBtn:view==='profile',
+      showAddBtn:view==='workers'||view==='participants',
+      addLabel:view==='workers'?'Invite worker':'Add participant',
+      addAction:view==='workers'?()=>this.setState({inviteOpen:true}):()=>{ if(demoMode){ this.showToast('Add participant is available once your workspace is connected'); } else { this.setState({addPartOpen:true}); } },
+      dashIcon:ic('grid','#41635c',15),
+      agreements,agreementsEmpty,shieldSmallEl:ic('shield','#b48a2a',15),
+      goBack:()=>{window.location.href='CiaraLink Provider Dashboard.dc.html';},
+      goEdit:()=>this.setState({view:'profile'}),
+      goParticipants:()=>this.setState({view:'participants'}),
+      goServiceAgreement:()=>{window.location.href='Service Agreement.dc.html';},
+      agreementsBigEl:ic('file','#16b8a6',26),sendEl:ic('send','#06201c',15),
+      saveProfile:()=>{
+        // Demo mode (Supabase not configured): keep the local-only preview save.
+        if(demoMode){
+          const AD=window.AegisData;
+          if(AD) AD.set('sp_profile_saved',{ts:Date.now(),name:orgName,savedAt:AD.now()});
+          this.showToast('Profile saved (preview)');
+          return;
+        }
+        if(this.state.savingProfile) return;
+        const d=this.state.profileDraft||{};
+        const st=this.state.selectedServiceTypes;
+        const client=window.getSupabaseClient && window.getSupabaseClient();
+        if(!client){ this.showToast('Save unavailable — not connected'); return; }
+        this.setState({savingProfile:true});
+        this.showToast('Saving…');
+        (async()=>{
+          try{
+            const ctx2=await window.loadCurrentUserContext();
+            const orgId=ctx2 && ctx2.organisationId;
+            if(!orgId){ this.showToast("Couldn't save: no organisation found"); this.setState({savingProfile:false}); return; }
+            const uid=ctx2 && ctx2.user ? ctx2.user.id : null;
+            const errors=[];
+            // 1) Organisation name -> organisations.name (provider admin RLS).
+            if(d.orgName!=null && window.setOwnOrgName){
+              const r=await window.setOwnOrgName(d.orgName);
+              if(r && r.error) errors.push('name: '+r.error);
+            }
+            // 2) Primary contact name + phone -> own user_profiles row.
+            const profPatch={};
+            if(d.primary_contact!=null) profPatch.full_name=d.primary_contact;
+            if(d.phone!=null) profPatch.phone=d.phone;
+            if(Object.keys(profPatch).length && window.updateMyProfile){
+              const r=await window.updateMyProfile(profPatch);
+              if(r && r.error && r.error!=='Nothing to update') errors.push('contact: '+r.error);
+            }
+            // 3) Extended org identity -> organisation_profiles (upsert).
+            const row={org_id:orgId,updated_by:uid};
+            ['abn','ndis_provider_number','registration_expiry','website','primary_contact','phone','street_address','postcode'].forEach(k=>{ if(d[k]!=null) row[k]=d[k]; });
+            if(st!=null) row.service_types=st;
+            const hasExtended=Object.keys(row).length>2 || st!=null;
+            if(hasExtended){
+              const r=await client.from('organisation_profiles').upsert(row,{onConflict:'org_id'}).select().single();
+              if(r.error) errors.push('details: '+r.error.message);
+              else this.setState({orgProfile:r.data, selectedServiceTypes:(r.data.service_types||[])});
+            }
+            this.setState({savingProfile:false, profileDraft:null});
+            if(errors.length) this.showToast("Saved with issues: "+errors[0]);
+            else { this.showToast('Profile saved'); this.loadOrgContext(); this.loadOrgProfile(); }
+          }catch(e){ this.setState({savingProfile:false}); this.showToast("Couldn't save: "+(e.message||'unknown error')); }
+        })();
+      },
+      inviteWorker:()=>this.setState({inviteOpen:true}),
+      uploadDoc:()=>this.setState({uploadOpen:true}),
+      orgName,orgInitials,showOrgCompliance:demoMode,showServiceAreas:demoMode,
+      kpis,participants,serviceAreas,compliance,showCompliance:demoMode,quickActions,
+      workers,workersEmpty,docs,docsEmpty,profileFields,contactFields,serviceTypes,
+      toast,clearToast:()=>this.setState({toast:null}),toastIcon:ic('check','#16b8a6',16),
+      uploadOpen,inviteOpen,
+      closeUpload:()=>this.setState({uploadOpen:false}),
+      closeInvite:()=>this.setState({inviteOpen:false}),
+      triggerUpload:()=>{
+        if(demoMode){ this.showToast('File browser opened…'); return; }
+        try{
+          const inp=document.createElement('input');
+          inp.type='file';
+          inp.accept='.pdf,.doc,.docx,.jpg,.jpeg,.png';
+          inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(f){ this._pendingFile=f; this.showToast('Selected: '+f.name); } };
+          inp.click();
+        }catch(e){ this.showToast('Could not open file browser'); }
+      },
+      confirmUpload:()=>{
+        if(demoMode){ this.setState({uploadOpen:false}); this.showToast('Document uploaded successfully'); return; }
+        const f=this._pendingFile;
+        if(!f){ this.showToast('Choose a file first'); return; }
+        if(!window.uploadDocument){ this.showToast('Upload not available'); return; }
+        this.showToast('Uploading…');
+        Promise.resolve(window.uploadDocument({file:f})).then(res=>{
+          if(res && res.document){
+            this._pendingFile=null;
+            this.setState({uploadOpen:false});
+            this.showToast('Document uploaded');
+            this.loadDocuments();
+          } else {
+            this.showToast('Upload failed: '+((res && res.error)||'unknown error'));
+          }
+        }).catch(()=>this.showToast('Upload failed'));
+      },
+      goWorkerAgreement:()=>{ window.location.href='Worker Agreement.dc.html'; },
+      inviteName:this.state.inviteName,inviteEmail:this.state.inviteEmail,inviteRole:this.state.inviteRole,
+      onInviteName:(e)=>this.setState({inviteName:e&&e.target?e.target.value:e}),
+      onInviteEmail:(e)=>this.setState({inviteEmail:e&&e.target?e.target.value:e}),
+      onInviteRole:(e)=>this.setState({inviteRole:e&&e.target?e.target.value:e}),
+      sendInvite:()=>{
+        // Demo mode: keep the local preview roster behaviour.
+        if(demoMode){
+          const AD=window.AegisData;
+          const uid=AD?AD.uid():(Math.random().toString(36).slice(2,6).toUpperCase());
+          const worker={_id:uid,name:(this.state.inviteName||'New Worker'),init:((this.state.inviteName||'NW').substring(0,2).toUpperCase()),tint:'#16b8a6',id:'WKR-'+uid,role:this.state.inviteRole||'Support Worker',hours:'0h',pts:'0',status:'Invited',stFg:'#b4561f',stBg:'#fbf0df'};
+          if(AD) AD.push('sp_workers',worker);
+          this.setState(s=>({inviteOpen:false,inviteName:'',inviteEmail:'',savedWorkers:[worker,...(s.savedWorkers||[])]}));
+          this.showToast('Invitation sent (preview)');
+          return;
+        }
+        if(this.state.savingInvite) return;
+        const name=(this.state.inviteName||'').trim();
+        const email=(this.state.inviteEmail||'').trim().toLowerCase();
+        if(!name||!email){ this.showToast('Enter a name and email'); return; }
+        const A=window.CiaraLinkAuth||{};
+        if(!A.addTeamMember){ this.showToast('Invite unavailable — not connected'); return; }
+        // All worker labels map to the support_worker role (the assignable role).
+        const role='support_worker';
+        // Generate a shareable temporary password (12 chars, mixed).
+        const pw=(()=>{ const c='ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; let s=''; for(let i=0;i<12;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; })();
+        this.setState({savingInvite:true});
+        this.showToast('Creating worker account…');
+        (async()=>{
+          try{
+            const ctx2=await window.loadCurrentUserContext();
+            const orgId=ctx2 && ctx2.organisationId;
+            if(!orgId){ this.setState({savingInvite:false}); this.showToast("Couldn't invite: no organisation found"); return; }
+            const r=await A.addTeamMember({orgId,email,fullName:name,role,tempPassword:pw});
+            this.setState({savingInvite:false});
+            if(r && r.ok){
+              this.setState({inviteOpen:false,inviteName:'',inviteEmail:''});
+              // Surface the temp password so the admin can share it securely.
+              try{ window.prompt('Worker created. Share this temporary password securely with '+name+':', pw); }catch(e){}
+              this.showToast('Worker account created for '+name);
+            } else {
+              this.showToast("Couldn't invite: "+((r&&r.error)||'unknown error'));
+            }
+          }catch(e){ this.setState({savingInvite:false}); this.showToast("Couldn't invite: "+(e.message||'error')); }
+        })();
+      },
+      addPartOpen:this.state.addPartOpen,partName:this.state.partName,partNdis:this.state.partNdis,
+      closeAddPart:()=>this.setState({addPartOpen:false}),
+      onPartName:(e)=>this.setState({partName:e&&e.target?e.target.value:e}),
+      onPartNdis:(e)=>this.setState({partNdis:e&&e.target?e.target.value:e}),
+      confirmAddPart:()=>{
+        if(this.state.savingPart) return;
+        const nm=(this.state.partName||'').trim();
+        const ndis=(this.state.partNdis||'').trim();
+        if(!nm){ this.showToast('Enter the participant name'); return; }
+        if(!window.createParticipant){ this.showToast('Add unavailable — not connected'); return; }
+        this.setState({savingPart:true});
+        this.showToast('Adding participant…');
+        (async()=>{
+          try{
+            const ctx2=await window.loadCurrentUserContext();
+            const orgId=ctx2 && ctx2.organisationId;
+            if(!orgId){ this.setState({savingPart:false}); this.showToast("Couldn't add: no organisation found"); return; }
+            const r=await window.createParticipant({org_id:orgId,full_name:nm,ndis_number:ndis||null});
+            this.setState({savingPart:false});
+            if(r && r.participant && !r.error){
+              this.setState({addPartOpen:false,partName:'',partNdis:''});
+              this.showToast('Participant added: '+nm);
+              this.loadParticipants();
+            } else {
+              this.showToast("Couldn't add: "+((r&&r.error)||'unknown error'));
+            }
+          }catch(e){ this.setState({savingPart:false}); this.showToast("Couldn't add: "+(e.message||'error')); }
+        })();
+      },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

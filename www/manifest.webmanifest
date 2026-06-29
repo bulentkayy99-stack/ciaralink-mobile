@@ -1,0 +1,35 @@
+{
+  "name": "CiaraLink Worker",
+  "short_name": "CL Worker",
+  "description": "CiaraLink support-worker portal: view shifts, write visit notes, and keep your worker passport and agreements compliant — all in one app.",
+  "lang": "en-AU",
+  "dir": "ltr",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/Login.dc.html?source=pwa",
+  "id": "/Login.dc.html",
+  "background_color": "#0a1c19",
+  "theme_color": "#0c2622",
+  "categories": ["business", "medical", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/ciaralink-worker-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/ciaralink-worker-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/ciaralink-worker-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

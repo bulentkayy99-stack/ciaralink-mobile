@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <!-- Client-side text extraction so the AI can read the provider's own uploaded form -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes ai-scan{0%{top:0}100%{top:100%}}
+    @keyframes ai-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+    @keyframes ai-fill{from{width:0}to{width:var(--w)}}
+    @keyframes ai-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+    @keyframes ai-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes ai-dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:230px;flex:0 0 230px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#5f7a73;font-weight:600;margin-top:3px">AI INTAKE</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:14px 10px 7px">DOCUMENT ENGINE</div>
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="3">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span style="flex:1">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;background:#16b8a6;color:#06201c">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:#5f7a73;line-height:1.5">One profile. Every form fills itself.</div>
+    <button onClick="{{ goBack }}" style="margin:0 12px 6px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.18)">← Provider dashboard</button>
+    <button onClick="{{ signOut }}" style="margin:0 12px 14px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05);color:#9fb4ae">{{ logoutSmEl }}Sign out</button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eaeeec">
+    <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 48px">
+
+      <!-- ============ INTAKE ============ -->
+      <sc-if value="{{ realIntake }}" hint-placeholder-val="">
+      <div style="max-width:680px;margin:40px auto 0;text-align:center;background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:40px 30px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="width:56px;height:56px;border-radius:16px;background:#f1faf8;border:1px solid #d3eae4;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadEl }}</div>
+        <div style="font-size:17px;font-weight:800;color:#14302b;margin-top:14px">Auto-fill your own agreements</div>
+        <div style="font-size:13px;color:#6c7f79;margin-top:7px;line-height:1.55">Upload your own form once, pick a client, and CiaraLink fills it from their profile — then sends it to sign. Nothing retyped.</div>
+        <button onClick="{{ goTemplates }}" style="margin-top:18px;padding:11px 20px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Go to Smart Templates →</button>
+      </div>
+      </sc-if>
+      <sc-if value="{{ demoIntake }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1080px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:#fff7e6;border:1px solid #f3e2bd;border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:13px;color:#8a6d22">Preview Mode — example data shown. Sign in to read and auto-fill your own documents.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+          <!-- upload / document -->
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #eef2f0">
+              <div style="width:32px;height:32px;border-radius:9px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ docEl }}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">{{ docName }}</div><div style="font-size:11.5px;color:#8a9a94">{{ docMeta }}</div></div>
+              <sc-if value="{{ isIdle }}" hint-placeholder-val="">
+                <button onClick="{{ runAnalyse }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sparkDkEl }}Analyse</button>
+              </sc-if>
+            </div>
+
+            <div style="position:relative;height:460px;overflow:hidden;background:#fbfcfb">
+              <!-- mock document page -->
+              <div style="position:absolute;inset:0;padding:26px 30px;opacity:{{ pageOpacity }};transition:opacity .3s">
+                <div style="font-size:13px;font-weight:800;color:#14302b;letter-spacing:.02em">NDIS SERVICE AGREEMENT</div>
+                <div style="height:1px;background:#e7ece9;margin:9px 0 14px"></div>
+                <sc-for list="{{ docLines }}" as="l" hint-placeholder-count="12">
+                  <div style="display:flex;gap:8px;margin-bottom:9px;align-items:baseline">
+                    <span style="font-size:10px;color:#b6c4be;flex:0 0 54px">{{ l.tag }}</span>
+                    <div style="height:8px;border-radius:9px;background:{{ l.bg }};width:{{ l.w }}"></div>
+                  </div>
+                </sc-for>
+              </div>
+              <!-- scan line -->
+              <sc-if value="{{ isReading }}" hint-placeholder-val="">
+                <div style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#16b8a6,transparent);box-shadow:0 0 14px #16b8a6;animation:ai-scan 2s linear infinite"></div>
+                <div style="position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(180deg,rgba(22,184,166,.06),transparent 40%)"></div>
+              </sc-if>
+            </div>
+          </div>
+
+          <!-- AI panel -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <sc-if value="{{ isIdle }}" hint-placeholder-val="">
+              <div style="border:1.5px dashed #b6d8d0;border-radius:20px;padding:34px 24px;text-align:center;background:#f1faf8">
+                <div style="width:56px;height:56px;border-radius:16px;background:#fff;border:1px solid #d3eae4;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadEl }}</div>
+                <div style="font-size:15px;font-weight:800;color:#14302b;margin-top:13px">Drop any document</div>
+                <div style="font-size:12.5px;color:#6c7f79;margin-top:5px;line-height:1.5">NDIS plans, service agreements, consent forms, referrals, assessments — I'll read it and pull out everything that matters.</div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:14px">
+                  <span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e0f0ec;padding:4px 10px;border-radius:8px">PDF</span>
+                  <span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e0f0ec;padding:4px 10px;border-radius:8px">Word</span>
+                  <span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e0f0ec;padding:4px 10px;border-radius:8px">Photo / scan</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isReading }}" hint-placeholder-val="">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+                  <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">{{ sparkWEl }}</div>
+                  <div><div style="font-size:14.5px;font-weight:800;color:#14302b">Reading the document…<span style="color:#16b8a6;animation:ai-dot 1.2s infinite">.</span></div><div style="font-size:12px;color:#8a9a94">Understanding structure, fields & dates</div></div>
+                </div>
+                <sc-for list="{{ readSteps }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:11px;padding:9px 0">
+                    <span style="display:flex">{{ r.iconEl }}</span>
+                    <span style="flex:1;font-size:13px;font-weight:600;color:{{ r.fg }}">{{ r.label }}</span>
+                    <span style="font-size:11.5px;font-weight:700;color:{{ r.statusFg }}">{{ r.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isDone }}" hint-placeholder-val="">
+              <div style="background:#0c2622;border-radius:20px;padding:18px 20px;color:#eafaf8;animation:ai-rise .4s ease both">
+                <div style="display:flex;align-items:center;gap:11px">
+                  <div style="width:40px;height:40px;border-radius:12px;background:rgba(124,224,210,.18);display:flex;align-items:center;justify-content:center">{{ checkTealEl }}</div>
+                  <div style="flex:1"><div style="font-size:14.5px;font-weight:800">Read it — found {{ fieldCount }} fields</div><div style="font-size:12px;color:#a9cfc8">Detected: NDIS Service Agreement · 2 signature fields</div></div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;animation:ai-rise .5s ease both">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Extracted information</span><span style="font-size:11px;font-weight:700;color:#6c7f79">Review &amp; confirm</span></div>
+                <div style="max-height:300px;overflow-y:auto">
+                  <sc-for list="{{ extracted }}" as="e" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #f4f7f5">
+                      <div style="flex:1;min-width:0"><div style="font-size:11px;color:#9aa8a3">{{ e.label }}</div><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ e.value }}</div></div>
+                      <div style="display:flex;align-items:center;gap:6px"><div style="width:42px;height:5px;border-radius:9px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ e.conf }};background:{{ e.confColor }};border-radius:9px"></div></div><span style="font-size:10.5px;font-weight:700;color:{{ e.confColor }};width:30px">{{ e.conf }}</span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:9px;padding:14px 20px;border-top:1px solid #eef2f0;background:#fbfdfc">
+                  <div style="flex:1"></div>
+                  <button onClick="{{ runAnalyse }}" style="padding:10px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Re-scan</button>
+                  <button onClick="{{ goProfile }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ userPlusEl }}Build master profile</button>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ MASTER PROFILE ============ -->
+      <sc-if value="{{ realProfile }}" hint-placeholder-val="">
+      <div style="max-width:680px;margin:40px auto 0;text-align:center;background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:40px 30px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="width:56px;height:56px;border-radius:16px;background:#eef0fd;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ userPlusEl }}</div>
+        <div style="font-size:17px;font-weight:800;color:#14302b;margin-top:14px">Client master profiles</div>
+        <div style="font-size:13px;color:#6c7f79;margin-top:7px;line-height:1.55">Each client's details live in their record in your Provider Console. Smart Templates fills your forms straight from those profiles — one source of truth, nothing retyped.</div>
+        <button onClick="{{ goTemplates }}" style="margin-top:18px;padding:11px 20px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Go to Smart Templates →</button>
+      </div>
+      </sc-if>
+      <sc-if value="{{ demoProfile }}" hint-placeholder-val="">
+      <div style="max-width:1180px;margin:0 auto;animation:ai-rise .35s ease both">
+
+        <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:20px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff">AT</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:9px"><span style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#14302b">Ali Tahan</span><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:7px">Master profile</span></div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:3px">Participant · 34 · NDIS <span style="font-family:'IBM Plex Mono',monospace">4310 887 226</span> · Glenroy VIC</div>
+          </div>
+          <div style="text-align:right">
+            <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end;font-size:12px;font-weight:700;color:#1e7a52"><span style="width:8px;height:8px;border-radius:99px;background:#16b8a6"></span>Profile complete</div>
+            <div style="font-size:11.5px;color:#9aa8a3;margin-top:3px">Built from 4 documents</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a">This is Ali's <b>single source of truth</b>. Every form — service agreements, consent, rosters, invoices — now fills itself from here. Update once, it flows everywhere.</div>
+          <button onClick="{{ goTemplates }}" style="padding:9px 15px;border-radius:10px;border:none;background:#2a4a8a;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">See auto-fill</button>
+        </div>
+
+        <div style="columns:2;column-gap:18px">
+          <sc-for list="{{ sections }}" as="s" hint-placeholder-count="6">
+            <div style="break-inside:avoid;margin-bottom:18px;background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #eef2f0">
+                <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ s.tintBg }}">{{ s.iconEl }}</div>
+                <span style="flex:1;font-size:14px;font-weight:800;color:#14302b">{{ s.title }}</span>
+                <span style="font-size:10px;font-weight:700;color:#9aa8a3;background:#f4f7f5;padding:3px 8px;border-radius:6px">{{ s.source }}</span>
+              </div>
+              <sc-if value="{{ s.isRows }}" hint-placeholder-val="{{ true }}">
+                <sc-for list="{{ s.rows }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 18px;border-bottom:1px solid #f4f7f5">
+                    <span style="font-size:12px;color:#9aa8a3;flex:0 0 116px">{{ r.k }}</span>
+                    <span style="flex:1;font-size:13px;font-weight:600;color:#14302b;line-height:1.45">{{ r.v }}</span>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ s.isBudget }}" hint-placeholder-val="">
+                <sc-for list="{{ s.budgets }}" as="b" hint-placeholder-count="3">
+                  <div style="padding:11px 18px;border-bottom:1px solid #f4f7f5">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12.5px;font-weight:700;color:#14302b">{{ b.cat }}</span><span style="font-size:11.5px;color:#6c7f79">{{ b.spent }} / {{ b.total }}</span></div>
+                    <div style="height:7px;border-radius:99px;background:#eef2f0;overflow:hidden;margin-top:7px"><div style="height:100%;width:{{ b.pct }};border-radius:99px;background:{{ b.color }}"></div></div>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ s.isChips }}" hint-placeholder-val="">
+                <div style="display:flex;gap:7px;flex-wrap:wrap;padding:14px 18px">
+                  <sc-for list="{{ s.chips }}" as="c" hint-placeholder-count="4"><span style="font-size:12px;font-weight:600;color:#41635c;background:#eef4f2;padding:5px 11px;border-radius:9px">{{ c }}</span></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ s.isConsent }}" hint-placeholder-val="">
+                <sc-for list="{{ s.consents }}" as="c" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid #f4f7f5">{{ c.iconEl }}<span style="flex:1;font-size:12.5px;font-weight:600;color:#14302b">{{ c.label }}</span><span style="font-size:11px;font-weight:700;color:{{ c.fg }};background:{{ c.bg }};padding:3px 9px;border-radius:7px">{{ c.status }}</span></div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ s.isDocs }}" hint-placeholder-val="">
+                <sc-for list="{{ s.docs }}" as="d" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid #f4f7f5">
+                    <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ d.iconEl }}</div>
+                    <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ d.name }}</div><div style="font-size:11px;color:#9aa8a3">{{ d.meta }}</div></div>
+                    <span style="font-size:10.5px;font-weight:700;color:{{ d.fg }};background:{{ d.bg }};padding:3px 8px;border-radius:6px">{{ d.tag }}</span>
+                  </div>
+                </sc-for>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ TEMPLATES / AUTO-FILL (the real 0-effort flow) ============ -->
+      <sc-if value="{{ isTemplates }}" hint-placeholder-val="">
+      <div style="max-width:1080px;margin:0 auto;animation:ai-rise .35s ease both">
+        <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+          <div style="display:flex;align-items:center;gap:11px;background:#fff7e6;border:1px solid #f3e2bd;border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:13px;color:#8a6d22">Preview Mode — sign in to a CiaraLink account to upload your own forms and auto-fill them from real client profiles.</div>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a">Upload your <b>own</b> agreement form once — I read it and detect every field, then auto-fill it from any client's profile. Nothing retyped. Then send it to the client to sign.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+
+          <!-- STEP 1 — your uploaded form templates -->
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;display:flex;align-items:center;gap:8px"><span style="font-size:11px;font-weight:800;color:#0b6b60;background:#e7f4f1;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center">1</span><span style="font-size:14px;font-weight:800;color:#14302b">Your form templates</span></div>
+            <sc-if value="{{ hasTemplates }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ templates }}" as="t" hint-placeholder-count="4">
+              <div onClick="{{ t.onSelect }}" style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid #f4f7f5;cursor:pointer;background:{{ t.rowBg }}">
+                <div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;background:{{ t.tintBg }};display:flex;align-items:center;justify-content:center">{{ t.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ t.name }}</div><div style="font-size:11.5px;color:#9aa8a3">{{ t.meta }}</div></div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ t.fg }};background:{{ t.bg }};padding:3px 9px;border-radius:7px">{{ t.tag }}</span>
+              </div>
+            </sc-for>
+            </sc-if>
+            <sc-if value="{{ noTemplates }}" hint-placeholder-val="">
+              <div style="padding:34px 22px;text-align:center;color:#8a9a94;font-size:12.5px;line-height:1.5">No forms uploaded yet. Upload your own blank agreement below — I'll read it so you can auto-fill it from any client's profile.</div>
+            </sc-if>
+            <div style="padding:14px 20px"><button onClick="{{ uploadForm }}" style="width:100%;height:44px;border-radius:12px;border:1.5px dashed #b6d8d0;background:#f1faf8;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">{{ uploadSmEl }}Upload your form (PDF / Word)</button></div>
+            <sc-if value="{{ tplBusy }}" hint-placeholder-val="">
+              <div style="padding:0 20px 16px;font-size:12px;color:#16b8a6;font-weight:700;display:flex;align-items:center;gap:6px">{{ sparkDkEl }}Reading your form<span style="animation:ai-dot 1.2s infinite">…</span></div>
+            </sc-if>
+          </div>
+
+          <!-- STEPS 2-4 — pick client, auto-fill, send -->
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="display:flex">{{ magicEl }}</span><div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Auto-fill &amp; send</div><div style="font-size:11.5px;color:#8a9a94">{{ workspaceSub }}</div></div></div>
+
+            <sc-if value="{{ needTemplate }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:38px 24px;text-align:center;color:#8a9a94;font-size:12.5px;line-height:1.5">Pick a form template on the left (or upload one) to start auto-filling.</div>
+            </sc-if>
+
+            <sc-if value="{{ haveTemplate }}" hint-placeholder-val="">
+            <div style="padding:16px 20px">
+              <sc-if value="{{ tplDetected }}" hint-placeholder-val="">
+                <div style="display:flex;align-items:center;gap:9px;padding:10px 12px;background:#0c2622;border-radius:11px;color:#eafaf8;margin-bottom:16px">{{ checkTealEl }}<div style="flex:1;font-size:12px"><b>{{ tplDetectedTitle }}</b><div style="font-size:11px;color:#a9cfc8;margin-top:1px">{{ tplDetected }}</div></div></div>
+              </sc-if>
+
+              <!-- STEP 2 — pick a client -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:11px;font-weight:800;color:#0b6b60;background:#e7f4f1;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center">2</span><span style="font-size:13px;font-weight:800;color:#14302b">Pick a client</span></div>
+              <sc-if value="{{ hasClients }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;max-height:170px;overflow-y:auto">
+                  <sc-for list="{{ clients }}" as="c" hint-placeholder-count="3">
+                    <div onClick="{{ c.onSelect }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid {{ c.bd }};border-radius:11px;cursor:pointer;background:{{ c.bg }}">
+                      <div style="width:30px;height:30px;border-radius:9px;flex:0 0 30px;background:#e7f4f1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#0b6b60">{{ c.initials }}</div>
+                      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:11px;color:#9aa8a3">{{ c.sub }}</div></div>
+                      <sc-if value="{{ c.selected }}" hint-placeholder-val="">{{ c.checkEl }}</sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noClients }}" hint-placeholder-val="">
+                <div style="padding:18px;text-align:center;color:#8a9a94;font-size:12px;line-height:1.5;margin-bottom:14px">No clients yet. Add participants in your Provider Console — they'll appear here to auto-fill from.</div>
+              </sc-if>
+
+              <!-- STEP 3 — auto-fill -->
+              <sc-if value="{{ canFill }}" hint-placeholder-val="">
+                <button onClick="{{ runFill }}" style="width:100%;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px" style-hover="background:#2bcbb9">{{ magicDkEl }}Auto-fill from {{ selClientName }}'s profile</button>
+              </sc-if>
+
+              <sc-if value="{{ filling }}" hint-placeholder-val="">
+                <div style="display:flex;align-items:center;gap:9px;padding:14px;background:#f1faf8;border:1px solid #e0efe9;border-radius:12px;font-size:12.5px;font-weight:700;color:#0b6b60">{{ sparkDkEl }}Filling the form from {{ selClientName }}'s profile<span style="animation:ai-dot 1.2s infinite">…</span></div>
+              </sc-if>
+
+              <sc-if value="{{ fillUnconfigured }}" hint-placeholder-val="">
+                <div style="padding:13px 14px;background:#fff7e6;border:1px solid #f3e2bd;border-radius:12px;font-size:12px;color:#8a6d22;line-height:1.5">AI auto-fill isn't switched on yet (no ANTHROPIC_API_KEY on the server). Add the key to activate one-tap auto-fill — until then the form stays blank for manual entry.</div>
+              </sc-if>
+
+              <sc-if value="{{ fillError }}" hint-placeholder-val="">
+                <div style="padding:13px 14px;background:#fbe9ed;border:1px solid #f3c9d2;border-radius:12px;font-size:12px;color:#a33;line-height:1.5">{{ fillError }}</div>
+              </sc-if>
+
+              <sc-if value="{{ fillDone }}" hint-placeholder-val="">
+                <div style="display:flex;align-items:center;gap:9px;margin:4px 0 14px;padding:12px 14px;background:#f4faf8;border:1px solid #e0efe9;border-radius:12px">{{ checkGreenEl }}<div style="flex:1;font-size:12px;color:#41635c"><b style="color:#14302b">{{ fillSummary }}</b> from {{ selClientName }}'s profile — nothing retyped.</div></div>
+                <sc-for list="{{ autofill }}" as="a" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f4f7f5">
+                    <span style="font-size:12px;color:#9aa8a3;flex:0 0 130px">{{ a.k }}</span>
+                    <span style="flex:1;font-size:13px;font-weight:700;color:#14302b">{{ a.v }}</span>
+                    <span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 7px;border-radius:6px">{{ a.boltEl }}auto</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ hasPreview }}" hint-placeholder-val="">
+                  <div style="margin-top:14px"><div style="font-size:11px;font-weight:700;color:#9aa8a3;margin-bottom:6px">Filled agreement preview</div><div style="max-height:240px;overflow-y:auto;border:1px solid #eef2f0;border-radius:12px;padding:14px;background:#fbfcfb;font-size:12px;line-height:1.5;color:#2c4a44">{{ filledPreviewEl }}</div></div>
+                </sc-if>
+                <button onClick="{{ sendForSignature }}" style="margin-top:14px;width:100%;height:48px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2bcbb9">{{ penEl }}Send to {{ selClientName }} to sign</button>
+                <sc-if value="{{ signLink }}" hint-placeholder-val="">
+                  <div style="margin-top:14px;padding:14px;background:#f4faf8;border:1px solid #d3eae4;border-radius:13px">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:#0b6b60">{{ checkGreenEl }}Sent — share this signing link with {{ selClientName }}</div>
+                    <div style="display:flex;gap:8px;margin-top:10px">
+                      <input value="{{ signLink }}" readonly onClick="{{ selectSignLink }}" style="flex:1;min-width:0;height:40px;border:1.5px solid #cfe5df;border-radius:10px;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14302b;background:#fff" />
+                      <button onClick="{{ copySignLink }}" style="flex:0 0 auto;height:40px;padding:0 16px;border-radius:10px;border:none;background:#0b6b60;color:#eafaf8;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ copyLabel }}</button>
+                    </div>
+                    <div style="margin-top:8px;font-size:11px;color:#6c8a83;line-height:1.5">They open it on their phone, read the agreement and sign with their finger. You'll see it move to "signed" here.</div>
+                  </div>
+                </sc-if>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ DOC-BACKED LISTS: Signing / Permissions / Plan Updates ============ -->
+      <sc-if value="{{ isListView }}" hint-placeholder-val="">
+      <div style="max-width:900px;margin:0 auto;animation:ai-rise .35s ease both">
+        <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+          <div style="display:flex;align-items:center;gap:11px;background:#fff7e6;border:1px solid #f3e2bd;border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:13px;color:#8a6d22">Preview Mode — sign in to a CiaraLink account to see live data here.</div>
+        </sc-if>
+        <sc-if value="{{ listNote }}" hint-placeholder-val="">
+          <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px"><span style="display:flex">{{ sparkBlueEl }}</span><div style="flex:1;font-size:13px;color:#2a4a8a">{{ listNote }}</div></div>
+        </sc-if>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #eef2f0">
+            <span style="flex:1;font-size:15px;font-weight:800;color:#14302b">{{ listTitle }}</span>
+            <span style="font-size:11.5px;font-weight:700;color:#9aa8a3">{{ listCount }}</span>
+          </div>
+          <sc-if value="{{ hasListItems }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ listItems }}" as="d" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid #f4f7f5">
+                <div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;background:{{ d.tintBg }};display:flex;align-items:center;justify-content:center">{{ d.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ d.name }}</div><div style="font-size:11.5px;color:#9aa8a3">{{ d.meta }}</div></div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ d.fg }};background:{{ d.bg }};padding:3px 9px;border-radius:7px">{{ d.tag }}</span>
+                <sc-if value="{{ d.canView }}" hint-placeholder-val=""><button onClick="{{ d.onView }}" style="padding:7px 12px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">Open</button></sc-if>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{ noListItems }}" hint-placeholder-val="">
+            <div style="padding:42px 24px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.5">{{ listEmpty }}</div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'intake', phase:'idle', toast:null, ready:false, configured:false, docs:[], sigs:[],
+    // smart-template / auto-fill flow
+    participants:[], participantsLoaded:false,
+    selTplId:null, selClientId:null, selClient:null,
+    tplBusy:false, fillState:'idle', fillData:null, fillErrorMsg:null,
+    signLink:null, copyLabel:'Copy link' };
+  _tplTexts = {};   // docId -> extracted template text (cached)
+  _tplInfo = {};    // docId -> { detectedType }
+  componentDidMount(){ this.boot(0); }
+  boot(attempt){
+    attempt=attempt||0;
+    const cfg = typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured();
+    const ready = cfg && typeof window.loadDocumentsForCurrentUser==='function';
+    if(!ready){
+      if(attempt<24){ clearTimeout(this._boot); this._boot=setTimeout(()=>this.boot(attempt+1),250); return; }
+      // Not configured (or helpers never loaded) → Preview Mode.
+      this.setState({ready:true,configured:!!cfg});
+      return;
+    }
+    this.setState({ready:true,configured:true});
+    this.refreshDocs();
+    this.refreshSigs();
+    this.refreshParticipants();
+  }
+  async refreshParticipants(){
+    if(typeof window.loadParticipantsForCurrentUser!=='function'){ this.setState({participantsLoaded:true}); return; }
+    try{ const r=await window.loadParticipantsForCurrentUser(); this.setState({participants:(r&&r.participants)||[],participantsLoaded:true}); }
+    catch(e){ this.setState({participantsLoaded:true}); }
+  }
+  // Get the current Supabase access token (for the AI endpoints).
+  async getToken(){
+    try{ if(typeof window.getSupabaseClient!=='function') return null;
+      const r=await window.getSupabaseClient().auth.getSession();
+      const s=r&&r.data&&r.data.session; return (s&&s.access_token)||null;
+    }catch(e){ return null; }
+  }
+  // Extract readable text from the provider's own form so the AI can fill it.
+  async extractText(file){
+    if(!file) return '';
+    const name=String(file.name||'').toLowerCase(), type=file.type||'';
+    try{
+      if(name.endsWith('.pdf')||type==='application/pdf'){
+        if(!window.pdfjsLib) return '';
+        try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; }catch(e){}
+        const buf=await file.arrayBuffer();
+        const pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+        let text=''; const n=Math.min(pdf.numPages,30);
+        for(let i=1;i<=n;i++){ const pg=await pdf.getPage(i); const c=await pg.getTextContent(); text+=c.items.map(it=>it.str).join(' ')+'\n'; }
+        return text.trim();
+      }
+      if(name.endsWith('.docx')){
+        if(!window.mammoth||typeof window.mammoth.extractRawText!=='function') return '';
+        const buf=await file.arrayBuffer(); const out=await window.mammoth.extractRawText({arrayBuffer:buf});
+        return (out&&out.value)?out.value.trim():'';
+      }
+      if(name.endsWith('.txt')||type.indexOf('text/')===0){ return (await file.text()).trim(); }
+    }catch(e){}
+    return '';
+  }
+  fileToBase64(file){ return new Promise(res=>{ try{ const r=new FileReader(); r.onload=()=>{ const s=String(r.result||''); const i=s.indexOf('base64,'); res(i>=0?s.slice(i+7):''); }; r.onerror=()=>res(''); r.readAsDataURL(file); }catch(e){ res(''); } }); }
+  // Classify the uploaded form via /api/scan-document. Returns doc_type or null.
+  async scanForm(file,text){
+    const token=await this.getToken(); if(!token) return null;
+    const name=String(file.name||'file'), type=file.type||'', ext=(name.indexOf('.')>=0?name.split('.').pop():'').toLowerCase();
+    let payload=null;
+    if(text){ payload={kind:'text',filename:name,text:text.slice(0,9000)}; }
+    else if(ext==='pdf'||type==='application/pdf'){ const d=await this.fileToBase64(file); if(d) payload={kind:'pdf',filename:name,data:d}; }
+    else if(['jpg','jpeg','png','webp'].indexOf(ext)>=0||type.indexOf('image/')===0){ const d=await this.fileToBase64(file); if(d) payload={kind:'image',filename:name,mediaType:(type||('image/'+(ext==='jpg'?'jpeg':ext))),data:d}; }
+    if(!payload) return null;
+    try{
+      const r=await fetch('/api/scan-document',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok) return null; const j=await r.json();
+      return (j&&j.configured===true&&j.doc_type)?j.doc_type:null;
+    }catch(e){ return null; }
+  }
+  humanType(t){ const M={service_agreement:'Service Agreement',intake_form:'Intake Form',consent_form:'Consent Form',ndis_plan:'NDIS Plan',worker_agreement:'Worker Agreement',support_plan:'Support Plan',other:'Document'}; return M[t]||'Document'; }
+  async refreshDocs(){
+    try{ const r=await window.loadDocumentsForCurrentUser(); if(r&&Array.isArray(r.documents)){ this.setState({docs:r.documents}); } }catch(e){}
+  }
+  async refreshSigs(){
+    try{ if(typeof window.loadSignatureRequests==='function'){ const r=await window.loadSignatureRequests(); if(r&&Array.isArray(r.requests)){ this.setState({sigs:r.requests}); } } }catch(e){}
+  }
+  // Real "Upload a form to teach me" — files a blank form to the org document store.
+  uploadForm(){
+    if(typeof window.uploadDocument!=='function'){ this.showToast("Upload isn't ready yet — please reload the page"); return; }
+    if(!this._formInput){
+      const i=document.createElement('input');
+      i.type='file'; i.accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp'; i.style.display='none';
+      i.addEventListener('change',()=>{ const f=i.files&&i.files[0]; i.value=''; if(f) this.doUploadForm(f); });
+      document.body.appendChild(i); this._formInput=i;
+    }
+    this._formInput.click();
+  }
+  // STEP 1 — upload the provider's OWN blank form, read it, detect its type/fields, cache its text.
+  async doUploadForm(file){
+    this.setState({tplBusy:true});
+    this.showToast('Uploading "'+file.name+'"…');
+    let text='';
+    try{ text=await this.extractText(file); }catch(e){}
+    try{
+      const res=await window.uploadDocument({file:file,doc_type:'service_agreement',title:file.name});
+      if(res&&res.document&&!res.error){
+        const id=res.document.id;
+        if(text) this._tplTexts[id]=text;
+        // Read it to detect the type (and fields, once filled).
+        let detected=null;
+        try{ detected=await this.scanForm(file,text); }catch(e){}
+        this._tplInfo[id]={detectedType:detected||res.document.type||'service_agreement'};
+        this.refreshDocs();
+        // Auto-select the just-uploaded template so the provider can fill it immediately.
+        this.setState({selTplId:id,fillState:'idle',fillData:null,fillErrorMsg:null,signLink:null,tplBusy:false});
+        const dt=this.humanType(this._tplInfo[id].detectedType);
+        this.showToast('Read "'+file.name+'" — detected '+dt+(text?'':' (couldn\'t read text — re-upload as PDF/Word to auto-fill)'));
+      } else { this.setState({tplBusy:false}); this.showToast("Couldn't upload: "+((res&&res.error)||'unknown error')); }
+    }catch(e){ this.setState({tplBusy:false}); this.showToast("Couldn't upload: "+(e.message||'unknown error')); }
+  }
+  // STEP 1b — select a previously-uploaded template; ensure we have its text (re-fetch + extract if needed).
+  async selectTemplate(doc){
+    if(!doc||!doc.id) return;
+    this.setState({selTplId:doc.id,fillState:'idle',fillData:null,fillErrorMsg:null,signLink:null});
+    if(this._tplTexts[doc.id]) return; // already have text
+    if(!doc.storage_path||typeof window.getDocumentSignedUrl!=='function') return;
+    this.setState({tplBusy:true});
+    try{
+      const r=await window.getDocumentSignedUrl(doc.storage_path,doc.storage_bucket||'participant-documents');
+      if(r&&r.url){
+        const resp=await fetch(r.url); const blob=await resp.blob();
+        const f=new File([blob],doc.title||'form',{type:blob.type});
+        const text=await this.extractText(f);
+        if(text) this._tplTexts[doc.id]=text;
+      }
+    }catch(e){}
+    this.setState({tplBusy:false});
+  }
+  // STEP 2 — pick a client; load the full record.
+  async selectClient(p){
+    if(!p||!p.id) return;
+    this.setState({selClientId:p.id,selClient:p,fillState:'idle',fillData:null,fillErrorMsg:null,signLink:null});
+    if(typeof window.loadParticipantById==='function'){
+      try{ const r=await window.loadParticipantById(p.id); if(r&&r.participant){ this.setState({selClient:r.participant}); } }catch(e){}
+    }
+  }
+  // STEP 3 — auto-fill the provider's form from the client's profile via /api/fill-agreement.
+  async runFill(){
+    const id=this.state.selTplId, client=this.state.selClient;
+    const text=id&&this._tplTexts[id];
+    if(!text){ this.showToast("I couldn't read text from that form — re-upload it as a PDF or Word doc"); return; }
+    if(!client){ this.showToast('Pick a client first'); return; }
+    const token=await this.getToken();
+    if(!token){ this.showToast('Please sign in again to auto-fill'); return; }
+    this.setState({fillState:'filling',fillData:null,fillErrorMsg:null,signLink:null});
+    let providerName=null;
+    try{ if(typeof window.loadCurrentUserContext==='function'){ const ctx=await window.loadCurrentUserContext(); providerName=(ctx&&ctx.organisationName)||null; } }catch(e){}
+    try{
+      const resp=await fetch('/api/fill-agreement',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({template_text:text,provider_name:providerName,client:{
+          full_name:client.full_name||client.preferred_name||null,
+          preferred_name:client.preferred_name||null,
+          ndis_number:client.ndis_number||null,
+          email:client.email||null,
+          phone:client.phone||null,
+          address:client.address||null,
+          plan_start:client.plan_start||null,
+          plan_end:client.plan_end||null
+        }})});
+      let j=null; try{ j=await resp.json(); }catch(e){ j=null; }
+      if(!resp.ok||!j){ this.setState({fillState:'error',fillErrorMsg:"Auto-fill failed — please try again."}); return; }
+      if(j.configured===false){ this.setState({fillState:'unconfigured'}); return; }
+      this.setState({fillState:'done',fillData:j});
+    }catch(e){ this.setState({fillState:'error',fillErrorMsg:"Auto-fill failed — "+(e.message||'unknown error')}); }
+  }
+  // STEP 4 — send the filled agreement to the client to sign (logs an org-scoped signature request).
+  // Stores the filled HTML so the recipient can read + sign it on their phone via Sign.dc.html.
+  async sendForSignature(){
+    if(typeof window.createSignatureRequest!=='function'){ this.showToast("Signing isn't ready yet — please reload the page"); return; }
+    const client=this.state.selClient, id=this.state.selTplId;
+    const docs=this.state.docs||[]; const tpl=docs.find(d=>d&&d.id===id);
+    const title=(tpl&&tpl.title)||'Service Agreement';
+    const name=(client&&(client.full_name||client.preferred_name))||'client';
+    const fd=this.state.fillData;
+    const filledHtml=(fd&&typeof fd.filled_html==='string'&&fd.filled_html.trim())?fd.filled_html:null;
+    if(!filledHtml){ this.showToast("Auto-fill the form first so there's an agreement to sign"); return; }
+    this.showToast('Sending to '+name+'…');
+    this.setState({signLink:null,copyLabel:'Copy link'});
+    try{
+      const res=await window.createSignatureRequest({
+        document_title:title, document_id:id||undefined,
+        recipient:(client&&client.email)||undefined,
+        participant_id:(client&&client.id)||undefined,
+        participant_name:name, status:'sent',
+        filled_html:filledHtml
+      });
+      if(res&&res.request&&res.request.id&&!res.error){
+        const link=this.signLinkFor(res.request.id);
+        this.setState({signLink:link,copyLabel:'Copy link'});
+        // Best-effort: copy the link straight to the clipboard for the provider.
+        try{ if(navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(link); this.setState({copyLabel:'Copied ✓'}); } }catch(e){}
+        this.showToast('Sent to '+name+' — signing link copied ✓');
+        this.refreshSigs();
+      } else { this.showToast("Couldn't send: "+((res&&res.error)||'unknown error')); }
+    }catch(e){ this.showToast("Couldn't send: "+(e.message||'unknown error')); }
+  }
+  // Build the absolute shareable signing link for a request id.
+  signLinkFor(id){ try{ return window.location.origin+'/Sign.dc.html?req='+encodeURIComponent(id); }catch(e){ return 'Sign.dc.html?req='+encodeURIComponent(id); } }
+  async copySignLink(){
+    const link=this.state.signLink; if(!link) return;
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(link); this.setState({copyLabel:'Copied ✓'}); setTimeout(()=>this.setState({copyLabel:'Copy link'}),2500); return; } }catch(e){}
+    this.selectSignLink({target:this.state.__lastLinkInput});
+    this.showToast('Press ⌘/Ctrl+C to copy the link');
+  }
+  selectSignLink(e){ try{ const el=e&&e.target; if(el&&el.select){ el.select(); this.setState({__lastLinkInput:el}); } }catch(err){} }
+  async openDoc(item){
+    if(!item||!item.storage_path){ return; }
+    if(typeof window.getDocumentSignedUrl!=='function'){ this.showToast('Cannot open document right now'); return; }
+    this.showToast('Opening…');
+    try{
+      const r=await window.getDocumentSignedUrl(item.storage_path,item.storage_bucket||'participant-documents');
+      if(r&&r.url){ window.open(r.url,'_blank'); this.setState({toast:null}); }
+      else { this.showToast("Couldn't open: "+((r&&r.error)||'no url')); }
+    }catch(e){ this.showToast("Couldn't open: "+(e.message||'unknown error')); }
+  }
+  fmtDate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(s).slice(0,10); } }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      scan:'M3 7V5a2 2 0 0 1 2-2h2 M17 3h2a2 2 0 0 1 2 2v2 M21 17v2a2 2 0 0 1-2 2h-2 M7 21H5a2 2 0 0 1-2-2v-2 M3 12h18',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      layers:'M12 2l9 5-9 5-9-5z M3 12l9 5 9-5 M3 17l9 5 9-5',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      upload:'M12 16V4 M7 9l5-5 5 5 M4 20h16',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      check:'M20 6L9 17l-5-5',
+      userplus:'M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M19 8v6 M16 11h6',
+      idcard:'M3 5h18v14H3z M7 10m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M13 9h5 M13 13h5 M5 15a3 3 0 0 1 6 0',
+      phone:'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      target:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 12m-5 0a5 5 0 1 0 10 0 5 5 0 1 0-10 0 M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      pen:'M12 19l7-7-3-3-7 7v3z M16 9l3-3-3-3-3 3',
+      bolt:'M13 2L4 14h7l-1 8 9-12h-7z',
+      magic:'M15 4V2 M15 16v-2 M8 9h2 M20 9h2 M17.8 11.8l1.4 1.4 M17.8 6.2l1.4-1.4 M3 21l9-9 M12.2 6.2l-1.4-1.4',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      refresh:'M3 12a9 9 0 0 1 15-6.4L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-15 6.4L3 16 M3 21v-5h5'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.doc}));
+  }
+  runAnalyse(){
+    this.setState({phase:'reading'});
+    clearTimeout(this._t); this._t=setTimeout(()=>this.setState({phase:'done'}),2600);
+  }
+  componentWillUnmount(){ clearTimeout(this._t); clearTimeout(this._boot); try{ if(this._formInput&&this._formInput.parentNode) this._formInput.parentNode.removeChild(this._formInput); }catch(e){} }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const view=this.state.view, phase=this.state.phase;
+
+    const navDefs=[['intake','AI Intake','scan',null],['profile','Master Profile','user',null],['templates','Smart Templates','layers','AUTO'],['signing','Signing Workflows','pen',null],['permissions','Permissions','shield',null],['planupdate','Plan Updates','refresh',null]];
+    const nav=navDefs.map(([key,label,icon,badge])=>{const a=view===key;return{label,badge,onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};});
+
+    const pages={
+      intake:{title:'AI Intake',sub:'Drop a document — I read it and pull out everything that matters'},
+      profile:{title:'Master Participant Profile',sub:'Ali Tahan · one source of truth, built from his documents'},
+      templates:{title:'Smart Templates & Auto-fill',sub:'Your forms, filled automatically from the master profile'},
+      signing:{title:'Signing Workflows',sub:'Documents you have sent for signature'},
+      permissions:{title:'Permissions & Consent',sub:'Consent records filed for your participants'},
+      planupdate:{title:'Plan Updates',sub:'NDIS plan documents tracked for your organisation'}
+    };
+    const navLabel=(navDefs.find(d=>d[0]===view)||[null,'CiaraLink'])[1];
+    const page=pages[view]||{title:navLabel,sub:''};
+
+    // intake doc lines
+    const docLines=[
+      {tag:'PARTIES',w:'72%',bg:'#e7ece9'},{tag:'',w:'54%',bg:'#eef2f0'},
+      {tag:'NDIS #',w:'40%',bg:'#e7f4f1'},{tag:'PLAN',w:'63%',bg:'#e7ece9'},
+      {tag:'DATES',w:'48%',bg:'#eef2f0'},{tag:'SUPPORTS',w:'80%',bg:'#e7ece9'},
+      {tag:'',w:'70%',bg:'#eef2f0'},{tag:'RATES',w:'44%',bg:'#e7f4f1'},
+      {tag:'GOALS',w:'66%',bg:'#e7ece9'},{tag:'',w:'58%',bg:'#eef2f0'},
+      {tag:'SIGN',w:'38%',bg:'#fbf0df'},{tag:'SIGN',w:'38%',bg:'#fbf0df'}
+    ];
+    const readSteps=[
+      {label:'Document type identified',status:'Service Agreement',iconEl:ic('check','#1e9e6a',17,2.4),fg:'#14302b',statusFg:'#1e7a52'},
+      {label:'Reading participant details',status:'done',iconEl:ic('check','#1e9e6a',17,2.4),fg:'#14302b',statusFg:'#1e7a52'},
+      {label:'Extracting dates & funding',status:'…',iconEl:ic('spark','#16b8a6',17),fg:'#14302b',statusFg:'#16b8a6'},
+      {label:'Detecting signature fields',status:'…',iconEl:ic('spark','#b6c4be',17),fg:'#8a9a94',statusFg:'#b6c4be'}
+    ];
+    const cC=p=>p>=90?'#1e9e6a':(p>=75?'#16b8a6':'#d98b22');
+    const exRaw=[
+      ['Participant name','Ali Tahan',98],['NDIS number','4310 887 226',99],['Date of birth','08/02/1992',96],
+      ['Plan period','01 Jul 2026 – 30 Jun 2027',94],['Plan manager','Plan-managed · MyPlan Co',88],
+      ['Core supports budget','$74,200',92],['Support coordinator','Sarah Kelly',90],['Address','5 Maple Ave, Glenroy VIC',86]
+    ];
+    const extracted=exRaw.map(([label,value,c])=>({label,value,conf:c+'%',confColor:cC(c)}));
+
+    // master profile sections
+    const sections=[
+      {title:'Participant details',source:'Plan + Agreement',tintBg:'#e7f4f1',iconEl:ic('idcard','#16b8a6',16),isRows:true,rows:[
+        {k:'Full name',v:'Ali Tahan'},{k:'Date of birth',v:'08/02/1992 (34)'},{k:'NDIS number',v:'4310 887 226'},{k:'Address',v:'5 Maple Ave, Glenroy VIC 3046'},{k:'Primary language',v:'Arabic · English'},{k:'Communication',v:'Verbal · prefers Arabic'}]},
+      {title:'Key contacts',source:'Referral form',tintBg:'#fbe9ed',iconEl:ic('phone','#e0556e',16),isRows:true,rows:[
+        {k:'Emergency',v:'Mariam Tahan (sister) · 0412 555 901'},{k:'GP',v:'Dr. Helen Cho · Glenroy Medical'},{k:'Nominee / rep',v:'Mariam Tahan (plan nominee)'}]},
+      {title:'Care team',source:'Coordination',tintBg:'#eef0fd',iconEl:ic('users','#6366f1',16),isRows:true,rows:[
+        {k:'Support coordinator',v:'Sarah Kelly · CiaraLink SC'},{k:'Plan manager',v:'MyPlan Co (plan-managed)'},{k:'Provider',v:'Brightside Care'}]},
+      {title:'NDIS plan',source:'Plan approval',tintBg:'#e9f6ef',iconEl:ic('shield','#1e9e6a',16),isRows:true,rows:[
+        {k:'Plan period',v:'01 Jul 2026 – 30 Jun 2027'},{k:'Management',v:'Plan-managed'},{k:'Review due',v:'15 Jun 2027'}]},
+      {title:'Funding & budgets',source:'Budget breakdown',tintBg:'#e7f4f1',iconEl:ic('wallet','#16b8a6',16),isBudget:true,budgets:[
+        {cat:'Core supports',spent:'$31,400',total:'$74,200',pct:'42%',color:'#16b8a6'},
+        {cat:'Capacity building',spent:'$8,900',total:'$22,000',pct:'40%',color:'#6366f1'},
+        {cat:'Capital',spent:'$2,100',total:'$6,000',pct:'35%',color:'#d98b22'}]},
+      {title:'Goals',source:'Plan',tintBg:'#fbf0df',iconEl:ic('target','#d98b22',16),isChips:true,chips:['Independent living','Community participation','Build daily routine','Improve mobility','Social confidence']},
+      {title:'Consents',source:'Consent forms',tintBg:'#eef0fd',iconEl:ic('shield','#6366f1',16),isConsent:true,consents:[
+        {label:'Share info with care team',status:'Given',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('check','#1e9e6a',16,2.4)},
+        {label:'Photos in shift notes',status:'Given',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('check','#1e9e6a',16,2.4)},
+        {label:'Marketing / research',status:'Declined',fg:'#c0445c',bg:'#fbe9ed',iconEl:ic('shield','#e0556e',16)}]},
+      {title:'Source documents',source:'4 filed',tintBg:'#eef0fd',iconEl:ic('folder','#6366f1',16),isDocs:true,docs:[
+        {name:'NDIS Plan 2026–27',meta:'PDF · read 98%',tag:'Plan',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('doc','#16b8a6',15)},
+        {name:'Service Agreement',meta:'PDF · signed',tag:'Signed',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('doc','#6366f1',15)},
+        {name:'Consent to Share',meta:'PDF · signed',tag:'Signed',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('doc','#d98b22',15)},
+        {name:'Budget Breakdown',meta:'PDF · read 92%',tag:'Plan',fg:'#1e7a52',bg:'#e9f6ef',iconEl:ic('doc','#0891b2',15)}]}
+    ];
+
+    // ===== SMART TEMPLATES / AUTO-FILL — the real 0-effort flow =====
+    const docs=this.state.docs||[];
+    const fmt=s=>this.fmtDate(s);
+    // STEP 1: the provider's OWN uploaded forms (their blank templates).
+    const selTplId=this.state.selTplId;
+    const templates=docs.filter(d=>d&&(d.type==='service_agreement'||d.type==='intake_form')).map(d=>{
+      const sel=d.id===selTplId;
+      return {
+        name:d.title||'Form',
+        meta:(this._tplInfo[d.id]?this.humanType(this._tplInfo[d.id].detectedType)+' · ':'')+'Filed '+fmt(d.created_at),
+        tag:sel?'Selected':'Template',fg:sel?'#fff':'#1e7a52',bg:sel?'#16b8a6':'#e9f6ef',
+        tintBg:'#e7f4f1',iconEl:ic('doc',sel?'#0b6b60':'#16b8a6',16),
+        rowBg:sel?'#f1faf8':'#fff',
+        onSelect:()=>this.selectTemplate(d)
+      };
+    });
+    const hasTemplates=templates.length>0;
+    const selTplDoc=docs.find(d=>d&&d.id===selTplId)||null;
+    const haveTemplate=!!selTplDoc;
+    const tplBusy=!!this.state.tplBusy;
+
+    // detected line for the selected template
+    let tplDetected='',tplDetectedTitle='';
+    if(haveTemplate){
+      const info=this._tplInfo[selTplId];
+      tplDetectedTitle='Detected: '+(info?this.humanType(info.detectedType):'Document');
+      const fd=this.state.fillData;
+      if(fd){ tplDetected=(fd.fields?fd.fields.length:0)+' fields · '+(fd.signature_fields||0)+' signature field'+((fd.signature_fields===1)?'':'s'); }
+      else { tplDetected=this._tplTexts[selTplId]?'Form read — pick a client to auto-fill':'Re-upload as PDF/Word so I can read its text'; }
+    }
+
+    // STEP 2: real participants to fill from.
+    const participants=this.state.participants||[];
+    const selClientId=this.state.selClientId;
+    const initialsOf=n=>String(n||'?').trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'?';
+    const clients=participants.map(p=>{
+      const nm=p.full_name||p.preferred_name||'Participant';
+      const sel=p.id===selClientId;
+      return {
+        name:nm,
+        sub:(p.ndis_number?('NDIS '+p.ndis_number):'No NDIS #')+(p.funding_type?(' · '+p.funding_type):''),
+        initials:initialsOf(nm), selected:sel,
+        bd:sel?'#16b8a6':'#eef2f0', bg:sel?'#f1faf8':'#fff',
+        checkEl:ic('check','#16b8a6',16,2.4),
+        onSelect:()=>this.selectClient(p)
+      };
+    });
+    const hasClients=clients.length>0;
+    const selClient=this.state.selClient;
+    const selClientName=(selClient&&(selClient.full_name||selClient.preferred_name))||'the client';
+
+    // STEP 3/4: fill state
+    const fillState=this.state.fillState;
+    const canFill=haveTemplate&&!!selClientId&&fillState!=='filling';
+    const filling=fillState==='filling';
+    const fillDone=fillState==='done'&&!!this.state.fillData;
+    const fillUnconfigured=fillState==='unconfigured';
+    const fillError=(fillState==='error')?(this.state.fillErrorMsg||'Auto-fill failed'):'';
+    const fd=this.state.fillData;
+    const autofill=(fd&&Array.isArray(fd.fields)?fd.fields:[]).map(f=>({
+      k:f.label||f.source||'Field', v:(f.value!=null&&String(f.value).trim())?String(f.value):'—', boltEl:ic('bolt','#0b6b60',11)
+    }));
+    const fillCount=autofill.length;
+    const fillSummary=fillCount?(fillCount+' of '+fillCount+' fields filled'):'Form filled';
+    // filled agreement preview (raw HTML from the AI, scripts stripped)
+    let filledPreviewEl=null,hasPreview=false;
+    if(fd&&typeof fd.filled_html==='string'&&fd.filled_html.trim()){
+      const safe=fd.filled_html.replace(/<script[\s\S]*?<\/script>/gi,'');
+      filledPreviewEl=React.createElement('div',{dangerouslySetInnerHTML:{__html:safe}});
+      hasPreview=true;
+    }
+    const workspaceSub=haveTemplate?(selTplDoc.title||'Selected form'):'Pick a form to begin';
+
+    // DOC-BACKED LIST VIEWS (signing / permissions / planupdate) — all REAL data.
+    const isListView=(view==='signing'||view==='permissions'||view==='planupdate');
+    const previewMode=this.state.ready && !this.state.configured;
+    let listTitle='',listEmpty='',listNote='',listItems=[];
+    if(view==='signing'){
+      listTitle='Signature requests'; listNote='Documents sent for signature appear here. A signature request is logged for audit — a compliant e-sign step must complete the legally binding signature.';
+      listEmpty='No signature requests yet. Open Smart Templates and use "Send for signature" to start one.';
+      const sCol={sent:['#8a6d22','#fff7e6'],viewed:['#2a4a8a','#eef4ff'],signed:['#1e7a52','#e9f6ef'],declined:['#c0445c','#fbe9ed'],cancelled:['#6c7f79','#eef2f0']};
+      listItems=(this.state.sigs||[]).map(s=>{const c=sCol[s.status]||sCol.sent;return{
+        name:s.document_title||'Document',
+        meta:(s.participant_name?('For '+s.participant_name+' · '):'')+'Requested '+fmt(s.created_at),
+        tag:(s.status||'sent'),fg:c[0],bg:c[1],tintBg:'#fbf0df',iconEl:ic('pen','#d98b22',16),canView:false
+      };});
+    } else if(view==='permissions'){
+      listTitle='Consent & permission records'; listNote='Signed consent forms filed for your participants. Upload them via AI File Drop or AI Intake and they are tracked here.';
+      listEmpty='No consent forms filed yet.';
+      listItems=docs.filter(d=>d&&d.type==='consent_form').map(d=>({
+        name:d.title||'Consent form',meta:'Consent form · filed '+fmt(d.created_at),
+        tag:'Consent',fg:'#1e7a52',bg:'#e9f6ef',tintBg:'#eef0fd',iconEl:ic('shield','#6366f1',16),
+        canView:!!d.storage_path,onView:()=>this.openDoc(d)
+      }));
+    } else if(view==='planupdate'){
+      listTitle='NDIS plan documents'; listNote='Every NDIS plan you file is tracked here so you can see the current plan and its history at a glance.';
+      listEmpty='No NDIS plans filed yet. Drop a plan into AI Intake or AI File Drop to track it here.';
+      listItems=docs.filter(d=>d&&d.type==='ndis_plan').map(d=>({
+        name:d.title||'NDIS plan',meta:'NDIS plan · filed '+fmt(d.created_at),
+        tag:'Plan',fg:'#1e7a52',bg:'#e9f6ef',tintBg:'#e9f6ef',iconEl:ic('shield','#1e9e6a',16),
+        canView:!!d.storage_path,onView:()=>this.openDoc(d)
+      }));
+    }
+    const hasListItems=listItems.length>0;
+    const listCount=hasListItems?(listItems.length+(listItems.length===1?' item':' items')):'';
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      uploadForm:()=>this.uploadForm(),
+      // smart-template / auto-fill flow
+      runFill:()=>this.runFill(),
+      sendForSignature:()=>this.sendForSignature(),
+      signLink:this.state.signLink,copyLabel:this.state.copyLabel||'Copy link',
+      copySignLink:()=>this.copySignLink(),selectSignLink:(e)=>this.selectSignLink(e),
+      haveTemplate,needTemplate:!haveTemplate,tplBusy,
+      tplDetected,tplDetectedTitle,workspaceSub,
+      clients,hasClients,noClients:!hasClients,
+      selClientName,canFill,filling,fillDone,fillUnconfigured,fillError,
+      fillSummary,autofill,hasPreview,filledPreviewEl,
+      isListView,previewMode,listTitle,listEmpty,listNote,listItems,hasListItems,noListItems:isListView&&!hasListItems,listCount,
+      hasTemplates,noTemplates:!hasTemplates,
+      magicDkEl:ic('magic','#06201c',16),
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      logoutSmEl:ic('logout','#6c8a83',15),
+      logoEl:ic('logo','#eafaf8',21),nav,pageTitle:page.title,pageSub:page.sub,
+      isIntake:view==='intake',isProfile:view==='profile',isTemplates:view==='templates',
+      demoIntake:view==='intake'&&previewMode,realIntake:view==='intake'&&!previewMode,
+      demoProfile:view==='profile'&&previewMode,realProfile:view==='profile'&&!previewMode,
+      isIdle:phase==='idle',isReading:phase==='reading',isDone:phase==='done',
+      pageOpacity:phase==='idle'?'.55':'1',
+      docName:'Ali Tahan — NDIS Service Agreement.pdf',docMeta:'PDF · 4 pages · 1.2 MB',
+      docLines,readSteps,extracted,fieldCount:extracted.length,
+      runAnalyse:()=>this.runAnalyse(),goProfile:()=>this.setState({view:'profile'}),goTemplates:()=>this.setState({view:'templates'}),
+      docEl:ic('doc','#6366f1',17),sparkDkEl:ic('spark','#06201c',15),uploadEl:ic('upload','#16b8a6',24),
+      sparkWEl:ic('spark','#eafaf8',18),checkTealEl:ic('check','#7ce0d2',20,2.4),userPlusEl:ic('userplus','#06201c',16),
+      sections,sparkBlueEl:ic('spark','#2a4a8a',17),
+      templates,uploadSmEl:ic('upload','#0b6b60',16),magicEl:ic('magic','#16b8a6',18),
+      checkGreenEl:ic('check','#1e9e6a',18,2.4),penEl:ic('pen','#06201c',16)
+    };
+  }
+}
+</script>
+</body>
+</html>

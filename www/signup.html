@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Create your account — CiaraLink</title>
+<meta name="description" content="Create your CiaraLink account — for participants, providers, support workers, coordinators and allied health."/>
+<meta name="robots" content="noindex"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script>
+  if (typeof window.ENV === 'undefined') { window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' }; }
+</script>
+<script src="./env.local.js?v=20260628"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
+
+<style>
+:root{
+  --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
+  --ink:#0a1c19; --ink-2:#0c2622; --ink-3:#091815;
+  --paper:#f5f8f7; --paper-2:#eef3f1; --card:#ffffff;
+  --tx:#14302b; --tx-2:#52716b; --tx-3:#4a6764;
+  --on-dark:#f4faf8; --on-dark-2:#9fc1bb; --on-dark-3:#4e726b;
+  --line:#e2eae7; --rad:22px; --rad-s:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--paper);-webkit-font-smoothing:antialiased;min-height:100vh;line-height:1.5}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.shell{min-height:100vh;display:flex}
+.brandside{width:42%;max-width:520px;flex:0 0 42%;background:linear-gradient(185deg,var(--ink-2) 0%,var(--ink) 60%,var(--ink-3) 100%);color:var(--on-dark);display:flex;flex-direction:column;padding:48px 50px;position:relative;overflow:hidden}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));display:flex;align-items:center;justify-content:center}
+.brand-name{font-size:19px;font-weight:900;letter-spacing:-.02em}
+.brand-tag{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--on-dark-2)}
+.brand-copy{margin-top:auto;margin-bottom:auto}
+.brand-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#bdf0e8;background:rgba(22,184,166,.12);border:1px solid rgba(22,184,166,.25);padding:6px 13px;border-radius:30px}
+.brand-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--teal-2)}
+.brand-copy h2{font-size:32px;font-weight:900;letter-spacing:-.02em;margin:18px 0 12px;line-height:1.1}
+.grad{background:linear-gradient(120deg,var(--teal-2),#7ce0d2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brand-copy p{font-size:14.5px;color:var(--on-dark-2);line-height:1.6;max-width:380px}
+.brand-points{margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.brand-points span{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--on-dark)}
+.tk{width:20px;height:20px;border-radius:6px;flex:0 0 20px;background:rgba(22,184,166,.18);color:var(--teal-2);display:flex;align-items:center;justify-content:center}
+
+.formside{flex:1;display:flex;justify-content:center;padding:44px 40px;overflow-y:auto}
+.card{width:100%;max-width:540px}
+.card-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--tx-2);margin-bottom:20px;cursor:pointer;background:none;border:none;font-family:inherit}
+.card-back:hover{color:var(--teal-d)}
+.card-brand{display:none;align-items:center;gap:10px;margin-bottom:22px}
+.status{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:11px;margin-bottom:18px;background:#e7f4f1;color:var(--teal-d);border:1px solid #cfe9e2}
+.status .sdot{width:8px;height:8px;border-radius:50%;background:var(--teal-d)}
+.status.warn{background:#fef6e7;color:#9a6a14;border-color:#f2e2bd}
+.status.warn .sdot{background:#d98b22}
+h1{font-size:27px;font-weight:900;letter-spacing:-.02em}
+.lede{font-size:14px;color:var(--tx-2);margin:7px 0 22px}
+
+/* Role chooser */
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.role{display:flex;align-items:flex-start;gap:12px;text-align:left;padding:16px 15px;border:1.5px solid var(--line);border-radius:var(--rad-s);background:#fff;cursor:pointer;font-family:inherit;transition:border-color .15s,box-shadow .15s,transform .1s}
+.role:hover{border-color:var(--teal);box-shadow:0 14px 30px -20px rgba(11,107,96,.5);transform:translateY(-1px)}
+.role .ri{width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;background:#e7f4f1;color:var(--teal-d)}
+.role .rt{display:block;font-size:15px;font-weight:800;color:var(--tx)}
+.role .rs{display:block;font-size:12px;color:var(--tx-3);margin-top:3px;line-height:1.4}
+.role.full{grid-column:1 / -1}
+
+/* Form */
+.sect{font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--tx-3);margin:22px 0 12px;display:flex;align-items:center;gap:9px}
+.sect::after{content:"";flex:1;height:1px;background:var(--line)}
+.row{display:flex;gap:12px}
+.field{margin-bottom:13px;flex:1}
+label{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--tx-3);margin-bottom:6px}
+.opt{color:#a9bbb6;font-weight:700}
+input{width:100%;height:46px;border:1.5px solid #dce5e2;border-radius:12px;padding:0 13px;font-family:inherit;font-size:14px;color:var(--tx);background:#fff;transition:border-color .15s,box-shadow .15s}
+input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,184,166,.14)}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:800;color:var(--teal-d);background:none;border:none;cursor:pointer;font-family:inherit}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--teal-d);background:#e7f4f1;border:1px solid #cfe9e2;border-radius:30px;padding:6px 12px;margin-bottom:14px}
+.alert{display:none;align-items:flex-start;gap:9px;font-size:13px;font-weight:600;padding:11px 13px;border-radius:11px;margin-bottom:14px;line-height:1.45}
+.alert.err{display:flex;background:#fdecef;color:#b32d4a;border:1px solid #f5cdd6}
+.alert.ok{display:flex;background:#e7f6ee;color:#1e7a52;border:1px solid #c7ead5}
+.btn-primary{width:100%;height:52px;margin-top:18px;border:none;border-radius:14px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -12px rgba(14,147,132,.7);transition:transform .15s,filter .15s}
+.btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.6;cursor:default;transform:none}
+.spinner{width:17px;height:17px;border:2.4px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.alt{text-align:center;font-size:13px;color:var(--tx-2);margin-top:18px}
+.alt a{color:var(--teal-d);font-weight:700}
+.legal{text-align:center;font-size:11.5px;color:var(--tx-3);line-height:1.55;margin-top:16px}
+.legal a{color:var(--teal-d);font-weight:600}
+.hidden{display:none!important}
+@media(max-width:900px){.brandside{display:none}.card-brand{display:flex}.formside{padding:34px 18px}.roles{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.btn-primary,.role{transition:none}.btn-primary:hover,.role:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="brandside">
+    <a class="brand" href="./landing.html">
+      <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
+    </a>
+    <div class="brand-copy">
+      <span class="brand-pill"><span class="dot"></span> Create your account</span>
+      <h2>One platform for <span class="grad">your whole care world.</span></h2>
+      <p>Providers, support workers, coordinators, allied health and participants — all connected, one fair subscription, 0% commission.</p>
+      <div class="brand-points">
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Every feature on every plan</span>
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 14-day free trial, no card to start</span>
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Consent-based access you control</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="formside">
+    <div class="card">
+      <button class="card-back" id="backBtn" onclick="window.location.href='./landing.html'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span id="backLabel">Back to home</span></button>
+      <a class="card-brand" href="./landing.html">
+        <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="brand-name">CiaraLink</span>
+      </a>
+
+      <div class="status" id="status"><span class="sdot"></span><span id="statusLabel">Checking connection…</span></div>
+
+      <!-- STEP 1: role chooser -->
+      <div id="chooser">
+        <h1>Create your account</h1>
+        <p class="lede">Tell us who you are — we'll set up the right workspace for you.</p>
+        <div class="roles">
+          <button class="role" data-role="participant">
+            <span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M5 21v-1a7 7 0 0 1 14 0v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span><span class="rt">Participant</span><span class="rs">I'm an NDIS participant managing my own supports & plan</span></span>
+          </button>
+          <button class="role" data-role="provider">
+            <span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 21V8l9-5 9 5v13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span><span class="rt">Provider</span><span class="rs">I run a service & manage clients, workers and billing</span></span>
+          </button>
+          <button class="role" data-role="worker">
+            <span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M6 21v-2a6 6 0 0 1 12 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span><span class="rt">Support Worker</span><span class="rs">I deliver supports — shifts, notes, clients & rostering</span></span>
+          </button>
+          <button class="role" data-role="coordinator">
+            <span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M22 21v-2a4 4 0 0 0-3-3.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span><span class="rt">Support Coordination</span><span class="rs">I coordinate caseloads, plan budgets and reviews</span></span>
+          </button>
+          <button class="role full" data-role="allied">
+            <span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+            <span><span class="rt">Allied Health</span><span class="rs">I'm a physio, OT, speech path, psych or other discipline</span></span>
+          </button>
+        </div>
+        <p class="alt">Already have an account? <a href="./signin.html">Sign in</a></p>
+      </div>
+
+      <!-- STEP 2: account form (for professional roles) -->
+      <div id="formStep" class="hidden">
+        <h1 id="formTitle">Create your account</h1>
+        <p class="lede" id="formLede">A couple of details and you're in.</p>
+        <span class="chip" id="roleChip"></span>
+
+        <div class="alert err" id="errBox" role="alert" style="display:none"><span id="errMsg"></span></div>
+        <div class="alert ok" id="okBox" role="status" style="display:none"><span id="okMsg"></span></div>
+
+        <form id="acctForm" novalidate>
+          <div class="field">
+            <label for="full_name">Your full name</label>
+            <input id="full_name" type="text" autocomplete="name" placeholder="e.g. Jordan Smith" required/>
+          </div>
+          <div class="field" id="orgField">
+            <label for="org_name" id="orgLabel">Business / organisation name</label>
+            <input id="org_name" type="text" autocomplete="organization" placeholder="e.g. Brightside Care"/>
+          </div>
+          <div class="row">
+            <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@yourservice.com.au" required/></div>
+            <div class="field"><label for="phone">Phone <span class="opt">(optional)</span></label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0400 000 000"/></div>
+          </div>
+          <div class="field">
+            <label for="password">Create a password</label>
+            <div class="pw-wrap">
+              <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required/>
+              <button type="button" class="pw-toggle" id="pwToggle" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn">
+            <span id="submitLabel">Create my account</span>
+            <span><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+        </form>
+        <p class="legal">By creating an account you agree to CiaraLink's <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var configured = function(){ return !!(window.isSupabaseConfigured && window.isSupabaseConfigured()); };
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+  // role config
+  var ROLES = {
+    provider:    { enum:'provider_owner',      label:'Provider',             org:'Business / organisation name', orgReq:false, dash:'CiaraLink Provider Dashboard.dc.html' },
+    worker:      { enum:'support_worker',      label:'Support Worker',       org:'Business name (if a sole trader)', orgReq:false, dash:'Support Worker.dc.html' },
+    coordinator: { enum:'support_coordinator', label:'Support Coordination', org:'Organisation / practice name', orgReq:false, dash:'Support Coordination.dc.html' },
+    allied:      { enum:'allied_health',       label:'Allied Health',        org:'Practice / clinic name', orgReq:false, dash:'Allied Health.dc.html' }
+  };
+  var current = null;
+
+  // connection badge
+  (function(){
+    var st=$('status'), lab=$('statusLabel');
+    if(configured()){ lab.textContent='Secure connection ready'; }
+    else { st.className='status warn'; lab.textContent='Preview mode — sign-up unavailable here. Visit the live site.'; }
+  })();
+
+  // role chooser
+  Array.prototype.forEach.call(document.querySelectorAll('.role'), function(btn){
+    btn.addEventListener('click', function(){
+      var r = btn.getAttribute('data-role');
+      if(r === 'participant'){ window.location.href = './participant-signup.html'; return; }
+      current = ROLES[r];
+      $('chooser').classList.add('hidden');
+      $('formStep').classList.remove('hidden');
+      $('roleChip').textContent = "Signing up as " + current.label;
+      $('orgLabel').textContent = current.org;
+      $('backLabel').textContent = 'Back';
+      $('full_name').focus();
+    });
+  });
+
+  // back: if on the form, go back to chooser; else home
+  $('backBtn').onclick = function(){
+    if(!$('formStep').classList.contains('hidden')){
+      $('formStep').classList.add('hidden'); $('chooser').classList.remove('hidden');
+      $('backLabel').textContent = 'Back to home'; clearMsg();
+    } else { window.location.href = './landing.html'; }
+  };
+
+  // password toggle
+  $('pwToggle').addEventListener('click', function(){
+    var p=$('password'); var show=p.type==='password'; p.type=show?'text':'password';
+    this.textContent=show?'Hide':'Show'; this.setAttribute('aria-pressed', show?'true':'false');
+  });
+
+  var errBox=$('errBox'), errMsg=$('errMsg'), okBox=$('okBox'), okMsg=$('okMsg'), btn=$('submitBtn'), label=$('submitLabel');
+  function showErr(m){ errMsg.textContent=m; errBox.style.display='flex'; okBox.style.display='none'; }
+  function showOk(m){ okMsg.textContent=m; okBox.style.display='flex'; errBox.style.display='none'; }
+  function clearMsg(){ errBox.style.display='none'; okBox.style.display='none'; }
+  function busy(on, text){
+    var sp = btn.querySelector('.spinner'); if(sp) sp.remove();
+    btn.disabled = on; label.textContent = on ? (text||'Creating…') : 'Create my account';
+    if(on){ var s=document.createElement('span'); s.className='spinner'; btn.appendChild(s); }
+  }
+
+  $('acctForm').addEventListener('submit', async function(e){
+    e.preventDefault(); clearMsg();
+    if(!current){ showErr('Please choose a role first.'); return; }
+    var full_name=$('full_name').value.trim();
+    var email=$('email').value.trim();
+    var password=$('password').value;
+    var phone=$('phone').value.trim();
+    var orgName=$('org_name').value.trim();
+    if(!full_name){ showErr('Please enter your full name.'); return; }
+    if(!email){ showErr('Please enter your email.'); return; }
+    if(!password || password.length<8){ showErr('Password must be at least 8 characters.'); return; }
+    if(!configured()){ showErr('Sign-up isn’t available in preview. Please use the live site.'); return; }
+    var client = window.getSupabaseClient && window.getSupabaseClient();
+    if(!client){ showErr('Connection not ready — please refresh and try again.'); return; }
+
+    busy(true, 'Creating account…');
+    try{
+      var su = await client.auth.signUp({ email:email, password:password, options:{ data:{ full_name:full_name, phone:phone, role:current.enum } } });
+      if(su.error){
+        var m = su.error.message||'Sign-up failed';
+        if(/already registered|already exists/i.test(m)) m='That email already has an account — try signing in instead.';
+        showErr(m); busy(false); return;
+      }
+      var session = su.data && su.data.session;
+      if(!session && window.signInWithEmail){
+        var si = await window.signInWithEmail(email, password);
+        if(si && si.error){ busy(false); showOk('Account created. Please check your email to confirm, then sign in.'); setTimeout(function(){location.href='signin.html';},2600); return; }
+      }
+      // best-effort: name their workspace (waits briefly for the signup trigger to create the org)
+      if(orgName && window.setOwnOrgName){
+        busy(true, 'Setting up your workspace…');
+        for(var i=0;i<10;i++){ try{ var ctx=await window.loadCurrentUserContext(); if(ctx && ctx.organisationId) break; }catch(_){} await sleep(600); }
+        try{ await window.setOwnOrgName(orgName); }catch(_){}
+      }
+      try{
+        var uid = (session && session.user && session.user.id) || (su.data && su.data.user && su.data.user.id) || null;
+        localStorage.setItem('ciaralink_session', JSON.stringify({ loggedIn:true, supabase:true, userId:uid, role:current.enum, ts:Date.now() }));
+      }catch(_){}
+      showOk('All set! Taking you to your dashboard…');
+      var dest = (window.getDashboardForRole && window.getDashboardForRole(current.enum)) || current.dash;
+      setTimeout(function(){ location.href = dest; }, 1100);
+    }catch(err){
+      console.error('signup error:', err);
+      showErr((err && err.message) || 'Something went wrong. Please try again.');
+      busy(false);
+    }
+  });
+})();
+</script>
+</body>
+</html>

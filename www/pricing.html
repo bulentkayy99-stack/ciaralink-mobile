@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pricing — CiaraLink</title>
+<meta name="description" content="CiaraLink pricing — one fair subscription, every feature included, 0% commission on the care you deliver. Plans for Providers, Support Workers, Support Coordination and Allied Health. 14-day free trial.">
+<meta property="og:title" content="CiaraLink Pricing — 0% commission, every feature included">
+<meta property="og:description" content="One fair subscription priced by your size. Every feature on every plan. 0% commission, ever. 14-day free trial.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>if(typeof window.ENV==='undefined'){window.ENV={SUPABASE_URL:'',SUPABASE_ANON_KEY:''};}</script>
+<script src="./env.local.js"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
+<style>
+:root{
+  --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
+  --ink:#0a1c19; --ink-2:#0c2622; --ink-3:#091815;
+  --paper:#f5f8f7; --paper-2:#eef3f1; --card:#ffffff;
+  --tx:#14302b; --tx-2:#52716b; --tx-3:#8a9a94;
+  --on-dark:#f4faf8; --on-dark-2:#9fc1bb; --on-dark-3:#4e726b;
+  --line:#e2eae7; --line-d:rgba(255,255,255,.08);
+  --rad:22px; --rad-s:14px; --shadow:0 30px 80px -30px rgba(8,40,36,.35);
+  --maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+  color:var(--tx);background:var(--paper);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;line-height:1.5;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+a{color:inherit;text-decoration:none}
+img,svg{display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;width:100%}
+.eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-d)}
+.eyebrow.on-dark{color:var(--teal-2)}
+h1,h2,h3{letter-spacing:-.03em;line-height:1.04;font-weight:800}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:52px;padding:0 24px;border-radius:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,background .18s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{cursor:default;opacity:.85;transform:none}
+.btn-primary{background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;box-shadow:0 16px 34px -12px rgba(14,147,132,.7)}
+.btn-primary:hover{box-shadow:0 22px 44px -12px rgba(14,147,132,.85)}
+.btn-light{background:#fff;color:var(--tx);border:1px solid var(--line);box-shadow:0 4px 14px -6px rgba(8,40,36,.18)}
+.btn-outline{background:#fff;color:var(--teal-d);border:1.5px solid var(--line)}
+.btn-outline:hover{border-color:var(--teal);background:#fbfdfc}
+.btn-sm{height:44px;padding:0 18px;font-size:14px;border-radius:12px}
+.arrow{transition:transform .2s}
+.btn:hover .arrow{transform:translateX(3px)}
+
+/* spinner */
+.spin{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:sp .6s linear infinite;display:none}
+.btn-outline .spin{border-color:rgba(11,107,96,.25);border-top-color:var(--teal-d)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn.loading .spin{display:block}
+.btn.loading .lbl,.btn.loading .arrow{display:none}
+
+/* ===== NAV ===== */
+.nav{position:sticky;top:0;z-index:50;background:rgba(245,248,247,.82);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
+.nav-in{height:70px;display:flex;align-items:center;gap:14px;max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -8px rgba(14,147,132,.8)}
+.brand-name{font-size:19px;font-weight:900;letter-spacing:-.03em;color:var(--tx)}
+.brand-tag{font-size:9px;letter-spacing:.22em;font-weight:800;color:var(--tx-3);margin-top:1px}
+.nav-links{display:flex;gap:28px;margin-left:34px}
+.nav-links a{font-size:14.5px;font-weight:600;color:var(--tx-2);transition:color .15s}
+.nav-links a:hover{color:var(--tx)}
+.nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-cta .signin{font-size:14.5px;font-weight:700;color:var(--tx);padding:0 6px}
+@media(max-width:820px){.nav-links{display:none}.nav-cta .signin{display:none}}
+
+/* ===== HERO ===== */
+.hero{position:relative;padding:84px 0 36px;overflow:hidden;text-align:center;background:radial-gradient(1100px 620px at 50% -12%,#e7f6f2 0%,transparent 62%),var(--paper)}
+.hero .eyebrow{margin-bottom:16px}
+.hero h1{font-size:clamp(36px,5.4vw,62px);color:var(--tx);font-weight:900;max-width:920px;margin:0 auto}
+.hero h1 .grad{background:linear-gradient(120deg,var(--teal-d),var(--teal-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(16px,1.5vw,19px);color:var(--tx-2);line-height:1.55;margin:22px auto 6px;max-width:620px;font-weight:500}
+.hero-micro{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px;flex-wrap:wrap}
+.hero-micro span{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--tx-2)}
+.tick{width:18px;height:18px;border-radius:50%;background:rgba(22,184,166,.15);display:flex;align-items:center;justify-content:center;flex:0 0 18px}
+
+/* ===== Toggle ===== */
+.toggle-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:34px;flex-wrap:wrap}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px;box-shadow:0 6px 18px -10px rgba(8,40,36,.22)}
+.seg button{appearance:none;border:none;background:transparent;font-family:inherit;font-size:14.5px;font-weight:800;color:var(--tx-2);padding:9px 20px;border-radius:10px;cursor:pointer;transition:color .2s;position:relative}
+.seg button.on{color:#fff;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));box-shadow:0 8px 18px -8px rgba(14,147,132,.7)}
+.save-tag{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:9px;background:rgba(22,184,166,.13);color:var(--teal-d);font-size:12.5px;font-weight:800}
+
+/* ===== Category tabs ===== */
+.cats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+.cat{appearance:none;border:1px solid var(--line);background:#fff;font-family:inherit;font-size:14.5px;font-weight:800;color:var(--tx-2);padding:11px 20px;border-radius:13px;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:9px}
+.cat:hover{border-color:#cfe0db;color:var(--tx)}
+.cat.on{background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:#fff;border-color:transparent;box-shadow:0 14px 30px -16px rgba(8,40,36,.6)}
+.cat .ci{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--teal-d)}
+.cat.on .ci{color:var(--teal-2)}
+.cat-sub{text-align:center;font-size:14px;color:var(--tx-2);font-weight:500;max-width:640px;margin:18px auto 0}
+.cat-sub b{color:var(--tx);font-weight:700}
+
+/* ===== Pricing grid ===== */
+.pricing-sec{padding:40px 0 30px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:stretch}
+.grid.g3{grid-template-columns:repeat(3,1fr);max-width:980px;margin:0 auto}
+.tier{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:26px 24px;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s,border-color .25s}
+.tier:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:#d3e3df}
+.tier.pop{border-color:var(--teal);box-shadow:0 30px 70px -34px rgba(11,107,96,.45)}
+.tier.pop::before{content:"★ Most popular";position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;font-size:11.5px;font-weight:900;letter-spacing:.04em;padding:6px 14px;border-radius:30px;box-shadow:0 10px 22px -8px rgba(14,147,132,.8);white-space:nowrap}
+.tier .t-name{font-size:18px;font-weight:900;color:var(--tx);letter-spacing:-.02em}
+.tier .t-clients{font-size:12.5px;color:var(--tx-3);font-weight:700;margin-top:4px;min-height:18px}
+.t-price{display:flex;align-items:baseline;gap:4px;margin:18px 0 2px;flex-wrap:wrap}
+.t-price .amt{font-size:38px;font-weight:900;letter-spacing:-.04em;color:var(--tx);line-height:1}
+.t-price .per{font-size:14px;font-weight:700;color:var(--tx-3)}
+.t-price .free{font-size:30px;font-weight:900;color:var(--teal-d);letter-spacing:-.03em}
+.t-billed{font-size:12px;color:var(--tx-2);font-weight:600;min-height:17px;margin-bottom:2px}
+.t-billed b{color:var(--teal-d);font-weight:800}
+.t-note{font-size:12.5px;color:var(--tx-2);font-weight:600;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:1.5}
+.t-extra{font-size:12px;color:var(--tx-3);font-weight:700;margin-top:7px}
+.tier .btn{width:100%;margin-top:auto}
+.tier-cta-pad{margin-top:18px}
+@media(max-width:1080px){.grid,.grid.g3{grid-template-columns:1fr 1fr}.grid.g3{max-width:680px}}
+@media(max-width:600px){.grid,.grid.g3{grid-template-columns:1fr;max-width:420px;margin:0 auto}}
+
+/* ===== Included features strip ===== */
+.incl{margin-top:30px;background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:26px 28px}
+.incl h4{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);font-weight:800;margin-bottom:18px;text-align:center}
+.incl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 26px}
+.incl-grid div{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:var(--tx)}
+.incl-grid .ik{width:20px;height:20px;border-radius:7px;flex:0 0 20px;background:rgba(22,184,166,.14);color:var(--teal-d);display:flex;align-items:center;justify-content:center}
+@media(max-width:860px){.incl-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.incl-grid{grid-template-columns:1fr}}
+
+/* ===== Add-on (Priority Referrals) ===== */
+.addon{padding:30px 0 14px}
+.addon-card{background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:#fff;border-radius:var(--rad);padding:40px;position:relative;overflow:hidden}
+.addon-card::after{content:"";position:absolute;right:-80px;top:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(22,184,166,.25),transparent 70%)}
+.addon-head{display:flex;align-items:flex-start;gap:16px;position:relative;z-index:1;max-width:720px}
+.addon-ic{width:50px;height:50px;border-radius:15px;background:rgba(22,184,166,.18);color:var(--teal-2);display:flex;align-items:center;justify-content:center;flex:0 0 50px}
+.addon-head h2{font-size:clamp(24px,3vw,32px);color:#fff}
+.addon-head .eyebrow{color:var(--teal-2);margin-bottom:8px}
+.addon-head p{font-size:15px;color:var(--on-dark-2);line-height:1.55;margin-top:10px;font-weight:500}
+.addon-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px;position:relative;z-index:1;max-width:760px}
+.addon-tier{background:rgba(255,255,255,.05);border:1px solid var(--line-d);border-radius:var(--rad-s);padding:24px;display:flex;flex-direction:column}
+.addon-tier.pop{border-color:rgba(22,184,166,.5);background:rgba(22,184,166,.07)}
+.addon-tier .at-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.addon-tier .at-name{font-size:16px;font-weight:900;color:#fff}
+.addon-tier .at-badge{font-size:10.5px;font-weight:900;letter-spacing:.04em;color:var(--ink);background:var(--teal-2);padding:4px 10px;border-radius:20px}
+.addon-tier .at-for{font-size:12px;color:var(--on-dark-3);font-weight:700;margin-top:3px}
+.addon-tier .at-price{display:flex;align-items:baseline;gap:4px;margin:16px 0 2px}
+.addon-tier .at-amt{font-size:30px;font-weight:900;color:#fff;letter-spacing:-.03em}
+.addon-tier .at-per{font-size:13px;font-weight:700;color:var(--on-dark-3)}
+.addon-tier .at-billed{font-size:11.5px;color:var(--on-dark-2);font-weight:600;min-height:16px}
+.addon-tier .at-inc{font-size:13px;color:var(--on-dark);font-weight:500;line-height:1.5;margin:14px 0 18px;padding-top:14px;border-top:1px solid var(--line-d)}
+.addon-tier .btn{width:100%;margin-top:auto}
+.addon-note{font-size:12.5px;color:var(--on-dark-3);font-weight:600;margin-top:18px;position:relative;z-index:1;max-width:760px;line-height:1.55}
+@media(max-width:680px){.addon-card{padding:28px 22px}.addon-grid{grid-template-columns:1fr}}
+
+/* ===== FAQ / commission strip ===== */
+.commit{padding:30px 0 70px}
+.commit-row{display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;text-align:center;background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:30px}
+.commit-row .big{font-size:clamp(26px,3vw,38px);font-weight:900;letter-spacing:-.03em;color:var(--teal-d)}
+.commit-row p{font-size:15px;color:var(--tx-2);font-weight:600;max-width:560px}
+.commit-row b{color:var(--tx);font-weight:800}
+
+/* ===== Toast ===== */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);z-index:90;max-width:440px;width:calc(100% - 40px);background:linear-gradient(160deg,var(--ink-2),var(--ink-3));color:var(--on-dark);border:1px solid var(--teal-d);border-radius:16px;padding:16px 18px;box-shadow:0 26px 60px -22px rgba(8,40,36,.7);display:flex;align-items:flex-start;gap:13px;transition:transform .4s cubic-bezier(.2,.8,.2,1);opacity:.99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast .ti{width:34px;height:34px;border-radius:11px;background:rgba(22,184,166,.18);color:var(--teal-2);display:flex;align-items:center;justify-content:center;flex:0 0 34px}
+.toast .tt{font-size:14px;font-weight:800;color:#fff}
+.toast .ts{font-size:13px;color:var(--on-dark-2);font-weight:500;margin-top:3px;line-height:1.45}
+.toast .ts a{color:var(--teal-2);font-weight:800;text-decoration:underline}
+.toast .tx{margin-left:auto;background:none;border:none;color:var(--on-dark-3);font-size:20px;cursor:pointer;line-height:1;padding:0 2px}
+
+/* ===== Footer ===== */
+footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px;padding-bottom:36px;border-bottom:1px solid var(--line-d)}
+.foot-grid h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-dark-2);font-weight:800;margin-bottom:14px}
+.foot-grid a{display:block;font-size:14px;color:var(--on-dark-3);margin-bottom:10px;font-weight:600;transition:color .15s}
+.foot-grid a:hover{color:var(--on-dark)}
+.foot-blurb{font-size:13.5px;line-height:1.6;color:var(--on-dark-3);max-width:300px;margin-top:14px;font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:8px;background:rgba(22,184,166,.1);color:var(--teal-2);font-size:11.5px;font-weight:800}
+.foot-disc{font-size:12px;line-height:1.6;color:var(--on-dark-3);max-width:880px;margin-top:24px;font-weight:500;opacity:.85}
+.foot-disc b{color:var(--on-dark-2);font-weight:800}
+.foot-bot{display:flex;justify-content:space-between;align-items:center;padding-top:22px;margin-top:22px;border-top:1px solid var(--line-d);font-size:12.5px;font-weight:600;flex-wrap:wrap;gap:10px}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="./landing.html">
+      <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
+    </a>
+    <div class="nav-links">
+      <a href="./landing.html#product">Product</a>
+      <a href="./landing.html#roles">For your team</a>
+      <a href="./pricing.html">Pricing</a>
+      <a href="./landing.html#trust">Security</a>
+    </div>
+    <div class="nav-cta">
+      <a class="signin" href="./signin.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="./landing.html#early">Get early access</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Pricing</div>
+    <h1>Every feature included.<br><span class="grad">0% commission</span>, ever.</h1>
+    <p class="hero-sub">One fair subscription, priced by your size — not a cut of the care you deliver. Providers, support workers, coordinators and allied health all get every feature. Start free for 14 days.</p>
+    <div class="hero-micro">
+      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> No commission on care</span>
+      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Every feature on every plan</span>
+      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 14-day free trial</span>
+    </div>
+
+    <!-- Billing toggle -->
+    <div class="toggle-wrap">
+      <div class="seg" id="billSeg">
+        <button data-int="month" class="on">Monthly</button>
+        <button data-int="year">Annual</button>
+      </div>
+      <span class="save-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg> Annual = 2 months free</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= CATEGORY TABS ================= -->
+<section class="pricing-sec">
+  <div class="wrap">
+    <div class="cats" id="cats">
+      <button class="cat on" data-cat="providers"><span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 21V8l9-5 9 5v13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="2"/></svg></span> Providers</button>
+      <button class="cat" data-cat="support_workers"><span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="2"/><path d="M5 20a7 7 0 0114 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Support Workers</button>
+      <button class="cat" data-cat="coordination"><span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Support Coordination</button>
+      <button class="cat" data-cat="allied_health"><span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8c0 4 3 7 7 7s7-3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Allied Health</button>
+    </div>
+    <p class="cat-sub" id="catSub"></p>
+
+    <div id="grid" class="grid" style="margin-top:34px"></div>
+
+    <!-- Included on every plan -->
+    <div class="incl">
+      <h4>Every feature, on every paid plan</h4>
+      <div class="incl-grid">
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> One connected care record</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Notes &amp; documents</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Invoices linked to evidence</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Shifts, rosters &amp; visits</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Consent &amp; role-based access</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Plan review prep</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Tasks &amp; notifications</div>
+        <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Row-level security</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRIORITY REFERRALS ADD-ON ================= -->
+<section class="addon">
+  <div class="wrap">
+    <div class="addon-card">
+      <div class="addon-head">
+        <span class="addon-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+        <div>
+          <div class="eyebrow on-dark">Add-on · all customer types</div>
+          <h2>⚡ Priority Referrals</h2>
+          <p>Surface your live availability and no-waitlist status on a rich, clickable profile — and get matched to participants who need you now. A flat fee, <b style="color:#fff">0% commission</b>, never a cut of the work. Included free on the Allied Health Clinic plan.</p>
+        </div>
+      </div>
+      <div class="addon-grid" id="addonGrid"></div>
+      <p class="addon-note">Why flat, not per-lead: scaled per-referral fees ($750–$3,000/yr per client) have drawn NDIS Commission scrutiny — CiaraLink's flat, 0%-commission fee is the safe, defensible model. Base directory listings in-market run $49–$99/mo; a priority tier sits above that.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMMISSION STRIP ================= -->
+<section class="commit">
+  <div class="wrap">
+    <div class="commit-row">
+      <div class="big">0% commission</div>
+      <p>Marketplaces can take <b>~16%</b> of every shift — roughly <b>$35k–$83k a year</b> on $500k of supports. CiaraLink takes <b>none of it</b>. One subscription, every feature, your care budget stays yours.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="./landing.html">
+          <span class="logo" style="width:34px;height:34px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <span><span class="brand-name" style="color:var(--on-dark)">CiaraLink</span><div class="brand-tag" style="color:var(--on-dark-3)">CARE OS</div></span>
+        </a>
+        <p class="foot-blurb">The operating system for connected care — one place to manage care, support, documents, notes and invoices, without the chaos.</p>
+        <span class="badge" style="margin-top:16px">🇦🇺 Built in Australia for NDIS &amp; healthcare</span>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="./landing.html#product">Features</a><a href="./landing.html#how">How it works</a><a href="./landing.html#roles">For your team</a><a href="./pricing.html">Pricing</a><a href="./landing.html#trust">Security</a>
+      </div>
+      <div>
+        <h4>Get started</h4>
+        <a href="./landing.html#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="./pricing.html">Start a trial</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="./landing.html#early">Contact</a><a href="./landing.html#early">Book a walkthrough</a><a href="./privacy.html">Privacy Policy</a><a href="./terms.html">Terms of Service</a>
+      </div>
+    </div>
+    <p class="foot-disc"><b>Important.</b> CiaraLink is a care-coordination software tool — not a registered auditor, legal practice, or compliance authority. We are not lawyers, compliance officers, or audit officers, and nothing on this platform is legal, financial, clinical, or compliance advice. CiaraLink is intended only to help health and disability care teams organise and share their own work; you remain responsible for your own obligations and decisions. Please don’t ask our team for professional advice — speak to a suitably qualified professional instead.</p>
+    <div class="foot-bot">
+      <span>© 2026 CiaraLink. All rights reserved.</span>
+      <span>Launch preview · prices in AUD ex-GST · annual = 2 months free.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ================= TOAST ================= -->
+<div class="toast" id="toast" role="alert" aria-live="polite">
+  <span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.3" fill="currentColor"/><path d="M12 3l9 16H3l9-16z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+  <div>
+    <div class="tt" id="toastTitle">Checkout isn’t switched on yet</div>
+    <div class="ts" id="toastBody">This launch preview can’t take payments just yet. <a href="./landing.html#early">Join the early-access list →</a></div>
+  </div>
+  <button class="tx" id="toastX" aria-label="Dismiss">×</button>
+</div>
+
+<script>
+/* =========================================================
+   TEST price IDs — from stripe-prices.test.json (TEST mode).
+   Price IDs are NOT secret and are safe to embed in the frontend.
+   ========================================================= */
+var PRICE_IDS = {
+  providers_starter:   { month:"price_1TnCz1ElpzmLM2qqPB8SD2v4", year:"price_1TnCz2ElpzmLM2qqcf0VUsTa" },
+  providers_team:      { month:"price_1TnCz3ElpzmLM2qq776zjCFe", year:"price_1TnCz4ElpzmLM2qqJv1gGWkm" },
+  providers_provider:  { month:"price_1TnCz5ElpzmLM2qqOM5TLHEy", year:"price_1TnCz6ElpzmLM2qq8ZklgNNe" },
+  support_workers_pro:     { month:"price_1TnCzDElpzmLM2qq9clB3DAL", year:"price_1TnCzEElpzmLM2qqrZQXvOgK" },
+  support_workers_premium: { month:"price_1TnCzGElpzmLM2qqTTpZwy7u", year:"price_1TnCzHElpzmLM2qqL6bQ05Iu" },
+  coordination_starter:  { month:"price_1TnCzJElpzmLM2qqZwZb3vlZ", year:"price_1TnCzKElpzmLM2qq1mWfXuKu" },
+  coordination_standard: { month:"price_1TnCzLElpzmLM2qqYhKH1g1c", year:"price_1TnCzMElpzmLM2qqxsIrik8U" },
+  coordination_pro:      { month:"price_1TnCzOElpzmLM2qqhhYxRpba", year:"price_1TnCzOElpzmLM2qqd1ctpXD1" },
+  allied_health_starter:  { month:"price_1TnCzUElpzmLM2qqkZQVnv1G", year:"price_1TnCzVElpzmLM2qq3iTFNmtp" },
+  allied_health_practice: { month:"price_1TnCzWElpzmLM2qqCHG4Eomc", year:"price_1TnCzXElpzmLM2qqpvA0xunT" },
+  allied_health_clinic:   { month:"price_1TnCzYElpzmLM2qqjJpbajGP", year:"price_1TnCzZElpzmLM2qq4KJCkVUu" },
+  priority_referrals_lite: { month:"price_1TnCzdElpzmLM2qqVICJrwzj", year:"price_1TnCzeElpzmLM2qqFoRNBOxV" },
+  priority_referrals_pro:  { month:"price_1TnCzfElpzmLM2qqWOoIvhec", year:"price_1TnCzgElpzmLM2qqJoPrYXjG" }
+};
+
+/* ---- Tier data (mirrors PRICING.md) ---- */
+var CATS = {
+  providers: {
+    sub: 'Run participants, teams and billing from one console. <b>Priced by clients (participants)</b> — 1 user included, every feature on every tier.',
+    tiers: [
+      { key:'providers_starter',  name:'Starter', clients:'0–5 clients',   m:199, y:1990, extra:'+$25 / extra user / mo' },
+      { key:'providers_team',     name:'Team',    clients:'5–15 clients',  m:399, y:3990, extra:'+$20 / extra user / mo', pop:true },
+      { key:'providers_provider', name:'Provider',clients:'15–30 clients', m:899, y:8990, extra:'+$15 / extra user / mo' },
+      { type:'custom', name:'Enterprise', clients:'30+ clients', from:1800, note:'Volume pricing, onboarding & priority support.' }
+    ]
+  },
+  support_workers: {
+    sub: 'For individual support workers. <b>Priced by clients</b> — every feature included. Start free, upgrade when you grow.',
+    g3:true,
+    tiers: [
+      { type:'free', name:'Free', clients:'1 client', note:'Everything you need to manage one participant.' },
+      { key:'support_workers_pro',     name:'Pro',     clients:'Up to 10 clients', m:49,  y:490, pop:true },
+      { key:'support_workers_premium', name:'Premium', clients:'Unlimited clients', m:99, y:990 }
+    ]
+  },
+  coordination: {
+    sub: 'Manage caseloads, plan budgets and reviews with evidence attached. <b>Priced by clients</b> — 1 user included, every feature on every tier.',
+    tiers: [
+      { key:'coordination_starter',  name:'Starter',  clients:'0–10 clients',  m:99,  y:990,  extra:'+$20 / extra user / mo' },
+      { key:'coordination_standard', name:'Standard', clients:'10–25 clients', m:199, y:1990, extra:'+$20 / extra user / mo', pop:true },
+      { key:'coordination_pro',      name:'Pro',      clients:'25–50 clients', m:299, y:2990, extra:'+$15 / extra user / mo' },
+      { type:'custom', name:'Enterprise', clients:'50+ clients', from:599, note:'Volume pricing for large coordination teams.' }
+    ]
+  },
+  allied_health: {
+    sub: 'Notes, assessments and shared goals across every discipline. <b>Priced by team size + $49 per discipline</b> (Speech, OT, Physio, Psychology, Dietetics, Exercise Physiology, Social Work).',
+    tiers: [
+      { key:'allied_health_starter',  name:'Starter',  clients:'1 user',        m:199, y:1990, extra:'+$49 / discipline / mo' },
+      { key:'allied_health_practice', name:'Practice', clients:'Up to 5 users', m:299, y:2990, extra:'+$49 / discipline / mo', pop:true },
+      { key:'allied_health_clinic',   name:'Clinic',   clients:'Up to 15 users',m:599, y:5990, extra:'+$49 / discipline · Priority Referrals included' },
+      { type:'custom', name:'Enterprise', clients:'15+ users', from:799, note:'Volume pricing across disciplines & sites.' }
+    ]
+  }
+};
+
+var ADDONS = [
+  { key:'priority_referrals_lite', name:'Lite', forWho:'Support coordination & solo allied health', m:89, y:890, inc:'Featured placement, “preferred” badge and a lead inbox.' },
+  { key:'priority_referrals_pro',  name:'Pro',  forWho:'Providers & clinics', m:199, y:1990, inc:'Everything in Lite + referral analytics and maximum priority.', pop:true }
+];
+
+/* ---- State ---- */
+var state = { interval:'month', cat:'providers' };
+var fmt = function(n){ return '$' + n.toLocaleString('en-AU'); };
+function effMonthly(annual){ return Math.round(annual/12); }
+
+/* ---- Render tier cards ---- */
+function renderCards(){
+  var data = CATS[state.cat];
+  var grid = document.getElementById('grid');
+  document.getElementById('catSub').innerHTML = data.sub;
+  grid.className = 'grid' + (data.g3 ? ' g3' : '');
+  grid.innerHTML = '';
+  var annual = state.interval === 'year';
+
+  data.tiers.forEach(function(t){
+    var card = document.createElement('div');
+    card.className = 'tier' + (t.pop ? ' pop' : '');
+    var priceHtml, billed, cta;
+
+    if(t.type === 'free'){
+      priceHtml = '<span class="free">Free</span>';
+      billed = 'Forever · no card needed';
+      cta = '<a class="btn btn-outline tier-cta-pad" href="./signup.html"><span class="lbl">Create free account</span> <span class="arrow">→</span></a>';
+    } else if(t.type === 'custom'){
+      priceHtml = '<span class="amt">' + fmt(t.from) + '</span><span class="per">+ / mo</span>';
+      billed = 'Custom · billed to suit your size';
+      cta = '<a class="btn btn-light tier-cta-pad" href="./landing.html#early"><span class="lbl">Contact sales</span> <span class="arrow">→</span></a>';
+    } else {
+      if(annual){
+        priceHtml = '<span class="amt">' + fmt(effMonthly(t.y)) + '</span><span class="per">/ mo</span>';
+        billed = '<b>' + fmt(t.y) + '/yr</b> billed annually · 2 months free';
+      } else {
+        priceHtml = '<span class="amt">' + fmt(t.m) + '</span><span class="per">/ mo</span>';
+        billed = 'Billed monthly · or ' + fmt(t.y) + '/yr';
+      }
+      var btnCls = t.pop ? 'btn-primary' : 'btn-outline';
+      cta = '<button class="btn ' + btnCls + ' tier-cta-pad" data-key="' + t.key + '">' +
+            '<span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+    }
+
+    card.innerHTML =
+      '<div class="t-name">' + t.name + '</div>' +
+      '<div class="t-clients">' + (t.clients || '') + '</div>' +
+      '<div class="t-price">' + priceHtml + '</div>' +
+      '<div class="t-billed">' + billed + '</div>' +
+      (t.note ? '<div class="t-note">' + t.note + '</div>' : '') +
+      (t.extra ? '<div class="t-extra">' + t.extra + '</div>' : '') +
+      cta;
+    grid.appendChild(card);
+  });
+  bindCheckout(grid);
+}
+
+/* ---- Render add-on cards ---- */
+function renderAddons(){
+  var wrap = document.getElementById('addonGrid');
+  wrap.innerHTML = '';
+  var annual = state.interval === 'year';
+  ADDONS.forEach(function(a){
+    var el = document.createElement('div');
+    el.className = 'addon-tier' + (a.pop ? ' pop' : '');
+    var amt = annual ? effMonthly(a.y) : a.m;
+    var billed = annual ? (fmt(a.y) + '/yr · 2 months free') : ('or ' + fmt(a.y) + '/yr');
+    el.innerHTML =
+      '<div class="at-top"><div><div class="at-name">' + a.name + '</div>' +
+      '<div class="at-for">' + a.forWho + '</div></div>' +
+      (a.pop ? '<span class="at-badge">★ Best value</span>' : '') + '</div>' +
+      '<div class="at-price"><span class="at-amt">' + fmt(amt) + '</span><span class="at-per">/ mo</span></div>' +
+      '<div class="at-billed">' + billed + '</div>' +
+      '<div class="at-inc">' + a.inc + '</div>' +
+      '<button class="btn btn-primary" data-key="' + a.key + '"><span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+    wrap.appendChild(el);
+  });
+  bindCheckout(wrap);
+}
+
+/* ---- Checkout (honest fallback) ---- */
+function bindCheckout(scope){
+  scope.querySelectorAll('button[data-key]').forEach(function(btn){
+    btn.addEventListener('click', function(){ startCheckout(btn); });
+  });
+}
+
+async function startCheckout(btn){
+  if(btn.classList.contains('loading')) return;
+  var key = btn.getAttribute('data-key');
+  var ids = PRICE_IDS[key];
+  var priceId = ids ? ids[state.interval] : null;
+  if(!priceId){ // fall back to monthly if no annual price exists
+    priceId = ids ? ids.month : null;
+  }
+  if(!priceId){ showToast(); return; }
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  var done = function(){ btn.classList.remove('loading'); btn.disabled = false; };
+
+  // Link the checkout to the signed-in user so the subscription maps to their account.
+  // The server derives the account id from this token (verified) — it does NOT trust a
+  // client-supplied id, so a subscription can't be attached to someone else's account.
+  var body = { priceId: priceId, mode:'subscription', quantity:1 };
+  var headers = { 'Content-Type':'application/json' };
+  try {
+    var client = window.CiaraLinkAuth && window.CiaraLinkAuth.getSupabaseClient && window.CiaraLinkAuth.getSupabaseClient();
+    if(client){
+      var r = await client.auth.getSession();
+      var token = r && r.data && r.data.session && r.data.session.access_token;
+      if(token){ headers['Authorization'] = 'Bearer ' + token; }
+    }
+  } catch(e){ /* not signed in — checkout still works, just unlinked */ }
+
+  fetch('./api/create-checkout-session', {
+    method:'POST',
+    headers: headers,
+    body: JSON.stringify(body)
+  }).then(function(r){
+    return r.json().then(function(data){ return { ok:r.ok, data:data }; })
+      .catch(function(){ return { ok:false, data:{} }; });
+  }).then(function(res){
+    if(res.ok && res.data && res.data.url){
+      window.location = res.data.url;
+      return; // keep loading state during redirect
+    }
+    done();
+    showToast();
+  }).catch(function(){
+    done();
+    showToast();
+  });
+}
+
+/* ---- Toast ---- */
+var toastTimer;
+function showToast(){
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 7000);
+}
+document.getElementById('toastX').addEventListener('click', function(){
+  document.getElementById('toast').classList.remove('show');
+  clearTimeout(toastTimer);
+});
+
+/* ---- Wire toggle + tabs ---- */
+document.getElementById('billSeg').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if(!b) return;
+  state.interval = b.getAttribute('data-int');
+  this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
+  renderCards(); renderAddons();
+});
+
+document.getElementById('cats').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if(!b) return;
+  state.cat = b.getAttribute('data-cat');
+  this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
+  renderCards();
+});
+
+/* ---- Init ---- */
+renderCards();
+renderAddons();
+</script>
+</body>
+</html>

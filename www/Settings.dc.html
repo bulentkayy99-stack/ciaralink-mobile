@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    input:focus,textarea:focus{outline:none;border-color:#16b8a6!important;box-shadow:0 0 0 3px rgba(22,184,166,.12)}
+    @keyframes st-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:252px;flex:0 0 252px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">SETTINGS</div></div>
+    </div>
+
+    <nav style="flex:1;overflow-y:auto;padding:10px 12px">
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="7">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:3px;border:none;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span>{{ it.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:6px">← Dashboard</button>
+      <button onClick="{{ goBilling }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#9fb4ae;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:6px"><span style="font-size:14px">💳</span>Billing &amp; plan</button>
+      <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79;margin-top:2px">{{ pageSub }}</div></div>
+      <sc-if value="{{ showSave }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ saveSettings }}" style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkEl }}Save changes</button>
+      </sc-if>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 56px">
+    <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+      <!-- PROFILE -->
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
+            <div style="width:72px;height:72px;border-radius:20px;background:{{ roleGradient }};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex:0 0 72px">{{ userInit }}</div>
+            <div>
+              <div style="font-size:20px;font-weight:800;color:#14302b">{{ userName }}</div>
+              <div style="font-size:13px;color:#6c7f79;margin-top:3px">{{ userRole }} · {{ userOrg }}</div>
+              <div style="font-size:12px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 10px;border-radius:7px;display:inline-block;margin-top:6px">● Active</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:13px">
+            <sc-for list="{{ profileFields }}" as="f" hint-placeholder-count="5">
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">{{ f.label }}</label>
+                <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:{{ f.color }};background:{{ f.bg }};transition:border .15s">
+                <sc-if value="{{ f.hint }}"><div style="font-size:11px;color:#a8b5b0;margin-top:5px">{{ f.hint }}</div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- NOTIFICATIONS -->
+      <sc-if value="{{ isNotifications }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:16px">Notification preferences</div>
+          <sc-for list="{{ notifPrefs }}" as="np" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #f4f7f5">
+              <div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;background:{{ np.tintBg }};display:flex;align-items:center;justify-content:center">{{ np.iconEl }}</div>
+              <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ np.label }}</div><div style="font-size:12px;color:#8a9a94">{{ np.sub }}</div></div>
+              <button onClick="{{ np.toggle }}" style="width:46px;height:26px;border-radius:99px;border:none;cursor:pointer;position:relative;background:{{ np.trackBg }};transition:background .2s;flex:0 0 46px">
+                <span style="position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;left:{{ np.knobLeft }}"></span>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- PRIVACY -->
+      <sc-if value="{{ isPrivacy }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:4px">Privacy &amp; data</div>
+            <div style="font-size:13px;color:#6c7f79;margin-bottom:16px">Control how your information is stored and used within CiaraLink</div>
+            <sc-for list="{{ privacyItems }}" as="pi" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid #f4f7f5">
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ pi.title }}</div><div style="font-size:12px;color:#8a9a94;line-height:1.5;margin-top:3px">{{ pi.desc }}</div></div>
+                <button onClick="{{ pi.action }}" style="padding:7px 14px;border-radius:9px;border:1px solid {{ pi.btnBd }};background:{{ pi.btnBg }};color:{{ pi.btnFg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">{{ pi.btnLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:16px">Security</div>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">CURRENT PASSWORD</label><input type="password" value="{{ pwCur }}" onChange="{{ onPwCur }}" placeholder="••••••••" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">NEW PASSWORD</label><input type="password" value="{{ pwNew }}" onChange="{{ onPwNew }}" placeholder="••••••••" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+                <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">CONFIRM NEW</label><input type="password" value="{{ pwConf }}" onChange="{{ onPwConf }}" placeholder="••••••••" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+              </div>
+              <button onClick="{{ changePassword }}" style="height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Update password</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- HELP -->
+      <sc-if value="{{ isHelp }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:22px 26px;color:#eafaf8">
+            <div style="font-size:17px;font-weight:800;margin-bottom:6px">Need help with CiaraLink?</div>
+            <div style="font-size:13.5px;color:#a9cfc8;margin-bottom:16px;line-height:1.5">Our support team is available Monday–Friday 8am–6pm AEST. For urgent NDIS compliance issues, we prioritise same-day responses.</div>
+            <div style="display:flex;gap:9px">
+              <button onClick="{{ emailSupport }}" style="flex:1;height:44px;border-radius:12px;border:1px solid rgba(22,184,166,.3);background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Email support</button>
+              <button onClick="{{ liveChat }}" style="flex:1;height:44px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Live chat</button>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Quick answers</div>
+            <sc-for list="{{ faqs }}" as="faq" hint-placeholder-count="5">
+              <div style="padding:12px 0;border-bottom:1px solid #f4f7f5;cursor:pointer" style-hover="color:#0b6b60">
+                <div style="font-size:13.5px;font-weight:700;color:#14302b">{{ faq.q }}</div>
+                <div style="font-size:12.5px;color:#6c7f79;margin-top:4px;line-height:1.5">{{ faq.a }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Legal &amp; compliance</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ legalLinks }}" as="ll" hint-placeholder-count="3">
+                <button onClick="{{ ll.onClick }}" style="display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:12px;border:1px solid #eef2f0;background:#fbfdfc;cursor:pointer;font-family:inherit;text-align:left" style-hover="background:#f4faf8;border-color:#16b8a6">
+                  <span style="display:flex;flex:0 0 18px">{{ ll.iconEl }}</span>
+                  <span style="flex:1;font-size:13px;font-weight:700;color:#14302b">{{ ll.label }}</span>
+                  <span style="display:flex;color:#b6c4be">{{ chevEl }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:st-rise .25s ease">
+    {{ checkEl }}{{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  state = { view:'profile', notifState:{}, toast:null, realProfile:null, edits:{}, pw:{} };
+
+  componentDidMount(){
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      this.setState({sessionRole:s.role||'provider'});
+    }catch(e){}
+    const AD=window.AegisData;
+    if(AD){ const n=AD.get('st_notifs')||{}; if(Object.keys(n).length) this.setState({notifState:n}); }
+    this.loadRealProfile(0);
+  }
+
+  // Load the signed-in user's real profile from Supabase (read-only).
+  // Falls back silently to the hardcoded demo values when not configured
+  // or not logged in, so the page never renders blank.
+  loadRealProfile(attempt){
+    attempt=attempt||0;
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(typeof window.loadCurrentUserContext!=='function') return;
+    // Supabase JS CDN may still be loading — wait for the client briefly.
+    if(window.getSupabaseClient && !window.getSupabaseClient() && attempt<25){
+      setTimeout(()=>this.loadRealProfile(attempt+1),200);
+      return;
+    }
+    window.loadCurrentUserContext().then(ctx=>{
+      if(!ctx||ctx.error||!ctx.user) return;
+      const p=ctx.profile||{};
+      const roleMap={
+        platform_admin:'Platform Admin',
+        provider_owner:'Provider Owner',provider_admin:'Provider Admin',provider_staff:'Provider Staff',
+        support_worker:'Support Worker',abn_worker:'Support Worker',
+        support_coordinator:'Support Coordinator',allied_health:'Allied Health',
+        participant:'Participant',guardian_nominee:'Guardian / Nominee',
+      };
+      this.setState({realProfile:{
+        name:p.full_name||null,
+        email:p.email||ctx.user.email||null,
+        phone:p.phone||null,
+        org:ctx.organisationName||null,
+        role:ctx.primaryRole?(roleMap[ctx.primaryRole]||ctx.primaryRole):null,
+      }});
+    }).catch(()=>{});
+  }
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      help:'M12 22m-10 0a10 10 0 1 0 20 0 10 10 0 1 0-20 0 M12 8v4 M12 16h.01',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      check:'M20 6L9 17l-5-5',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',
+      chev:'M9 6l6 6-6 6',
+      lock:'M12 2a4 4 0 0 0-4 4v4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  // REAL data-portability export: gathers the signed-in user's own records via
+  // the existing RLS-protected helpers and downloads them as a JSON file. No
+  // server round-trip and no fake "we'll email you" — the file downloads now.
+  async exportMyData(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())){
+      this.showToast('Connect your account to export your data'); return;
+    }
+    this.showToast('Preparing your data export…');
+    try{
+      const out={ generated_at:new Date().toISOString(), app:'CiaraLink', export_type:'self-service data download' };
+      const ctx = (typeof window.loadCurrentUserContext==='function') ? await window.loadCurrentUserContext() : null;
+      if(ctx && ctx.user){
+        out.account={ id:ctx.user.id, email:ctx.user.email };
+        out.profile=ctx.profile||null;
+        out.organisation={ id:ctx.organisationId, name:ctx.organisationName, role:ctx.primaryRole };
+        out.memberships=ctx.memberships||null;
+      }
+      const pull=async(fn,key,prop)=>{
+        try{
+          if(typeof window[fn]==='function'){
+            const r=await window[fn]();
+            out[key]=(r && r[prop]!==undefined) ? r[prop] : (r||null);
+          }
+        }catch(e){ out[key]={error:String((e&&e.message)||e)}; }
+      };
+      await pull('loadParticipantsForCurrentUser','participants','participants');
+      await pull('loadDocumentsForCurrentUser','documents','documents');
+      await pull('loadTasksForCurrentUser','tasks','tasks');
+      await pull('loadNotificationsForCurrentUser','notifications','notifications');
+      await pull('loadReferralsForCurrentUser','referrals','referrals');
+      const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='ciaralink-data-export-'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+      this.showToast('Your data export has downloaded');
+    }catch(e){ this.showToast("Couldn't export data: "+((e&&e.message)||e)); }
+  }
+
+  // REAL profile save — writes full_name/phone to user_profiles and org name to
+  // organisations via the existing RLS-protected helpers.
+  async saveProfile(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())){
+      this.showToast('Connect your account to save changes'); return;
+    }
+    const ed=this.state.edits||{};
+    if(!Object.keys(ed).length){ this.showToast('No changes to save'); return; }
+    const patch={};
+    if(ed.full_name!==undefined) patch.full_name=String(ed.full_name).trim();
+    if(ed.phone!==undefined) patch.phone=String(ed.phone).trim();
+    const errs=[];
+    try{
+      if(Object.keys(patch).length && typeof window.updateMyProfile==='function'){
+        const r=await window.updateMyProfile(patch);
+        if(!(r && r.profile && !r.error)) errs.push((r&&r.error)||'profile');
+      }
+      if(ed.org!==undefined && typeof window.setOwnOrgName==='function'){
+        const r2=await window.setOwnOrgName(String(ed.org).trim());
+        if(r2 && r2.error) errs.push(r2.error);
+      }
+    }catch(e){ errs.push((e&&e.message)||String(e)); }
+    if(errs.length){ this.showToast("Couldn't save: "+errs.join('; ')); }
+    else { this.showToast('Profile saved'); }
+    this.setState({edits:{}});
+    this.loadRealProfile(0);
+  }
+
+  // REAL password change — re-authenticates with the current password, then
+  // updates it via Supabase auth (changeOwnPassword also clears must_change_password).
+  async changeMyPassword(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())){
+      this.showToast('Connect your account to change your password'); return;
+    }
+    const pw=this.state.pw||{};
+    const cur=pw.cur||'', nw=pw.nw||'', cf=pw.cf||'';
+    if(!cur||!nw||!cf){ this.showToast('Fill in all password fields'); return; }
+    if(nw.length<8){ this.showToast('New password must be at least 8 characters'); return; }
+    if(nw!==cf){ this.showToast('New passwords do not match'); return; }
+    const client=window.getSupabaseClient && window.getSupabaseClient();
+    if(!client){ this.showToast('Not connected'); return; }
+    try{
+      let email=(this.state.realProfile&&this.state.realProfile.email)||null;
+      if(!email && typeof window.getCurrentUser==='function'){ const cu=await window.getCurrentUser(); email=cu&&cu.user&&cu.user.email; }
+      if(email){
+        const { error:verr }=await client.auth.signInWithPassword({email,password:cur});
+        if(verr){ this.showToast('Current password is incorrect'); return; }
+      }
+      const fn=(window.CiaraLinkAuth&&window.CiaraLinkAuth.changeOwnPassword)||null;
+      let ok=false, msg='';
+      if(fn){ const res=await fn(nw); ok=!!(res&&res.ok); msg=(res&&res.error)||''; }
+      else { const res=await client.auth.updateUser({password:nw}); ok=!(res&&res.error); msg=(res&&res.error&&res.error.message)||''; }
+      if(ok){ this.showToast('Password updated'); this.setState({pw:{}}); }
+      else { this.showToast("Couldn't update password: "+(msg||'unknown error')); }
+    }catch(e){ this.showToast("Couldn't update password: "+((e&&e.message)||e)); }
+  }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {view,notifState,sessionRole}=this.state;
+    const role=sessionRole||'provider';
+
+    const roleData={
+      provider:{init:'BK',name:'Bulent Kay',role:'Provider Admin',org:'Brightside Care',gradient:'linear-gradient(150deg,#2f9e8f,#1c6b61)'},
+      coordinator:{init:'SK',name:'Sarah Kelly',role:'Support Coordinator',org:'CiaraLink SC',gradient:'linear-gradient(150deg,#6366f1,#4338ca)'},
+      allied:{init:'JP',name:'Jordan Pham',role:'Physiotherapist',org:'AHPRA Registered',gradient:'linear-gradient(150deg,#9333ea,#7c3aed)'},
+      worker:{init:'AO',name:'Amara Okafor',role:'Support Worker',org:'Brightside Care',gradient:'linear-gradient(150deg,#0891b2,#0e7490)'},
+    };
+    const rd=roleData[role]||roleData.provider;
+
+    // Effective profile values: real (logged-in) data when available,
+    // otherwise fall back to the hardcoded demo values so nothing renders blank.
+    // When a real signed-in profile has loaded, NEVER fall back to the demo
+    // strings for missing fields — that would show invented data (fake phone/
+    // name/org) to a real user in their own editable profile. Demo fallbacks
+    // apply only in preview / not-logged-in mode (realProfile === null).
+    const hasReal=!!this.state.realProfile;
+    const real=this.state.realProfile||{};
+    const eName=real.name||(hasReal?'':rd.name);
+    const eEmail=real.email||(hasReal?'':'demo@ciaralink.care');
+    const ePhone=real.phone||(hasReal?'':'0438 221 770');
+    const eOrg=real.org||(hasReal?'':rd.org);
+    const eRole=real.role||(hasReal?'':rd.role);
+    const eInit=real.name
+      ? real.name.trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('').toUpperCase()
+      : (hasReal?'·':rd.init);
+
+    const navDefs=[
+      {key:'profile',     label:'My profile',    icon:'user'},
+      {key:'notifications',label:'Notifications', icon:'bell'},
+      {key:'privacy',     label:'Privacy & security',icon:'shield'},
+      {key:'help',        label:'Help & support', icon:'help'},
+    ];
+    const nav=navDefs.map(it=>{
+      const a=view===it.key;
+      return {...it,onClick:()=>this.setState({view:it.key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,a?'#22d3bf':'#7e948e',16)};
+    });
+
+    const pageTitles={profile:'My profile',notifications:'Notification settings',privacy:'Privacy & security',help:'Help & support'};
+    const pageSubs={profile:'Update your personal details and organisation info',notifications:'Control which alerts you receive and how',privacy:'Manage your data, password and connected services',help:'FAQs, contact support, legal documents'};
+
+    const edits=this.state.edits||{};
+    const fv=(k,fallback)=> edits[k]!==undefined ? edits[k] : fallback;
+    const onEdit=(k)=>(e)=>{ const v=(e&&e.target)?e.target.value:e; this.setState({edits:{...(this.state.edits||{}),[k]:v}}); };
+    const profileFields=[
+      {label:'FULL NAME',value:fv('full_name',eName),placeholder:'Your name',onChange:onEdit('full_name'),color:'#14302b',bg:'#fff',hint:''},
+      {label:'EMAIL',value:eEmail,placeholder:'Email address',onChange:()=>{},color:'#8a9a94',bg:'#f4f7f5',hint:'Your sign-in email. Contact support to change it.'},
+      {label:'PHONE',value:fv('phone',ePhone),placeholder:'Phone number',onChange:onEdit('phone'),color:'#14302b',bg:'#fff',hint:''},
+      {label:'ORGANISATION',value:fv('org',eOrg),placeholder:'Organisation name',onChange:onEdit('org'),color:'#14302b',bg:'#fff',hint:'Only owners and admins can rename the organisation.'},
+    ];
+
+    const notifDefs=[
+      {key:'shift_reminders',label:'Shift reminders',sub:'2h and 30min before each shift',icon:'bell',tintBg:'#e7f4f1',ic:'#16b8a6',def:true},
+      {key:'new_referrals',label:'New referrals',sub:'When a referral is received',icon:'user',tintBg:'#eef0fd',ic:'#6366f1',def:true},
+      {key:'document_uploads',label:'Document uploads',sub:'When a new file is added to your account',icon:'file',tintBg:'#fbf0df',ic:'#d98b22',def:true},
+      {key:'plan_review',label:'Plan review alerts',sub:'Upcoming review dates and evidence requests',icon:'shield',tintBg:'#fbe9ed',ic:'#e0556e',def:true},
+      {key:'messages',label:'Messages',sub:'New messages from your care team',icon:'bell',tintBg:'#eef0fd',ic:'#6366f1',def:false},
+      {key:'expiry',label:'Credential expiry',sub:'When certifications are due for renewal',icon:'bell',tintBg:'#fbf0df',ic:'#d98b22',def:true},
+    ];
+
+    const notifPrefs=notifDefs.map(n=>{
+      const on=notifState[n.key]!==undefined?notifState[n.key]:n.def;
+      return {...n,iconEl:ic(n.icon,n.ic,15),on,trackBg:on?'#16b8a6':'#dde4e1',knobLeft:on?'23px':'3px',
+        toggle:()=>{
+          const next=!on;
+          const ns={...notifState,[n.key]:next};
+          this.setState({notifState:ns});
+          const AD=window.AegisData;
+          if(AD) AD.set('st_notifs',ns);
+          this.showToast(next?n.label+' notifications on':''+n.label+' notifications off');
+        }};
+    });
+
+    const privacyItems=[
+      {title:'Download my data',desc:'Export a copy of your CiaraLink data — profile, organisation, participants, documents, tasks, notifications and referrals — as a JSON file',btnLabel:'Download my data',btnBd:'#dde4e1',btnBg:'#fff',btnFg:'#41635c',action:()=>this.exportMyData()},
+      {title:'Consent Centre',desc:'Manage who can see your participant information and what data they have access to',btnLabel:'Open Consent Centre',btnBd:'#16b8a6',btnBg:'#f0faf8',btnFg:'#0b6b60',action:()=>{window.location.href='Consent Centre.dc.html';}},
+      {title:'Connected services',desc:'Third-party apps connected to your CiaraLink account. CiaraLink does not currently use any external OAuth connections, so there is nothing to manage here.',btnLabel:'No connected apps',btnBd:'#eef2f0',btnBg:'#f7faf9',btnFg:'#9aa8a3',action:()=>this.showToast('No third-party apps are connected to your account')},
+      {title:'Delete account',desc:'Permanently delete your CiaraLink account and all associated data. This cannot be undone.',btnLabel:'Delete account',btnBd:'#fce4e9',btnBg:'#fff8f9',btnFg:'#c0445c',action:()=>this.showToast('Please contact support to delete your account')},
+    ];
+
+    const faqs=[
+      {q:'How do I add a new participant?',a:'Navigate to your Provider Dashboard and click "Add participant" in the Clients section. Fill in the NDIS details and the participant will be added to your active list.'},
+      {q:'How does consent work in CiaraLink?',a:'Participants control who sees their information. Every sharing action requires explicit consent. Visit the Consent Centre to manage permissions for each participant.'},
+      {q:'How do I upload worker credentials?',a:'Go to Worker Passport and click "Upload" next to any credential. CiaraLink automatically verifies NDIS Worker Screening numbers against the national register.'},
+      {q:'Who can see shift notes?',a:'Shift notes are visible to the support worker who wrote them, the service provider, and the support coordinator. Clinical notes have separate, stricter consent rules.'},
+      {q:'What happens when a plan expires?',a:'CiaraLink sends alerts 60, 30, 14 and 7 days before plan expiry. Support coordinators receive tasks in the Task Centre to begin review preparation.'},
+    ];
+
+    const legalLinks=[
+      {label:'Terms of Service',iconEl:ic('file','#6c7f79',16),onClick:()=>window.open('terms.html','_blank')},
+      {label:'Privacy Policy',iconEl:ic('shield','#6c7f79',16),onClick:()=>window.open('privacy.html','_blank')},
+      {label:'NDIS Practice Standards compliance',iconEl:ic('check','#6c7f79',16),onClick:()=>window.open('https://www.ndiscommission.gov.au/providers/provider-obligations-and-requirements/ndis-practice-standards','_blank')},
+    ];
+
+    return {
+      logoEl:ic('grid','#eafaf8',20),
+      logoutEl:ic('logout','#56716a',14),
+      checkEl:ic('check','#16b8a6',15),
+      chevEl:ic('chev','#b6c4be',15),
+      nav,
+      pageTitle:pageTitles[view]||'Settings',
+      pageSub:pageSubs[view]||'',
+      showSave:view==='profile',
+      isProfile:view==='profile',
+      isNotifications:view==='notifications',
+      isPrivacy:view==='privacy',
+      isHelp:view==='help',
+      userInit:eInit,
+      userName:eName,
+      userRole:eRole,
+      userOrg:eOrg,
+      roleGradient:rd.gradient,
+      profileFields,notifPrefs,privacyItems,faqs,legalLinks,
+      pwCur:(this.state.pw||{}).cur||'',
+      pwNew:(this.state.pw||{}).nw||'',
+      pwConf:(this.state.pw||{}).cf||'',
+      onPwCur:(e)=>{const v=(e&&e.target)?e.target.value:e;this.setState({pw:{...(this.state.pw||{}),cur:v}});},
+      onPwNew:(e)=>{const v=(e&&e.target)?e.target.value:e;this.setState({pw:{...(this.state.pw||{}),nw:v}});},
+      onPwConf:(e)=>{const v=(e&&e.target)?e.target.value:e;this.setState({pw:{...(this.state.pw||{}),cf:v}});},
+      saveSettings:()=>this.saveProfile(),
+      changePassword:()=>this.changeMyPassword(),
+      emailSupport:()=>{window.location.href='mailto:support@ciaralink.care?subject='+encodeURIComponent('CiaraLink support request')+'&body='+encodeURIComponent('Hi CiaraLink team,\n\n');},
+      liveChat:()=>{ if(window.Hugo&&window.Hugo.open){window.Hugo.open();} else if(window.ChatDrawer&&window.ChatDrawer.open){window.ChatDrawer.open();} else {window.location.href='mailto:support@ciaralink.care';} },
+      goBack:()=>{try{const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html',guardian_nominee:'Participant Dashboard.dc.html'};window.location.href=m[s.role]||'Index.dc.html';}catch(e){window.location.href='Index.dc.html';}},
+      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},
+      goBilling:()=>{window.location.href='billing.html';},
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

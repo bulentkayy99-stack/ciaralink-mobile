@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="data.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px} ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes ce-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes ce-scan{0%{top:4%}100%{top:94%}}
+    @keyframes ce-ping{0%{transform:scale(.7);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{opacity:0}}
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:230px;flex:0 0 230px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#5f7a73;font-weight:600;margin-top:3px">CARE ECOSYSTEM</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="2">
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:0 10px 7px">{{ sec.title }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+              <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+              <span style="flex:1">{{ it.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:#5f7a73;line-height:1.5">Participant's consent drives who sees what — always.</div>
+    <button onClick="{{ goBack }}" style="margin:0 12px 6px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.18)">← SC dashboard</button>
+    <button onClick="{{ signOut }}" style="margin:0 12px 14px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05);color:#9fb4ae">{{ logoutSmEl }}Sign out</button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 48px">
+
+      <!-- ===== PERMISSIONS ===== -->
+      <sc-if value="{{ isPerms }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1200px;margin:0 auto">
+
+        <div style="display:flex;align-items:center;gap:14px;background:#0c2622;border-radius:18px;padding:20px 24px;margin-bottom:20px;color:#eafaf8">
+          <div style="width:46px;height:46px;border-radius:14px;background:rgba(124,224,210,.18);display:flex;align-items:center;justify-content:center;flex:0 0 46px">{{ shieldBigEl }}</div>
+          <div style="flex:1"><div style="font-size:16px;font-weight:800">Ali Tahan controls who sees what.</div><div style="font-size:13px;color:#a9cfc8;margin-top:3px">Each role below only sees what he (or his nominee Mariam) has consented to. Change a consent toggle and access updates everywhere, instantly.</div></div>
+          <div style="text-align:right"><div style="font-size:11px;color:#7ce0d2">Last reviewed by participant</div><div style="font-size:12.5px;font-weight:700;color:#fff">Today, 14:32</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">
+          <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #eef2f0">
+                <div style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ r.tintBg }}">{{ r.iconEl }}</div>
+                <div style="flex:1"><div style="font-size:15px;font-weight:800;color:#14302b">{{ r.role }}</div><div style="font-size:12px;color:#6c7f79">{{ r.name }}</div></div>
+                <span style="font-size:11.5px;font-weight:700;color:{{ r.stFg }};background:{{ r.stBg }};padding:4px 10px;border-radius:7px">{{ r.stLabel }}</span>
+              </div>
+              <sc-for list="{{ r.perms }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid #f4f7f5">
+                  <span style="display:flex">{{ p.iconEl }}</span>
+                  <span style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ p.label }}</span>
+                  <button onClick="{{ p.onClick }}" style="width:42px;height:24px;border-radius:99px;border:none;cursor:pointer;position:relative;background:{{ p.bg }};transition:background .2s">
+                    <div style="position:absolute;top:2px;left:{{ p.knobLeft }};width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.22);transition:left .2s"></div>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Consent audit trail</div>
+          <sc-for list="{{ auditLog }}" as="a" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:13px;padding:12px 20px;border-bottom:1px solid #f4f7f5">
+              <div style="width:8px;height:8px;border-radius:99px;flex:0 0 8px;background:{{ a.dot }}"></div>
+              <div style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ a.text }}</div>
+              <span style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#9aa8a3">{{ a.when }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== PLAN UPDATE ===== -->
+      <sc-if value="{{ isPlanUpdate }}" hint-placeholder-val="">
+      <div style="max-width:1120px;margin:0 auto">
+
+        <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:11px;padding:16px 20px;border-bottom:1px solid #eef2f0">
+              <div style="width:34px;height:34px;border-radius:10px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ docIconEl }}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Ali Tahan — New NDIS Plan 2026.pdf</div><div style="font-size:11.5px;color:#8a9a94">Received 19 Jun 2026 · 4 pages</div></div>
+              <span style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.04em;background:rgba(217,139,34,.18);border:1px solid rgba(217,139,34,.35);padding:4px 9px;border-radius:999px;color:#b4561f;white-space:nowrap">Preview — simulated</span>
+              <button onClick="{{ runPlanScan }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:{{ scanBtnBg }};color:{{ scanBtnFg }};font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ sparkSmEl }}{{ scanBtnLabel }}</button>
+            </div>
+            <div style="position:relative;height:420px;overflow:hidden;background:#fbfcfb;padding:22px 26px">
+              <div style="font-size:11px;font-weight:800;color:#14302b;letter-spacing:.03em">NATIONAL DISABILITY INSURANCE SCHEME</div>
+              <div style="font-size:10.5px;color:#9aa8a3;margin-bottom:14px">Participant plan — 01 Jul 2026 to 30 Jun 2027</div>
+              <sc-for list="{{ planLines }}" as="l" hint-placeholder-count="14">
+                <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+                  <span style="font-size:9px;color:#b6c4be;flex:0 0 64px;font-family:'IBM Plex Mono',monospace">{{ l.tag }}</span>
+                  <div style="height:7px;border-radius:9px;background:{{ l.hl }};width:{{ l.w }};position:relative;overflow:hidden">
+                    <sc-if value="{{ l.glow }}" hint-placeholder-val=""><div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(22,184,166,.6),transparent);animation:ce-scan 1.5s ease infinite"></div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ planScanning }}" hint-placeholder-val="">
+                <div style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#16b8a6,transparent);box-shadow:0 0 14px #16b8a6;top:40%;"></div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+
+            <sc-if value="{{ planIdle }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="width:52px;height:52px;border-radius:15px;background:#e7f4f1;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ sparkIdleEl }}</div>
+                <div style="font-size:15px;font-weight:800;color:#14302b;margin-top:13px">New plan detected</div>
+                <div style="font-size:13px;color:#6c7f79;margin-top:6px;line-height:1.5">Ali's new NDIS plan arrived. I'll read it, compare with the old plan, and show you exactly what changed — hit Analyse to start.</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ planDone }}" hint-placeholder-val="">
+              <div style="background:#0c2622;border-radius:18px;padding:16px 18px;color:#eafaf8;display:flex;align-items:center;gap:11px">
+                <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,224,210,.18);flex:0 0 36px;display:flex;align-items:center;justify-content:center">{{ checkTealEl }}</div>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:800">Plan read — {{ diffCount }} changes detected</div><div style="font-size:11.5px;color:#a9cfc8">Compared with plan ending 30 Jun 2026</div></div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+                <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">What changed</div>
+                <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid #f4f7f5">
+                    <div style="width:26px;height:26px;border-radius:8px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;background:{{ d.dotBg }}">{{ d.dotIconEl }}</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px;font-weight:700;color:#14302b">{{ d.field }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
+                        <span style="font-size:11.5px;color:#c0445c;background:#fbe9ed;padding:2px 9px;border-radius:7px;text-decoration:line-through">{{ d.old }}</span>
+                        <span style="font-size:11px;color:#9aa8a3">→</span>
+                        <span style="font-size:11.5px;color:#1e7a52;background:#e9f6ef;padding:2px 9px;border-radius:7px;font-weight:700">{{ d.new }}</span>
+                      </div>
+                    </div>
+                    <span style="font-size:10.5px;font-weight:700;color:{{ d.impFg }};background:{{ d.impBg }};padding:3px 8px;border-radius:6px;white-space:nowrap">{{ d.impact }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+                <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">Records to update</div>
+                <sc-for list="{{ toUpdate }}" as="u" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid #f4f7f5">
+                    <span style="display:flex">{{ u.iconEl }}</span>
+                    <span style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ u.label }}</span>
+                    <span style="font-size:10.5px;font-weight:700;color:{{ u.tagFg }};background:{{ u.tagBg }};padding:3px 8px;border-radius:6px">{{ u.tag }}</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex;gap:9px;padding:14px 18px">
+                  <div style="flex:1"></div>
+                  <button onClick="{{ goReviewPrep }}" style="padding:10px 16px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Review each</button>
+                  <button onClick="{{ applyAll }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkSmEl }}Apply all updates</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ planApplied }}" hint-placeholder-val="">
+              <div style="background:#fff;border:1px solid #cce9d8;border-radius:18px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px"><div style="width:36px;height:36px;border-radius:10px;background:#e9f6ef;display:flex;align-items:center;justify-content:center">{{ bigCheckEl }}</div><div style="font-size:15px;font-weight:800;color:#14302b">All records updated</div></div>
+                <sc-for list="{{ applied }}" as="a" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f4f7f5">{{ a.iconEl }}<span style="flex:1;font-size:12.5px;color:#41635c">{{ a.label }}</span><span style="font-size:11px;font-weight:700;color:#1e7a52">Done ✓</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SIGNING WORKFLOWS ===== -->
+      <sc-if value="{{ isSigning }}" hint-placeholder-val="">
+      <div style="max-width:1120px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a">I detect every signature field in your form, work out who needs to sign, then route it to each person in the right order — provider → coordinator → participant.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;display:flex;align-items:center;gap:11px"><div style="width:32px;height:32px;border-radius:9px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ docIconEl }}</div><div><div style="font-size:14px;font-weight:800;color:#14302b">Service Agreement — Ali Tahan</div><div style="font-size:11.5px;color:#8a9a94">4 signature fields detected</div></div></div>
+            <div style="padding:16px 20px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:10px">DETECTED SIGNATURE FIELDS</div>
+            <sc-for list="{{ sigFields }}" as="sf" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #f4f7f5">
+                <div style="width:30px;height:30px;border-radius:9px;flex:0 0 30px;background:{{ sf.tintBg }};display:flex;align-items:center;justify-content:center">{{ sf.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ sf.label }}</div><div style="font-size:11.5px;color:#8a9a94">Page {{ sf.page }} · {{ sf.who }}</div></div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ sf.stFg }};background:{{ sf.stBg }};padding:3px 9px;border-radius:6px">{{ sf.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="padding:15px 18px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Signing route</div>
+              <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ sigRoute }}" as="sr" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px">
+                    <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:{{ sr.tint }}">{{ sr.init }}</div>
+                    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ sr.name }}</div><div style="font-size:11.5px;color:#8a9a94">{{ sr.role }}</div></div>
+                    <span style="font-size:10.5px;font-weight:700;color:{{ sr.stFg }};background:{{ sr.stBg }};padding:3px 9px;border-radius:6px">{{ sr.status }}</span>
+                  </div>
+                  <sc-if value="{{ sr.hasLine }}" hint-placeholder-val="{{ true }}"><div style="margin-left:17px;width:2px;height:16px;background:#eef2f0"></div></sc-if>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 18px">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:13px">Send for signature</div>
+              <sc-for list="{{ sendOpts }}" as="opt" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid #f4f7f5">
+                  <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ opt.tintBg }};display:flex;align-items:center;justify-content:center">{{ opt.iconEl }}</div>
+                  <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#14302b">{{ opt.label }}</div><div style="font-size:11.5px;color:#8a9a94">{{ opt.sub }}</div></div>
+                  <button onClick="{{ sendReferral }}" style="padding:7px 13px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">Send</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'perms', perms:{}, planPhase:'idle', planApplied:false };
+  componentDidMount(){
+    const h=(location.hash||'').replace('#','');
+    if(['perms','planUpdate','signing'].includes(h))this.setState({view:h});
+    try{ const AD=window.AegisData; if(AD){ const sv=AD.get('care_ecosystem_perms'); if(sv && typeof sv==='object') this.setState({perms:sv}); } }catch(e){}
+    if(new URLSearchParams(location.search).get('embed')==='1'){
+      const st=document.createElement('style');
+      st.textContent='aside{display:none!important}main>header{display:none!important}';
+      document.head.appendChild(st);
+    }
+  }
+  ic(n,c,s,sw){
+    const stroke=c||'#5f726d',sz=s||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      family:'M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z M14 3v5h5 M9 12h6 M9 16h4',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      note:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      photo:'M3 7a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M12 16m-3.5 0a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0',
+      check:'M20 6L9 17l-5-5',
+      eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      upload:'M12 16V4 M7 9l5-5 5 5 M4 20h16',
+      arrowup:'M7 17l5-10 5 10',
+      arrowdown:'M7 7l5 10 5-10',
+      refresh:'M1 4v6h6 M23 20v-6h-6 M20.5 9a9 9 0 0 0-15-3.9L1 10 M3.5 15a9 9 0 0 0 15 3.9L23 14',
+      folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      pen:'M12 19l7-7-3-3-7 7v3z M16 9l3-3-3-3-3 3',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      phone:'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+      mail:'M4 4h16v16H4z M22 7l-10 7L2 7',
+      tablet:'M5 2h14v20H5z M12 17h.01'
+    };
+    return React.createElement('svg',{width:sz,height:sz,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.doc}));
+  }
+  toggle(key){
+    const cur=this.state.perms||{};
+    const np={...cur,[key]:!(cur[key]!==false)};
+    this.setState({perms:np});
+    try{ const AD=window.AegisData; if(AD) AD.set('care_ecosystem_perms',np); }catch(e){}
+  }
+  isOn(key,def){ const v=this.state.perms[key]; return v===undefined?def:v; }
+  runPlanScan(){
+    if(this.state.planPhase==='applied')return;
+    this.setState({planPhase:'scanning'});
+    clearTimeout(this._t); this._t=setTimeout(()=>this.setState({planPhase:'done'}),2400);
+  }
+  applyAll(){ this.setState({planPhase:'applied',planApplied:true}); }
+  componentWillUnmount(){ clearTimeout(this._t); }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const view=this.state.view;
+    const navSections=[
+      {title:'DOCUMENTS',items:[['perms','Access & Permissions','shield'],['planUpdate','Plan Updates','refresh'],['signing','Signing Workflows','pen']]},
+    ].map(sec=>({title:sec.title,items:sec.items.map(([key,label,icon])=>{const a=view===key;return{label,onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};})}));
+    const pages={perms:{title:'Access & Permissions',sub:'Ali Tahan · consent-gated access per role — participant controls everything'},planUpdate:{title:'Plan Updates',sub:'New NDIS plan received · read, compare, apply changes to all records'},signing:{title:'Signing Workflows',sub:'AI detects signature fields → routes to each signer in order'}};
+
+    const tog=(key,def)=>this.isOn(key,def);
+    const mkPerm=(key,label,def,icon,tintBg)=>({label,iconEl:ic(icon,tog(key,def)?'#16b8a6':'#9aa8a3',16),onClick:()=>this.toggle(key),bg:tog(key,def)?'#16b8a6':'#eef2f0',knobLeft:tog(key,def)?'20px':'2px'});
+
+    const roles=[
+      {role:'Support Coordinator',name:'Sarah Kelly',tintBg:'#eef0fd',iconEl:ic('users','#6366f1',17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',
+        perms:[mkPerm('sc_plan','View NDIS plan & budgets',true,'wallet','#eef0fd'),mkPerm('sc_notes','Read shift notes',true,'note','#eef0fd'),mkPerm('sc_contact','See full contact details',true,'phone','#eef0fd'),mkPerm('sc_docs','Access filed documents',true,'doc','#eef0fd')]},
+      {role:'Service Provider',name:'Brightside Care',tintBg:'#e7f4f1',iconEl:ic('heart','#16b8a6',17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',
+        perms:[mkPerm('pv_notes','Write & view shift notes',true,'note','#e7f4f1'),mkPerm('pv_goals','See goals & preferences',true,'heart','#e7f4f1'),mkPerm('pv_contact','See emergency contacts',true,'phone','#e7f4f1'),mkPerm('pv_budget','View funding categories',false,'wallet','#e7f4f1')]},
+      {role:'Support Worker',name:'Amara Okafor',tintBg:'#fbf0df',iconEl:ic('user','#d98b22',17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',
+        perms:[mkPerm('sw_notes','Write shift notes',true,'note','#fbf0df'),mkPerm('sw_profile','See client care profile',true,'heart','#fbf0df'),mkPerm('sw_photo','Attach photos to notes',true,'photo','#fbf0df'),mkPerm('sw_budget','See budget or plan',false,'wallet','#fbf0df')]},
+      {role:'Family / Nominee',name:'Mariam Tahan (sister)',tintBg:'#fbe9ed',iconEl:ic('family','#e0556e',17),stLabel:'Nominee',stFg:'#c0445c',stBg:'#fbe9ed',
+        perms:[mkPerm('fn_notes','Receive shift-note summaries',true,'note','#fbe9ed'),mkPerm('fn_docs','View signed agreements',true,'doc','#fbe9ed'),mkPerm('fn_budget','View plan & budget',true,'wallet','#fbe9ed'),mkPerm('fn_photo','Receive photo updates',false,'photo','#fbe9ed')]}
+    ];
+    const auditLog=[
+      {dot:'#16b8a6',text:'Ali gave consent for family to view shift summaries',when:'Today 14:32'},
+      {dot:'#e0556e',text:'Provider budget access toggled off by Ali',when:'Today 14:31'},
+      {dot:'#6366f1',text:'SC Sarah Kelly access reviewed — no changes',when:'19 Jun 2026'},
+      {dot:'#1e9e6a',text:'Consent to share info with care team — signed',when:'01 Jul 2026'}
+    ];
+
+    // plan update
+    const phase=this.state.planPhase;
+    const planLines=[
+      {tag:'PARTICIPANT',w:'68%',hl:'#e7ece9',glow:phase==='scanning'&&false},
+      {tag:'NDIS #',w:'44%',hl:'#e7f4f1',glow:phase==='scanning'},
+      {tag:'PLAN DATE',w:'56%',hl:'rgba(22,184,166,.45)',glow:phase==='scanning'},
+      {tag:'',w:'72%',hl:'#eef2f0',glow:false},
+      {tag:'CORE',w:'48%',hl:'rgba(22,184,166,.55)',glow:phase==='scanning'},
+      {tag:'',w:'36%',hl:'#eef2f0',glow:false},
+      {tag:'CAPACITY',w:'42%',hl:'rgba(99,102,241,.35)',glow:phase==='scanning'},
+      {tag:'',w:'60%',hl:'#eef2f0',glow:false},
+      {tag:'CAPITAL',w:'34%',hl:'rgba(217,139,34,.35)',glow:phase==='scanning'},
+      {tag:'GOALS',w:'70%',hl:'#eef2f0',glow:false},
+      {tag:'',w:'55%',hl:'#eef2f0',glow:false},
+      {tag:'SIGN',w:'38%',hl:'rgba(217,139,34,.4)',glow:false},
+      {tag:'SIGN',w:'38%',hl:'rgba(217,139,34,.4)',glow:false}
+    ];
+    const diffs=[
+      {field:'Plan period',old:'01 Jul 25 – 30 Jun 26',new:'01 Jul 26 – 30 Jun 27',impact:'Dates',impFg:'#4338ca',impBg:'#eef0fd',dotBg:'#eef0fd',dotIconEl:ic('refresh','#6366f1',14)},
+      {field:'Core supports',old:'$66,400',new:'$74,200',impact:'+$7,800',impFg:'#1e7a52',impBg:'#e9f6ef',dotBg:'#e9f6ef',dotIconEl:ic('arrowup','#1e9e6a',14,2.4)},
+      {field:'Capacity building',old:'$19,800',new:'$22,000',impact:'+$2,200',impFg:'#1e7a52',impBg:'#e9f6ef',dotBg:'#e9f6ef',dotIconEl:ic('arrowup','#1e9e6a',14,2.4)},
+      {field:'Capital',old:'$8,000',new:'$6,000',impact:'-$2,000',impFg:'#c0445c',impBg:'#fbe9ed',dotBg:'#fbe9ed',dotIconEl:ic('arrowdown','#c0445c',14,2.4)}
+    ];
+    const toUpdate=[
+      {label:'Master profile — plan period & budgets',tag:'Auto',tagFg:'#0b6b60',tagBg:'#e7f4f1',iconEl:ic('user','#16b8a6',16)},
+      {label:'Service agreement — plan dates',tag:'Auto',tagFg:'#0b6b60',tagBg:'#e7f4f1',iconEl:ic('doc','#6366f1',16)},
+      {label:'Budget tracking — new totals',tag:'Auto',tagFg:'#0b6b60',tagBg:'#e7f4f1',iconEl:ic('wallet','#d98b22',16)},
+      {label:'Review reminder — set for 15 Jun 2027',tag:'Auto',tagFg:'#0b6b60',tagBg:'#e7f4f1',iconEl:ic('bell','#0891b2',16)}
+    ];
+    const applied=toUpdate.map(u=>({label:u.label,iconEl:ic('check','#1e9e6a',16,2.4)}));
+
+    // signing
+    const sigFields=[
+      {label:'Provider representative',page:4,who:'Brightside Care · authorised rep',tintBg:'#e7f4f1',iconEl:ic('pen','#16b8a6',15),status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {label:'Support coordinator',page:4,who:'Sarah Kelly',tintBg:'#eef0fd',iconEl:ic('pen','#6366f1',15),status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {label:'Participant',page:4,who:'Ali Tahan',tintBg:'#fbf0df',iconEl:ic('pen','#d98b22',15),status:'Awaiting',stFg:'#b4561f',stBg:'#fbf0df'},
+      {label:'Participant nominee',page:4,who:'Mariam Tahan',tintBg:'#fbe9ed',iconEl:ic('pen','#e0556e',15),status:'Queued',stFg:'#8a9a94',stBg:'#f1f4f2'}
+    ];
+    const sigRoute=[
+      {name:'Brightside Care',init:'BC',tint:'#16b8a6',role:'Provider rep · signs first',status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef',hasLine:true},
+      {name:'Sarah Kelly',init:'SK',tint:'#6366f1',role:'Support coordinator',status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef',hasLine:true},
+      {name:'Ali Tahan',init:'AT',tint:'#d98b22',role:'Participant · signs next',status:'Pending',stFg:'#b4561f',stBg:'#fbf0df',hasLine:false}
+    ];
+    const sendOpts=[
+      {label:'Send to Ali — SMS link',sub:'Signs on phone in 2 taps',tintBg:'#e7f4f1',iconEl:ic('phone','#16b8a6',16)},
+      {label:'Send to Ali — Email link',sub:'PDF viewer + sign',tintBg:'#eef0fd',iconEl:ic('mail','#6366f1',16)},
+      {label:'Sign in person on this device',sub:'Pass device to Ali now',tintBg:'#fbf0df',iconEl:ic('tablet','#d98b22',16)}
+    ];
+
+    return {
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goBack:()=>{ window.location.href='Support Coordination.dc.html'; },
+      goReviewPrep:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      sendReferral:()=>{ window.location.href='Support Coordination.dc.html'; },
+      logoutSmEl:ic('logout','#6c8a83',15),
+      logoEl:ic('logo','#eafaf8',21),navSections,pageTitle:pages[view].title,pageSub:pages[view].sub,
+      isPerms:view==='perms',isPlanUpdate:view==='planUpdate',isSigning:view==='signing',
+      shieldBigEl:ic('shield','#7ce0d2',22),roles,auditLog,
+      docIconEl:ic('doc','#6366f1',17),sparkSmEl:ic('spark','#06201c',15),
+      scanBtnLabel:phase==='idle'?'Analyse':phase==='scanning'?'Reading…':'Re-scan',
+      scanBtnBg:phase==='scanning'?'#0c2622':'#16b8a6',scanBtnFg:phase==='scanning'?'#eafaf8':'#06201c',
+      runPlanScan:()=>this.runPlanScan(),
+      planIdle:phase==='idle',planScanning:phase==='scanning',planDone:phase==='done',planApplied:phase==='applied',
+      planLines,diffs,diffCount:diffs.length,toUpdate,applyAll:()=>this.applyAll(),applied,
+      sparkIdleEl:ic('spark','#16b8a6',22),checkTealEl:ic('check','#7ce0d2',20,2.4),
+      checkSmEl:ic('check','#06201c',16,2.4),bigCheckEl:ic('check','#1e9e6a',24,2.6),
+      sparkBlueEl:ic('spark','#2a4a8a',17),
+      sigFields,sigRoute,sendOpts
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Capacitor / native build artifacts
+/ios/App/Pods/
+/ios/App/App/public/
+/ios/App/build/
+/ios/DerivedData/
+/android/.gradle/
+/android/app/build/
+/android/build/
+/android/local.properties
+/android/app/src/main/assets/public/
+*.keystore
+*.jks
+
+# OS
+.DS_Store
+
+# Secrets (public anon key only — still keep out of git; copied on sync)
+www/env.local.js
+env.local.js

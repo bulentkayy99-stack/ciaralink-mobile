@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
+<script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes nc-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:252px;flex:0 0 252px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">NOTIFICATIONS</div></div>
+    </div>
+
+    <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#5f7a73;margin-bottom:8px">VIEW AS ROLE</div>
+      <sc-for list="{{ roleFilters }}" as="rf" hint-placeholder-count="5">
+        <button onClick="{{ rf.select }}" style="width:100%;display:flex;align-items:center;gap:9px;padding:8px 10px;margin-bottom:3px;border:none;border-radius:9px;cursor:pointer;font-family:inherit;text-align:left;background:{{ rf.bg }}">
+          <span style="display:flex;width:16px;height:16px;align-items:center;justify-content:center">{{ rf.iconEl }}</span>
+          <span style="flex:1;font-size:12.5px;font-weight:700;color:{{ rf.fg }}">{{ rf.label }}</span>
+          <sc-if value="{{ rf.count }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;color:#c0445c;background:#fbe9ed;padding:1px 6px;border-radius:6px">{{ rf.count }}</span></sc-if>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="padding:12px 14px;flex:1">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#5f7a73;margin-bottom:8px">FILTER BY PRIORITY</div>
+      <sc-for list="{{ priorityFilters }}" as="pf" hint-placeholder-count="4">
+        <button onClick="{{ pf.select }}" style="width:100%;display:flex;align-items:center;gap:9px;padding:8px 10px;margin-bottom:3px;border:none;border-radius:9px;cursor:pointer;font-family:inherit;text-align:left;background:{{ pf.bg }}">
+          <span style="width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:{{ pf.dot }}"></span>
+          <span style="flex:1;font-size:12.5px;font-weight:700;color:{{ pf.fg }}">{{ pf.label }}</span>
+          <span style="font-size:10px;color:#5f7a73">{{ pf.count }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ markAllRead }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:6px">{{ checkEl }}Mark all as read</button>
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:5px">← Dashboard</button>
+      <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#56716a;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ logoutEl }}Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">Notifications — {{ roleLabel }}</div>
+        <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">{{ unreadCount }} unread · {{ urgentCount }} urgent · all linked to the relevant page</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span style="font-size:13px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:5px 13px;border-radius:9px">{{ urgentCount }} urgent</span>
+        <span style="font-size:13px;font-weight:700;color:#14302b;background:#fff;border:1px solid #e2e9e6;padding:5px 13px;border-radius:9px">{{ unreadCount }} unread</span>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:20px 28px 56px">
+    <div style="max-width:820px;margin:0 auto">
+      <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="8">
+        <div style="background:{{ n.cardBg }};border:1px solid {{ n.cardBd }};border-radius:16px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;animation:nc-rise .15s ease" style-hover="border-color:#16b8a6">
+          <!-- Priority dot + icon -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto;margin-top:2px">
+            <div style="width:38px;height:38px;border-radius:11px;background:{{ n.tintBg }};display:flex;align-items:center;justify-content:center">{{ n.iconEl }}</div>
+            <span style="width:8px;height:8px;border-radius:50%;background:{{ n.priDot }}"></span>
+          </div>
+          <!-- Content -->
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <span style="font-size:14px;font-weight:{{ n.unread?800:700 }};color:{{ n.unread?'#14302b':'#41635c' }}">{{ n.title }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ n.priFg }};background:{{ n.priBg }};padding:2px 8px;border-radius:6px;white-space:nowrap">{{ n.priority }}</span>
+              <sc-if value="{{ n.unread }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;color:#16b8a6;background:rgba(22,184,166,.12);padding:2px 7px;border-radius:6px">NEW</span></sc-if>
+            </div>
+            <div style="font-size:13px;color:#6c7f79;line-height:1.5;margin-bottom:8px">{{ n.body }}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3">{{ n.when }}</span>
+              <sc-if value="{{ n.participant }}" hint-placeholder-val=""><span style="font-size:11.5px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:6px">{{ n.participant }}</span></sc-if>
+              <span style="font-size:11px;font-weight:700;color:{{ n.stFg }};background:{{ n.stBg }};padding:2px 8px;border-radius:6px">{{ n.status }}</span>
+            </div>
+          </div>
+          <!-- Actions -->
+          <div style="display:flex;flex-direction:column;gap:6px;flex:0 0 auto">
+            <button onClick="{{ n.primaryAction }}" style="padding:8px 14px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap" style-hover="background:#2bcbb9">{{ n.actionLabel }}</button>
+            <button onClick="{{ n.dismiss }}" style="padding:6px 12px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;color:#8a9a94;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer">Dismiss</button>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="">
+        <div style="text-align:center;padding:60px 20px;color:#9aa8a3;font-size:14px;line-height:1.6">
+          <div style="font-size:32px;margin-bottom:12px">🔔</div>
+          <div style="font-weight:700;color:#14302b;margin-bottom:6px">All caught up</div>
+          <div>No {{ activeFilter }} notifications — check another filter or role</div>
+        </div>
+      </sc-if>
+    </div>
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:nc-rise .25s ease">
+    {{ checkEl }}{{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  state = { role:'provider', priority:'all', dismissed:{}, read:{}, toast:null, liveNotifs:[], supabaseConnected:false };
+
+  componentDidMount(){
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      // Normalize both demo short codes and real enum roles so notifications
+      // (whose role arrays use short codes) match for real signed-in users.
+      const _norm={provider:'provider',provider_owner:'provider',provider_admin:'provider',provider_staff:'provider',coordinator:'coordinator',support_coordinator:'coordinator',allied:'allied',allied_health:'allied',allied_health_admin:'allied',worker:'worker',support_worker:'worker',abn_worker:'worker',participant:'participant',guardian_nominee:'participant'};
+      if(s.role) this.setState({role:_norm[s.role]||s.role});
+    }catch(e){}
+    const AD=window.AegisData;
+    if(AD){
+      const d=AD.get('nc_dismissed')||{};
+      const r=AD.get('nc_read')||{};
+      if(Object.keys(d).length||Object.keys(r).length) this.setState({dismissed:d,read:r});
+    }
+    this.loadLiveNotifs();
+  }
+
+  loadLiveNotifs(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadNotificationsForCurrentUser){
+        this.setState({supabaseConnected:true});
+        Promise.resolve(window.loadNotificationsForCurrentUser()).then(res=>{
+          if(res && !res.error){ this.setState({liveNotifs:res.notifications||[]}); }
+        }).catch(e=>console.warn('loadLiveNotifs error:',e&&e.message));
+      }
+    }catch(e){ console.warn('loadLiveNotifs error:',e&&e.message); }
+  }
+
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      check:'M20 6L9 17l-5-5',alert:'M10.3 3.3L1.6 18a2 2 0 0 0 1.7 3h17.4a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      star:'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8-5-4.9 6.9-1z',
+      building:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.bell}));
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),2500); }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const {role,priority,dismissed,read}=this.state;
+    const AD=window.AegisData;
+
+    // Priority system
+    const PRI={
+      urgent:{label:'Urgent',fg:'#c0445c',bg:'#fbe9ed',dot:'#e0556e'},
+      high:  {label:'High',  fg:'#b4561f',bg:'#fbf0df',dot:'#d98b22'},
+      medium:{label:'Medium',fg:'#4338ca',bg:'#eef0fd',dot:'#6366f1'},
+      low:   {label:'Low',   fg:'#0b6b60',bg:'#e7f4f1',dot:'#16b8a6'},
+    };
+
+    // All notifications database
+    const allNotifs=[
+      // Provider notifications
+      {id:'p1',roles:['provider'],pri:'urgent',title:'Open shift unfilled — starts in 2 hours',body:'Personal Care shift for Margaret R. tonight (19:00–22:00) has no assigned worker. 6 workers were notified.',participant:'Margaret Reyes',when:'2h ago',status:'Action required',stFg:'#c0445c',stBg:'#fbe9ed',icon:'clock',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Fill shift →',action:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; }},
+      {id:'p2',roles:['provider'],pri:'high',title:'New worker application — Amara Okafor',body:'Amara Okafor applied for the Personal Care shift (Sat 21 Jun). 4.9★ · 312 shifts · 2.1km away.',participant:'Margaret Reyes',when:'4h ago',status:'Review needed',stFg:'#b4561f',stBg:'#fbf0df',icon:'user',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'Review applicant →',action:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; }},
+      {id:'p3',roles:['provider'],pri:'high',title:'Service agreement awaiting signature — David Lowe',body:'Agreement sent 5 days ago. David Lowe has not yet signed. Services cannot commence until signed.',participant:'David Lowe',when:'Yesterday',status:'Awaiting signature',stFg:'#b4561f',stBg:'#fbf0df',icon:'doc',tint:'#eef0fd',ic:'#6366f1',actionLabel:'Send reminder →',action:()=>{ window.location.href='Service Agreement.dc.html'; }},
+      {id:'p4',roles:['provider'],pri:'medium',title:'Shift note submitted — James Liu',body:'Shift note submitted for Margaret R. Personal Care session (Wed 18 Jun, 4h). Review and approve.',participant:'Margaret Reyes',when:'2 days ago',status:'New',stFg:'#4338ca',stBg:'#eef0fd',icon:'doc',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View shift note →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'p5',roles:['provider'],pri:'medium',title:'Worker credential expiring — First Aid (Noah R.)',body:'Noah R\'s First Aid certificate expires in 14 days. He cannot be rostered after that date without renewal.',participant:null,when:'3 days ago',status:'Action required',stFg:'#b4561f',stBg:'#fbf0df',icon:'shield',tint:'#fbf0df',ic:'#d98b22',actionLabel:'View passport →',action:()=>{ window.location.href='Worker Passport.dc.html'; }},
+      {id:'p6',roles:['provider'],pri:'low',title:'New referral received — Eleni Pappas',body:'Referral from Sarah Kelly (SC). Personal Care + Community Access. Contact within 48h to maintain referral score.',participant:'Eleni Pappas',when:'4 days ago',status:'New',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'send',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'Open referral →',action:()=>{ window.location.href='Provider Console.dc.html'; }},
+      // SC notifications
+      {id:'sc1',roles:['coordinator'],pri:'urgent',title:'Plan review in 11 days — Margaret Reyes',body:'Evidence pack 70% complete. Missing: OT recommendations, speech report. Review meeting 21 Jul 2026.',participant:'Margaret Reyes',when:'Just now',status:'Urgent action',stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Prepare review →',action:()=>{ window.location.href='Plan Review Prep.dc.html'; }},
+      {id:'sc2',roles:['coordinator'],pri:'high',title:'Funding risk — Liam Wright Core Supports at 92%',body:'Core Supports at 92% with 4 months remaining. Underspend risk. Contact plan manager to review.',participant:'Liam Wright',when:'1h ago',status:'Action required',stFg:'#b4561f',stBg:'#fbf0df',icon:'wallet',tint:'#fbf0df',ic:'#d98b22',actionLabel:'View budgets →',action:()=>{ window.location.href='Support Coordination.dc.html'; }},
+      {id:'sc3',roles:['coordinator'],pri:'high',title:'Allied health report uploaded — OT recommendations',body:'Inner West OT uploaded updated OT recommendations for Margaret Reyes. Review and add to review pack.',participant:'Margaret Reyes',when:'3h ago',status:'New',stFg:'#b4561f',stBg:'#fbf0df',icon:'file',tint:'#f4e8fe',ic:'#9333ea',actionLabel:'View document →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'sc4',roles:['coordinator'],pri:'medium',title:'Referral accepted — Brightside Care',body:'Brightside Care accepted your referral for Margaret Reyes. Personal Care + Community Access. Services to commence.',participant:'Margaret Reyes',when:'Yesterday',status:'Completed',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'check',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View referral →',action:()=>{ window.location.href='Support Coordination.dc.html'; }},
+      {id:'sc5',roles:['coordinator'],pri:'medium',title:'Consent request — share documents with Inner West OT',body:'Jordan Pham (Physio) is requesting access to Margaret Reyes\' OT assessment and support plan.',participant:'Margaret Reyes',when:'2 days ago',status:'Awaiting approval',stFg:'#4338ca',stBg:'#eef0fd',icon:'shield',tint:'#eef0fd',ic:'#6366f1',actionLabel:'Review consent →',action:()=>{ window.location.href='Consent Centre.dc.html'; }},
+      // Allied Health notifications
+      {id:'ah1',roles:['allied'],pri:'urgent',title:'Review evidence requested — Margaret Reyes',body:'Plan review in 11 days. Support coordinator Sarah Kelly requests your FCA report and updated recommendations.',participant:'Margaret Reyes',when:'1h ago',status:'Urgent',stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Prepare evidence →',action:()=>{ window.location.href='Allied Health.dc.html'; }},
+      {id:'ah2',roles:['allied'],pri:'high',title:'New referral — Tom Becker (OT assessment)',body:'Referral from Sarah Kelly (SC). OT assessment requested. Community participation barriers. Urgency: High.',participant:'Tom Becker',when:'3h ago',status:'New referral',stFg:'#b4561f',stBg:'#fbf0df',icon:'send',tint:'#f4e8fe',ic:'#9333ea',actionLabel:'Accept referral →',action:()=>{ window.location.href='Allied Health.dc.html'; }},
+      {id:'ah3',roles:['allied'],pri:'medium',title:'Consent approved — access to Ruth K. documents',body:'Participant Ruth Kim approved your access to clinical notes and support plan. Documents now visible.',participant:'Ruth Kim',when:'Yesterday',status:'Access granted',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'shield',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View documents →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'ah4',roles:['allied'],pri:'low',title:'Therapy goal milestone — Tom Becker',body:'Tom Becker reached 68% on the sensory regulation goal. Progress noted in participant profile.',participant:'Tom Becker',when:'3 days ago',status:'Update noted',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'heart',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View goals →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      // Worker notifications
+      {id:'w1',roles:['worker'],pri:'urgent',title:'New shift invitation — Sat 21 Jun (Personal Care)',body:'Brightside Care invited you to cover a Personal Care shift for David L. Sat 21 Jun · 09:00–13:00 · $46/hr · 1.8km',participant:'David Lowe',when:'30min ago',status:'Action required',stFg:'#c0445c',stBg:'#fbe9ed',icon:'bell',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Accept shift →',action:()=>{ window.location.href='Support Worker.dc.html'; }},
+      {id:'w2',roles:['worker'],pri:'high',title:'Shift note overdue — Margaret R. (Wed 18 Jun)',body:'Your shift note for the Wed 18 Jun Personal Care shift (4h) is overdue. Submit to get paid.',participant:'Margaret Reyes',when:'1h ago',status:'Overdue',stFg:'#c0445c',stBg:'#fbe9ed',icon:'doc',tint:'#fbf0df',ic:'#d98b22',actionLabel:'Write note →',action:()=>{ window.location.href='Support Worker.dc.html'; }},
+      {id:'w3',roles:['worker'],pri:'high',title:'Credential expiring — First Aid (14 days)',body:'Your HLTAID003 First Aid certificate expires Nov 2026. Renew before expiry to stay eligible for rostering.',participant:null,when:'2 days ago',status:'Action required',stFg:'#b4561f',stBg:'#fbf0df',icon:'shield',tint:'#fbf0df',ic:'#d98b22',actionLabel:'Renew credential →',action:()=>{ window.location.href='Worker Passport.dc.html'; }},
+      {id:'w4',roles:['worker'],pri:'medium',title:'Timesheet approved — 16–29 Jun · $840',body:'Your timesheet for the fortnight ending 29 Jun has been approved. $840 · 32h · Brightside Care.',participant:null,when:'Yesterday',status:'Paid ✓',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'wallet',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View record →',action:()=>{ window.location.href='Support Worker.dc.html'; }},
+      // Participant notifications
+      {id:'pt1',roles:['participant'],pri:'high',title:'Service agreement awaiting your signature',body:'Brightside Care has sent you a service agreement for Personal Care + Community Access 2026–27. Please sign.',participant:null,when:'2 days ago',status:'Signature needed',stFg:'#b4561f',stBg:'#fbf0df',icon:'doc',tint:'#fbf0df',ic:'#d98b22',actionLabel:'Sign agreement →',action:()=>{ window.location.href='Service Agreement.dc.html'; }},
+      {id:'pt2',roles:['participant'],pri:'medium',title:'Consent request — Inner West OT document access',body:'Inner West OT is requesting access to your support plan and OT assessment. Your support coordinator recommends approving.',participant:null,when:'Yesterday',status:'Review needed',stFg:'#4338ca',stBg:'#eef0fd',icon:'shield',tint:'#eef0fd',ic:'#6366f1',actionLabel:'Review consent →',action:()=>{ window.location.href='Consent Centre.dc.html'; }},
+      {id:'pt3',roles:['participant'],pri:'low',title:'Plan review coming up — 11 days',body:'Your NDIS plan review is scheduled for 21 July 2026. Sarah Kelly (your coordinator) is preparing your evidence pack.',participant:null,when:'3 days ago',status:'Upcoming',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'alert',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View dashboard →',action:()=>{ window.location.href='Participant Dashboard.dc.html'; }},
+    ];
+
+    const roleFiltered=allNotifs.filter(n=>n.roles.includes(role));
+    const priFiltered=priority==='all'?roleFiltered:roleFiltered.filter(n=>n.pri===priority);
+    const visible=priFiltered.filter(n=>!dismissed[n.id]);
+
+    // Live notifications from Supabase (the current user's own rows via RLS)
+    const liveRaw=(this.state.liveNotifs||[]);
+    const showLive=(priority==='all');
+    const liveCards=(showLive?liveRaw:[]).map(n=>{
+      const p=PRI.medium;
+      const isUnread=!n.read_at;
+      const markRead=()=>{ if(window.markNotificationRead){ Promise.resolve(window.markNotificationRead(n.id)).then(r=>{ if(r&&!r.error){ this.showToast('Marked as read'); this.loadLiveNotifs(); } }).catch(()=>{}); } };
+      return {id:'live-'+n.id,_liveId:n.id,
+        priority:'Notification',priFg:p.fg,priBg:p.bg,priDot:p.dot,
+        unread:isUnread,
+        cardBg:isUnread?'#fff':'#f9fbfa',
+        cardBd:isUnread?'#e7ece9':'#eef2f0',
+        tintBg:'#e7f4f1',iconEl:ic('bell','#16b8a6',17),
+        title:n.title,body:n.body||'',
+        when:(n.created_at||'').slice(0,10),participant:null,
+        status:isUnread?'New':'Read',stFg:isUnread?'#0b6b60':'#9aa8a3',stBg:isUnread?'#e7f4f1':'#eef2f0',
+        actionLabel:isUnread?'Mark read':'Read ✓',
+        primaryAction:isUnread?markRead:()=>{},
+        dismiss:markRead};
+    });
+    const liveUnread=liveRaw.filter(n=>!n.read_at).length;
+
+    const demoNotifications=visible.map(n=>{
+      const p=PRI[n.pri]||PRI.low;
+      const isUnread=!read[n.id];
+      return {...n,
+        priority:p.label,priFg:p.fg,priBg:p.bg,priDot:p.dot,
+        unread:isUnread,
+        cardBg:isUnread?'#fff':'#f9fbfa',
+        cardBd:n.pri==='urgent'?'#f3c8cf':isUnread?'#e7ece9':'#eef2f0',
+        tintBg:n.tint,iconEl:ic(n.icon,n.ic,17),
+        primaryAction:()=>{
+          const nr={...read,[n.id]:true};
+          this.setState({read:nr});
+          if(AD) AD.set('nc_read',nr);
+          n.action();
+        },
+        dismiss:()=>{
+          const nd={...dismissed,[n.id]:true};
+          this.setState({dismissed:nd});
+          if(AD) AD.set('nc_dismissed',nd);
+          this.showToast('Notification dismissed');
+        }
+      };
+    });
+    const notifications=[...liveCards,...demoNotifications];
+
+    const roleOpts=[
+      {key:'provider',label:'Provider',iconEl:ic('building','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('provider')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'coordinator',label:'Coordinator',iconEl:ic('star','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('coordinator')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'allied',label:'Allied Health',iconEl:ic('heart','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('allied')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'worker',label:'Support Worker',iconEl:ic('user','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('worker')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'participant',label:'Participant',iconEl:ic('users','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('participant')&&!dismissed[n.id]&&!read[n.id]).length||null},
+    ];
+    const roleFilters=roleOpts.map(r=>({...r,select:()=>this.setState({role:r.key}),bg:role===r.key?'rgba(255,255,255,.08)':'transparent',fg:role===r.key?'#f4faf8':'#9fb4ae',count:r.count||null}));
+
+    const priCounts={urgent:0,high:0,medium:0,low:0};
+    roleFiltered.filter(n=>!dismissed[n.id]).forEach(n=>{if(priCounts[n.pri]!==undefined)priCounts[n.pri]++;});
+    const priorityFilters=[
+      {key:'all',label:'All',dot:'#9aa8a3',count:roleFiltered.filter(n=>!dismissed[n.id]).length},
+      {key:'urgent',label:'Urgent',dot:'#e0556e',count:priCounts.urgent},
+      {key:'high',label:'High',dot:'#d98b22',count:priCounts.high},
+      {key:'medium',label:'Medium',dot:'#6366f1',count:priCounts.medium},
+      {key:'low',label:'Low',dot:'#16b8a6',count:priCounts.low},
+    ].map(p=>({...p,select:()=>this.setState({priority:p.key}),bg:priority===p.key?'rgba(255,255,255,.08)':'transparent',fg:priority===p.key?'#f4faf8':'#9bb4ae'}));
+
+    const roleLabels={provider:'Provider',coordinator:'Support Coordinator',allied:'Allied Health',worker:'Support Worker',participant:'Participant'};
+    const unreadCount=roleFiltered.filter(n=>!dismissed[n.id]&&!read[n.id]).length+liveUnread;
+    const urgentCount=roleFiltered.filter(n=>!dismissed[n.id]&&n.pri==='urgent').length;
+
+    return {
+      logoEl:ic('bell','#eafaf8',20),
+      logoutEl:ic('logout','#56716a',14),
+      checkEl:ic('check','#16b8a6',14),
+      roleFilters,priorityFilters,
+      roleLabel:roleLabels[role]||'All',
+      unreadCount,urgentCount,
+      notifications,
+      isEmpty:notifications.length===0,
+      activeFilter:priority==='all'?'':priority+' ',
+      markAllRead:()=>{
+        const nr={};
+        roleFiltered.forEach(n=>{nr[n.id]=true;});
+        const combined={...read,...nr};
+        this.setState({read:combined});
+        if(AD) AD.set('nc_read',combined);
+        if(this.state.supabaseConnected && window.markAllNotificationsRead){
+          Promise.resolve(window.markAllNotificationsRead()).then(r=>{ if(r&&!r.error) this.loadLiveNotifs(); }).catch(()=>{});
+        }
+        this.showToast('All notifications marked as read');
+      },
+      goBack:()=>{try{const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html',guardian_nominee:'Participant Dashboard.dc.html'};window.location.href=m[s.role]||'Index.dc.html';}catch(e){window.location.href='Index.dc.html';}},
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- CiaraLink Worker PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c2622">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CL Worker">
+<script src="/pwa.js" defer></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    .scrl::-webkit-scrollbar{width:0;display:none}
+    @keyframes sw-pulse{0%{box-shadow:0 0 0 0 rgba(22,184,166,.5)}70%{box-shadow:0 0 0 15px rgba(22,184,166,0)}100%{box-shadow:0 0 0 0 rgba(22,184,166,0)}}
+    @keyframes sw-glow{0%,100%{opacity:.55;transform:rotate(0deg) scale(1)}50%{opacity:.95;transform:rotate(180deg) scale(1.06)}}
+    @keyframes sw-scan{0%{top:8%}100%{top:84%}}
+
+    /* ===== MOBILE: unwrap the phone mock into a real full-screen app ===== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;background:#f4f7f5}
+      .sw-stage{padding:0!important;gap:0!important;background:#f4f7f5!important;align-items:stretch!important;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+      /* drop the decorative bezel + fixed phone size, fill the viewport */
+      .sw-phone{width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;padding:0!important;border-radius:0!important;background:#f4f7f5!important;box-shadow:none!important}
+      .sw-screen{border-radius:0!important;height:100%!important;min-width:0}
+      .sw-statusbar{display:none!important} /* hide fake 9:41 + notch on a real device */
+      .sw-scroll{padding-top:max(8px,env(safe-area-inset-top))!important;min-width:0}
+      .sw-tabs{padding-bottom:max(14px,env(safe-area-inset-bottom))!important}
+      .sw-side{display:none!important} /* desktop marketing column */
+      /* belt-and-braces: nothing inside the app may force horizontal scroll */
+      .sw-screen *{max-width:100%}
+    }
+    /* ===== SMALL PHONES: tighter padding + thumb-friendly tabs ===== */
+    @media (max-width:520px){
+      .sw-tabs button{padding:9px 0!important;min-height:48px}
+      .sw-tabs span{font-size:11px!important}
+    }
+  </style>
+</helmet>
+<div class="sw-stage" style="min-height:100vh;width:100%;display:flex;align-items:flex-start;justify-content:center;gap:30px;flex-wrap:wrap;padding:40px 20px;background:radial-gradient(120% 90% at 50% 0%,#103a34 0%,#0a201c 55%,#071512 100%)">
+
+  <div class="sw-phone" style="position:relative;width:392px;height:840px;border-radius:50px;padding:13px;background:linear-gradient(160deg,#1c1c20,#000);box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)">
+    <div class="sw-screen" style="position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#f4f7f5;display:flex;flex-direction:column">
+
+      <div class="sw-statusbar" style="position:absolute;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:14px 26px 8px;font-size:14px;font-weight:700;color:#14302b">
+        <span>9:41</span>
+        <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:108px;height:30px;background:#000;border-radius:18px"></div>
+        <span style="display:flex;gap:6px;align-items:center">{{ sigEl }}{{ wifiEl }}{{ battEl }}</span>
+      </div>
+
+      <div class="scrl sw-scroll" style="flex:1;overflow-y:auto;padding-top:44px;background:#f4f7f5">
+
+        <!-- ============ HOME ============ -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:8px 20px 26px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">{{ workerInitials }}</div>
+            <div style="flex:1"><div style="font-size:13px;color:#6c7f79">Good morning,</div><div style="font-size:18px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ workerFirst }} 👋</div></div>
+            <div style="position:relative;width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></div>
+          </div>
+
+          <button onClick="{{ goPlans }}" style="width:100%;display:flex;align-items:center;gap:11px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:14px;padding:11px 13px;margin-bottom:16px;cursor:pointer;font-family:inherit;text-align:left">
+            <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:#fbf0df;display:flex;align-items:center;justify-content:center">{{ boltAmberEl }}</div>
+            <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:#8a5a1e">{{ planLabel }}</div><div style="font-size:11.5px;color:#b07d39">Upgrade for priority matching & urgent shifts</div></div>
+            <span style="font-size:12px;font-weight:800;color:#b4561f;background:#fff;border:1px solid #f0d6ad;border-radius:8px;padding:5px 10px">Upgrade</span>
+          </button>
+
+          <div style="border-radius:22px;padding:20px;color:#eafaf8;background:linear-gradient(150deg,#0c2622,#0e5147);position:relative;overflow:hidden;box-shadow:0 18px 36px -22px rgba(11,80,71,.9)">
+            <div style="position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(22,184,166,.4),transparent 70%)"></div>
+            <div style="position:relative">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:#7ce0d2"><span style="width:8px;height:8px;border-radius:99px;background:#7ce0d2"></span>{{ nextShiftLabel }}</div>
+              <div style="font-size:20px;font-weight:800;margin-top:11px">{{ nextShiftName }}</div>
+              <sc-if value="{{ hasNextShift }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:#a9cfc8;margin-top:5px">{{ pinSmEl }}{{ nextShiftLocation }}</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:11px;font-size:13px;color:#dff5f1"><span style="display:flex;align-items:center;gap:6px">{{ clockSmEl }}{{ nextShiftTime }}</span><span style="display:flex;align-items:center;gap:6px">{{ tagSmEl }}{{ nextShiftType }}</span></div>
+              <button onClick="{{ clockAction }}" style="margin-top:15px;width:100%;height:50px;border-radius:15px;border:none;background:{{ clockBtnBg }};color:{{ clockBtnFg }};font-family:inherit;font-size:14px;font-weight:800;cursor:{{ clockCursor }};display:flex;align-items:center;justify-content:center;gap:9px">{{ clockIconEl }}{{ clockBtnLabel }}</button>
+              <div style="text-align:center;margin-top:9px;font-size:11px;color:#86a39b">{{ clockSubLabel }}</div>
+              </sc-if>
+              <sc-if value="{{ noNextShift }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:#a9cfc8;margin-top:8px">{{ pinSmEl }}No shifts assigned to you yet</div>
+              <div style="margin-top:13px;font-size:11.5px;color:#86a39b;line-height:1.5">New shifts from your providers appear here. Working independently? Roster your own.</div>
+              <button onClick="{{ goRoster }}" style="margin-top:13px;width:100%;height:48px;border-radius:15px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">+ Roster a shift</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:14px">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 16px"><div style="font-size:24px;font-weight:800;color:#14302b">{{ earnedValue }}</div><div style="font-size:12px;color:#8a9a94">{{ earnedSub }}</div></div>
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 16px"><div style="font-size:24px;font-weight:800;color:#14302b">{{ hoursValue }}</div><div style="font-size:12px;color:#8a9a94">{{ hoursSub }}</div></div>
+          </div>
+
+          <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ goPayments }}" style="width:100%;text-align:left;font-family:inherit;cursor:pointer;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-top:14px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+              <div style="width:34px;height:34px;border-radius:10px;background:#e9f6ef;display:flex;align-items:center;justify-content:center">{{ payCheckEl }}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">This week's pay</div><div style="font-size:12px;color:#6c7f79">$840 · 32h with Brightside Care</div></div>
+              <span style="font-size:11px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:999px">Approved ✓</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0">
+              <sc-for list="{{ paySteps }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;flex:1;min-width:0">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto">
+                    <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ p.dotBg }};border:2px solid {{ p.dotBd }}">{{ p.iconEl }}</div>
+                    <span style="font-size:10px;font-weight:700;color:{{ p.fg }};white-space:nowrap">{{ p.label }}</span>
+                  </div>
+                  <sc-if value="{{ p.hasLine }}" hint-placeholder-val="{{ true }}"><div style="flex:1;height:2px;margin:0 4px;margin-bottom:18px;background:{{ p.lineBg }}"></div></sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:13px;padding-top:12px;border-top:1px solid #f1f4f2;font-size:11.5px;color:#6c7f79">{{ clockSmDkEl }}Approved by Brightside Care · awaiting payment</div>
+          </button>
+          </sc-if>
+          <sc-if value="{{ realMode }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 16px;margin-top:14px;text-align:center">
+              <div style="font-size:14px;font-weight:800;color:#14302b">No payments yet</div>
+              <div style="font-size:12px;color:#8a9a94;margin-top:4px;line-height:1.5">Your pay timeline appears here once your shifts are approved.</div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:22px 2px 12px"><div style="font-size:16px;font-weight:800;color:#14302b">Recent shift notes</div><button onClick="{{ goWork }}" style="font-size:12.5px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit">View all</button></div>
+          <sc-for list="{{ recentNotes }}" as="n" hint-placeholder-count="2">
+            <button onClick="{{ openNote }}" style="width:100%;display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:13px 14px;margin-bottom:11px;cursor:pointer;font-family:inherit;text-align:left">
+              <div style="width:42px;height:42px;border-radius:13px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ n.tint }}">{{ n.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ n.client }}</div><div style="font-size:12px;color:#8a9a94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.preview }}</div></div>
+              <div style="text-align:right;flex:0 0 auto"><span style="font-size:11px;font-weight:700;color:#1e9e6a;background:#e9f6ef;padding:3px 7px;border-radius:6px;white-space:nowrap">{{ n.verified }}</span><div style="font-size:11px;color:#9aa8a3;margin-top:4px">{{ n.time }}</div></div>
+            </button>
+          </sc-for>
+          <sc-if value="{{ noRecentNotes }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:22px 16px;text-align:center;font-size:12.5px;color:#9aa8a3;line-height:1.6">No shift notes yet. After your first shift, your notes will show up here.</div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- ============ FIND WORK ============ -->
+        <sc-if value="{{ isWork }}" hint-placeholder-val="">
+        <div style="padding:8px 20px 26px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b">Find Work</div><div style="width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e">{{ filterEl }}</div></div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:16px">Your assigned shifts and new offers</div>
+
+          <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:12px 13px;margin-bottom:18px">
+            <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:#dde9fd;display:flex;align-items:center;justify-content:center">{{ infoBlueEl }}</div>
+            <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:#2a4a8a">{{ workPlanTitle }}</div><div style="font-size:11.5px;color:#5a73a8">{{ workPlanSub }}</div></div>
+          </div>
+
+          <div style="display:flex;gap:7px;margin-bottom:16px">
+            <sc-for list="{{ workFilters }}" as="f" hint-placeholder-count="4">
+              <button onClick="{{ f.onClick }}" style="flex:1;padding:8px 4px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ workSections }}" as="sec" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:7px;margin:6px 2px 11px"><span style="width:7px;height:7px;border-radius:99px;background:{{ sec.color }}"></span><span style="font-size:12px;font-weight:700;letter-spacing:.06em;color:{{ sec.color }}">{{ sec.title }}</span></div>
+            <sc-for list="{{ sec.jobs }}" as="j" hint-placeholder-count="2">
+              <div style="background:#fff;border:1px solid {{ j.cardBd }};border-left:3px solid {{ j.accent }};border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:11px">
+                  <div style="width:44px;height:44px;border-radius:13px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ j.tint }}">{{ j.init }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px;font-weight:800;color:#14302b">{{ j.client }}</span><sc-if value="{{ j.hasBadge }}" hint-placeholder-val=""><span style="font-size:9px;font-weight:800;letter-spacing:.04em;color:{{ j.badgeFg }};background:{{ j.badgeBg }};padding:2px 6px;border-radius:5px">{{ j.badge }}</span></sc-if></div>
+                    <div style="font-size:12px;color:#8a9a94;display:flex;align-items:center;gap:5px;margin-top:2px">{{ j.bldgEl }}{{ j.provider }}</div>
+                  </div>
+                  <sc-if value="{{ j.hasScore }}" hint-placeholder-val=""><div style="text-align:center;flex:0 0 auto"><div style="font-size:16px;font-weight:800;color:#16b8a6">{{ j.score }}</div><div style="font-size:9px;color:#9aa8a3;letter-spacing:.05em">{{ j.scoreLabel }}</div></div></sc-if>
+                </div>
+                <sc-if value="{{ j.hasCountdown }}" hint-placeholder-val="">
+                  <div style="display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-size:11.5px;font-weight:700;color:{{ j.cdFg }};background:{{ j.cdBg }};padding:5px 10px;border-radius:8px">{{ j.clockEl }}{{ j.countdown }}</div>
+                </sc-if>
+                <div style="display:flex;gap:8px;margin-top:11px">
+                  <div style="flex:1;background:#f7faf9;border-radius:11px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">WHEN</div><div style="font-size:13px;font-weight:800;color:#0b6b60">{{ j.when }}</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:11px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">TIME</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ j.time }}</div></div>
+                  <div style="flex:1;background:#f7faf9;border-radius:11px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">TYPE</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ j.type }}</div></div>
+                </div>
+                <button onClick="{{ j.onClick }}" style="margin-top:12px;width:100%;height:44px;border-radius:13px;border:none;background:{{ j.btnBg }};color:{{ j.btnFg }};font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">{{ j.ctaIconEl }}{{ j.cta }}</button>
+              </div>
+            </sc-for>
+          </sc-for>
+          <sc-if value="{{ noWorkShifts }}" hint-placeholder-val="">
+            <div style="text-align:center;padding:28px 16px;font-size:13px;color:#9aa8a3;line-height:1.6">No shifts assigned to you yet. New shifts and offers from your providers will appear here.</div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- ============ DOCUMENTS ============ -->
+        <sc-if value="{{ isDocs }}" hint-placeholder-val="">
+        <div style="padding:8px 20px 26px">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b">My Documents</div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:16px">Upload & track your compliance credentials</div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="position:relative;width:62px;height:62px;border-radius:50%;background:{{ docRing }};display:flex;align-items:center;justify-content:center;flex:0 0 62px"><div style="width:46px;height:46px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:15px;font-weight:800;color:#14302b;line-height:1">{{ docCountLabel }}</span></div></div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">{{ docSetTitle }}</div><div style="font-size:12px;color:#6c7f79;margin-top:2px">{{ docSetSub }}</div></div>
+            </div>
+          </div>
+
+          <sc-if value="{{ realMode }}" hint-placeholder-val="">
+          <label style="display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1.5px dashed #b6d8d0;border-radius:18px;padding:22px 16px;background:#f1faf8;margin-bottom:20px">
+            <div style="width:48px;height:48px;border-radius:14px;background:#fff;border:1px solid #d3eae4;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadEl }}</div>
+            <div style="font-size:13.5px;font-weight:700;color:#14302b;margin-top:11px">{{ uploadLabel }}</div>
+            <div style="font-size:11.5px;color:#6c7f79;margin-top:4px">PDF, Word or image · up to 25 MB</div>
+            <input type="file" onChange="{{ onDocFile }}" style="display:none"/>
+          </label>
+          </sc-if>
+          <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ runScan }}" style="width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1.5px dashed {{ scanBd }};border-radius:18px;padding:22px 16px;background:{{ scanBg }};margin-bottom:20px;transition:.2s">
+            <sc-if value="{{ scanIdle }}" hint-placeholder-val="{{ true }}">
+              <div style="width:48px;height:48px;border-radius:14px;background:#fff;border:1px solid #d3eae4;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadEl }}</div>
+              <div style="font-size:13.5px;font-weight:700;color:#14302b;margin-top:11px">Drag a file here, or tap to upload</div>
+              <div style="font-size:11.5px;color:#6c7f79;margin-top:4px">PDF, Word or image · up to 25 MB</div>
+              <div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:700;color:#0b6b60;background:#e0f0ec;padding:4px 10px;border-radius:999px">{{ sparkTinyEl }}AI reads & files it for you</div>
+            </sc-if>
+            <sc-if value="{{ scanReading }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:13px;text-align:left">
+                <div style="position:relative;width:46px;height:56px;flex:0 0 46px;background:#fff;border:1px solid #d3eae4;border-radius:7px;overflow:hidden">
+                  <div style="position:absolute;left:6px;right:6px;top:9px;height:3px;border-radius:9px;background:#e7ece9"></div>
+                  <div style="position:absolute;left:6px;right:14px;top:17px;height:3px;border-radius:9px;background:#e7ece9"></div>
+                  <div style="position:absolute;left:6px;right:9px;top:25px;height:3px;border-radius:9px;background:#e7ece9"></div>
+                  <div style="position:absolute;left:0;right:0;top:8%;height:5px;background:linear-gradient(90deg,transparent,#16b8a6,transparent);box-shadow:0 0 10px #16b8a6;animation:sw-scan 1.1s ease-in-out infinite alternate"></div>
+                </div>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:800;color:#0b6b60">Reading your document…</div><div style="font-size:11.5px;color:#6c7f79;margin-top:3px">CiaraLink is working out what this is and where it belongs</div></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ scanDone }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:13px;text-align:left">
+                <div style="width:46px;height:46px;flex:0 0 46px;border-radius:13px;background:#e9f6ef;display:flex;align-items:center;justify-content:center">{{ scanCheckEl }}</div>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:800;color:#1e7a52">Filed for you ✓</div><div style="font-size:12px;color:#41635c;margin-top:2px">Recognised as <b>First Aid / CPR</b> → filed to <b>Compliance</b>, expiry read as <b>02/2027</b></div></div>
+              </div>
+            </sc-if>
+          </button>
+          </sc-if>
+
+          <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:#8a9a94;margin:0 2px 11px">{{ docsHeader }}</div>
+          <sc-for list="{{ docsList }}" as="d" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7ece9;border-left:3px solid {{ d.bar }};border-radius:13px;padding:12px 13px;margin-bottom:9px">
+              <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;background:{{ d.iconBg }}">{{ d.iconEl }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ d.label }}</div><div style="font-size:11px;color:#8a9a94">{{ d.sub }}</div></div>
+              <span style="font-size:10.5px;font-weight:700;color:{{ d.statusFg }};background:{{ d.statusBg }};padding:3px 9px;border-radius:7px;white-space:nowrap">{{ d.status }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noDocs }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:13px;padding:22px 16px;text-align:center;font-size:12.5px;color:#9aa8a3;line-height:1.6">No documents uploaded yet. Tap the upload area above to add your first credential.</div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- ============ CLIENTS ============ -->
+        <sc-if value="{{ isClients }}" hint-placeholder-val="">
+        <div style="padding:8px 20px 26px">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b">My Clients</div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:14px">Tap a client to open their file — or add your own &amp; roster a shift</div>
+
+          <div style="display:flex;gap:9px;margin-bottom:14px">
+            <button onClick="{{ openAddClient }}" style="flex:1;height:44px;border-radius:13px;border:1px solid #cfeae5;background:#e7f4f1;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Add client</button>
+            <button onClick="{{ openNewShift }}" style="flex:1;height:44px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Roster a shift</button>
+          </div>
+
+          <sc-if value="{{ swAddClientOpen }}" hint-placeholder-val="">
+            <div style="background:#fff;border:2px solid #16b8a6;border-radius:18px;padding:16px;margin-bottom:14px">
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:11px">Add a client</div>
+              <div style="margin-bottom:10px">
+                <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">FULL NAME *</label>
+                <input onChange="{{ onAcName }}" placeholder="e.g. Margaret Reyes" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+              </div>
+              <div style="display:flex;gap:10px;margin-bottom:10px">
+                <div style="flex:1">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">NDIS NUMBER (OPTIONAL)</label>
+                  <input onChange="{{ onAcNdis }}" inputmode="numeric" placeholder="430 000 000" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                </div>
+                <div style="flex:1">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">PHONE</label>
+                  <input onChange="{{ onAcPhone }}" type="tel" inputmode="tel" placeholder="0400 000 000" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                </div>
+              </div>
+              <div style="margin-bottom:10px">
+                <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">EMAIL</label>
+                <input onChange="{{ onAcEmail }}" type="email" inputmode="email" placeholder="name@example.com" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+              </div>
+              <div style="margin-bottom:12px">
+                <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">ADDRESS</label>
+                <textarea onChange="{{ onAcAddress }}" placeholder="Street, suburb, state, postcode" style="width:100%;height:64px;border:1.5px solid #dde4e1;border-radius:11px;padding:9px 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ closeAddClient }}" style="flex:1;height:42px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+                <button onClick="{{ submitAddClient }}" style="flex:2;height:42px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Save client →</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ swNewShiftOpen }}" hint-placeholder-val="">
+            <div style="background:#fff;border:2px solid #16b8a6;border-radius:18px;padding:16px;margin-bottom:14px">
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:11px">Roster a shift</div>
+              <sc-if value="{{ noRosterClients }}" hint-placeholder-val="">
+                <div style="font-size:12.5px;color:#9aa8a3;line-height:1.6;margin-bottom:12px">Add a client first, then you can roster a shift for them.</div>
+              </sc-if>
+              <sc-if value="{{ hasRosterClients }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">CLIENT *</label>
+                  <select onChange="{{ onNsClient }}" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff">
+                    <option value="">Select a client…</option>
+                    <sc-for list="{{ swRosterClients }}" as="rc" hint-placeholder-count="3"><option value="{{ rc.id }}">{{ rc.name }}</option></sc-for>
+                  </select>
+                </div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">DATE *</label>
+                  <input type="date" onChange="{{ onNsDate }}" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                </div>
+                <div style="display:flex;gap:10px;margin-bottom:10px">
+                  <div style="flex:1">
+                    <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">START *</label>
+                    <input type="time" onChange="{{ onNsStart }}" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                  </div>
+                  <div style="flex:1">
+                    <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">END *</label>
+                    <input type="time" onChange="{{ onNsEnd }}" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                  </div>
+                </div>
+                <div style="margin-bottom:12px">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">SERVICE TYPE</label>
+                  <input onChange="{{ onNsType }}" placeholder="e.g. Personal Care" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff"/>
+                </div>
+              </sc-if>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ closeNewShift }}" style="flex:1;height:42px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+                <button onClick="{{ submitNewShift }}" style="flex:2;height:42px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Roster shift →</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{ clients }}" as="c" hint-placeholder-count="4">
+            <button onClick="{{ c.onClick }}" style="width:100%;display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-bottom:11px;cursor:pointer;font-family:inherit;text-align:left">
+              <div style="width:46px;height:46px;border-radius:14px;flex:0 0 46px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ c.tint }}">{{ c.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:12px;color:#8a9a94">{{ c.service }} · next {{ c.next }}</div></div>
+              <sc-if value="{{ c.flag }}" hint-placeholder-val=""><span style="display:flex;color:#e0556e">{{ alertSmEl }}</span></sc-if>
+              <span style="display:flex;color:#b6c4be">{{ chevEl }}</span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ noClients }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:26px 16px;text-align:center;font-size:12.5px;color:#9aa8a3;line-height:1.6">No clients yet — add your own to start rostering. Tap “+ Add client” above to set up your first participant.</div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- ============ ME ============ -->
+        <sc-if value="{{ isMe }}" hint-placeholder-val="">
+        <div style="padding:8px 20px 26px">
+          <div style="text-align:center;padding:6px 0 12px">
+            <div style="position:relative;width:96px;height:96px;margin:0 auto;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{ pro }}" hint-placeholder-val=""><div style="position:absolute;inset:-6px;border-radius:30px;background:conic-gradient(from 0deg,#16b8a6,#7ce0d2,#d98b22,#16b8a6);filter:blur(9px);opacity:.8;animation:sw-glow 3.4s ease-in-out infinite"></div></sc-if>
+              <div style="position:relative;width:80px;height:80px;border-radius:25px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;box-shadow:0 14px 28px -12px rgba(14,147,132,.7)">{{ workerInitials }}<div style="position:absolute;bottom:-4px;right:-4px;width:28px;height:28px;border-radius:9px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center">{{ cameraTinyEl }}</div></div>
+              <sc-if value="{{ pro }}" hint-placeholder-val=""><div style="position:absolute;top:-8px;right:8px;font-size:10px;font-weight:800;letter-spacing:.06em;color:#06201c;background:linear-gradient(90deg,#7ce0d2,#16b8a6);padding:3px 9px;border-radius:7px;box-shadow:0 4px 12px rgba(22,184,166,.6)">PRO</div></sc-if>
+            </div>
+            <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b;margin-top:13px">{{ workerName }}</div>
+            <div style="font-size:12.5px;color:#6c7f79">{{ workerRole }}</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:9px">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#b4561f;background:#fbf0df;padding:5px 12px;border-radius:999px">{{ starGoldEl }}4.9 · 312 shifts</span>
+              <sc-if value="{{ pro }}" hint-placeholder-val=""><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:5px 11px;border-radius:999px">{{ verifiedEl }}Verified Pro</span></sc-if>
+            </div>
+            <div style="font-size:11px;color:#9aa8a3;margin-top:9px">Tap the camera to add a selfie · only shown on your profile</div>
+          </div>
+
+          <sc-if value="{{ pro }}" hint-placeholder-val="">
+            <div style="position:relative;width:100%;border-radius:18px;padding:16px;margin-bottom:14px;background:linear-gradient(150deg,#0c2622,#0e5147);overflow:hidden;border:1px solid #16b8a6;box-shadow:0 0 0 1px rgba(22,184,166,.4),0 16px 30px -16px rgba(22,184,166,.6);color:#eafaf8">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:rgba(124,224,210,.18);display:flex;align-items:center;justify-content:center">{{ sparkProEl }}</div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:800">You're a Pro ✨</div><div style="font-size:12px;color:#a9cfc8">Providers see your glowing badge and rank you first</div></div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ free }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goPlans }}" style="width:100%;display:flex;align-items:center;gap:13px;background:linear-gradient(150deg,#0c2622,#0e5147);border:none;border-radius:18px;padding:16px;margin-bottom:14px;cursor:pointer;font-family:inherit;text-align:left;color:#eafaf8">
+              <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center">{{ boltWEl }}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800">Stand out with Pro</div><div style="font-size:12px;color:#a9cfc8">A glowing badge tells providers you're trusted — get picked first</div></div>
+              <span style="font-size:12px;font-weight:800;color:#06201c;background:#16b8a6;border-radius:9px;padding:7px 13px">See plans</span>
+            </button>
+          </sc-if>
+
+          <div style="display:flex;gap:9px;margin-bottom:14px">
+            <button onClick="{{ togglePro }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:42px;border-radius:12px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ eyeEl }}{{ proToggleLabel }}</button>
+            <button onClick="{{ togglePhoto }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:42px;border-radius:12px;border:1px solid {{ photoBtnBd }};background:{{ photoBtnBg }};color:{{ photoBtnFg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ photoIconEl }}{{ photoLabel }}</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:13px"><span style="display:flex">{{ idCardEl }}</span><span style="font-size:13.5px;font-weight:800;color:#14302b">About you</span><span style="font-size:10.5px;color:#9aa8a3;margin-left:auto">Used to match you to shifts</span></div>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+              <div style="flex:1;background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:10px 12px"><div style="font-size:10.5px;color:#9aa8a3;letter-spacing:.03em">DATE OF BIRTH</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#14302b;margin-top:2px">14/03/1999</div></div>
+              <div style="flex:1;background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:10px 12px"><div style="font-size:10.5px;color:#9aa8a3;letter-spacing:.03em">AGE</div><div style="font-size:13px;font-weight:700;color:#14302b;margin-top:2px">27 years</div></div>
+              <div style="flex:1;background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:10px 12px"><div style="font-size:10.5px;color:#9aa8a3;letter-spacing:.03em">GENDER</div><div style="font-size:13px;font-weight:700;color:#14302b;margin-top:2px">Female</div></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#5f726d;margin-bottom:8px">LANGUAGES SPOKEN</div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">
+              <sc-for list="{{ languages }}" as="l" hint-placeholder-count="3"><span style="font-size:12px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:5px 11px;border-radius:9px">{{ l }}</span></sc-for>
+              <button onClick="{{ previewAddLanguage }}" style="font-size:12px;font-weight:700;color:#6c7f79;background:#fff;border:1px dashed #cdd8d3;border-radius:9px;padding:5px 11px;cursor:pointer;font-family:inherit">+ Add</button>
+            </div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#5f726d;margin-bottom:8px">SKILLS</div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <sc-for list="{{ profSkills }}" as="sk" hint-placeholder-count="5"><span style="font-size:12px;font-weight:600;color:#41635c;background:#eef4f2;padding:5px 11px;border-radius:9px">{{ sk }}</span></sc-for>
+              <button onClick="{{ previewAddSkill }}" style="font-size:12px;font-weight:700;color:#6c7f79;background:#fff;border:1px dashed #cdd8d3;border-radius:9px;padding:5px 11px;cursor:pointer;font-family:inherit">+ Add</button>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden">
+            <sc-for list="{{ settings }}" as="s" hint-placeholder-count="5">
+              <button onClick="{{ s.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid #f1f4f2;border:none;border-bottom:1px solid #f1f4f2;background:#fff;cursor:pointer;font-family:inherit;text-align:left"><div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ s.bg }};display:flex;align-items:center;justify-content:center">{{ s.iconEl }}</div><span style="flex:1;font-size:13.5px;font-weight:600;color:#14302b">{{ s.label }}</span><span style="display:flex;color:#b6c4be">{{ chevEl }}</span></button>
+            </sc-for>
+            <button onClick="{{ goBilling }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 15px;border:none;border-top:1px solid #f1f4f2;background:#fff;cursor:pointer;font-family:inherit;text-align:left"><div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:#e7f4f1;display:flex;align-items:center;justify-content:center;font-size:16px">💳</div><span style="flex:1;font-size:13.5px;font-weight:600;color:#14302b">Billing &amp; plan</span><span style="display:flex;color:#b6c4be">{{ chevEl }}</span></button>
+            <button onClick="{{ signOut }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 15px;border:none;background:#fff8f9;cursor:pointer;font-family:inherit;border-top:1px solid #fce4e9">
+              <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:#fbe9ed;display:flex;align-items:center;justify-content:center">{{ signOutSmEl }}</div>
+              <span style="font-size:13.5px;font-weight:700;color:#c0445c">Sign out</span>
+            </button>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ PAYMENTS (pushed) ============ -->
+        <sc-if value="{{ isPayments }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">PAYMENTS</div><div style="font-size:16px;font-weight:800;color:#14302b">Your pay</div></div>
+          </div>
+          <div style="padding:0 18px 26px">
+            <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
+            <div style="position:relative;border-radius:20px;padding:18px;margin-bottom:16px;background:linear-gradient(150deg,#0c2622,#0e5147);color:#eafaf8;overflow:hidden;box-shadow:0 16px 32px -18px rgba(11,80,71,.8)">
+              <div style="position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(22,184,166,.4),transparent 70%)"></div>
+              <div style="position:relative">
+                <div style="display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.05em;color:#a9cfc8">{{ walletEl }}CiaraLink PAY WALLET</div>
+                <div style="display:flex;align-items:flex-end;gap:10px;margin-top:10px">
+                  <div style="font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1">$840</div>
+                  <div style="font-size:12px;color:#a9cfc8;padding-bottom:5px">clearing now</div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:14px">
+                  <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8">PAID THIS MONTH</div><div style="font-size:14px;font-weight:800;color:#dff5f1">$3,385</div></div>
+                  <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8">NEXT PAYOUT</div><div style="font-size:14px;font-weight:800;color:#dff5f1">Fri</div></div>
+                </div>
+                <button onClick="{{ previewCashOut }}" style="margin-top:13px;width:100%;height:46px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2bcbb9">{{ bankEl }}Cash out to bank</button>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:#86a39b">{{ bankSmEl }}Linked · •••• 4471 · Commonwealth Bank</div>
+              </div>
+            </div>
+            <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:#8a9a94;margin:2px 2px 11px">PAY HISTORY</div>
+            <sc-for list="{{ payments }}" as="p" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+                  <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">{{ p.period }}</div><div style="font-size:12px;color:#8a9a94">{{ p.amount }} · {{ p.provider }}</div></div>
+                  <span style="font-size:11px;font-weight:800;color:{{ p.statusFg }};background:{{ p.statusBg }};padding:5px 11px;border-radius:999px">{{ p.status }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;padding:7px 0">{{ checkTealEl }}<span style="font-size:12.5px;color:#41635c">Invoice sent to provider</span></div>
+                <div style="display:flex;align-items:center;gap:9px;padding:7px 0">{{ checkTealEl }}<span style="font-size:12.5px;color:#41635c">{{ p.notes }} shift notes approved</span></div>
+                <sc-if value="{{ p.awaiting }}" hint-placeholder-val=""><button onClick="{{ p.onPaid }}" style="width:100%;margin-top:11px;height:42px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">{{ checkDkEl }}Tap when you've been paid</button></sc-if>
+              </div>
+            </sc-for>
+            </sc-if>
+            <sc-if value="{{ realMode }}" hint-placeholder-val="">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:28px 16px;text-align:center">
+                <div style="font-size:15px;font-weight:800;color:#14302b">No payments yet</div>
+                <div style="font-size:12.5px;color:#8a9a94;margin-top:6px;line-height:1.6">Once your shifts are approved, your pay, history and payouts will show up here.</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ CLIENT FILE (pushed) ============ -->
+        <sc-if value="{{ isClientFile }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">CLIENT FILE</div><div style="font-size:16px;font-weight:800;color:#14302b">{{ cfName }}</div></div>
+            <button onClick="{{ previewCall }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#16b8a6">{{ phoneEl }}</button>
+          </div>
+
+          <div style="padding:0 18px 26px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-bottom:14px">
+              <div style="display:flex;align-items:center;gap:13px">
+                <div style="width:54px;height:54px;border-radius:16px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff">{{ cfInit }}</div>
+                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ cfName }}</div><div style="font-size:12px;color:#6c7f79">{{ cfMeta }}</div><sc-if value="{{ cfHasNdis }}" hint-placeholder-val="{{ true }}"><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#9aa8a3;margin-top:2px">{{ cfNdis }}</div></sc-if></div>
+              </div>
+            </div>
+
+            <sc-if value="{{ cfHasContactInfo }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px;margin-bottom:14px">
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:11px">Contact details</div>
+              <sc-for list="{{ cfContactInfo }}" as="ci" hint-placeholder-count="3">
+                <div style="display:flex;align-items:flex-start;gap:11px;padding:7px 0;border-bottom:1px solid #f3f6f4">
+                  <div style="width:30px;height:30px;border-radius:9px;flex:0 0 30px;background:#f4faf8;display:flex;align-items:center;justify-content:center">{{ ci.iconEl }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:10.5px;font-weight:700;letter-spacing:.05em;color:#9aa8a3">{{ ci.label }}</div><div style="font-size:13px;color:#14302b;margin-top:1px;word-break:break-word">{{ ci.val }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{ cfEmpty }}" hint-placeholder-val="">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:24px 16px;text-align:center;font-size:12.5px;color:#9aa8a3;line-height:1.6;margin-bottom:14px">No extra details on file for this client yet. Contacts, documents and shift notes will appear here as they're added.</div>
+            </sc-if>
+
+            <sc-if value="{{ cfHasImportant }}" hint-placeholder-val="">
+            <div style="display:flex;align-items:center;gap:7px;margin:4px 2px 10px"><span style="display:flex">{{ alertRedEl }}</span><span style="font-size:12px;font-weight:800;letter-spacing:.04em;color:#c0445c">READ BEFORE EVERY VISIT</span></div>
+            <sc-for list="{{ cfImportant }}" as="i" hint-placeholder-count="3">
+              <div style="display:flex;align-items:flex-start;gap:11px;background:{{ i.bg }};border:1px solid {{ i.bd }};border-radius:13px;padding:12px 13px;margin-bottom:9px">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:#fff;display:flex;align-items:center;justify-content:center">{{ i.iconEl }}</div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:800;color:{{ i.fg }}">{{ i.label }}</div><div style="font-size:12px;color:#41635c;margin-top:2px;line-height:1.4">{{ i.text }}</div></div>
+              </div>
+            </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ cfHasPrefs }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px;margin:14px 0">
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:11px">Care preferences</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ cfPrefs }}" as="p" hint-placeholder-count="4"><span style="font-size:12px;font-weight:600;color:#41635c;background:#eef4f2;padding:5px 11px;border-radius:9px">{{ p }}</span></sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{ cfHasGoals }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px;margin-bottom:14px">
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:13px">Goals & progress</div>
+              <sc-for list="{{ cfGoals }}" as="g" hint-placeholder-count="2">
+                <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12.5px;font-weight:600;color:#14302b">{{ g.label }}</span><span style="font-size:12px;font-weight:700;color:#16b8a6">{{ g.pct }}</span></div><div style="height:7px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ g.pct }};border-radius:99px;background:#16b8a6"></div></div></div>
+              </sc-for>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{ cfHasContacts }}" hint-placeholder-val="">
+            <div style="display:flex;align-items:center;gap:7px;margin:18px 2px 11px"><span style="display:flex">{{ phoneTealEl }}</span><span style="font-size:13px;font-weight:800;color:#14302b">Key contacts</span></div>
+            <sc-for list="{{ cfContacts }}" as="kc" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid {{ kc.bd }};border-radius:14px;padding:11px 13px;margin-bottom:9px">
+                <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ kc.tint }}">{{ kc.init }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ kc.name }}</div><div style="font-size:11px;color:#8a9a94">{{ kc.role }}</div></div>
+                <div style="text-align:right;flex:0 0 auto"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#41635c;white-space:nowrap">{{ kc.phone }}</div><button onClick="{{ kc.onCall }}" style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:{{ kc.callFg }};background:{{ kc.callBg }};border:none;border-radius:7px;padding:3px 9px;cursor:pointer;font-family:inherit">{{ kc.callEl }}Call</button></div>
+              </div>
+            </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ cfHasDocs }}" hint-placeholder-val="">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin:18px 2px 11px">Client documents</div>
+            <sc-for list="{{ cfDocs }}" as="cd" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7ece9;border-radius:13px;padding:12px 13px;margin-bottom:9px">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ fileEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ cd.label }}</div><div style="font-size:11px;color:#8a9a94">{{ cd.meta }}</div></div>
+                <span style="display:flex;color:#b6c4be">{{ downloadEl }}</span>
+              </div>
+            </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ cfHasNotes }}" hint-placeholder-val="">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 2px 11px"><span style="font-size:13px;font-weight:800;color:#14302b">Recent shift notes</span></div>
+            <sc-for list="{{ cfNotes }}" as="n" hint-placeholder-count="2">
+              <button onClick="{{ n.onTap }}" style="width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:12px 13px;margin-bottom:9px;cursor:pointer;font-family:inherit;text-align:left">
+                <div style="width:8px;height:8px;border-radius:99px;flex:0 0 8px;background:{{ n.dot }}"></div>
+                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ n.date }}</div><div style="font-size:11.5px;color:#8a9a94;white-space:{{ n.ws }};overflow:hidden;text-overflow:ellipsis;line-height:1.5">{{ n.preview }}</div></div>
+                <span style="display:flex;color:#b6c4be">{{ chevEl }}</span>
+              </button>
+            </sc-for>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ SHIFT NOTE (pushed) ============ -->
+        <sc-if value="{{ isNote }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">SHIFT NOTE</div><div style="font-size:16px;font-weight:800;color:#14302b">Margaret R. · 18 Jun</div></div>
+            <span style="font-size:10.5px;font-weight:700;color:#1e9e6a;background:#e9f6ef;padding:4px 9px;border-radius:7px">Locked</span>
+          </div>
+
+          <div style="padding:0 18px 26px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:11px;padding:14px 16px;background:#f7faf9;border-bottom:1px solid #eef2f0">
+                <div style="width:40px;height:40px;border-radius:12px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff">MR</div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Personal Care · 4h</div><div style="font-size:11.5px;color:#6c7f79">Wed 18 Jun · 11:00–14:58 · A. Okafor</div></div>
+              </div>
+
+              <div style="display:flex;gap:8px;padding:13px 16px;border-bottom:1px solid #f1f4f2">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;background:#e9f6ef;border-radius:10px;padding:8px 10px">{{ pinGreenEl }}<span style="font-size:11px;font-weight:700;color:#1e7a52">GPS verified</span></div>
+                <div style="flex:1;display:flex;align-items:center;gap:7px;background:#eef0fd;border-radius:10px;padding:8px 10px">{{ qrPurpleEl }}<span style="font-size:11px;font-weight:700;color:#4338ca">Identity ✓</span></div>
+              </div>
+
+              <div style="padding:15px 16px;border-bottom:1px solid #f1f4f2">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><span style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94">OUTCOME</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:4px 10px;border-radius:999px">{{ smileEl }}Good visit</span></div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">TASKS COMPLETED</div>
+                <sc-for list="{{ noteTasks }}" as="t" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">{{ t.checkEl }}<span style="font-size:13px;color:#41635c">{{ t.label }}</span></div>
+                </sc-for>
+              </div>
+
+              <div style="padding:15px 16px;border-bottom:1px solid #f1f4f2">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">OBSERVATIONS</div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+                  <sc-for list="{{ noteChips }}" as="c" hint-placeholder-count="3"><span style="font-size:11.5px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:8px">{{ c }}</span></sc-for>
+                </div>
+                <div style="font-size:13px;line-height:1.65;color:#2c4a44">{{ noteBody }}</div>
+              </div>
+
+              <div style="padding:15px 16px;border-bottom:1px solid #f1f4f2">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:10px">PHOTOS</div>
+                <div style="display:flex;gap:9px">
+                  <div style="flex:1;height:74px;border-radius:11px;background:linear-gradient(135deg,#cfe6d6,#e7f4f1);position:relative"><span style="position:absolute;bottom:5px;right:6px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:#0b6b60;background:rgba(255,255,255,.8);padding:1px 5px;border-radius:5px">12:48</span></div>
+                  <div style="flex:1;height:74px;border-radius:11px;background:linear-gradient(135deg,#d7dffb,#eef0fd);position:relative"><span style="position:absolute;bottom:5px;right:6px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:#4338ca;background:rgba(255,255,255,.8);padding:1px 5px;border-radius:5px">13:30</span></div>
+                  <div style="flex:1;height:74px;border-radius:11px;border:1.5px dashed #cdd8d3;display:flex;align-items:center;justify-content:center;color:#b6c4be">{{ cameraSmEl }}</div>
+                </div>
+              </div>
+
+              <div style="padding:14px 16px;display:flex;align-items:center;gap:11px">
+                <svg viewBox="0 0 120 40" style="width:84px;height:28px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
+                <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — Margaret Reyes</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · co-located ✓</div></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button onClick="{{ previewExportPdf }}" style="flex:1;height:48px;border-radius:13px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">{{ pdfEl }}Export PDF</button>
+              <button onClick="{{ previewSend }}" style="flex:1;height:48px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">{{ sendEl }}Send</button>
+            </div>
+            <div style="text-align:center;margin-top:11px;font-size:11px;color:#9aa8a3">Synced to coordinator · part of record #CL-48201</div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ PLANS (pushed) ============ -->
+        <sc-if value="{{ isPlans }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">PLANS</div><div style="font-size:16px;font-weight:800;color:#14302b">Choose your plan</div></div>
+          </div>
+          <div style="padding:0 18px 26px">
+            <sc-for list="{{ plans }}" as="p" hint-placeholder-count="3">
+              <div style="position:relative;background:{{ p.cardBg }};border:1.5px solid {{ p.cardBd }};border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:{{ p.shadow }}">
+                <sc-if value="{{ p.badge }}" hint-placeholder-val=""><div style="position:absolute;top:-10px;left:18px;font-size:10px;font-weight:800;letter-spacing:.06em;color:#06201c;background:#7ce0d2;padding:3px 10px;border-radius:7px">{{ p.badge }}</div></sc-if>
+                <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:17px;font-weight:800;color:{{ p.nameFg }}">{{ p.name }}</span><span style="font-size:12px;color:{{ p.subFg }}">{{ p.tagline }}</span></div>
+                <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px"><span style="font-size:30px;font-weight:800;letter-spacing:-.02em;color:{{ p.priceFg }}">{{ p.price }}</span><span style="font-size:13px;color:{{ p.subFg }}">{{ p.per }}</span></div>
+                <button onClick="{{ p.onCta }}" style="width:100%;height:46px;border-radius:13px;border:{{ p.btnBd }};background:{{ p.btnBg }};color:{{ p.btnFg }};font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;margin:14px 0 4px">{{ p.cta }}</button>
+                <sc-for list="{{ p.features }}" as="f" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:10px;padding:7px 0">{{ f.iconEl }}<span style="font-size:12.5px;font-weight:500;color:{{ f.fg }}">{{ f.label }}</span></div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="text-align:center;font-size:11.5px;color:#86a39b;padding:4px 10px">Cancel anytime · GST-aware invoicing on ABN plan</div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ SHIFT NOTES ============ -->
+        <sc-if value="{{ isShiftNotes }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">RECORDS</div><div style="font-size:16px;font-weight:800;color:#14302b">My Shift Notes</div></div>
+            <button onClick="{{ openNewNote }}" style="display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Add note</button>
+          </div>
+          <div style="padding:0 18px 80px">
+            <sc-if value="{{ swNoteFormOpen }}" hint-placeholder-val="">
+              <div style="background:#fff;border:2px solid #16b8a6;border-radius:18px;padding:16px;margin-bottom:14px">
+                <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:11px">New shift note</div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">CLIENT</label>
+                  <select onChange="{{ onSwNoteClient }}" style="width:100%;height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff">
+                    <option value="">Select a client…</option>
+                    <sc-for list="{{ swRosterClients }}" as="rc" hint-placeholder-count="3"><option value="{{ rc.id }}">{{ rc.name }}</option></sc-for>
+                  </select>
+                </div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-bottom:6px">OBSERVATIONS</label>
+                  <textarea onChange="{{ onSwNoteChange }}" placeholder="What happened during the shift? Any observations, concerns or progress to note?" style="width:100%;height:100px;border:1.5px solid #dde4e1;border-radius:11px;padding:10px 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button onClick="{{ closeNewNote }}" style="flex:1;height:42px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+                  <button onClick="{{ submitSwNote }}" style="flex:2;height:42px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Save note →</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-for list="{{ swSavedNotes }}" as="sn" hint-placeholder-count="2">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px 16px;margin-bottom:11px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+                  <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">{{ sn.init }}</div>
+                  <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#14302b">{{ sn.client }}</div><div style="font-size:11px;color:#8a9a94">{{ sn.date }} · Shift note</div></div>
+                  <span style="font-size:10.5px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:2px 7px;border-radius:6px">Saved ✓</span>
+                </div>
+                <div style="font-size:13px;color:#41635c;line-height:1.55">{{ sn.body }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noSwNotes }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:28px 16px;font-size:13px;color:#9aa8a3;line-height:1.6">No shift notes yet — tap "+ Add note" to write your first one. Notes are saved here and filed to the participant timeline.</div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ AVAILABILITY ============ -->
+        <sc-if value="{{ isAvailability }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">SETTINGS</div><div style="font-size:16px;font-weight:800;color:#14302b">Availability</div></div>
+          </div>
+          <div style="padding:0 18px 80px">
+            <div style="font-size:12px;color:#6c7f79;margin-bottom:14px;line-height:1.5">Set your recurring weekly availability. Providers and coordinators use this to match you with shifts.</div>
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden;margin-bottom:14px">
+              <div style="padding:12px 16px;border-bottom:1px solid #eef2f0;font-size:13px;font-weight:800;color:#14302b">Weekly schedule</div>
+              <sc-for list="{{ availDays }}" as="ad" hint-placeholder-count="7">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f4f7f5">
+                  <div style="flex:0 0 40px;font-size:13px;font-weight:700;color:#14302b">{{ ad.day }}</div>
+                  <div style="display:flex;gap:6px;flex:1">
+                    <sc-for list="{{ ad.slots }}" as="sl" hint-placeholder-count="3">
+                      <button onClick="{{ sl.toggle }}" style="flex:1;height:34px;border-radius:9px;border:1.5px solid {{ sl.bd }};background:{{ sl.bg }};color:{{ sl.fg }};font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">{{ sl.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{ saveAvail }}" style="width:100%;height:48px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save availability →</button>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ============ MESSAGES ============ -->
+        <sc-if value="{{ isMessages }}" hint-placeholder-val="">
+        <div>
+          <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
+            <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">COMMUNICATION</div><div style="font-size:16px;font-weight:800;color:#14302b">Messages</div></div>
+          </div>
+          <div style="padding:0 18px 80px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden;margin-bottom:14px">
+              <sc-for list="{{ msgThreads }}" as="mt" hint-placeholder-count="3">
+                <button onClick="{{ mt.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-bottom:1px solid #f4f7f5;background:#fff;cursor:pointer;font-family:inherit;text-align:left" style-hover="background:#f7faf9">
+                  <div style="width:42px;height:42px;border-radius:13px;flex:0 0 42px;background:{{ mt.tint }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ mt.init }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:700;color:#14302b">{{ mt.name }}</div>
+                    <div style="font-size:12px;color:#8a9a94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">{{ mt.preview }}</div>
+                  </div>
+                  <div style="text-align:right;flex:0 0 auto">
+                    <div style="font-size:11px;color:#9aa8a3">{{ mt.when }}</div>
+                    <sc-if value="{{ mt.unread }}" hint-placeholder-val=""><div style="width:20px;height:20px;border-radius:99px;background:#16b8a6;color:#06201c;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-left:auto;margin-top:4px">{{ mt.unread }}</div></sc-if>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+            <button onClick="{{ openConnect }}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Open CiaraLink Connect →</button>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+
+      <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+      <div class="sw-tabs" style="display:flex;border-top:1px solid #e7ece9;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);padding:8px 6px 22px">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.onClick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 0;border:none;background:none;cursor:pointer;font-family:inherit">{{ t.iconEl }}<span style="font-size:10px;font-weight:700;color:{{ t.fg }}">{{ t.label }}</span></button>
+        </sc-for>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <!-- side explainer -->
+  <div class="sw-side" style="width:300px;max-width:100%;color:#cfe2dc;padding-top:8px">
+    <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#7ce0d2;background:rgba(22,184,166,.12);border:1px solid rgba(22,184,166,.25);padding:6px 12px;border-radius:99px">SUPPORT WORKER APP</div>
+    <div style="font-size:25px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;margin-top:16px;line-height:1.25">Everything a worker needs, in one app.</div>
+    <div style="font-size:13.5px;line-height:1.6;color:#9fb8b1;margin-top:12px">Tap through the tabs. Find Work pulls shifts straight from provider dashboards, the document wallet keeps them compliant, and every client has a living file.</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ sideItems }}" as="e" hint-placeholder-count="4">
+        <div style="display:flex;gap:12px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:10px;flex:0 0 32px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">{{ e.iconEl }}</div><div><div style="font-size:13.5px;font-weight:700;color:#eafaf8">{{ e.title }}</div><div style="font-size:12px;color:#86a39b;line-height:1.5;margin-top:1px">{{ e.body }}</div></div></div>
+      </sc-for>
+    </div>
+  </div>
+
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  componentDidMount(){
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      if(s.loggedIn && s.role && s.role!=='worker'){
+        const m={provider:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html'};
+        if(m[s.role]) window.location.href=m[s.role];
+      }
+    }catch(e){}
+    const AD=window.AegisData;
+    if(AD){
+      const notes=AD.get('sw_shift_notes')||[];
+      const avail=AD.get('sw_avail')||{};
+      const upd={};
+      if(notes.length) upd.swSavedNotes=notes;
+      if(Object.keys(avail).length) upd.avail=avail;
+      if(Object.keys(upd).length) this.setState(upd);
+    }
+    this.loadWorkerData();
+    this.loadIdentity();
+    this.loadDocuments();
+    this.loadShiftNotesFromDb();
+    this.loadMessages();
+  }
+  state = { view:'home', backTo:'home', workFilter:'all', pro:false, showPhoto:true, paid:{}, scan:'idle', swClients:[], swShifts:[], supabaseConnected:(typeof window!=='undefined'&&window.isSupabaseConfigured&&window.isSupabaseConfigured())||false, authName:null, authInitials:null, authRole:null, toast:null, swOrgId:null, swBusy:false, swAddClientOpen:false, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:'', nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:'', swNoteClient:'', swSelectedClient:null, swClientContacts:[], swClientNotes:[], swDocuments:[], swDocUploading:false, swLanguages:null, swSkills:null, swThreads:null, swExpandedNoteId:null };
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  // Load the logged-in worker's assigned participants + shifts from Supabase
+  // (RLS-scoped). Falls back to demo data via the query helpers.
+  loadWorkerData(){
+    const apply=()=>{
+      const configured=window.isSupabaseConfigured?window.isSupabaseConfigured():false;
+      this.setState({ supabaseConnected: configured });
+      if(window.queryParticipantsForWorker){
+        Promise.resolve(window.queryParticipantsForWorker()).then(parts=>{
+          const real=(parts||[]).filter(p=>p&&p.id&&!String(p.id).startsWith('demo-'));
+          if(configured){ this.setState({ swClients: real }); }
+          else if(parts && parts.length>0){ this.setState({ swClients: parts }); }
+        }).catch(err=>console.error('loadWorkerData clients error:',err));
+      }
+      if(window.queryShiftsForWorker){
+        Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
+          const real=(shifts||[]).filter(s=>s&&s.id&&!String(s.id).startsWith('demo-'));
+          if(configured){ this.setState({ swShifts: real }); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }); }
+        }).catch(err=>console.error('loadWorkerData shifts error:',err));
+      }
+    };
+    try{
+      if(window.queryParticipantsForWorker){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        script.onerror=()=>this.setState({supabaseConnected:false});
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadWorkerData error:',err); }
+  }
+  // Load the signed-in worker's real name + role for the greeting/profile.
+  loadIdentity(){
+    if(!window.loadCurrentUserContext) return;
+    Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+      if(!ctx||ctx.error||!ctx.user) return;
+      if(ctx.organisationId) this.setState({ swOrgId: ctx.organisationId });
+      const profileName=ctx.profile&&ctx.profile.full_name&&ctx.profile.full_name.trim();
+      const email=(ctx.user.email||'');
+      const name=profileName||(email?email.split('@')[0]:'');
+      if(!name) return;
+      const parts=name.trim().split(/\s+/);
+      const initials=(parts.length>1?(parts[0][0]+parts[parts.length-1][0]):name.slice(0,2)).toUpperCase();
+      const roleLabels={ support_worker:'Support Worker', abn_worker:'Independent Worker' };
+      const roleLabel=roleLabels[ctx.primaryRole]||'Support Worker';
+      const prof=ctx.profile||{};
+      const langs=Array.isArray(prof.languages)?prof.languages:[];
+      const skls=Array.isArray(prof.skills)?prof.skills:[];
+      this.setState({ authName:name, authInitials:initials, authRole:roleLabel, swLanguages:langs, swSkills:skls });
+    }).catch(()=>{});
+  }
+  // Dial a phone number via the device dialler (real tel: handoff).
+  callNumber(phone){
+    const n=String(phone||'').replace(/[^0-9+]/g,'');
+    if(!n){ this.showToast('No phone number on file'); return; }
+    try{ window.location.href='tel:'+n; }catch(e){ this.showToast('Could not start call'); }
+  }
+  // Add a language or skill to the worker's OWN profile (real, persisted to
+  // user_profiles via updateMyProfile). Preview/unconfigured falls back honestly.
+  addProfileTag(field){
+    const labels={languages:'language',skills:'skill'};
+    const stKey=field==='languages'?'swLanguages':'swSkills';
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.updateMyProfile){
+      this.showToast('Sign in to edit your profile'); return;
+    }
+    let val=null; try{ val=window.prompt('Add a '+labels[field]+':'); }catch(e){ val=null; }
+    val=(val||'').trim();
+    if(!val) return;
+    const current=Array.isArray(this.state[stKey])?this.state[stKey]:[];
+    if(current.some(x=>String(x).toLowerCase()===val.toLowerCase())){ this.showToast('Already on your profile'); return; }
+    const next=[...current,val];
+    this.setState({[stKey]:next});
+    Promise.resolve(window.updateMyProfile({[field]:next})).then(res=>{
+      if(!res || res.error){ console.error('updateMyProfile error:',res&&res.error); this.setState({[stKey]:current}); this.showToast('Could not save — try again'); return; }
+      this.showToast(field==='languages'?'Language added ✓':'Skill added ✓');
+    }).catch(err=>{ console.error('updateMyProfile error:',err); this.setState({[stKey]:current}); this.showToast('Could not save — try again'); });
+  }
+  // Load the worker's real message threads (RLS-scoped) for the Messages screen.
+  // Real mode only; preview keeps the showcase threads.
+  loadMessages(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(!window.loadMessageThreadsForCurrentUser) return;
+    Promise.resolve(window.loadMessageThreadsForCurrentUser()).then(r=>{
+      if(r && !r.error) this.setState({ swThreads: r.threads||[] });
+    }).catch(err=>console.error('loadMessages error:',err));
+  }
+  // Open a conversation in the real messaging surface (CiaraLink Connect),
+  // carrying the thread id when we have a real one.
+  openThread(thread){
+    const id=thread&&thread.id&&!String(thread.id).startsWith('demo-')?thread.id:null;
+    window.location.href='CiaraLink Connect.dc.html'+(id?('?thread='+encodeURIComponent(id)):'');
+  }
+  // Load the worker's real shift notes back from Supabase (RLS: a worker reads
+  // the notes they authored). Real mode only — preview keeps showcase notes.
+  // These are the synced, authoritative copies so they show across devices and
+  // survive a cleared cache; we merge in any on-device notes that haven't synced
+  // yet (deduped on body) so a failed-sync note isn't hidden.
+  loadShiftNotesFromDb(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(!window.loadShiftNotes) return;
+    Promise.resolve(window.loadShiftNotes({limit:100})).then(r=>{
+      if(!r || r.error){ if(r&&r.error) console.error('loadShiftNotes error:',r.error); return; }
+      const rows=r.notes||[];
+      const mapped=rows.map(n=>{
+        const p=n.participants||{};
+        const name=p.preferred_name||p.full_name||'Client';
+        let date=n.created_at;
+        try{ date=new Date(n.created_at).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){}
+        return {_id:n.id, client:name, init:(name||'C').substring(0,2).toUpperCase(), date, body:n.body};
+      });
+      const syncedBodies=new Set(mapped.map(m=>(m.body||'').trim()));
+      const localOnly=(this.state.swSavedNotes||[]).filter(n=>!syncedBodies.has((n.body||'').trim()));
+      this.setState({ swSavedNotes:[...mapped, ...localOnly] });
+    }).catch(err=>console.error('loadShiftNotesFromDb error:',err));
+  }
+  // Load the worker's real uploaded documents (RLS-scoped). Only in real mode;
+  // in unconfigured preview the Docs tab keeps its showcase content.
+  loadDocuments(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(!window.loadDocumentsForCurrentUser) return;
+    Promise.resolve(window.loadDocumentsForCurrentUser()).then(r=>{
+      if(r && !r.error) this.setState({ swDocuments: r.documents||[] });
+    }).catch(err=>console.error('loadDocuments error:',err));
+  }
+  // Open a tapped client's file and load THAT participant's real data (by id),
+  // not a hardcoded record. Demo clients (no real id) keep the showcase file.
+  openClientFile(client){
+    this.setState({ swSelectedClient: client||null, swClientContacts:[], swClientNotes:[] });
+    this.push('client');
+    const id = client && client.id;
+    if(!id || String(id).startsWith('demo-')) return;
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(window.loadParticipantById){
+      Promise.resolve(window.loadParticipantById(id)).then(r=>{
+        if(r && r.participant) this.setState(s=>({ swSelectedClient: Object.assign({}, s.swSelectedClient, r.participant) }));
+      }).catch(()=>{});
+    }
+    if(window.loadParticipantContacts){
+      Promise.resolve(window.loadParticipantContacts(id)).then(r=>{
+        if(r && !r.error) this.setState({ swClientContacts: r.contacts||[] });
+      }).catch(()=>{});
+    }
+    if(window.listParticipantNotes){
+      Promise.resolve(window.listParticipantNotes(id)).then(r=>{
+        if(r && !r.error) this.setState({ swClientNotes: r.notes||[] });
+      }).catch(()=>{});
+    }
+  }
+  // ---- INDEPENDENT WORKER self-rostering (no provider) ----
+  openAddClient(){ this.setState({swAddClientOpen:true, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:''}); }
+  closeAddClient(){ this.setState({swAddClientOpen:false}); }
+  submitAddClient(){
+    if(this.state.swBusy) return;
+    const name=(this.state.acName||'').trim();
+    if(!name){ this.showToast('Enter the client’s full name'); return; }
+    const orgId=this.state.swOrgId;
+    if(!window.createParticipant || !window.isSupabaseConfigured || !window.isSupabaseConfigured()){ this.showToast('Preview mode — connect to add real clients'); return; }
+    if(!orgId){ this.showToast('No organisation found — please sign in again'); return; }
+    this.setState({swBusy:true});
+    Promise.resolve(window.createParticipant({ org_id:orgId, full_name:name, ndis_number:(this.state.acNdis||'').trim()||null, phone:(this.state.acPhone||'').trim()||null, email:(this.state.acEmail||'').trim()||null, address:(this.state.acAddress||'').trim()||null }))
+      .then(res=>{
+        this.setState({swBusy:false});
+        if(!res || res.error){ this.showToast('Could not add client: '+((res&&res.error)||'unknown error')); return; }
+        this.setState({swAddClientOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:''});
+        this.showToast('Client added ✓');
+        this.loadWorkerData();
+      }).catch(err=>{ this.setState({swBusy:false}); this.showToast('Could not add client: '+((err&&err.message)||'error')); });
+  }
+  openNewShift(){ this.setState(s=>({swNewShiftOpen:true, swAddClientOpen:false, nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:''})); }
+  closeNewShift(){ this.setState({swNewShiftOpen:false}); }
+  goRoster(){ this.setState({view:'clients', swNewShiftOpen:true, swAddClientOpen:false, nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:''}); }
+  submitNewShift(){
+    if(this.state.swBusy) return;
+    const pid=this.state.nsParticipant;
+    const date=this.state.nsDate, start=this.state.nsStart, end=this.state.nsEnd;
+    if(!pid){ this.showToast('Pick a client for the shift'); return; }
+    if(!date || !start || !end){ this.showToast('Pick a date, start and end time'); return; }
+    const startD=new Date(date+'T'+start), endD=new Date(date+'T'+end);
+    if(isNaN(startD.getTime()) || isNaN(endD.getTime())){ this.showToast('Invalid date or time'); return; }
+    if(endD<=startD){ this.showToast('End time must be after the start time'); return; }
+    if(!window.createWorkerShift || !window.isSupabaseConfigured || !window.isSupabaseConfigured()){ this.showToast('Preview mode — connect to roster a real shift'); return; }
+    this.setState({swBusy:true});
+    Promise.resolve(window.createWorkerShift({ participant_id:pid, start_time:startD.toISOString(), end_time:endD.toISOString(), service_type:(this.state.nsType||'').trim()||null }))
+      .then(res=>{
+        this.setState({swBusy:false});
+        if(!res || res.error){ this.showToast('Could not roster shift: '+((res&&res.error)||'unknown error')); return; }
+        this.setState({swNewShiftOpen:false});
+        this.showToast('Shift rostered ✓');
+        this.loadWorkerData();
+      }).catch(err=>{ this.setState({swBusy:false}); this.showToast('Could not roster shift: '+((err&&err.message)||'error')); });
+  }
+  runScan(){ if(this.state.scan==='reading')return; this.setState({scan:'reading'}); clearTimeout(this._sc1); clearTimeout(this._sc2); this._sc1=setTimeout(()=>this.setState({scan:'done'}),1700); this._sc2=setTimeout(()=>this.setState({scan:'idle'}),5200); }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      home:'M3 11l9-8 9 8 M5 10v10h5v-6h4v6h5V10',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      tag:'M3 12V3h9l9 9-9 9z M7 7h.01',
+      lock:'M5 11h14v10H5z M8 11V8a4 4 0 0 1 8 0v3',
+      bolt:'M13 2L4 14h7l-1 8 9-12h-7z',
+      filter:'M3 5h18l-7 8v6l-4-2v-4z',
+      info:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 11v5 M12 8h.01',
+      bldg:'M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16 M15 9h4a1 1 0 0 1 1 1v11 M8 8h3 M8 12h3 M8 16h3',
+      check:'M20 6L9 17l-5-5',
+      upload:'M12 16V4 M7 9l5-5 5 5 M4 20h16',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5',
+      cert:'M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0 M9 17l-1 5 4-2 4 2-1-5',
+      bank:'M3 9l9-6 9 6 M5 9v9 M9 9v9 M15 9v9 M19 9v9 M3 21h18',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      pen:'M12 19l7-7-3-3-7 7v3z M16 9l3-3-3-3-3 3',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      star:'M12 3l2.5 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.5 6.8 19.3l1.1-5.9L3.6 9.2l5.9-.8z',
+      chev:'M9 6l6 6-6 6',back:'M15 6l-6 6 6 6',
+      alert:'M12 9v4 M12 17h.01 M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0z',
+      phone:'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+      pill:'M10 6l8 8a4 4 0 0 1-6 6l-8-8a4 4 0 0 1 6-6z M7 7l6 6',
+      walk:'M13 4m-1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0 M10 22l2-6-2-3V8l4 2 2 3 M10 13l-2 4',
+      ear:'M6 11a6 6 0 0 1 12 0c0 3-2 4-3 6 M9 18a2 2 0 0 0 4 0',
+      smile:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M9 10h.01 M15 10h.01 M8 14a5 5 0 0 0 8 0',
+      download:'M12 4v12 M7 11l5 5 5-5 M4 20h16',
+      camera:'M3 7a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M12 16m-3.5 0a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0',
+      pdf:'M5 3h10l4 4v14H5z M14 3v5h5 M8 14h2a1.5 1.5 0 0 1 0 3H8z M8 14v6',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z',
+      wifi:'M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20h.01',
+      sig:'M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20h.01',
+      batt:'M3 8h16v8H3z M21 11v2',
+      x:'M6 6l12 12 M18 6L6 18',
+      card:'M3 7h18v10H3z M3 11h18',
+      route:'M6 19a3 3 0 1 0 0-6 M18 5a3 3 0 1 0 0 6 M18 8H9a3 3 0 0 0-3 3v2',
+      eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0',
+      eyeoff:'M3 3l18 18 M10.6 10.6a3 3 0 0 0 4.2 4.2 M9.4 5.2A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4 M6.2 6.2A17 17 0 0 0 2 12s3.5 7 10 7a9.5 9.5 0 0 0 3-.5'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.home}));
+  }
+  setView(v){ this.setState({view:v}); }
+  push(v){ this.setState(s=>({view:v, backTo:(['home','work','docs','clients','me'].includes(s.view)?s.view:s.backTo)})); }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const v=this.state.view;
+    const isTab=['home','work','docs','clients','me'].includes(v);
+    const demoMode = !(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+
+    const tabDefs=[['home','Home','home'],['work','Find Work','search'],['docs','Docs','folder'],['clients','Clients','users'],['me','Me','user']];
+    const tabs=tabDefs.map(([key,label,icon])=>{
+      const a=v===key;
+      return {label,onClick:()=>this.setView(key),fg:a?'#0b6b60':'#9aa8a3',iconEl:ic(icon,a?'#16b8a6':'#9aa8a3',22,a?2.1:1.7)};
+    });
+
+    // home recent notes
+    const recentNotes=demoMode?[
+      {client:'Margaret R.',init:'MR',tint:'#16b8a6',preview:'Good spirits, ate well, steady mobility…',verified:'Verified',time:'Wed'},
+      {client:'Tom B.',init:'TB',tint:'#d98b22',preview:'Community outing to library, big win…',verified:'Verified',time:'Tue'}
+    ]:[];
+    const _pd=(label,state)=>{
+      const m={done:{dotBg:'#16b8a6',dotBd:'#16b8a6',fg:'#0b6b60',iconEl:ic('check','#fff',14,2.6),lineBg:'#16b8a6'},
+        now:{dotBg:'#fbf0df',dotBd:'#d98b22',fg:'#b4561f',iconEl:ic('clock','#d98b22',14),lineBg:'#e2e9e6'},
+        next:{dotBg:'#fff',dotBd:'#cdd8d3',fg:'#9aa8a3',iconEl:ic('clock','#cdd8d3',14),lineBg:'#e2e9e6'}}[state];
+      return {label,dotBg:m.dotBg,dotBd:m.dotBd,fg:m.fg,iconEl:m.iconEl,lineBg:m.lineBg};
+    };
+    // Pay timeline + history are demo-only (no real payments/earnings data
+    // source yet). In real mode these stay empty so a logged-in worker never
+    // sees invented money.
+    const paySteps=demoMode?[
+      {...(_pd('Submitted','done')),hasLine:true},
+      {...(_pd('Approved','done')),hasLine:true},
+      {...(_pd('Payment','now')),hasLine:false}
+    ]:[];
+    const paidMap=this.state.paid||{};
+    const payRaw=[
+      {period:'16–22 Jun 2026',amount:'$840',notes:'4',base:'awaiting'},
+      {period:'09–15 Jun 2026',amount:'$795',notes:'4',base:'paid'},
+      {period:'02–08 Jun 2026',amount:'$910',notes:'5',base:'paid'}
+    ];
+    const payments=(demoMode?payRaw:[]).map((p,i)=>{
+      const paid=p.base==='paid'||paidMap[i];
+      return {period:p.period,amount:p.amount,provider:'Brightside Care',notes:p.notes,paid,awaiting:!paid,
+        status:paid?'Paid':'Awaiting payment',statusFg:paid?'#1e7a52':'#b4561f',statusBg:paid?'#e9f6ef':'#fbf0df',
+        onPaid:()=>this.setState(s=>({paid:{...(s.paid||{}),[i]:true}}))};
+    });
+
+    // ---- find work + home next-shift: driven by the worker's real assigned
+    // shifts (this.state.swShifts, RLS-scoped; demo fallback handled upstream).
+    // start_time/end_time may be ISO timestamps (Supabase) or pre-formatted
+    // demo strings like "Today 11:00" — handle both gracefully.
+    const _isISO=(s)=>/\d{4}-\d{2}-\d{2}/.test(String(s||''));
+    const _timePart=(s)=>{ const m=String(s||'').match(/\d{1,2}:\d{2}/); return m?m[0]:''; };
+    const _datePart=(s)=>{
+      if(!s) return '';
+      if(_isISO(s)){ const d=new Date(s); if(!isNaN(d.getTime())) return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
+      const t=_timePart(s); const rest=t?String(s).replace(t,'').replace(/[·,\-]\s*$/,'').trim():String(s);
+      return rest||t||String(s);
+    };
+    const _timeRange=(a,b)=>{ const sa=_timePart(a),sb=_timePart(b); return sa&&sb?(sa+'–'+sb):(sa||sb||'—'); };
+    const _pName=(sh)=>(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    const swTints2=['#16b8a6','#d98b22','#6366f1','#9333ea','#0891b2','#0e5147'];
+    const allShifts=this.state.swShifts||[];
+
+    // Honest earnings/hours for REAL mode: there's no payments source yet, so
+    // earnings show $0 with a neutral sublabel; hours are derived from the
+    // worker's real shifts when start/end timestamps are available, else "—".
+    let realHoursNum=0, realShiftCount=0;
+    allShifts.forEach(s=>{
+      if(_isISO(s&&s.start_time)&&_isISO(s&&s.end_time)){
+        const a=new Date(s.start_time), b=new Date(s.end_time);
+        if(!isNaN(a.getTime())&&!isNaN(b.getTime())&&b>a){ realHoursNum+=(b-a)/3600000; realShiftCount++; }
+      }
+    });
+    const realHoursLabel=realShiftCount>0?(Math.round(realHoursNum)+'h'):'—';
+    const earnedValue=demoMode?'$840':'$0';
+    const earnedSub=demoMode?'earned this week':"No earnings yet — they'll appear as your shifts are approved";
+    const hoursValue=demoMode?'32h':realHoursLabel;
+    const hoursSub=demoMode?'across 9 shifts':(realShiftCount>0?('across '+realShiftCount+' shift'+(realShiftCount===1?'':'s')):'this week');
+    const planLabel=demoMode?'Free plan · 0/3 shifts this month':'Free plan';
+    const workPlanTitle=demoMode?'Free plan: 3 standard shifts/month':'Free plan';
+    const workPlanSub=demoMode?'0 claimed · urgent & emergency need Pro':'Upgrade for priority matching & urgent shifts';
+
+    const workFilter=this.state.workFilter||'all';
+    const filterDefs=[['all','All'],['accepted','Confirmed'],['offered','Offered'],['completed','Completed']];
+    const workFilters=filterDefs.map(([key,label])=>{
+      const a=workFilter===key;
+      return {label,onClick:()=>this.setState({workFilter:key}),
+        bg:a?'#0c2622':'#fff',bd:a?'#0c2622':'#e2e9e6',fg:a?'#eafaf8':'#5f726d'};
+    });
+    const statusStyle={
+      accepted:{accent:'#16b8a6',cardBd:'#e7ece9',badge:'CONFIRMED',badgeBg:'#e9f6ef',badgeFg:'#1e7a52'},
+      in_progress:{accent:'#16b8a6',cardBd:'#cfeae5',badge:'IN PROGRESS',badgeBg:'#e7f4f1',badgeFg:'#0b6b60'},
+      offered:{accent:'#d98b22',cardBd:'#f0e2c9',badge:'OFFERED',badgeBg:'#fbf0df',badgeFg:'#b4561f'},
+      completed:{accent:'#9aa8a3',cardBd:'#e7ece9',badge:'COMPLETED',badgeBg:'#eef2f0',badgeFg:'#6c7f79'}
+    };
+    const mapShift=(sh,i)=>{
+      const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
+      return {accent:st.accent,cardBd:st.cardBd,tint:swTints2[i%swTints2.length],
+        client:nm,init:nm.substring(0,2).toUpperCase(),
+        hasBadge:true,badge:st.badge,badgeBg:st.badgeBg,badgeFg:st.badgeFg,
+        bldgEl:ic('pin','#9aa8a3',13),provider:sh.location||'Location TBC',
+        hasScore:false,score:'',scoreLabel:'',
+        hasCountdown:false,countdown:'',cdFg:'#9aa8a3',cdBg:'#f1f4f2',clockEl:ic('clock','#9aa8a3',13),
+        when:_datePart(sh.start_time)||'—',time:_timeRange(sh.start_time,sh.end_time),type:sh.support_type||sh.title||'Support',
+        btnBg:'#0c2622',btnFg:'#eafaf8',cta:'View shift',ctaIconEl:ic('chev','#eafaf8',16),
+        onClick:()=>{ if(demoMode){ this.showToast('Sample shift — connect your account to see live shift details'); return; } if(sh.participant_id){ this.openClientFile(Object.assign({id:sh.participant_id}, sh.participants||{}, {full_name:_pName(sh)})); } else { this.showToast('No client file is linked to this shift yet'); } }};
+    };
+    const _grp=(title,color,statuses)=>({key:statuses[0],color,title,
+      jobs:allShifts.filter(s=>statuses.includes(s.status)).map(mapShift)});
+    const allWorkSections=[
+      _grp('CONFIRMED · UPCOMING','#0b6b60',['accepted','in_progress']),
+      _grp('OFFERED TO YOU','#b4561f',['offered']),
+      _grp('COMPLETED','#9aa8a3',['completed'])
+    ];
+    const workSections=(workFilter==='all'?allWorkSections:allWorkSections.filter(sec=>sec.key===workFilter)).filter(sec=>sec.jobs.length>0);
+    const noWorkShifts=workSections.reduce((n,s)=>n+s.jobs.length,0)===0;
+
+    // home: "Next Shift" card = first real accepted/upcoming shift, else empty
+    const _upcoming=allShifts.filter(s=>s.status!=='completed');
+    const _next=_upcoming.find(s=>s.status==='accepted'||s.status==='in_progress')||_upcoming[0]||null;
+    const hasNextShift=!!_next;
+    let nextShiftName='No upcoming shift',nextShiftLocation='',nextShiftTime='',nextShiftType='',nextShiftLabel='NEXT SHIFT';
+    if(_next){
+      nextShiftName=_pName(_next);
+      nextShiftLocation=_next.location||'Location TBC';
+      nextShiftTime=_timeRange(_next.start_time,_next.end_time);
+      nextShiftType=_next.support_type||_next.title||'Support';
+      const _dp=_datePart(_next.start_time);
+      nextShiftLabel='NEXT SHIFT'+(_dp?(' · '+_dp.toUpperCase()):'');
+    }
+
+    // ---- Real clock in/out against the worker's current Supabase shift ----
+    // Target = a shift already in progress (so the button becomes Clock-out),
+    // else the next accepted/upcoming one. Enabled only in real mode with a
+    // clockable shift; demo keeps the locked on-site preview button.
+    const _clockShift = allShifts.find(s=>s.status==='in_progress')
+      || (_next && (_next.status==='accepted'||_next.status==='in_progress') ? _next : null);
+    const _clockedIn = !!(_clockShift && _clockShift.status==='in_progress');
+    const _clockEnabled = !demoMode && !!_clockShift;
+    const clockBtnLabel = demoMode ? 'Clock in unlocks on-site'
+      : (!_clockShift ? 'No shift to clock in to' : (_clockedIn ? 'Clock out' : 'Clock in'));
+    const clockSubLabel = demoMode ? 'Only you, the assigned worker, can clock in'
+      : (_clockedIn ? 'Clocked in — tap to clock out when you finish'
+        : (_clockShift ? 'Only you, the assigned worker, can clock in'
+          : 'A clock-in button unlocks when you have a confirmed shift'));
+    const clockBtnBg = _clockEnabled ? '#16b8a6' : '#3a4f49';
+    const clockBtnFg = _clockEnabled ? '#06201c' : '#8fb3aa';
+    const clockCursor = _clockEnabled ? 'pointer' : 'not-allowed';
+    const clockIconEl = _clockEnabled ? ic(_clockedIn?'clock':'check','#06201c',16,2.4) : ic('lock','#8fb3aa',16);
+    const clockAction = ()=>{
+      if(demoMode){ this.showToast('Preview mode — on-site QR clock-in coming soon'); return; }
+      const sh=_clockShift;
+      if(!sh){ this.showToast('No confirmed shift to clock in to'); return; }
+      if(this.state.swBusy) return;
+      const out=_clockedIn;
+      const fn = out ? window.clockOutShift : window.clockInShift;
+      if(!fn){ this.showToast('Clock-in unavailable right now'); return; }
+      this.setState({swBusy:true});
+      Promise.resolve(fn(sh.id)).then(res=>{
+        this.setState({swBusy:false});
+        if(!res || res.error){ console.error('clock action error:',res&&res.error); this.showToast('Clock-'+(out?'out':'in')+' failed — try again'); return; }
+        this.showToast(out?'Clocked out ✓':'Clocked in ✓');
+        this.loadWorkerData();
+      }).catch(err=>{ this.setState({swBusy:false}); console.error('clock action error:',err); this.showToast('Clock action failed'); });
+    };
+
+    // documents
+    const D=(label,sub,status,kind)=>{
+      const styles={
+        verified:{bar:'#16b8a6',statusFg:'#1e7a52',statusBg:'#e9f6ef',iconBg:'#e7f4f1',icC:'#16b8a6'},
+        pending:{bar:'#6366f1',statusFg:'#4338ca',statusBg:'#eef0fd',iconBg:'#eef0fd',icC:'#6366f1'},
+        missing:{bar:'#d98b22',statusFg:'#b4561f',statusBg:'#fbf0df',iconBg:'#fbf0df',icC:'#d98b22'}
+      }[status];
+      const icons={Worker:'doc','NDIS':'shield',Police:'shield',First:'heart',Qual:'cert',Conf:'lock',Bank:'bank',Induction:'pen'};
+      const key=label.split(' ')[0];
+      return {label,sub,bar:styles.bar,statusFg:styles.statusFg,statusBg:styles.statusBg,iconBg:styles.iconBg,
+        status: status==='verified'?'Verified':(status==='pending'?'In review':'Upload'),
+        iconEl:ic(icons[key]||'doc',styles.icC,17)};
+    };
+    const docs=[
+      D('Worker Agreement','Signed 12 Jan 2026','verified'),
+      D('NDIS Worker Screening','Exp. 2028 · cleared','verified'),
+      D('Police Check','Exp. 2027 · cleared','verified'),
+      D('First Aid / CPR','Submitted — checking','pending'),
+      D('Qualifications / Certs','Cert III Individual Support','verified'),
+      D('Confidentiality Agreement','Not yet uploaded','missing'),
+      D('Bank / ABN Details','Needed for payment','missing'),
+      D('Induction / Orientation','Sign-off pending','missing')
+    ];
+    // Real uploaded documents (RLS-scoped) for the Docs tab in real mode.
+    const _rawDocs=this.state.swDocuments||[];
+    const realDocs=_rawDocs.map(rd=>{
+      const st=String(rd.status||'').toLowerCase();
+      const style = (st==='verified'||st==='approved')
+        ? {bar:'#16b8a6',statusFg:'#1e7a52',statusBg:'#e9f6ef',iconBg:'#e7f4f1',icC:'#16b8a6',label:'Verified'}
+        : (st==='rejected')
+          ? {bar:'#e0556e',statusFg:'#c0445c',statusBg:'#fdeef0',iconBg:'#fdeef0',icC:'#e0556e',label:'Rejected'}
+          : {bar:'#6366f1',statusFg:'#4338ca',statusBg:'#eef0fd',iconBg:'#eef0fd',icC:'#6366f1',label:(rd.status||'In review')};
+      return {label:rd.title||rd.type||'Document',
+        sub:[rd.type,rd.created_at?_datePart(rd.created_at):null].filter(Boolean).join(' · ')||'Uploaded',
+        bar:style.bar,statusFg:style.statusFg,statusBg:style.statusBg,iconBg:style.iconBg,
+        status:style.label,iconEl:ic('file',style.icC,17)};
+    });
+    const docsList = demoMode ? docs : realDocs;
+    const noDocs = !demoMode && realDocs.length===0;
+    const docsHeader = demoMode ? 'RECOMMENDED DOCUMENTS' : 'MY DOCUMENTS';
+    const docCountLabel = demoMode ? '5/8' : String(realDocs.length);
+    const docSetTitle = demoMode ? 'Recommended set' : 'Your documents';
+    const docSetSub = demoMode
+      ? '3 left — upload the amber items below to be fully compliant'
+      : (realDocs.length>0
+          ? (realDocs.length+' uploaded — tap a file area above to add more')
+          : 'Upload your credentials to keep them in one place');
+    const docRing = demoMode
+      ? 'conic-gradient(#16b8a6 225deg,#eef2f0 0deg)'
+      : (realDocs.length>0 ? 'conic-gradient(#16b8a6 360deg,#eef2f0 0deg)' : 'conic-gradient(#eef2f0 360deg,#eef2f0 0deg)');
+    const uploadLabel = this.state.swDocUploading ? 'Uploading…' : 'Drag a file here, or tap to upload';
+    const onDocFile = (e)=>{
+      const file = e && e.target && e.target.files && e.target.files[0];
+      if(!file) return;
+      if(!window.uploadDocument){ this.showToast('Upload unavailable right now'); return; }
+      this.setState({swDocUploading:true});
+      Promise.resolve(window.uploadDocument({file})).then(res=>{
+        this.setState({swDocUploading:false});
+        if(!res || res.error){ console.error('uploadDocument error:',res&&res.error); this.showToast('Upload failed — try again'); return; }
+        this.showToast('Document uploaded ✓');
+        this.loadDocuments();
+      }).catch(err=>{ this.setState({swDocUploading:false}); console.error('uploadDocument error:',err); this.showToast('Upload failed'); });
+    };
+
+    // clients — real RLS-scoped assigned participants when connected, else demo
+    const demoClients=[
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',service:'Personal Care',next:'today 11:00',flag:true},
+      {name:'Tom Becker',init:'TB',tint:'#d98b22',service:'Community Access',next:'Fri 10:00',flag:false},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',service:'Personal Care',next:'Sat 9:00',flag:false},
+      {name:'Priya Sharma',init:'PS',tint:'#9333ea',service:'Personal Care',next:'Mon 14:00',flag:false}
+    ];
+    const swTints=['#16b8a6','#d98b22','#6366f1','#9333ea','#0891b2'];
+    const sbClients=this.state.swClients||[];
+    const clients = sbClients.length>0 ? sbClients.map((p,i)=>{
+      const nm=p.full_name||p.name||'Participant';
+      return {name:nm,init:(p.preferred_name||nm).substring(0,2).toUpperCase(),tint:swTints[i%swTints.length],
+        service:p.funding_type||'Support',next:'—',flag:false,onClick:()=>this.openClientFile(p)};
+    }) : (demoMode ? demoClients.map(c=>Object.assign({},c,{onClick:()=>this.openClientFile(c)})) : []);
+    // self-rostering: real clients to pick from (id+name); demo fallback for preview
+    const swRosterClients=(sbClients||[]).map(p=>({ id:p.id, name:p.full_name||p.name||'Participant' }));
+    const rosterPickList = swRosterClients.length>0 ? swRosterClients : (demoMode ? demoClients.map((c,i)=>({ id:'demo-'+(i+1), name:c.name })) : []);
+
+    // settings
+    const settings=[
+      {label:'Availability & travel radius',iconEl:ic('clock','#16b8a6',16),bg:'#e7f4f1',onClick:()=>this.push('avail')},
+      {label:'My shift notes',iconEl:ic('note','#9333ea',16),bg:'#f4e8fe',onClick:()=>this.push('shift_notes')},
+      {label:'Messages',iconEl:ic('msg','#6366f1',16),bg:'#eef0fd',onClick:()=>this.push('msg')},
+      {label:'Payments & timesheets',iconEl:ic('card','#6366f1',16),bg:'#eef0fd',onClick:()=>this.push('payments')},
+      {label:'Notifications',iconEl:ic('bell','#d98b22',16),bg:'#fbf0df',onClick:()=>{window.location.href='Settings.dc.html';}},
+      {label:'Privacy & data',iconEl:ic('shield','#0891b2',16),bg:'#e0f2f5',onClick:()=>{window.location.href='Settings.dc.html';}},
+      {label:'Help & support',iconEl:ic('info','#6c7f79',16),bg:'#f1f4f2',onClick:()=>{window.location.href='Settings.dc.html';}}
+    ];
+
+    // client file
+    const important=[
+      {label:'Allergy — Penicillin',text:'Severe reaction. EpiPen in kitchen drawer. Call 000 if exposed.',bg:'#fdeef0',bd:'#f6d4da',fg:'#c0445c',iconEl:ic('alert','#e0556e',17)},
+      {label:'Mobility — Hoist transfer',text:'2-person assist. Ceiling hoist in bedroom. Do not lift manually.',bg:'#fff7ed',bd:'#f4e6cf',fg:'#b4561f',iconEl:ic('walk','#d98b22',17)},
+      {label:'Communication — Hearing',text:'Wears hearing aid (left). Face her, speak slowly and clearly.',bg:'#eef0fd',bd:'#dde0fb',fg:'#4338ca',iconEl:ic('ear','#6366f1',17)}
+    ];
+    const prefs=['Likes tea (no sugar)','Morning walks','Female worker','Calm music','Cat-friendly','Lights dim PM'];
+    const goals=[{label:'Independent mobility',pct:'88%'},{label:'Social confidence',pct:'64%'}];
+    const clientDocs=[
+      {label:'Support Plan',meta:'PDF · what to do each shift · updated May'},
+      {label:'Behaviour Support Plan',meta:'PDF · triggers & strategies'},
+      {label:'Consent & privacy form',meta:'PDF · signed Jan 2026'},
+      {label:'Risk assessment',meta:'PDF · reviewed Apr 2026'}
+    ];
+    const keyContacts=[
+      {name:'Robert Reyes',role:'Emergency contact · son',phone:'0412 555 901',init:'RR',tint:'#e0556e',urgent:true},
+      {name:'Dr. Helen Cho',role:'GP · Glenroy Medical',phone:'03 9300 1122',init:'HC',tint:'#16b8a6'},
+      {name:'Brightside Care',role:'Service provider · on-call',phone:'1300 270 000',init:'BC',tint:'#6366f1'},
+      {name:'Sarah Kelly',role:'Support coordinator',phone:'0438 221 770',init:'SK',tint:'#0891b2'},
+      {name:'Glenroy Pharmacy',role:'Pharmacy',phone:'03 9300 4455',init:'GP',tint:'#d98b22'}
+    ].map(c=>({name:c.name,role:c.role,phone:c.phone,init:c.init,tint:c.tint,
+      bd:c.urgent?'#f3d6dc':'#e7ece9',callFg:c.urgent?'#c0445c':'#0b6b60',callBg:c.urgent?'#fbe9ed':'#e7f4f1',
+      callEl:ic('phone',c.urgent?'#c0445c':'#0b6b60',12),onCall:()=>this.callNumber(c.phone)}));
+    const fileNotes=[
+      {date:'Wed 18 Jun · Personal Care',preview:'Good spirits, ate well, steady mobility…',dot:'#16b8a6'},
+      {date:'Mon 16 Jun · Personal Care',preview:'Quiet morning, medication prompted…',dot:'#16b8a6'},
+      {date:'Fri 13 Jun · Personal Care',preview:'Enjoyed garden time, slept well prior…',dot:'#d98b22'}
+    ];
+
+    // ---- Client File: render the TAPPED participant's real data (or honest
+    // empty), never a hardcoded Margaret Reyes. Demo clients keep the showcase. ----
+    const _sc=this.state.swSelectedClient||null;
+    const _scReal = !!(_sc && _sc.id && !String(_sc.id).startsWith('demo-'));
+    const _age=(dob)=>{ if(!dob) return ''; const d=new Date(dob); if(isNaN(d.getTime())) return ''; const t=new Date(); let a=t.getFullYear()-d.getFullYear(); const m=t.getMonth()-d.getMonth(); if(m<0||(m===0&&t.getDate()<d.getDate())) a--; return a>0?String(a):''; };
+    const cfName = _sc ? (_sc.full_name||_sc.name||'Client') : (demoMode?'Margaret Reyes':'Client');
+    const cfInit = (cfName||'C').substring(0,2).toUpperCase();
+    let cfMeta, cfNdis;
+    if(_scReal){
+      cfMeta=[_age(_sc.dob),_sc.gender,_sc.address].filter(Boolean).join(' · ')||'Participant';
+      cfNdis=_sc.ndis_number?('NDIS '+_sc.ndis_number):'';
+    } else {
+      cfMeta=demoMode?'74 · Female · Glenroy VIC':'Participant';
+      cfNdis=demoMode?'NDIS 4310 887 226':'';
+    }
+    // Clinical / preference / goal data has no real source yet → demo showcase only.
+    const cfImportant = _scReal ? [] : (demoMode ? important : []);
+    const cfPrefs = _scReal ? [] : (demoMode ? prefs : []);
+    const cfGoals = _scReal ? [] : (demoMode ? goals : []);
+    // Key contacts: real participant_contacts when connected, else demo showcase.
+    const _ct=this.state.swClientContacts||[];
+    const _ctTints=['#e0556e','#16b8a6','#6366f1','#0891b2','#d98b22'];
+    const cfContacts = _scReal
+      ? _ct.map((c,i)=>{ const nm=c.name||'Contact'; const urg=!!c.is_emergency; return {name:nm,role:[c.relationship,urg?'emergency':null].filter(Boolean).join(' · ')||'Contact',phone:c.phone||'',init:nm.substring(0,2).toUpperCase(),tint:_ctTints[i%_ctTints.length],bd:urg?'#f3d6dc':'#e7ece9',callFg:urg?'#c0445c':'#0b6b60',callBg:urg?'#fbe9ed':'#e7f4f1',callEl:ic('phone',urg?'#c0445c':'#0b6b60',12),onCall:()=>this.callNumber(c.phone)}; })
+      : (demoMode ? keyContacts : []);
+    // Client documents: demo-only showcase (no per-client doc feed wired here).
+    const cfDocs = _scReal ? [] : (demoMode ? clientDocs : []);
+    // Recent shift notes: real participant_notes when connected, else demo.
+    const _cnotes=this.state.swClientNotes||[];
+    const cfNotes = _scReal
+      ? _cnotes.map(n=>{ const _b=n.body||''; const exp=this.state.swExpandedNoteId===n.id; return {date:[_datePart(n.created_at),n.note_type].filter(Boolean).join(' · ')||'Note',preview:exp?_b:(_b.slice(0,90)+(_b.length>90?'…':'')),ws:exp?'normal':'nowrap',dot:'#16b8a6',onTap:()=>this.setState(s=>({swExpandedNoteId:s.swExpandedNoteId===n.id?null:n.id}))}; })
+      : (demoMode ? fileNotes.map(n=>Object.assign({},n,{ws:'nowrap',onTap:()=>this.push('note')})) : []);
+    const cfHasImportant=cfImportant.length>0, cfHasPrefs=cfPrefs.length>0, cfHasGoals=cfGoals.length>0;
+    const cfHasContacts=cfContacts.length>0, cfHasDocs=cfDocs.length>0, cfHasNotes=cfNotes.length>0;
+    const cfHasNdis=!!cfNdis;
+    // The participant's own contact details (from the participants row the worker
+    // entered on the add-client form). Real clients only; demo file keeps showcase.
+    const cfPhone = _scReal ? (_sc.phone||'') : (demoMode?'0400 123 456':'');
+    const cfEmail = _scReal ? (_sc.email||'') : (demoMode?'margaret.r@example.com':'');
+    const cfAddress = _scReal ? (_sc.address||'') : (demoMode?'12 Edward St, Glenroy VIC 3046':'');
+    const cfContactInfo = [
+      cfPhone ? {label:'Phone', val:cfPhone, iconEl:ic('phone','#16b8a6',15)} : null,
+      cfEmail ? {label:'Email', val:cfEmail, iconEl:ic('send','#6366f1',15)} : null,
+      cfAddress ? {label:'Address', val:cfAddress, iconEl:ic('pin','#d98b22',15)} : null
+    ].filter(Boolean);
+    const cfHasContactInfo = cfContactInfo.length>0;
+    const cfEmpty = !cfHasImportant && !cfHasPrefs && !cfHasGoals && !cfHasContacts && !cfHasDocs && !cfHasNotes && !cfHasContactInfo;
+
+    // shift note detail
+    const noteTasks=['Personal care & hygiene','Medication prompt (9:00)','Light meal preparation','Mobility / short walk'].map(label=>({label,checkEl:ic('check','#16b8a6',16,2.4)}));
+    const noteChips=['Ate well','Good mobility','Bright mood','Took medication'];
+    const noteBody='Margaret was in good spirits today. Assisted with personal care and a light breakfast, which she ate well. Medication prompted and taken at 9:00 as charted. We did a short walk to the garden — mobility steady with the frame. No concerns to report.';
+
+    // plans
+    const ck=(on)=> on?ic('check','#16b8a6',16,2.4):ic('x','#cdd8d3',15,2);
+    const feat=(label,on)=>({label,iconEl:ck(on),fg:on?'#2c4a44':'#aab6b1'});
+    const plans=[
+      {name:'Free',tagline:'get started',price:'$0',per:'/mo',badge:'',cardBg:'#fff',cardBd:'#e7ece9',shadow:'0 1px 2px rgba(20,48,43,.04)',
+        nameFg:'#14302b',subFg:'#8a9a94',priceFg:'#14302b',cta:'Current plan',btnBg:'#f1f4f2',btnFg:'#5f726d',btnBd:'none',
+        features:[feat('Profile & get discovered',true),feat('Claim shifts near you',true),feat('Clock in / out + timesheets',true),feat('Priority matching',false),feat('Document wallet',false),feat('GPS verification',false)]},
+      {name:'Pro',tagline:'most workers',price:'$49',per:'/mo',badge:'MOST POPULAR',cardBg:'#0c2622',cardBd:'#16b8a6',shadow:'0 18px 38px -20px rgba(11,80,71,.8)',
+        nameFg:'#f4faf8',subFg:'#86a39b',priceFg:'#7ce0d2',cta:'Upgrade to Pro',btnBg:'#16b8a6',btnFg:'#06201c',btnBd:'none',
+        features:[featW('Everything in Free',true),featW('Priority matching on dashboards',true),featW('Document wallet',true),featW('GPS verification',true),featW('Extra worker tools',true)]},
+      {name:'ABN / Business',tagline:'contractors',price:'$99',per:'/mo',badge:'',cardBg:'#fff',cardBd:'#e7ece9',shadow:'0 1px 2px rgba(20,48,43,.04)',
+        nameFg:'#14302b',subFg:'#8a9a94',priceFg:'#14302b',cta:'Go Business',btnBg:'#fff',btnFg:'#0b6b60',btnBd:'1.5px solid #16b8a6',
+        features:[feat('Everything in Pro',true),feat('Invoicing',true),feat('Tax invoices (GST-aware)',true),feat('ABN tools & contractor mgmt',true),feat('Connect with more providers',true)]}
+    ];
+    function featW(label,on){return {label,iconEl:ck(on),fg:'#cfe2dc'};}
+
+    // Real Stripe checkout for worker plans (live price IDs from stripe-prices.json)
+    const PLAN_PRICE={support_workers_pro:'price_1TnCzDElpzmLM2qq9clB3DAL',support_workers_premium:'price_1TnCzGElpzmLM2qqTTpZwy7u'};
+    const goCheckout=async(planKey)=>{
+      const priceId=PLAN_PRICE[planKey];
+      if(!priceId){ this.showToast('Plan unavailable — please try again'); return; }
+      this.showToast('Opening secure checkout…');
+      const headers={'Content-Type':'application/json'};
+      try{ const c=window.supabaseClient; if(c&&c.auth){ const r=await c.auth.getSession(); const t=r&&r.data&&r.data.session&&r.data.session.access_token; if(t){ headers['Authorization']='Bearer '+t; } } }catch(e){}
+      try{
+        const resp=await fetch('./api/create-checkout-session',{method:'POST',headers,body:JSON.stringify({priceId,mode:'subscription',quantity:1})});
+        const data=await resp.json().catch(()=>({}));
+        if(resp.ok&&data&&data.url){ window.location=data.url; return; }
+        this.showToast((data&&data.error)?('Checkout — '+data.error):'Checkout failed — please try again');
+      }catch(e){ this.showToast('Network error — please try again'); }
+    };
+    plans[0].onCta=()=>this.showToast("You're on the Free plan ✓");
+    plans[1].onCta=()=>goCheckout('support_workers_pro');
+    plans[2].onCta=()=>goCheckout('support_workers_premium');
+
+    const sideItems=[
+      {iconEl:ic('search','#7ce0d2',17),title:'Find Work',body:'Provider-posted shifts, ranked by your match — claim in a tap.'},
+      {iconEl:ic('folder','#7ce0d2',17),title:'Document wallet',body:'8 recommended credentials, expiry tracking, AI-sorted uploads.'},
+      {iconEl:ic('users','#7ce0d2',17),title:'Client files',body:'Allergies, mobility, preferences & note history before every visit.'},
+      {iconEl:ic('bolt','#7ce0d2',17),title:'Plans',body:'Free to start; Pro & ABN add matching, GPS, wallet and invoicing.'}
+    ];
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      // Cash-out / pay-wallet is a DEMO-ONLY showcase: CiaraLink does not yet
+      // hold or disburse worker funds (that needs a licensed payout rail). Keep
+      // it honest rather than promising a feature that does not exist.
+      previewCashOut:()=>this.showToast('The CiaraLink Pay Wallet is a preview — payouts go through your provider for now'),
+      // Real: print / save-as-PDF the on-screen shift note.
+      previewExportPdf:()=>{ try{ window.print(); }catch(e){ this.showToast('Printing unavailable on this device'); } },
+      // Real: open the messaging surface to send this note to your coordinator.
+      previewSend:()=>{ window.location.href='CiaraLink Connect.dc.html'; },
+      // Real: append a language/skill to your own profile (persisted).
+      previewAddLanguage:()=>this.addProfileTag('languages'),
+      previewAddSkill:()=>this.addProfileTag('skills'),
+      // Real: dial the selected client's number (header call button).
+      previewCall:()=>this.callNumber(cfPhone),
+      // Real: open the conversation in CiaraLink Connect (messaging surface).
+      previewOpenThread:()=>this.openThread(null),
+      sigEl:ic('sig','#14302b',15,2),wifiEl:ic('wifi','#14302b',15,2),battEl:ic('batt','#14302b',16,1.8),
+      isHome:v==='home',isWork:v==='work',isDocs:v==='docs',isClients:v==='clients',isMe:v==='me',
+      isClientFile:v==='client',isNote:v==='note',isPlans:v==='plans',isPayments:v==='payments',
+      isShiftNotes:v==='shift_notes',isAvailability:v==='avail',isMessages:v==='msg',
+      showTabs:isTab,tabs,
+      payments,checkTealEl:ic('check','#16b8a6',15,2.4),checkDkEl:ic('check','#06201c',15,2.6),
+      walletEl:ic('wallet','#7ce0d2',15),bankEl:ic('bank','#06201c',17),bankSmEl:ic('bank','#86a39b',13),
+      goPayments:()=>this.push('payments'),
+      goPlans:()=>this.push('plans'),goWork:()=>this.setView('work'),
+      openNote:()=>this.push('note'),openClient:()=>this.push('client'),
+      back:()=>this.setView(this.state.backTo),
+      backEl:ic('back','#14302b',18),chevEl:ic('chev','#b6c4be',16),
+      bellEl:ic('bell','#3a544e',19),pinSmEl:ic('pin','#a9cfc8',15),clockSmEl:ic('clock','#dff5f1',15),
+      tagSmEl:ic('tag','#dff5f1',15),lockTinyEl:ic('lock','#8fb3aa',16),boltAmberEl:ic('bolt','#d98b22',17),
+      hasNextShift,noNextShift:!hasNextShift,nextShiftLabel,nextShiftName,nextShiftLocation,nextShiftTime,nextShiftType,
+      clockAction,clockBtnLabel,clockSubLabel,clockBtnBg,clockBtnFg,clockCursor,clockIconEl,
+      demoMode,realMode:!demoMode,
+      earnedValue,earnedSub,hoursValue,hoursSub,planLabel,workPlanTitle,workPlanSub,
+      recentNotes,paySteps,payCheckEl:ic('check','#1e9e6a',18,2.4),clockSmDkEl:ic('clock','#9aa8a3',14),
+      languages: demoMode ? ['English','Turkish','Arabic'] : (this.state.swLanguages||[]),
+      profSkills: demoMode ? ['Hoist transfers','Medication','Personal care','Meal prep','Driver','Dementia care'] : (this.state.swSkills||[]),
+      idCardEl:ic('user','#16b8a6',16),
+      filterEl:ic('filter','#3a544e',18),infoBlueEl:ic('info','#6366f1',17),workFilters,workSections,noWorkShifts,lockWEl:ic('lock','#eafaf8',18),
+      docRing,uploadEl:ic('upload','#16b8a6',22),sparkTinyEl:ic('spark','#16b8a6',13),
+      docsList,docsHeader,docCountLabel,docSetTitle,docSetSub,noDocs,uploadLabel,onDocFile,
+      runScan:()=>this.runScan(),scanIdle:this.state.scan==='idle',scanReading:this.state.scan==='reading',scanDone:this.state.scan==='done',
+      scanBd:this.state.scan==='done'?'#cce9d8':(this.state.scan==='reading'?'#16b8a6':'#b6d8d0'),
+      scanBg:this.state.scan==='done'?'#f3fbf7':'#f1faf8',scanCheckEl:ic('check','#1e9e6a',22,2.4),
+      clients,alertSmEl:ic('alert','#e0556e',16),
+      starGoldEl:ic('star','#d98b22',15),boltWEl:ic('bolt','#eafaf8',18),settings,
+      workerName:this.state.authName||'Your account',
+      workerFirst:this.state.authName?this.state.authName.split(/\s+/)[0]:'there',
+      workerInitials:this.state.authInitials||'CL',
+      workerRole:this.state.authRole||'Support Worker',
+      noRecentNotes:recentNotes.length===0,
+      noClients:clients.length===0,
+      // self-rostering actions + forms
+      swAddClientOpen:this.state.swAddClientOpen,
+      swNewShiftOpen:this.state.swNewShiftOpen,
+      swRosterClients:rosterPickList,
+      hasRosterClients:rosterPickList.length>0,
+      noRosterClients:rosterPickList.length===0,
+      openAddClient:()=>this.openAddClient(),
+      closeAddClient:()=>this.closeAddClient(),
+      submitAddClient:()=>this.submitAddClient(),
+      openNewShift:()=>this.openNewShift(),
+      closeNewShift:()=>this.closeNewShift(),
+      submitNewShift:()=>this.submitNewShift(),
+      goRoster:()=>this.goRoster(),
+      onAcName:(e)=>this.setState({acName:e.target.value}),
+      onAcNdis:(e)=>this.setState({acNdis:e.target.value}),
+      onAcPhone:(e)=>this.setState({acPhone:e.target.value}),
+      onAcEmail:(e)=>this.setState({acEmail:e.target.value}),
+      onAcAddress:(e)=>this.setState({acAddress:e.target.value}),
+      onNsClient:(e)=>this.setState({nsParticipant:e.target.value}),
+      onNsDate:(e)=>this.setState({nsDate:e.target.value}),
+      onNsStart:(e)=>this.setState({nsStart:e.target.value}),
+      onNsEnd:(e)=>this.setState({nsEnd:e.target.value}),
+      onNsType:(e)=>this.setState({nsType:e.target.value}),
+      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},
+      goBilling:()=>{window.location.href='billing.html';},
+      signOutSmEl:ic('logout','#c0445c',16),
+      openConnect:()=>{ window.location.href='CiaraLink Connect.dc.html'; },
+      // Shift notes
+      swNoteFormOpen:this.state.swNoteFormOpen||false,
+      openNewNote:()=>this.setState({swNoteFormOpen:true,swNoteText:''}),
+      closeNewNote:()=>this.setState({swNoteFormOpen:false}),
+      onSwNoteChange:(e)=>this.setState({swNoteText:e.target.value}),
+      onSwNoteClient:(e)=>this.setState({swNoteClient:e.target.value}),
+      submitSwNote:()=>{
+        const txt=(this.state.swNoteText||'').trim();
+        if(!txt){return;}
+        // Resolve the chosen client from the real dropdown list (id+name).
+        const pid=this.state.swNoteClient||'';
+        const picked=rosterPickList.find(c=>c.id===pid)||(rosterPickList.length===1?rosterPickList[0]:null);
+        if(!picked){ this.showToast('Pick a client for this note'); return; }
+        const realPid = !String(picked.id).startsWith('demo-') ? picked.id : null;
+        const AD=window.AegisData;
+        const now=AD?AD.now():new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});
+        const note={_id:AD?AD.uid():'n'+Date.now(),client:picked.name,init:(picked.name||'C').substring(0,2).toUpperCase(),date:now,body:txt};
+        if(AD) AD.push('sw_shift_notes',note);
+        this.setState(s=>({swNoteFormOpen:false,swNoteText:'',swNoteClient:'',swSavedNotes:[note,...(s.swSavedNotes||[])]}));
+        // Real save to Supabase (RLS: shift_notes_worker_insert) only when we
+        // have a real participant + org. Honest success only on a real write.
+        if(!demoMode){
+          if(realPid && this.state.swOrgId && window.createShiftNote){
+            Promise.resolve(window.createShiftNote({participant_id:realPid,org_id:this.state.swOrgId,body:txt}))
+              .then(res=>{ if(!res||res.error){ console.error('createShiftNote error:',res&&res.error); this.showToast('Saved on device — sync failed'); } else { this.showToast('Shift note saved ✓'); this.loadShiftNotesFromDb(); } })
+              .catch(err=>{ console.error('createShiftNote error:',err); this.showToast('Saved on device — sync failed'); });
+          } else {
+            this.showToast(this.state.swOrgId?'Saved on device':'Saved on device — sign in to sync');
+          }
+        } else {
+          this.showToast('Note saved (preview)');
+        }
+      },
+      swSavedNotes:this.state.swSavedNotes||[],
+      noSwNotes:(this.state.swSavedNotes||[]).length===0,
+      // Availability
+      availDays:(()=>{
+        const av=this.state.avail||{};
+        return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day=>{
+          const slots=['AM','PM','Eve'].map(s=>{
+            const k=day+s;
+            const on=av[k];
+            return {label:s,toggle:()=>this.setState(st=>({avail:{...(st.avail||{}),[k]:!((st.avail||{})[k])}})),bd:on?'#16b8a6':'#e2e9e6',bg:on?'#f0faf8':'#fff',fg:on?'#0b6b60':'#9aa8a3'};
+          });
+          return {day,slots};
+        });
+      })(),
+      saveAvail:()=>{
+        const AD=window.AegisData;
+        if(AD) AD.set('sw_avail',this.state.avail||{});
+        this.setState({availSaved:true});
+        setTimeout(()=>this.setState({availSaved:false}),2000);
+      },
+      // Messages — real RLS-scoped threads when connected, else demo showcase.
+      // Tapping a thread opens the real messaging surface (CiaraLink Connect).
+      msgThreads:(()=>{
+        const _mtTints=['#16b8a6','#6366f1','#0891b2','#d98b22','#9333ea'];
+        const real=this.state.swThreads;
+        if(real && real.length>0){
+          return real.map((t,i)=>{
+            const nm=t.subject||(t.type?(t.type.charAt(0).toUpperCase()+t.type.slice(1)+' conversation'):'Conversation');
+            return {name:nm,init:(nm||'C').substring(0,2).toUpperCase(),tint:_mtTints[i%_mtTints.length],
+              preview:t.type?('Tap to open · '+t.type):'Tap to open conversation',
+              when:t.updated_at?_datePart(t.updated_at):'',unread:null,
+              onClick:()=>this.openThread(t)};
+          });
+        }
+        if(!demoMode) return [];
+        return [
+          {name:'Brightside Care',init:'BC',tint:'#16b8a6',preview:'Your shift on Friday has been confirmed',when:'2h ago',unread:2,onClick:()=>this.openThread(null)},
+          {name:'Sarah Kelly (SC)',init:'SK',tint:'#6366f1',preview:'Thank you for the shift note — all looks good',when:'Yesterday',unread:null,onClick:()=>this.openThread(null)},
+          {name:'Margaret Reyes',init:'MR',tint:'#0891b2',preview:'See you Thursday — looking forward to it!',when:'2 days ago',unread:null,onClick:()=>this.openThread(null)},
+        ];
+      })(),
+      noMsgThreads:!demoMode && !((this.state.swThreads||[]).length>0),
+      pro:this.state.pro,free:!this.state.pro,
+      togglePro:()=>this.setState(s=>({pro:!s.pro})),
+      togglePhoto:()=>this.setState(s=>({showPhoto:!s.showPhoto})),
+      proToggleLabel:this.state.pro?'Viewing as Pro':'Preview Pro',
+      photoLabel:this.state.showPhoto?'Photo: on':'Photo: off',
+      photoBtnBg:this.state.showPhoto?'#e7f4f1':'#fff',photoBtnFg:this.state.showPhoto?'#0b6b60':'#8a9a94',photoBtnBd:this.state.showPhoto?'#cfeae5':'#e2e9e6',
+      photoIconEl:ic(this.state.showPhoto?'eye':'eyeoff',this.state.showPhoto?'#0b6b60':'#8a9a94',15),
+      cameraTinyEl:ic('camera','#9aa8a3',15),verifiedEl:ic('shield','#0b6b60',13),sparkProEl:ic('spark','#7ce0d2',18),eyeEl:ic('eye','#0b6b60',15),
+      phoneTealEl:ic('phone','#16b8a6',15),
+      phoneEl:ic('phone','#16b8a6',16),alertRedEl:ic('alert','#e0556e',16),fileEl:ic('file','#6366f1',16),downloadEl:ic('download','#b6c4be',17),
+      cfName,cfInit,cfMeta,cfNdis,cfHasNdis,cfImportant,cfPrefs,cfGoals,cfContacts,cfDocs,cfNotes,
+      cfHasImportant,cfHasPrefs,cfHasGoals,cfHasContacts,cfHasDocs,cfHasNotes,cfEmpty,
+      cfContactInfo,cfHasContactInfo,
+      pinGreenEl:ic('pin','#16b8a6',15),qrPurpleEl:ic('shield','#6366f1',15),smileEl:ic('smile','#1e9e6a',14),
+      noteTasks,noteChips,noteBody,cameraSmEl:ic('camera','#b6c4be',18),pdfEl:ic('pdf','#2c4a44',16),sendEl:ic('send','#06201c',16),
+      plans,sideItems
+    };
+  }
+}
+</script>
+</body>
+</html>

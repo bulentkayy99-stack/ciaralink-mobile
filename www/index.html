@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CiaraLink — Care OS</title>
+  <meta name="theme-color" content="#14302b" />
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+  <style>
+    html,body{height:100%;margin:0;background:#14302b;color:#16b8a6;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+    .wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;}
+    img{width:96px;height:96px;border-radius:22px;}
+    .dot{width:8px;height:8px;border-radius:50%;background:#16b8a6;animation:p 1s infinite ease-in-out;}
+    @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+  </style>
+  <script>
+    window.location.replace('Login.dc.html?source=app');
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <img src="icons/ciaralink-worker-512.png" alt="CiaraLink" />
+    <div class="dot"></div>
+    <noscript><a href="Login.dc.html" style="color:#16b8a6">Open CiaraLink</a></noscript>
+  </div>
+</body>
+</html>

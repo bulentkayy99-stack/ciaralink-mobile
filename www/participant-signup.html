@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Create your participant account — CiaraLink</title>
+<meta name="description" content="Create your CiaraLink participant account, add your details and your NDIS plan — all in one place."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script>
+  window.ENV = window.ENV || {};
+</script>
+<script src="./env.local.js?v=20260628"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
+
+<style>
+:root{
+  --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
+  --ink:#0a1c19; --ink-2:#0c2622; --ink-3:#091815;
+  --paper:#f5f8f7; --paper-2:#eef3f1; --card:#ffffff;
+  --tx:#14302b; --tx-2:#52716b; --tx-3:#4a6764;
+  --on-dark:#f4faf8; --on-dark-2:#9fc1bb; --on-dark-3:#4e726b;
+  --line:#e2eae7; --line-d:rgba(255,255,255,.08);
+  --rad:22px; --rad-s:14px; --shadow:0 30px 80px -30px rgba(8,40,36,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--paper);-webkit-font-smoothing:antialiased;min-height:100vh;line-height:1.5}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.shell{min-height:100vh;display:flex}
+.brandside{width:42%;max-width:520px;flex:0 0 42%;background:linear-gradient(185deg,var(--ink-2) 0%,var(--ink) 60%,var(--ink-3) 100%);color:var(--on-dark);display:flex;flex-direction:column;padding:48px 50px;position:relative;overflow:hidden}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));display:flex;align-items:center;justify-content:center}
+.brand-name{font-size:19px;font-weight:900;letter-spacing:-.02em}
+.brand-tag{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--on-dark-2)}
+.brand-copy{margin-top:auto;margin-bottom:auto}
+.brand-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#bdf0e8;background:rgba(22,184,166,.12);border:1px solid rgba(22,184,166,.25);padding:6px 13px;border-radius:30px}
+.brand-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--teal-2)}
+.brand-copy h2{font-size:32px;font-weight:900;letter-spacing:-.02em;margin:18px 0 12px;line-height:1.1}
+.grad{background:linear-gradient(120deg,var(--teal-2),#7ce0d2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brand-copy p{font-size:14.5px;color:var(--on-dark-2);line-height:1.6;max-width:380px}
+.brand-points{margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.brand-points span{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--on-dark)}
+.tk{width:20px;height:20px;border-radius:6px;flex:0 0 20px;background:rgba(22,184,166,.18);color:var(--teal-2);display:flex;align-items:center;justify-content:center}
+
+.formside{flex:1;display:flex;justify-content:center;padding:44px 40px;overflow-y:auto}
+.card{width:100%;max-width:520px}
+.card-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--tx-2);margin-bottom:20px}
+.card-back:hover{color:var(--teal-d)}
+.card-brand{display:none;align-items:center;gap:10px;margin-bottom:22px}
+.status{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:11px;margin-bottom:18px;background:#e7f4f1;color:var(--teal-d);border:1px solid #cfe9e2}
+.status .sdot{width:8px;height:8px;border-radius:50%;background:var(--teal-d)}
+.status.warn{background:#fef6e7;color:#9a6a14;border-color:#f2e2bd}
+.status.warn .sdot{background:#d98b22}
+h1{font-size:27px;font-weight:900;letter-spacing:-.02em}
+.lede{font-size:14px;color:var(--tx-2);margin:7px 0 22px}
+.sect{font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--tx-3);margin:24px 0 12px;display:flex;align-items:center;gap:9px}
+.sect::after{content:"";flex:1;height:1px;background:var(--line)}
+.row{display:flex;gap:12px}
+.field{margin-bottom:13px;flex:1}
+label{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--tx-3);margin-bottom:6px}
+.opt{color:#a9bbb6;font-weight:700}
+input,select,textarea{width:100%;height:46px;border:1.5px solid #dce5e2;border-radius:12px;padding:0 13px;font-family:inherit;font-size:14px;color:var(--tx);background:#fff;transition:border-color .15s,box-shadow .15s}
+textarea{height:64px;padding:11px 13px;resize:none;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,184,166,.14)}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:800;color:var(--teal-d);background:none;border:none;cursor:pointer;font-family:inherit}
+.file{border:1.5px dashed #b8d8d0;border-radius:13px;padding:16px;text-align:center;background:#f6fbfa;cursor:pointer;display:block}
+.file:hover{border-color:var(--teal);background:#f0faf8}
+.file input{display:none}
+.file .ft{font-size:13px;font-weight:800;color:var(--teal-d)}
+.file .fs{font-size:11.5px;color:var(--tx-3);margin-top:3px}
+.file.has .ft{color:var(--tx)}
+.alert{display:none;align-items:flex-start;gap:9px;font-size:13px;font-weight:600;padding:11px 13px;border-radius:11px;margin-bottom:14px;line-height:1.45}
+.alert.err{display:flex;background:#fdecef;color:#b32d4a;border:1px solid #f5cdd6}
+.alert.ok{display:flex;background:#e7f6ee;color:#1e7a52;border:1px solid #c7ead5}
+.btn-primary{width:100%;height:52px;margin-top:20px;border:none;border-radius:14px;background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -12px rgba(14,147,132,.7);transition:transform .15s,filter .15s}
+.btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.6;cursor:default;transform:none}
+.spinner{width:17px;height:17px;border:2.4px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.alt{text-align:center;font-size:13px;color:var(--tx-2);margin-top:18px}
+.alt a{color:var(--teal-d);font-weight:700}
+.legal{text-align:center;font-size:11.5px;color:var(--tx-3);line-height:1.55;margin-top:18px}
+.legal a{color:var(--teal-d);font-weight:600}
+@media(max-width:900px){.brandside{display:none}.card-brand{display:flex}.formside{padding:36px 20px}}
+@media(prefers-reduced-motion:reduce){.btn-primary{transition:none}.btn-primary:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="brandside">
+    <a class="brand" href="./landing.html">
+      <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
+    </a>
+    <div class="brand-copy">
+      <span class="brand-pill"><span class="dot"></span> Participant sign-up</span>
+      <h2>Your care, your plan — <span class="grad">in your hands.</span></h2>
+      <p>Create your account, add your details and your NDIS plan once. Then choose who on your care team can see what — you stay in control.</p>
+      <div class="brand-points">
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Your NDIS plan, safely in one place</span>
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Consent-based access you control</span>
+        <span><span class="tk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> One connected record for your whole team</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="formside">
+    <div class="card">
+      <a class="card-back" href="./landing.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back to home</a>
+      <a class="card-brand" href="./landing.html">
+        <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.2" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.2" stroke="#fff" stroke-width="2"/><path d="M10.3 10.3l3.4 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span><span class="brand-name">CiaraLink</span></span>
+      </a>
+
+      <div class="status" id="status"><span class="sdot"></span><span id="statusLabel">Checking connection…</span></div>
+
+      <h1>Create your participant account</h1>
+      <p class="lede">Add your details and your NDIS plan. It takes a couple of minutes — you can update anything later.</p>
+
+      <div class="alert err" id="errBox" role="alert" style="display:none"><span id="errMsg"></span></div>
+      <div class="alert ok" id="okBox" role="status" style="display:none"><span id="okMsg"></span></div>
+
+      <form id="signupForm" novalidate>
+        <div class="sect">YOUR ACCOUNT</div>
+        <div class="field">
+          <label for="full_name">Full name</label>
+          <input id="full_name" name="full_name" type="text" autocomplete="name" placeholder="e.g. Margaret Reyes" required/>
+        </div>
+        <div class="row">
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required/></div>
+          <div class="field"><label for="phone">Phone <span class="opt">(optional)</span></label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0400 000 000"/></div>
+        </div>
+        <div class="field">
+          <label for="password">Create a password</label>
+          <div class="pw-wrap">
+            <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required/>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-pressed="false">Show</button>
+          </div>
+        </div>
+
+        <div class="sect">YOUR DETAILS</div>
+        <div class="row">
+          <div class="field"><label for="dob">Date of birth <span class="opt">(optional)</span></label><input id="dob" type="date"/></div>
+          <div class="field"><label for="gender">Gender <span class="opt">(optional)</span></label><input id="gender" type="text" placeholder="e.g. Female"/></div>
+        </div>
+        <div class="field"><label for="address">Address <span class="opt">(optional)</span></label><textarea id="address" placeholder="Street, suburb, state, postcode"></textarea></div>
+
+        <div class="sect">YOUR NDIS PLAN</div>
+        <div class="row">
+          <div class="field"><label for="ndis_number">NDIS number <span class="opt">(optional)</span></label><input id="ndis_number" inputmode="numeric" placeholder="430 000 000"/></div>
+          <div class="field">
+            <label for="funding_type">How is your plan managed? <span class="opt">(optional)</span></label>
+            <select id="funding_type">
+              <option value="">Select…</option>
+              <option value="Self-managed">Self-managed</option>
+              <option value="Plan-managed">Plan-managed</option>
+              <option value="Agency-managed">Agency-managed (NDIA)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="plan_start">Plan start <span class="opt">(optional)</span></label><input id="plan_start" type="date"/></div>
+          <div class="field"><label for="plan_end">Plan end <span class="opt">(optional)</span></label><input id="plan_end" type="date"/></div>
+        </div>
+        <div class="field"><label for="plan_manager">Plan manager <span class="opt">(optional)</span></label><input id="plan_manager" type="text" placeholder="Name of your plan manager / company"/></div>
+        <div class="field">
+          <label>Upload your NDIS plan <span class="opt">(optional, PDF)</span></label>
+          <label class="file" id="fileLabel">
+            <input id="planFile" type="file" accept="application/pdf,.pdf,image/*"/>
+            <div class="ft" id="fileText">Tap to choose your plan document</div>
+            <div class="fs">PDF or photo · stays private to you and the team you allow</div>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">
+          <span id="submitLabel">Create my account</span>
+          <span class="arrow"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+      </form>
+
+      <p class="alt">Already have an account? <a href="./signin.html">Sign in</a></p>
+      <p class="legal">By creating an account you agree to CiaraLink's <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var form = $('signupForm'), btn = $('submitBtn'), label = $('submitLabel');
+  var errBox = $('errBox'), errMsg = $('errMsg'), okBox = $('okBox'), okMsg = $('okMsg');
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+  var configured = function(){ return !!(window.isSupabaseConfigured && window.isSupabaseConfigured()); };
+
+  function showErr(m){ errMsg.textContent = m; errBox.style.display='flex'; okBox.style.display='none'; }
+  function showOk(m){ okMsg.textContent = m; okBox.style.display='flex'; errBox.style.display='none'; }
+  function clearMsg(){ errBox.style.display='none'; okBox.style.display='none'; }
+  function busy(on, text){
+    btn.disabled=on;
+    label.innerHTML = on ? (text||'Creating…') : 'Create my account';
+    // Always clear any existing spinner first so they don't accumulate across calls.
+    var existing = btn.querySelector('.spinner');
+    if(existing){ existing.parentNode.removeChild(existing); }
+    if(on){ var s=document.createElement('span'); s.className='spinner'; label.parentNode.insertBefore(s,label.nextSibling? label.nextSibling:null);} }
+
+  // connection badge
+  (function(){
+    var st=$('status'), lab=$('statusLabel');
+    if(configured()){ lab.textContent='Secure connection ready'; }
+    else { st.className='status warn'; lab.textContent='Preview mode — sign-up unavailable here. Visit the live site.'; }
+  })();
+
+  // password show/hide
+  $('pwToggle').addEventListener('click', function(){
+    var p=$('password'); var show=p.type==='password'; p.type=show?'text':'password';
+    this.textContent=show?'Hide':'Show'; this.setAttribute('aria-pressed', show?'true':'false');
+  });
+  // file label
+  $('planFile').addEventListener('change', function(){
+    var f=this.files && this.files[0];
+    $('fileText').textContent = f ? f.name : 'Tap to choose your plan document';
+    $('fileLabel').classList.toggle('has', !!f);
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    clearMsg();
+    var full_name=$('full_name').value.trim();
+    var email=$('email').value.trim();
+    var password=$('password').value;
+    if(!full_name){ showErr('Please enter your full name.'); return; }
+    if(!email){ showErr('Please enter your email.'); return; }
+    if(!password || password.length<8){ showErr('Password must be at least 8 characters.'); return; }
+    if(!configured()){ showErr('Sign-up isn’t available in preview. Please use the live site.'); return; }
+
+    var client = window.getSupabaseClient && window.getSupabaseClient();
+    if(!client){ showErr('Connection not ready — please refresh and try again.'); return; }
+
+    busy(true, 'Creating account…');
+    try{
+      var phone=$('phone').value.trim();
+      // 1) create the auth account (role drives the signup trigger → participant org)
+      var su = await client.auth.signUp({ email:email, password:password, options:{ data:{ full_name:full_name, phone:phone, role:'participant' } } });
+      if(su.error){
+        var m = su.error.message||'Sign-up failed';
+        if(/already registered|already exists/i.test(m)) m='That email already has an account — try signing in instead.';
+        showErr(m); busy(false); return;
+      }
+      // 2) ensure we have a session (email confirmation is off on this project)
+      var session = su.data && su.data.session;
+      if(!session && window.signInWithEmail){
+        var si = await window.signInWithEmail(email, password);
+        if(si && si.error){ busy(false); showOk('Account created. Please check your email to confirm, then sign in.'); setTimeout(function(){location.href='signin.html';},2500); return; }
+      }
+
+      // 3) wait for the signup trigger to create the participant_account org
+      busy(true, 'Setting up your record…');
+      var orgId=null;
+      for(var i=0;i<12;i++){
+        try{ var ctx=await window.loadCurrentUserContext(); if(ctx && ctx.organisationId){ orgId=ctx.organisationId; break; } }catch(_){}
+        await sleep(700);
+      }
+
+      // 4) create the participant record (details + plan fields)
+      var details = {
+        full_name:full_name, email:email, phone:phone,
+        dob:$('dob').value||null, gender:$('gender').value.trim()||null, address:$('address').value.trim()||null,
+        ndis_number:$('ndis_number').value.trim()||null, funding_type:$('funding_type').value||null,
+        plan_start:$('plan_start').value||null, plan_end:$('plan_end').value||null, plan_manager:$('plan_manager').value.trim()||null
+      };
+      var participant=null;
+      var planSaveFailed=false;
+      if(window.createSelfParticipant){
+        var pr = await window.createSelfParticipant(details);
+        if(pr && pr.error){
+          console.error('createSelfParticipant:', pr.error);
+          // Soft, non-blocking notice — the RPC is idempotent so the user can retry from the dashboard.
+          planSaveFailed=true;
+          showOk("Account created — but we couldn't save your plan details yet. You can add them from your dashboard.");
+        }
+        participant = pr && pr.participant;
+      }
+
+      // 5) upload the NDIS plan document if provided
+      var f = $('planFile').files && $('planFile').files[0];
+      if(f && window.uploadSelfPlanDocument){
+        busy(true, 'Uploading your plan…');
+        try{
+          var up = await window.uploadSelfPlanDocument({ file:f, participant_id: participant && participant.id, org_id: orgId, title:'NDIS Plan' });
+          if(up && up.error) console.error('plan upload:', up.error);
+        }catch(uErr){ console.error('plan upload error:', uErr); }
+      }
+
+      // 6) remember the session + go to the participant dashboard
+      try{
+        var uid = (session && session.user && session.user.id) || (su.data && su.data.user && su.data.user.id) || null;
+        localStorage.setItem('ciaralink_session', JSON.stringify({ loggedIn:true, supabase:true, userId:uid, role:'participant', ts:Date.now() }));
+      }catch(_){}
+      // Keep the soft plan-save notice visible (and give it longer to read) if it failed.
+      showOk(planSaveFailed
+        ? "Account created — but we couldn't save your plan details yet. You can add them from your dashboard. Taking you in…"
+        : 'All set! Taking you to your dashboard…');
+      setTimeout(function(){ location.href='Participant Dashboard.dc.html'; }, planSaveFailed ? 2800 : 1200);
+    }catch(err){
+      console.error('signup error:', err);
+      showErr((err && err.message) || 'Something went wrong. Please try again.');
+      busy(false);
+    }
+  });
+})();
+</script>
+</body>
+</html>

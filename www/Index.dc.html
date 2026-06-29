@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#0a1c19;color:#eaeeec;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;padding:48px 40px 80px">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:48px">
+    <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+    <div>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div>
+      <div style="font-size:10.5px;letter-spacing:.18em;color:#3d5e58;font-weight:700">LAUNCH PREVIEW</div>
+    </div>
+    <div style="flex:1"></div>
+    <a href="Login.dc.html" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;background:#16b8a6;color:#06201c;font-size:13.5px;font-weight:800">{{ arrowEl }}Enter via Login</a>
+  </div>
+
+  <!-- Production blocked banner -->
+  <!-- Production blocked banner -->
+  <div style="background:linear-gradient(135deg,#2d0810,#4a0e1a);border:1.5px solid rgba(224,85,110,.35);border-radius:14px;margin-bottom:12px;overflow:hidden">
+    <!-- Top row -->
+    <div style="padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f4a0b0" stroke-width="2.2" stroke-linecap="round" style="flex:0 0 18px"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+      <span style="font-size:13px;font-weight:800;color:#f4a0b0">Launch Preview — Not Production Ready</span>
+      <span style="font-size:13px;color:#f4a0b0">— connected to Supabase Dev (Auth + RLS + schema live) for controlled testing. Core backend is built and several pages read/write real data, but billing, full data wiring, email and a security review must be completed and evidenced before real participant data is used.</span>
+      <div style="flex:1"></div>
+      <button onClick="{{ toggleBlocked }}" style="font-size:12px;font-weight:800;color:#e0556e;background:rgba(224,85,110,.15);border:1px solid rgba(224,85,110,.3);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ toggleLabel }}</button>
+      <a href="CiaraLink Security Checklist.dc.html" style="font-size:12px;font-weight:800;color:#f4a0b0;text-decoration:none;white-space:nowrap;padding:5px 12px;background:rgba(224,85,110,.1);border-radius:8px;border:1px solid rgba(224,85,110,.2)">Full checklist →</a>
+    </div>
+    <!-- Expanded panel -->
+    <sc-if value="{{ blockedOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="border-top:1px solid rgba(224,85,110,.2);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- 17 requirements -->
+        <div>
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#f4a0b0;margin-bottom:12px">PRODUCTION READINESS — 5 OF 17 DONE</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ blockedReqs }}" as="br" hint-placeholder-count="17">
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px">
+                <span style="font-size:11px;font-weight:800;color:#6c7f79;min-width:18px">{{ br.n }}</span>
+                <span style="font-size:12.5px;color:#f4a0b0;flex:1">{{ br.label }}</span>
+                <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:{{ br.sBg }};color:{{ br.sFg }};white-space:nowrap">{{ br.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <!-- Supabase status + warning -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:10px">SUPABASE STATUS</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <sc-for list="{{ supabaseStatus }}" as="ss" hint-placeholder-count="8">
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px">
+                  <span style="font-size:12.5px;color:#9dcdc8;flex:1">{{ ss.label }}</span>
+                  <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:{{ ss.sBg }};color:{{ ss.sFg }}">{{ ss.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px;padding:10px 12px;background:rgba(22,184,166,.08);border:1px solid rgba(22,184,166,.15);border-radius:10px">
+              <div style="font-size:12px;color:#7ce0d2;line-height:1.6">Using Supabase is the correct backend direction, but Supabase only protects CiaraLink once Auth, RLS policies, private Storage, consent rules, audit logs and environment separation are configured correctly.</div>
+            </div>
+          </div>
+          <div style="padding:12px 14px;background:rgba(224,85,110,.1);border:1px solid rgba(224,85,110,.2);border-radius:10px">
+            <div style="font-size:11px;font-weight:800;color:#f4a0b0;margin-bottom:5px">⚠️ DATA WARNING</div>
+            <div style="font-size:12px;color:#f4a0b0;line-height:1.65">Use demo data only. Do not upload real participant, worker or provider documents. Do not enter real NDIS numbers, names, addresses, health details or funding information until Supabase production security controls are complete.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- Status bar -->
+  <div style="background:rgba(22,184,166,.08);border:1px solid rgba(22,184,166,.15);border-radius:14px;padding:14px 20px;margin-bottom:40px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex:0 0 8px"></span><span style="font-size:13px;font-weight:700;color:#eafaf8">29 screens · Launch Preview / Controlled Testing</span></div>
+    <div style="width:1px;height:16px;background:rgba(255,255,255,.1)"></div>
+    <div style="font-size:13px;color:#4e726b">Login · role routing · Consent Centre · Task Centre · Notification Centre · Settings</div>
+    <div style="flex:1"></div>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3d5e58">{{ buildDate }}</span>
+  </div>
+
+  <!-- Role sections -->
+  <div style="display:flex;flex-direction:column;gap:36px">
+    <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="4">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ sec.iconBg }}">{{ sec.iconEl }}</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#f4faf8">{{ sec.title }}</div>
+            <div style="font-size:12px;color:#4e726b">{{ sec.sub }}</div>
+          </div>
+          <sc-if value="{{ sec.entryUrl }}" hint-placeholder-val="">
+            <a href="{{ sec.entryUrl }}" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1px solid rgba(22,184,166,.25);color:#16b8a6;font-size:12.5px;font-weight:700">Open dashboard {{ arrowSmEl }}</a>
+          </sc-if>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+          <sc-for list="{{ sec.screens }}" as="sc2" hint-placeholder-count="3">
+            <a href="{{ sc2.url }}" style="display:block;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 18px;transition:all .15s" style-hover="background:rgba(22,184,166,.08);border-color:rgba(22,184,166,.25)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:30px;height:30px;border-radius:8px;background:{{ sc2.tintBg }};display:flex;align-items:center;justify-content:center;flex:0 0 30px">{{ sc2.iconEl }}</div>
+                <span style="font-size:13.5px;font-weight:700;color:#f4faf8">{{ sc2.label }}</span>
+                <sc-if value="{{ sc2.badge }}" hint-placeholder-val="">
+                  <span style="margin-left:auto;font-size:10px;font-weight:700;color:{{ sc2.badgeFg }};background:{{ sc2.badgeBg }};padding:2px 7px;border-radius:6px">{{ sc2.badge }}</span>
+                </sc-if>
+              </div>
+              <div style="font-size:11.5px;color:#4e726b;line-height:1.5">{{ sc2.desc }}</div>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:56px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div style="font-size:12px;color:#3d5e58">CiaraLink Care OS · Launch Preview</div>
+    <div style="flex:1"></div>
+    <a href="Login.dc.html" style="font-size:12.5px;font-weight:700;color:#16b8a6">Login page</a>
+    <a href="CiaraLink Onboarding.dc.html" style="font-size:12.5px;font-weight:700;color:#16b8a6">Onboarding flow</a>
+    <a href="Service Agreement.dc.html" style="font-size:12.5px;font-weight:700;color:#16b8a6">Service agreement</a>
+    <a href="AI File Drop.dc.html" style="font-size:12.5px;font-weight:700;color:#16b8a6">AI File Drop</a>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { blockedOpen: false };
+  ic(n,c,s){
+    const P={
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      building:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8',
+      star:'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8-5-4.9 6.9-1z',
+      heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5',
+      spark:'M13 2L4 14h7l-1 8 9-12h-7z',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      phone:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.9.6 2.9.7A2 2 0 0 1 22 16.9z',
+      arrow:'M5 12h14 M12 5l7 7-7 7',
+      chev:'M9 6l6 6-6 6',
+      hub:'M12 12m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1',
+      upload:'M12 19V5 M5 12l7-7 7 7',
+      check:'M20 6L9 17l-5-5',
+      passport:'M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M12 8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M8 17a4 4 0 0 1 8 0',
+      visit:'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+      ai:'M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2z M14.5 8A2.5 2.5 0 0 1 17 10.5v9a2.5 2.5 0 0 1-5 0v-9A2.5 2.5 0 0 1 14.5 8z M4.5 14A2.5 2.5 0 0 1 7 16.5v3a2.5 2.5 0 0 1-5 0v-3A2.5 2.5 0 0 1 4.5 14z',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const { blockedOpen } = this.state;
+    const toggleBlocked = () => this.setState(s => ({ blockedOpen: !s.blockedOpen }));
+
+    const mkStatus = (status) => {
+      const map = {
+        'Not Started': ['#6c7f79','rgba(255,255,255,.06)'],
+        'In Progress': ['#d97706','rgba(251,191,36,.15)'],
+        'Implemented': ['#0b6b60','rgba(22,184,166,.15)'],
+        'Tested': ['#1e40af','rgba(37,99,235,.15)'],
+        'Passed': ['#16a34a','rgba(22,163,74,.15)'],
+        'Blocked': ['#e0556e','rgba(224,85,110,.15)'],
+        '✅ Yes': ['#16a34a','rgba(22,163,74,.15)'],
+        'Not Connected': ['#6c7f79','rgba(255,255,255,.06)'],
+      };
+      const [sFg, sBg] = map[status] || map['Not Started'];
+      return { sFg, sBg };
+    };
+
+    const blockedReqs = [
+      { label: 'Supabase Auth connected', status: 'Implemented' },
+      { label: 'Real user accounts created', status: 'Implemented' },
+      { label: 'Role-Based Access Control implemented', status: 'Implemented' },
+      { label: 'Database schema created (25 tables, Dev)', status: 'Implemented' },
+      { label: 'Row-Level Security enabled on sensitive tables', status: 'Implemented' },
+      { label: 'Real role data wired across all remaining pages', status: 'In Progress' },
+      { label: 'Server-side validation implemented', status: 'In Progress' },
+      { label: 'RLS policies tested against cross-user access', status: 'Not Started' },
+      { label: 'Secure Supabase Storage buckets + signed URLs', status: 'Not Started' },
+      { label: 'Consent enforced at database/backend level', status: 'Not Started' },
+      { label: 'Document permissions enforced at backend level', status: 'Not Started' },
+      { label: 'Audit logging active', status: 'Not Started' },
+      { label: 'Stripe billing integration', status: 'Not Started' },
+      { label: 'SMTP / transactional email (invites, confirmations)', status: 'Not Started' },
+      { label: 'Backup and recovery configured', status: 'Not Started' },
+      { label: 'Privacy/legal pages completed', status: 'Not Started' },
+      { label: 'Security review & verification completed', status: 'Not Started' },
+    ].map((r, i) => ({ n: i + 1, label: r.label, status: r.status, ...mkStatus(r.status) }));
+
+    const supabaseStatus = [
+      { label: 'Supabase selected as backend', status: '✅ Yes' },
+      { label: 'Supabase project created (Dev)', status: '✅ Yes' },
+      { label: 'Auth connected', status: '✅ Yes' },
+      { label: 'Database schema created', status: '✅ Yes' },
+      { label: 'RLS policies created', status: '✅ Yes' },
+      { label: 'Storage buckets created', status: 'In Progress' },
+      { label: 'Edge/API functions created', status: 'In Progress' },
+      { label: 'Production environment separated', status: 'Not Started' },
+    ].map(s => ({ ...s, ...mkStatus(s.status) }));
+
+    const now=new Date();
+    const buildDate=now.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+
+    const sections=[
+      {
+        title:'Provider',
+        sub:'Organisation management, participants, workers, billing',
+        iconBg:'#0e3a34',iconEl:ic('building','#16b8a6',18),
+        entryUrl:'CiaraLink Provider Dashboard.dc.html',
+        screens:[
+          {label:'Provider Dashboard',url:'CiaraLink Provider Dashboard.dc.html',desc:'Day-to-day operations hub — participants, workers, billing, alerts',iconEl:ic('grid','#16b8a6',15),tintBg:'#0e3a34',badge:'Main',badgeFg:'#0b6b60',badgeBg:'#e7f4f1'},
+          {label:'Provider Console',url:'Provider Console.dc.html',desc:'Referral pipeline, worker matching, roster management',iconEl:ic('users','#16b8a6',15),tintBg:'#0e3a34',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Service Provider',url:'Service Provider.dc.html',desc:'Organisation profile, compliance, documents, worker roster',iconEl:ic('building','#16b8a6',15),tintBg:'#0e3a34',badge:'New',badgeFg:'#0b6b60',badgeBg:'#e7f4f1'},
+          {label:'Service Agreement',url:'Service Agreement.dc.html',desc:'Create, send and sign service agreements with participants',iconEl:ic('file','#16b8a6',15),tintBg:'#0e3a34',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Worker Agreement',url:'Worker Agreement.dc.html',desc:'Employment contracts, casual agreements, contractor agreements — send for digital signature',iconEl:ic('file','#16b8a6',15),tintBg:'#0e3a34',badge:'New',badgeFg:'#0b6b60',badgeBg:'#e7f4f1'},
+          {label:'Backend Architecture',url:'CiaraLink Backend Architecture.dc.html',desc:'Supabase schema · 25 tables · RLS matrix · 4 storage buckets · 38 API endpoints · 4-phase roadmap',iconEl:ic('server','#16b8a6',15),tintBg:'#0e3a34',badge:'New',badgeFg:'#fff',badgeBg:'#16b8a6'},
+          {label:'Security Checklist',url:'CiaraLink Security Checklist.dc.html',desc:'Vibe coding security audit · OWASP Top 10 · 10 safe · 19 backend items · 12 critical blocks · NDIS privacy requirements',iconEl:ic('shield','#e0556e',15),tintBg:'#2a0e14',badge:'NEW',badgeFg:'#fff',badgeBg:'#e0556e'},
+          {label:'Launch Readiness',url:'Launch Readiness.dc.html',desc:'9 workflow QA tests · pass/fail status · persistence audit · known limitations · launch verdict',iconEl:ic('check','#16b8a6',15),tintBg:'#0e3a34',badge:'QA',badgeFg:'#1e7a52',badgeBg:'#e9f6ef'},
+          {label:'Deployment Guide',url:'CiaraLink Deployment Guide.dc.html',desc:'Test logins · 28 screen checklist · smoke test · known limitations · production roadmap',iconEl:ic('send','#16b8a6',15),tintBg:'#0e3a34',badge:'New',badgeFg:'#1e7a52',badgeBg:'#e9f6ef'},
+          {label:'CiaraLink Connect',url:'CiaraLink Connect.dc.html',desc:'Messaging and collaboration between care team members',iconEl:ic('hub','#16b8a6',15),tintBg:'#0e3a34',badge:null,badgeFg:'',badgeBg:''},
+          {label:'CiaraLink Intelligence',url:'CiaraLink Intelligence.dc.html',desc:'Analytics, insights and reporting across the platform',iconEl:ic('spark','#16b8a6',15),tintBg:'#0e3a34',badge:null,badgeFg:'',badgeBg:''},
+        ]
+      },
+      {
+        title:'Support Worker',
+        sub:'Shifts, clients, pay records, credentials',
+        iconBg:'#1e1a40',iconEl:ic('user','#6366f1',18),
+        entryUrl:'Support Worker.dc.html',
+        screens:[
+          {label:'Support Worker',url:'Support Worker.dc.html',desc:'Full worker dashboard — shifts, pay, profile, credentials',iconEl:ic('user','#6366f1',15),tintBg:'#1e1a40',badge:'Main',badgeFg:'#4f46e5',badgeBg:'#eef0fd'},
+          {label:'Worker App',url:'Worker App.dc.html',desc:'Mobile-first app — clock in, find shifts, track pay',iconEl:ic('phone','#6366f1',15),tintBg:'#1e1a40',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Worker Passport',url:'Worker Passport.dc.html',desc:'Digital credential wallet — checks, certificates, compliance',iconEl:ic('passport','#6366f1',15),tintBg:'#1e1a40',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Verified Visit',url:'Verified Visit.dc.html',desc:'QR-based clock in/out with GPS and signature capture',iconEl:ic('visit','#6366f1',15),tintBg:'#1e1a40',badge:null,badgeFg:'',badgeBg:''},
+        ]
+      },
+      {
+        title:'Support Coordinator',
+        sub:'Participant management, plan tracking, team coordination',
+        iconBg:'#2a1a08',iconEl:ic('star','#d98b22',18),
+        entryUrl:'Support Coordination.dc.html',
+        screens:[
+          {label:'Support Coordination',url:'Support Coordination.dc.html',desc:'Coordinator hub — participants, plans, budgets, referrals',iconEl:ic('star','#d98b22',15),tintBg:'#2a1a08',badge:'Main',badgeFg:'#b4561f',badgeBg:'#fbf0df'},
+          {label:'Plan Review Prep',url:'Plan Review Prep.dc.html',desc:'Evidence collection and review preparation tools',iconEl:ic('file','#d98b22',15),tintBg:'#2a1a08',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Care Ecosystem',url:'Care Ecosystem.dc.html',desc:'Visual map of participant support networks',iconEl:ic('hub','#d98b22',15),tintBg:'#2a1a08',badge:null,badgeFg:'',badgeBg:''},
+        ]
+      },
+      {
+        title:'Allied Health',
+        sub:'Assessments, therapy goals, recommendations, plan contributions',
+        iconBg:'#1f1030',iconEl:ic('heart','#9333ea',18),
+        entryUrl:'Allied Health.dc.html',
+        screens:[
+          {label:'Allied Health',url:'Allied Health.dc.html',desc:'Full AH dashboard — sessions, goals, assessments, care network',iconEl:ic('heart','#9333ea',15),tintBg:'#1f1030',badge:'Main',badgeFg:'#7c3aed',badgeBg:'#f3e8fe'},
+        ]
+      },
+      {
+        title:'Participant',
+        sub:'Participant portal and master profile',
+        iconBg:'#0e2833',iconEl:ic('user','#0891b2',18),
+        entryUrl:'Participant Dashboard.dc.html',
+        screens:[
+          {label:'Participant Dashboard',url:'Participant Dashboard.dc.html',desc:'Participant-facing portal — funding, goals, care team, supports, documents',iconEl:ic('user','#0891b2',15),tintBg:'#0e2833',badge:'New',badgeFg:'#0e7490',badgeBg:'#e0f2f5'},
+          {label:'Participant Profile',url:'Participant Profile.dc.html',desc:'Master profile for providers, SCs and allied health to view and update',iconEl:ic('users','#0891b2',15),tintBg:'#0e2833',badge:null,badgeFg:'',badgeBg:''},
+        ]
+      },
+      {
+        title:'Consent, Tasks & Settings',
+        sub:'Consent Centre, permission matrix, task centre, settings',
+        iconBg:'#1a0e2a',iconEl:ic('shield','#9333ea',18),
+        entryUrl:null,
+        screens:[
+          {label:'Notification Centre',url:'Notification Centre.dc.html',desc:'Role-based notifications with priorities, action links, dismiss/read state — all 5 roles',iconEl:ic('bell','#9333ea',15),tintBg:'#1a0e2a',badge:'New',badgeFg:'#7c3aed',badgeBg:'#f4e8fe'},
+          {label:'Consent Centre',url:'Consent Centre.dc.html',desc:'Permission matrix — control who sees what data · consent documents · audit history',iconEl:ic('shield','#9333ea',15),tintBg:'#1a0e2a',badge:'New',badgeFg:'#7c3aed',badgeBg:'#f4e8fe'},
+          {label:'Task Centre',url:'Task Centre.dc.html',desc:'Per-role action items — urgent tasks, due dates, direct links to relevant screens',iconEl:ic('task','#9333ea',15),tintBg:'#1a0e2a',badge:'New',badgeFg:'#7c3aed',badgeBg:'#f4e8fe'},
+          {label:'Settings',url:'Settings.dc.html',desc:'Profile, notifications, privacy, security, help & support — for every role',iconEl:ic('grid','#9333ea',15),tintBg:'#1a0e2a',badge:'New',badgeFg:'#7c3aed',badgeBg:'#f4e8fe'},
+        ]
+      },
+      {
+        title:'Shared & Platform',
+        sub:'Onboarding, AI tools, intake forms',
+        iconBg:'#0e2a25',iconEl:ic('spark','#22d3bf',18),
+        entryUrl:null,
+        screens:[
+          {label:'CiaraLink Onboarding',url:'CiaraLink Onboarding.dc.html',desc:'6-step setup flow for new providers and organisations',iconEl:ic('check','#22d3bf',15),tintBg:'#0e2a25',badge:null,badgeFg:'',badgeBg:''},
+          {label:'AI Intake',url:'AI Intake.dc.html',desc:'AI-powered participant intake and assessment form',iconEl:ic('ai','#22d3bf',15),tintBg:'#0e2a25',badge:null,badgeFg:'',badgeBg:''},
+          {label:'AI File Drop',url:'AI File Drop.dc.html',desc:'Drag-and-drop document upload with AI classification',iconEl:ic('upload','#22d3bf',15),tintBg:'#0e2a25',badge:null,badgeFg:'',badgeBg:''},
+          {label:'Login',url:'Login.dc.html',desc:'Role-based login and account creation',iconEl:ic('shield','#22d3bf',15),tintBg:'#0e2a25',badge:'Entry',badgeFg:'#0b6b60',badgeBg:'#e7f4f1'},
+        ]
+      },
+    ];
+
+    const toggleLabel = blockedOpen ? 'Hide ▲' : 'View readiness checklist ▼';
+    return {
+      blockedOpen, toggleBlocked, toggleLabel, blockedReqs, supabaseStatus,
+      logoEl:ic('pulse','#eafaf8',22),
+      arrowEl:ic('arrow','#06201c',15),
+      arrowSmEl:ic('chev','#16b8a6',14),
+      buildDate,sections,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

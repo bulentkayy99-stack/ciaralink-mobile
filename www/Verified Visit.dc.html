@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+  <script src="data.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    .scrl::-webkit-scrollbar{width:0;display:none}
+    @keyframes vv-pulse{0%{transform:scale(.7);opacity:.9}70%{transform:scale(2.4);opacity:0}100%{opacity:0}}
+    @keyframes vv-pin{0%,100%{transform:translate(-50%,-100%) translateY(0)}50%{transform:translate(-50%,-100%) translateY(-5px)}}
+    @keyframes vv-spin{to{transform:rotate(360deg)}}
+    @keyframes vv-scan{0%{top:8%}100%{top:88%}}
+    @keyframes vv-tick{0%{stroke-dashoffset:48}100%{stroke-dashoffset:0}}
+  </style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;align-items:flex-start;justify-content:center;gap:34px;flex-wrap:wrap;padding:40px 20px;background:radial-gradient(120% 90% at 50% 0%,#103a34 0%,#0a201c 55%,#071512 100%)">
+
+  <div style="position:relative;width:392px;height:840px;border-radius:50px;padding:13px;background:linear-gradient(160deg,#1c1c20,#000);box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)">
+    <div style="position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#f4f7f5;display:flex;flex-direction:column">
+
+      <div style="position:absolute;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:14px 26px 8px;font-size:14px;font-weight:700;color:{{ statusColor }}">
+        <span>9:41</span>
+        <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:108px;height:30px;background:#000;border-radius:18px"></div>
+        <span style="display:flex;gap:6px;align-items:center">{{ sigEl }}{{ wifiEl }}{{ battEl }}</span>
+      </div>
+
+      <!-- top bar -->
+      <div style="position:relative;z-index:35;padding:50px 18px 12px;display:flex;align-items:center;gap:12px;background:{{ barBg }};color:{{ barFg }}">
+        <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid {{ barBorder }};background:{{ barBtnBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ barFg }}">{{ backEl }}</button>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;opacity:.7">{{ stepKicker }}</div>
+          <div style="font-size:16px;font-weight:800;letter-spacing:-.01em">{{ stepTitle }}</div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;opacity:.8">{{ stepCount }}</div>
+      </div>
+      <div style="position:relative;z-index:35;display:flex;gap:5px;padding:0 18px 12px;background:{{ barBg }}">
+        <sc-for list="{{ progress }}" as="p" hint-placeholder-count="5">
+          <div style="flex:1;height:4px;border-radius:99px;background:{{ p.bg }}"></div>
+        </sc-for>
+      </div>
+      <div style="position:relative;z-index:35;padding:0 18px 10px;background:{{ barBg }}">
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#fbf0df;border:1px solid #f4e6cf;padding:4px 10px;border-radius:999px;color:#b4561f">Preview — simulated visit · not a live verified record</span>
+      </div>
+
+      <div class="scrl" style="flex:1;overflow-y:auto;background:#f4f7f5">
+
+        <!-- STEP 0 — ARRIVE / GPS -->
+        <sc-if value="{{ isArrive }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="position:relative;height:300px;overflow:hidden;background:linear-gradient(135deg,#dfe9e4,#eef3f0)">
+            <div style="position:absolute;inset:0;opacity:.9">
+              <div style="position:absolute;top:0;bottom:0;left:32%;width:18px;background:#fff;transform:skewX(-12deg)"></div>
+              <div style="position:absolute;top:0;bottom:0;left:68%;width:26px;background:#fff;transform:skewX(8deg)"></div>
+              <div style="position:absolute;left:0;right:0;top:46%;height:22px;background:#fff;transform:skewY(-4deg)"></div>
+              <div style="position:absolute;left:0;right:0;top:74%;height:14px;background:#fff;transform:skewY(3deg)"></div>
+              <div style="position:absolute;left:8%;top:8%;width:60px;height:50px;background:#d6e2db;border-radius:5px"></div>
+              <div style="position:absolute;left:78%;top:14%;width:54px;height:60px;background:#d6e2db;border-radius:5px"></div>
+              <div style="position:absolute;left:10%;top:80%;width:70px;height:44px;background:#d6e2db;border-radius:5px"></div>
+              <div style="position:absolute;left:74%;top:80%;width:64px;height:48px;background:#cfe6d6;border-radius:7px"></div>
+            </div>
+            <!-- geofence -->
+            <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:168px;height:168px;border-radius:50%;background:rgba(22,184,166,.14);border:2px dashed rgba(14,147,132,.5)"></div>
+            <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(22,184,166,.4);animation:vv-pulse 2.2s ease-out infinite"></div>
+            <!-- pin -->
+            <div style="position:absolute;left:50%;top:48%;animation:vv-pin 3s ease-in-out infinite;z-index:2">
+              <div style="width:42px;height:42px;border-radius:50% 50% 50% 0;background:linear-gradient(150deg,#16b8a6,#0b6b60);transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px -6px rgba(11,107,96,.7)">
+                <div style="transform:rotate(45deg);display:flex">{{ homeEl }}</div>
+              </div>
+            </div>
+            <div style="position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.92);border-radius:10px;padding:7px 11px;font-size:11.5px;font-weight:700;color:#0b6b60;box-shadow:0 4px 10px rgba(20,48,43,.12)"><span style="width:8px;height:8px;border-radius:99px;background:#16b8a6"></span>GPS locked · ±6m</div>
+          </div>
+
+          <div style="padding:18px 20px 26px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:48px;height:48px;border-radius:14px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">MR</div>
+                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">Margaret Reyes</div><div style="font-size:12.5px;color:#6c7f79">Personal Care · 11:00–15:00</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid #f1f4f2"><div style="width:24px;height:24px;border-radius:7px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ assignIconEl }}</div><span style="font-size:11.5px;color:#6c7f79">Assigned by <b style="color:#14302b">Brightside Care</b> · service provider</span></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid #f1f4f2;font-size:12.5px;color:#41635c">{{ pinDkEl }}12 Rose Street, Glenroy VIC 3046</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:12px;background:#e9f6ef;border-radius:12px;padding:11px 13px">
+                <span style="display:flex">{{ checkCircEl }}</span>
+                <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#1e7a52">You're at the location</div><div style="font-size:11.5px;color:#3f8c65">Within 6m of client's home · geofence confirmed</div></div>
+              </div>
+            </div>
+
+            <button onClick="{{ next }}" style="margin-top:16px;width:100%;height:54px;border-radius:16px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:#2bcbb9">{{ shieldEl }}Verify & clock in</button>
+            <div style="text-align:center;margin-top:11px;font-size:11.5px;color:#9aa8a3">Location, time & device are stamped automatically</div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- STEP 1 — CLOCKED IN -->
+        <sc-if value="{{ isLive }}" hint-placeholder-val="">
+        <div style="padding:20px 20px 26px">
+          <div style="border-radius:22px;padding:22px;color:#eafaf8;background:linear-gradient(150deg,#0c2622,#0e5147);position:relative;overflow:hidden;box-shadow:0 18px 36px -20px rgba(11,80,71,.9)">
+            <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:#7ce0d2"><span style="width:8px;height:8px;border-radius:99px;background:#7ce0d2;box-shadow:0 0 8px #7ce0d2"></span>CLOCKED IN · LIVE</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;font-weight:600;letter-spacing:-.01em;margin-top:10px">01:24:08</div>
+            <div style="font-size:13px;color:#a9cfc8">with Margaret R. · started 11:00 AM</div>
+            <div style="display:flex;gap:8px;margin-top:16px">
+              <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8;letter-spacing:.04em">CLOCK-IN GPS</div><div style="font-size:12px;font-weight:700;color:#dff5f1">✓ ±6m verified</div></div>
+              <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8;letter-spacing:.04em">ASSIGNED BY</div><div style="font-size:12px;font-weight:700;color:#dff5f1">Brightside Care</div></div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 2px 4px"><div style="font-size:15px;font-weight:800;color:#14302b">Care tasks</div><span style="font-size:12px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:999px">{{ taskDone }}/{{ taskTotal }} done</span></div>
+          <div style="display:flex;align-items:center;gap:6px;margin:0 2px 12px;font-size:11.5px;color:#8a9a94">{{ listSmEl }}Set by Brightside Care · your coordinator can update these</div>
+          <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.onToggle }}" style="width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid {{ t.bd }};border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;font-family:inherit;text-align:left">
+              <div style="width:26px;height:26px;border-radius:8px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.boxBd }};background:{{ t.boxBg }}">{{ t.checkEl }}</div>
+              <span style="flex:1;font-size:13.5px;font-weight:600;color:{{ t.fg }};text-decoration:{{ t.deco }}">{{ t.label }}</span>
+            </button>
+          </sc-for>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-top:6px">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px"><div style="width:34px;height:34px;border-radius:10px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ micGreenEl }}</div><div style="flex:1"><div style="font-size:13px;font-weight:800;color:#14302b">Voice update</div><div style="font-size:11px;color:#8a9a94">Speak any language · we translate to English</div></div><span style="display:flex">{{ globeEl }}</span></div>
+            <div style="background:#f7faf9;border-radius:11px;padding:10px 12px">
+              <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:#8a9a94;letter-spacing:.03em">{{ globeEl }}TAGALOG · YOU SAID</div>
+              <div style="font-size:12.5px;color:#5f726d;margin-top:3px;font-style:italic">"Kumain siya ng maayos at masaya ngayon."</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:#0b6b60;letter-spacing:.03em;margin-top:9px;padding-top:9px;border-top:1px solid #eef2f0">{{ checkSmEl }}TRANSLATED TO ENGLISH</div>
+              <div style="font-size:12.5px;color:#14302b;font-weight:600;margin-top:3px">"She ate well and was happy today."</div>
+            </div>
+          </div>
+
+          <button onClick="{{ next }}" style="margin-top:14px;width:100%;height:54px;border-radius:16px;border:none;background:#0c2622;color:#eafaf8;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:#123a33">{{ noteEl }}Write shift note & clock out</button>
+        </div>
+        </sc-if>
+
+        <!-- STEP 3 — SHIFT NOTE -->
+        <sc-if value="{{ isNote }}" hint-placeholder-val="">
+        <div style="padding:18px 20px 26px">
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:14px">Quick structured note — tap chips, AI drafts the rest. Saved against this verified visit.</div>
+
+          <div style="font-size:12px;font-weight:700;color:#5f726d;margin:4px 2px 9px">HOW WAS THE VISIT?</div>
+          <div style="display:flex;gap:8px;margin-bottom:18px">
+            <sc-for list="{{ moods }}" as="m" hint-placeholder-count="3">
+              <button onClick="{{ m.onClick }}" style="flex:1;padding:11px 6px;border-radius:13px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1.5px solid {{ m.bd }};background:{{ m.bg }};color:{{ m.fg }};display:flex;flex-direction:column;align-items:center;gap:5px">{{ m.iconEl }}{{ m.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:#5f726d;margin:4px 2px 9px">OBSERVATIONS</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="6">
+              <button onClick="{{ c.onClick }}" style="padding:7px 12px;border-radius:99px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;gap:7px;margin-bottom:10px">
+            <button onClick="{{ previewGenerateNote }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:11px;border:none;background:#0c2622;color:#eafaf8;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">{{ sparkWEl }}Generate with AI</button>
+            <button onClick="{{ previewWriteOwn }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">{{ editEl }}Write my own</button>
+            <button onClick="{{ previewVoiceNote }}" style="flex:0 0 44px;display:flex;align-items:center;justify-content:center;height:38px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;cursor:pointer">{{ micGreenEl }}</button>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><div style="display:flex;align-items:center;gap:7px"><span style="display:flex">{{ sparkEl }}</span><span style="font-size:12px;font-weight:700;color:#0b6b60">AI draft · editable</span></div><span style="font-size:10px;font-weight:700;color:#6366f1;background:#eef0fd;padding:2px 7px;border-radius:6px">from Tagalog voice</span></div>
+            <div id="vv-note-editor" contenteditable="true" style="font-size:13px;line-height:1.6;color:#2c4a44;outline:none;border:1px dashed #e2e9e6;border-radius:10px;padding:10px;min-height:90px">{{ noteDraft }}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#9aa8a3">{{ editSmEl }}Tap to edit — your words, your call</div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <div style="flex:1;border:1.5px dashed #cdd8d3;border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff">{{ cameraEl }}<span style="font-size:11.5px;font-weight:600;color:#6c7f79">Add photo</span></div>
+            <div style="flex:1;border-radius:14px;overflow:hidden;position:relative;background:linear-gradient(135deg,#cfe6d6,#e7f4f1);display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:700;color:#0b6b60">2 photos ✓</span><div style="position:absolute;bottom:6px;right:6px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:#0b6b60;background:rgba(255,255,255,.8);padding:1px 5px;border-radius:5px">12:48</div></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:11px 13px;margin-bottom:18px">
+            <span style="display:flex">{{ flagEl }}</span>
+            <div style="flex:1;font-size:12px;color:#8a5a1e">No incident to report? <b>Toggle if something needs follow-up.</b></div>
+            <div style="width:42px;height:24px;border-radius:99px;background:#e2e9e6;position:relative"><div style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:#5f726d;margin:4px 2px 9px">TRAVEL LOG</div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-bottom:18px">
+            <div style="display:flex;gap:9px;margin-bottom:10px">
+              <div style="flex:1;border-radius:12px;overflow:hidden;position:relative;height:78px;background:linear-gradient(135deg,#2a2e33,#14171a);display:flex;align-items:flex-end">
+                <div style="position:absolute;top:7px;left:7px;font-size:9px;font-weight:700;color:#7ce0d2;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:5px">START · 11:00</div>
+                <div style="width:100%;text-align:center;padding-bottom:9px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#dff5f1">48,210 km</div>
+              </div>
+              <div style="flex:1;border-radius:12px;overflow:hidden;position:relative;height:78px;background:linear-gradient(135deg,#2a2e33,#14171a);display:flex;align-items:flex-end">
+                <div style="position:absolute;top:7px;left:7px;font-size:9px;font-weight:700;color:#7ce0d2;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:5px">END · 14:58</div>
+                <div style="width:100%;text-align:center;padding-bottom:9px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#dff5f1">48,232 km</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:#8a9a94;margin-bottom:12px">{{ cameraSmEl }}Two dashboard photos · GPS + time stamped</div>
+            <div style="display:flex;align-items:center;gap:10px;background:#f7faf9;border:1px solid #e7ece9;border-radius:11px;padding:10px 12px;margin-bottom:12px">
+              <span style="font-size:12px;font-weight:600;color:#5f726d">Distance travelled (type)</span>
+              <div contenteditable="true" style="flex:1;text-align:right;outline:none;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:#14302b">22</div>
+              <span style="font-size:12px;font-weight:700;color:#8a9a94">km</span>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:#8a9a94;letter-spacing:.03em;margin-bottom:8px">PURPOSE (affects billing)</div>
+            <div style="display:flex;gap:7px">
+              <sc-for list="{{ travelPurposes }}" as="tp" hint-placeholder-count="2">
+                <button onClick="{{ tp.onClick }}" style="flex:1;padding:9px 8px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;border:1px solid {{ tp.bd }};background:{{ tp.bg }};color:{{ tp.fg }}">{{ tp.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <button onClick="{{ next }}" style="width:100%;height:54px;border-radius:16px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:#2bcbb9">{{ signEl }}Continue to sign-out</button>
+        </div>
+        </sc-if>
+
+        <!-- STEP 4 — SIGN OUT -->
+        <sc-if value="{{ isSign }}" hint-placeholder-val="">
+        <div style="padding:18px 20px 26px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:#6c7f79">Visit duration</span><span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:#14302b">3h 58m</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:12px;border-top:1px solid #f1f4f2"><span style="font-size:13px;color:#6c7f79">Clock in → out</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#41635c">11:00 → 14:58</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin:4px 2px 10px"><span style="font-size:12px;font-weight:700;color:#5f726d">CONFIRM THE VISIT</span><span style="font-size:10px;font-weight:700;letter-spacing:.04em;color:#b4561f;background:#fbf0df;padding:2px 7px;border-radius:6px">OPTIONAL</span></div>
+          <div style="display:flex;align-items:center;gap:9px;background:#f7faf9;border:1px solid #e7ece9;border-radius:12px;padding:10px 12px;margin-bottom:12px"><span style="display:flex">{{ infoEl }}</span><div style="flex:1;font-size:11.5px;color:#5f726d">Your provider <b style="color:#14302b">requires confirmation</b> for this service — capture it any way that suits the client. Providers can turn this off per service type.</div></div>
+
+          <div style="display:flex;gap:5px;margin-bottom:13px;background:#eef2f0;border-radius:13px;padding:4px">
+            <sc-for list="{{ signModes }}" as="m" hint-placeholder-count="3">
+              <button onClick="{{ m.onClick }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;border:none;background:{{ m.bg }};color:{{ m.fg }};box-shadow:{{ m.shadow }}">{{ m.iconEl }}{{ m.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ isSig }}" hint-placeholder-val="{{ true }}">
+            <div style="position:relative;height:150px;background:#fff;border:1px solid #e7ece9;border-radius:16px;overflow:hidden;margin-bottom:12px">
+              <div style="position:absolute;left:16px;right:16px;bottom:34px;border-bottom:1.5px dashed #d9e4e0"></div>
+              <svg viewBox="0 0 300 120" style="position:absolute;inset:0;width:100%;height:100%">
+                <path d="M28 78 C 44 40, 58 40, 64 70 C 70 96, 84 94, 92 64 C 98 44, 108 50, 112 74 C 124 60, 140 52, 158 70 C 168 80, 180 56, 196 60 C 210 64, 214 84, 232 70 C 246 60, 258 66, 272 56" fill="none" stroke="#0e5147" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="48" style="animation:vv-tick 1.6s ease forwards"></path>
+              </svg>
+              <div style="position:absolute;left:16px;bottom:12px;font-size:12px;font-weight:700;color:#14302b">Margaret Reyes</div>
+              <div style="position:absolute;right:14px;top:12px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#9aa8a3">14:58 · GPS ✓</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isVerbal }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:12px;padding-bottom:13px;border-bottom:1px solid #f1f4f2">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ micEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">Verbal consent recorded</div><div style="display:flex;align-items:center;gap:4px;height:14px;margin-top:5px">{{ waveEl }}<span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#8a9a94;margin-left:4px">0:08</span></div></div>
+                <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 8px;border-radius:7px">✓</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding-top:13px">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ cameraVEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">Photo consent</div><div style="font-size:11.5px;color:#8a9a94">1 photo with client · GPS + time stamped</div></div>
+                <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 8px;border-radius:7px">✓</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSkip }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;margin-bottom:12px">
+              <div style="font-size:12px;font-weight:700;color:#5f726d;margin-bottom:11px">Why is there no signature?</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ skipReasons }}" as="r" hint-placeholder-count="4">
+                  <button onClick="{{ r.onClick }}" style="padding:8px 12px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }}">{{ r.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:13px;padding-top:12px;border-top:1px solid #f1f4f2;font-size:11.5px;color:#8a9a94">{{ infoEl }}Logged against your name + GPS — visible to your provider.</div>
+            </div>
+          </sc-if>
+
+          <div style="background:{{ evBg }};border:1px solid {{ evBd }};border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:11px;margin-bottom:18px">
+            <span style="display:flex">{{ evIconEl }}</span>
+            <div style="font-size:12.5px;color:{{ evFg }};font-weight:600">{{ evMsg }}</div>
+          </div>
+
+          <button onClick="{{ lockRecord }}" style="width:100%;height:54px;border-radius:16px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:#2bcbb9">{{ lockEl }}Clock out & lock record</button>
+        </div>
+        </sc-if>
+
+        <!-- STEP 5 — VISIT RECORD -->
+        <sc-if value="{{ isRecord }}" hint-placeholder-val="">
+        <div style="padding:18px 18px 26px">
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="width:60px;height:60px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ bigCheckEl }}</div>
+            <div style="font-size:18px;font-weight:800;color:#14302b;margin-top:11px;letter-spacing:-.01em">Visit logged — preview</div>
+            <div style="font-size:12.5px;color:#6c7f79">Demo of a tamper-proof record · #CL-48217</div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="padding:15px 16px;background:linear-gradient(150deg,#0c2622,#0e5147);color:#eafaf8;display:flex;align-items:center;gap:11px">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center">{{ shieldWEl }}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:800">Verified Visit Record <span style="font-size:9px;font-weight:800;letter-spacing:.04em;color:#f4c987;background:rgba(217,139,34,.18);border:1px solid rgba(217,139,34,.35);padding:1px 6px;border-radius:6px;vertical-align:middle">PREVIEW</span></div><div style="font-size:11px;color:#a9cfc8">CiaraLink Care OS · {{ visitType }}</div></div>
+              <div style="text-align:right"><div style="font-size:10px;color:#a9cfc8">19 Jun 2026</div><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#dff5f1">#CL-48217</div></div>
+            </div>
+
+            <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f1f4f2">
+              <div style="width:38px;height:38px;border-radius:11px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">MR</div>
+              <div style="flex:1"><div style="font-size:11px;color:#9aa8a3">PARTICIPANT</div><div style="font-size:14px;font-weight:700;color:#14302b">Margaret Reyes</div></div>
+              <div style="text-align:right"><div style="font-size:11px;color:#9aa8a3">WORKER</div><div style="font-size:13px;font-weight:700;color:#14302b">A. Okafor</div></div>
+            </div>
+
+            <!-- verification strip -->
+            <div style="padding:13px 16px;border-bottom:1px solid #f1f4f2">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#8a9a94;margin-bottom:10px">PROOF OF ATTENDANCE</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                <sc-for list="{{ proofs }}" as="p" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;background:#f4faf8;border:1px solid #e0efe9;border-radius:11px;padding:9px 11px">
+                    <span style="display:flex">{{ p.iconEl }}</span>
+                    <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:#14302b">{{ p.label }}</div><div style="font-size:10.5px;color:#6c8c83;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.val }}</div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- mini map both pins -->
+            <div style="position:relative;height:110px;background:linear-gradient(135deg,#dfe9e4,#eef3f0);border-bottom:1px solid #f1f4f2">
+              <div style="position:absolute;top:0;bottom:0;left:40%;width:12px;background:#fff;transform:skewX(-12deg)"></div>
+              <div style="position:absolute;left:0;right:0;top:54%;height:12px;background:#fff;transform:skewY(-3deg)"></div>
+              <div style="position:absolute;left:46%;top:42%;transform:translate(-50%,-100%);width:22px;height:22px;border-radius:50% 50% 50% 0;background:#16b8a6;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 4px 8px rgba(11,107,96,.5)"></div>
+              <div style="position:absolute;left:54%;top:50%;transform:translate(-50%,-100%);width:22px;height:22px;border-radius:50% 50% 50% 0;background:#0c2622;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 4px 8px rgba(0,0,0,.4)"></div>
+              <div style="position:absolute;left:10px;bottom:9px;display:flex;gap:11px;font-size:10px;font-weight:600;color:#41635c">
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:99px;background:#16b8a6"></span>Clock-in 11:00</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:99px;background:#0c2622"></span>Clock-out 14:58</span>
+              </div>
+            </div>
+
+            <!-- summary rows -->
+            <sc-for list="{{ recRows }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid #f1f4f2">
+                <span style="font-size:12px;color:#9aa8a3;flex:0 0 78px">{{ r.k }}</span>
+                <span style="flex:1;font-size:12.5px;font-weight:600;color:#14302b;line-height:1.45">{{ r.v }}</span>
+              </div>
+            </sc-for>
+
+            <!-- signature row -->
+            <div style="padding:12px 16px;display:flex;align-items:center;gap:12px">
+              <svg viewBox="0 0 120 40" style="width:90px;height:30px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
+              <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — Margaret Reyes</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · GPS co-located ✓</div></div>
+            </div>
+          </div>
+
+          <div style="background:#e9f6ef;border:1px solid #cce9d8;border-radius:16px;padding:14px;margin-top:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">{{ bigCheckSmEl }}<span style="font-size:13px;font-weight:800;color:#1e7a52">Sent & filed automatically</span></div>
+            <sc-for list="{{ routing }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:9px;padding:5px 0">{{ r.iconEl }}<span style="font-size:12px;color:#2c4a44">{{ r.label }}</span></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button onClick="{{ previewExportPdf }}" style="flex:1;height:50px;border-radius:14px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#f6f9f7">{{ pdfEl }}Export PDF</button>
+            <button onClick="{{ previewShareCopy }}" style="flex:1;height:50px;border-radius:14px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#f6f9f7">{{ sendEl }}Share copy</button>
+          </div>
+          <button onClick="{{ restart }}" style="margin-top:11px;width:100%;height:46px;border-radius:14px;border:none;background:none;color:#6c7f79;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">↺ Replay the flow</button>
+        </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- side explainer -->
+  <div style="width:320px;max-width:100%;color:#cfe2dc;padding-top:8px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#7ce0d2;background:rgba(22,184,166,.12);border:1px solid rgba(22,184,166,.25);padding:6px 12px;border-radius:99px">PROOF-OF-PRESENCE</div>
+      <span style="display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:#f4c987;background:rgba(217,139,34,.18);border:1px solid rgba(217,139,34,.35);padding:5px 10px;border-radius:99px">Simulated preview</span>
+    </div>
+    <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;margin-top:16px;line-height:1.25">Every visit, provably real.</div>
+    <div style="font-size:14px;line-height:1.6;color:#9fb8b1;margin-top:12px">This is a preview walkthrough — tap the phone to see the flow. In production, each step locks tamper-proof evidence so you stay audit-ready for providers, coordinators and families. No real visit is recorded here.</div>
+    <div style="margin-top:22px;display:flex;flex-direction:column;gap:14px">
+      <sc-for list="{{ explain }}" as="e" hint-placeholder-count="5">
+        <div style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:34px;height:34px;border-radius:11px;flex:0 0 34px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">{{ e.iconEl }}</div>
+          <div><div style="font-size:14px;font-weight:700;color:#eafaf8">{{ e.title }}</div><div style="font-size:12.5px;color:#86a39b;line-height:1.5;margin-top:2px">{{ e.body }}</div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:24px;padding:15px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px">
+      <div style="font-size:12.5px;font-weight:700;color:#eafaf8;margin-bottom:6px">Filed to whoever assigns you</div>
+      <div style="font-size:12.5px;color:#9fb8b1;line-height:1.55">On verify, the record routes automatically to the service provider, support coordinator or your own ABN — and saves to the client's file for that shift.</div>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:20px">
+      <button onClick="{{ goBackVV }}" style="flex:1;height:40px;border-radius:11px;border:1px solid rgba(22,184,166,.3);background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.2)">← My dashboard</button>
+      <button onClick="{{ signOutVV }}" style="height:40px;padding:0 14px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#6c8a83;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.06)">Sign out</button>
+    </div>
+  </div>
+
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:820,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { step:0, role:0, tasks:[true,true,false,false], mood:0, chips:{}, signMode:'sig', skipReason:null, travelPurpose:0, toast:null };
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      back:'M15 6l-6 6 6 6',chev:'M9 6l6 6-6 6',
+      home:'M3 11l9-8 9 8 M5 10v10h5v-6h4v6h5V10',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      check:'M20 6L9 17l-5-5',
+      checkCirc:'M12 12m-10 0a10 10 0 1 0 20 0 10 10 0 1 0-20 0 M8 12l3 3 5-5',
+      qr:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M6 6h1 M17 6h1 M6 17h1 M14 14h3v3h-3z M20 14v7 M14 20h3',
+      photo:'M3 7a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M12 16m-3.5 0a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0',
+      nfc:'M5 9a8 8 0 0 1 14 0 M8 11a4.5 4.5 0 0 1 8 0 M11 13a1.5 1.5 0 0 1 2 0 M12 21v-7',
+      face:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M9 10h.01 M15 10h.01 M9 15a4 4 0 0 0 6 0',
+      note:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      camera:'M3 7a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M12 16m-3.5 0a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0',
+      flag:'M4 21V4 M4 5h13l-2 4 2 4H4',
+      sign:'M2 18h2 M6 18V9 M10 18V6 M14 18v-5 M18 18v-9 M22 18V4',
+      info:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 11v5 M12 8h.01',
+      lock:'M5 11h14v10H5z M8 11V8a4 4 0 0 1 8 0v3',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      device:'M7 3h10v18H7z M11 18h2',
+      pdf:'M5 3h10l4 4v14H5z M14 3v5h5 M8 14h2a1.5 1.5 0 0 1 0 3H8z M8 14v6',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      smile:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M9 10h.01 M15 10h.01 M8 14a5 5 0 0 0 8 0',
+      meh:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M9 10h.01 M15 10h.01 M8 15h8',
+      frown:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M9 10h.01 M15 10h.01 M8 16a5 5 0 0 1 8 0',
+      sig:'M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20h.01',
+      mic:'M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3 M5 11a7 7 0 0 0 14 0 M12 18v3',
+      wifi:'M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20h.01',
+      batt:'M3 8h16v8H3z M21 11v2',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9',
+      route:'M6 19a3 3 0 1 0 0-6 M18 5a3 3 0 1 0 0 6 M18 8H9a3 3 0 0 0-3 3v2',
+      globe:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M3 12h18 M12 3a14 14 0 0 1 0 18 M12 3a14 14 0 0 0 0 18',
+      list:'M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01',
+      edit:'M12 20h9 M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+      folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.check}));
+  }
+  go(d){ this.setState(s=>({step:Math.max(0,Math.min(4,s.step+d))})); }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const step=this.state.step;
+
+    // ---- sign-out confirmation modes ----
+    const signMode=this.state.signMode;
+    const modeDefs=[['sig','Signature','sig'],['verbal','Verbal / photo','mic'],['skip','Skip','x']];
+    const signModes=modeDefs.map(([key,label,icon])=>{
+      const a=signMode===key;
+      return {label,onClick:()=>this.setState({signMode:key}),
+        bg:a?'#fff':'transparent',fg:a?'#0b6b60':'#6c7f79',
+        shadow:a?'0 1px 3px rgba(20,48,43,.14)':'none',
+        iconEl:ic(icon,a?'#16b8a6':'#9aa8a3',15)};
+    });
+    const reasonDefs=['Client unable to sign','Client declined','No guardian present','Telehealth / phone visit'];
+    const skipReasons=reasonDefs.map((label,i)=>{
+      const a=this.state.skipReason===i;
+      return {label,onClick:()=>this.setState({skipReason:i}),
+        bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};
+    });
+    const waveH=[6,11,8,14,9,12,7,13,10,6,11,8];
+    const waveEl=React.createElement('span',{style:{display:'flex',alignItems:'center',gap:'2px'}},
+      waveH.map((h,i)=>React.createElement('span',{key:i,style:{width:'2.5px',height:h+'px',borderRadius:'9px',background:'#16b8a6'}})));
+    let ev;
+    if(signMode==='sig') ev={msg:'Signature captured — visit is audit-ready.',ok:true};
+    else if(signMode==='verbal') ev={msg:'Verbal + photo consent captured — audit-ready.',ok:true};
+    else ev = this.state.skipReason!=null
+      ? {msg:'Skipped with a logged reason — still GPS-verified.',ok:true}
+      : {msg:'Pick a reason to log why there\u2019s no signature.',ok:false};
+
+    const visitType='Support Worker \u00b7 Personal Care';
+    const assignedBy={name:'Brightside Care',type:'Service provider'};
+
+    const titles=[
+      ['ARRIVAL','Confirm you\u2019re on site'],
+      ['IN PROGRESS','Shift is live'],
+      ['SHIFT NOTE','Record what happened'],
+      ['SIGN-OUT','Confirm & sign'],
+      ['RECORD','Verified visit record']
+    ];
+    const progress=[0,1,2,3,4].map(i=>({bg:i<=step?'#16b8a6':'rgba(255,255,255,.18)'}));
+    const darkBar = step===1;
+
+    // verify methods
+    const verifyMethods=[
+      {label:'Photo check-in',sub:'Selfie at the door \u00b7 face + GPS',iconEl:ic('face','#16b8a6',19),tintBg:'#e7f4f1'},
+      {label:'Tap NFC tag',sub:'Tap the fridge/door tag',iconEl:ic('nfc','#6366f1',19),tintBg:'#eef0fd'},
+      {label:'Manual + reason',sub:'Logs an exception for review',iconEl:ic('info','#d98b22',19),tintBg:'#fbf0df'}
+    ];
+
+    // tasks
+    const taskLabels=['Personal care & hygiene','Medication prompt (9:00)','Light meal preparation','Mobility / short walk'];
+    const tasks=taskLabels.map((label,i)=>{
+      const done=this.state.tasks[i];
+      return {label,onToggle:()=>this.setState(s=>{const t=[...s.tasks];t[i]=!t[i];return{tasks:t};}),
+        bd:done?'#cce9d8':'#e7ece9',boxBd:done?'#16b8a6':'#cdd8d3',boxBg:done?'#16b8a6':'#fff',
+        checkEl:done?ic('check','#fff',16,2.6):React.createElement('span'),
+        fg:done?'#1e7a52':'#14302b',deco:done?'line-through':'none'};
+    });
+    const taskDone=this.state.tasks.filter(Boolean).length;
+
+    // moods
+    const moodDefs=[['smile','Good','#16b8a6'],['meh','Settled','#d98b22'],['frown','Unsettled','#e0556e']];
+    const moods=moodDefs.map((m,i)=>{
+      const a=this.state.mood===i;
+      return {label:m[1],onClick:()=>this.setState({mood:i}),
+        bd:a?m[2]:'#e7ece9',bg:a?(m[2]+'1a'):'#fff',fg:a?m[2]:'#5f726d',
+        iconEl:ic(m[0],a?m[2]:'#9aa8a3',22)};
+    });
+
+    // observation chips
+    const chipLabels=['Ate well','Good mobility','Bright mood','Took medication','Hydrated','Slept poorly'];
+    const chips=chipLabels.map((label,i)=>{
+      const a=this.state.chips[i];
+      return {label,onClick:()=>this.setState(s=>({chips:{...s.chips,[i]:!s.chips[i]}})),
+        bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};
+    });
+
+    const noteDraft='Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. We did a short walk \u2014 mobility steady with the frame. No concerns to report.';
+
+    const proofs=[
+      {label:'GPS clock-in',val:'\u00b16m \u00b7 11:00:04',iconEl:ic('pin','#16b8a6',17)},
+      {label:'GPS clock-out',val:'\u00b18m \u00b7 14:58:11',iconEl:ic('pin','#0b6b60',17)},
+      {label:'Assigned by',val:'Brightside Care',iconEl:ic('users','#6366f1',17)},
+      {label:'Device',val:'Amara\u2019s iPhone \u00b7 trusted',iconEl:ic('device','#d98b22',17)}
+    ];
+    const recRows=[
+      {k:'Service',v:'Personal Care \u00b7 4h shift'},
+      {k:'Assigned by',v:'Brightside Care (service provider)'},
+      {k:'Duration',v:'3h 58m (11:00 \u2013 14:58)'},
+      {k:'Tasks',v:'4 of 4 completed \u00b7 medication prompted 9:00'},
+      {k:'Travel',v:'22 km \u00b7 with participant \u00b7 2 dashboard photos'},
+      {k:'Note',v:'Good spirits, ate well, steady mobility. No concerns. 2 photos attached.'},
+      {k:'Incidents',v:'None reported'}
+    ];
+    const purposeDefs=['Transport with participant','Travel between shifts'];
+    const travelPurposes=purposeDefs.map((label,i)=>{
+      const a=(this.state.travelPurpose||0)===i;
+      return {label,onClick:()=>this.setState({travelPurpose:i}),
+        bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};
+    });
+
+    const explain=[
+      {iconEl:ic('pin','#7ce0d2',18),title:'GPS geofence',body:'Clock-in only unlocks inside the client\u2019s location. In & out coordinates are stamped.'},
+      {iconEl:ic('list','#7ce0d2',18),title:'Tasks from your coordinator',body:'The service or support coordinator sets the care tasks \u2014 you tick them off on site.'},
+      {iconEl:ic('globe','#7ce0d2',18),title:'Voice notes, any language',body:'Speak in your first language \u2014 CiaraLink transcribes and translates to English for the record.'},
+      {iconEl:ic('note','#7ce0d2',18),title:'Flexible shift notes',body:'AI drafts from your chips, you edit freely, or write your own \u2014 your call.'},
+      {iconEl:ic('send','#7ce0d2',18),title:'Auto-filed & sent',body:'On verify it routes to whoever assigned you \u2014 provider, coordinator or your ABN \u2014 and saves to the client file.'}
+    ];
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      // Draft a note from the worker's ACTUAL mood + observation-chip selections (no invented content).
+      previewGenerateNote:()=>{
+        const moodPhrase=['was in good spirits','was settled and calm','seemed a little unsettled'][this.state.mood]||'was settled';
+        const picked=chipLabels.filter((_,i)=>this.state.chips[i]);
+        let txt='Margaret '+moodPhrase+' during the visit. Assisted with the planned care tasks.';
+        if(picked.length){ txt+=' Observations: '+picked.join(', ').toLowerCase()+'.'; }
+        txt+=' No concerns to report.';
+        const el=(typeof document!=='undefined')&&document.getElementById('vv-note-editor');
+        if(el){ el.innerText=txt; this.showToast('Draft built from your mood + observation chips — edit it freely'); }
+        else { this.showToast('Couldn’t find the note field to draft into'); }
+      },
+      // Clear the draft and hand control to the worker to type their own note.
+      previewWriteOwn:()=>{
+        const el=(typeof document!=='undefined')&&document.getElementById('vv-note-editor');
+        if(el){ el.innerText=''; try{el.focus();}catch(e){} this.showToast('Cleared — type your own note above'); }
+        else { this.showToast('Couldn’t open the note field'); }
+      },
+      // Real browser speech-to-text into the note field (Web Speech API).
+      previewVoiceNote:()=>{
+        const SR=(typeof window!=='undefined')&&(window.SpeechRecognition||window.webkitSpeechRecognition);
+        if(!SR){ this.showToast('Voice capture needs Chrome, Edge or Safari'); return; }
+        try{
+          const rec=new SR(); rec.lang='en-AU'; rec.interimResults=false; rec.maxAlternatives=1;
+          this.showToast('Listening… speak your note');
+          rec.onresult=(e)=>{ const t=(e.results&&e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||''; const el=document.getElementById('vv-note-editor'); if(el&&t){ el.innerText=(el.innerText&&el.innerText.trim()?el.innerText.trim()+' ':'')+t; } this.showToast('Added from voice — edit if needed'); };
+          rec.onerror=(e)=>{ this.showToast('Voice capture stopped: '+((e&&e.error)||'error')); };
+          rec.start();
+        }catch(err){ this.showToast('Couldn’t start voice capture on this device'); }
+      },
+      // Build a clean printable record and open the browser print dialog (Save as PDF).
+      previewExportPdf:()=>{
+        const note=(((typeof document!=='undefined')&&document.getElementById('vv-note-editor'))||{}).innerText||'';
+        const w=(typeof window!=='undefined')&&window.open('','_blank');
+        if(!w){ this.showToast('Allow pop-ups to export the PDF'); return; }
+        const rows=[['Record','#CL-48217 (preview)'],['Participant','Margaret Reyes'],['Worker','A. Okafor'],['Service',visitType],['Assigned by','Brightside Care (service provider)'],['Clock in → out','11:00 → 14:58 (3h 58m)'],['Tasks','4 of 4 completed · medication prompted 9:00'],['Travel','22 km · with participant'],['Shift note',note||'—'],['Incidents','None reported'],['Sign-out',this.state.signMode==='sig'?'Signature captured':this.state.signMode==='verbal'?'Verbal + photo consent':'Skipped with logged reason']];
+        const esc=(v)=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const body=rows.map(r=>'<tr><td style="padding:8px 12px;color:#6c7f79;border-bottom:1px solid #eee;white-space:nowrap;vertical-align:top">'+esc(r[0])+'</td><td style="padding:8px 12px;color:#14302b;font-weight:600;border-bottom:1px solid #eee">'+esc(r[1])+'</td></tr>').join('');
+        w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Verified Visit #CL-48217</title></head><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:640px;margin:32px auto;color:#14302b"><div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #16b8a6;padding-bottom:12px"><div style="font-size:20px;font-weight:800">CiaraLink — Verified Visit Record</div><span style="font-size:11px;font-weight:800;color:#b4561f;background:#fbf0df;border:1px solid #f4e6cf;padding:2px 8px;border-radius:6px">PREVIEW</span></div><p style="color:#6c7f79;font-size:12px">Simulated preview record — not a live verified visit. Final tax/billing figures require provider review.</p><table style="width:100%;border-collapse:collapse;font-size:13px">'+body+'</table><p style="margin-top:24px;color:#9aa8a3;font-size:11px">Generated by CiaraLink Care OS · '+new Date().toLocaleString()+'</p></body></html>');
+        w.document.close();
+        setTimeout(()=>{ try{ w.focus(); w.print(); }catch(e){} },350);
+        this.showToast('Opening printable record — choose “Save as PDF”');
+      },
+      // Real share via Web Share API, with clipboard fallback.
+      previewShareCopy:async()=>{
+        const note=(((typeof document!=='undefined')&&document.getElementById('vv-note-editor'))||{}).innerText||'';
+        const text='CiaraLink Verified Visit (preview) #CL-48217\nParticipant: Margaret Reyes\nWorker: A. Okafor\nService: '+visitType+'\nAssigned by: Brightside Care\nClock in → out: 11:00 → 14:58 (3h 58m)\nTasks: 4 of 4 completed\nNote: '+(note||'—');
+        try{
+          if(typeof navigator!=='undefined'&&navigator.share){ await navigator.share({title:'Verified Visit #CL-48217',text}); this.showToast('Shared'); return; }
+        }catch(e){ if(e&&e.name==='AbortError'){ return; } }
+        try{
+          await navigator.clipboard.writeText(text); this.showToast('Visit summary copied to clipboard');
+        }catch(e){ this.showToast('Couldn’t share or copy on this device'); }
+      },
+      goBackVV:()=>{ window.location.href='Support Worker.dc.html'; },
+      signOutVV:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      statusColor:'#14302b',
+      sigEl:ic('sig','#14302b',15,2),wifiEl:ic('wifi','#14302b',15,2),battEl:ic('batt','#14302b',16,1.8),
+      barBg:darkBar?'#0c2622':'#fff',barFg:darkBar?'#eafaf8':'#14302b',
+      barBorder:darkBar?'rgba(255,255,255,.14)':'#e7ece9',barBtnBg:darkBar?'rgba(255,255,255,.06)':'#f4f7f5',
+      backEl:ic('back',darkBar?'#eafaf8':'#14302b',18),
+      stepKicker:titles[step][0],stepTitle:titles[step][1],stepCount:'Step '+(step+1)+'/5',
+      progress,
+      back:()=>this.go(-1),next:()=>this.go(1),restart:()=>this.setState({step:0}),
+      lockRecord:()=>{
+        try{
+          if(window.AegisData){
+            AegisData.set('verified_visits', [{
+              _id:'CL-48217', preview:true,
+              participant:'Margaret Reyes', worker:'A. Okafor',
+              service:visitType, assignedBy:'Brightside Care',
+              clockIn:'11:00', clockOut:'14:58', duration:'3h 58m',
+              signMode:this.state.signMode, savedAt:new Date().toISOString()
+            }]);
+          }
+        }catch(e){}
+        this.go(1);
+      },
+      isArrive:step===0,isLive:step===1,isNote:step===2,isSign:step===3,isRecord:step===4,
+      visitType,assignedBy,
+      assignIconEl:ic('users','#6366f1',14),listSmEl:ic('list','#9aa8a3',14),
+      micGreenEl:ic('mic','#16b8a6',18),globeEl:ic('globe','#16b8a6',13),checkSmEl:ic('check','#1e9e6a',13,2.6),
+      sparkWEl:ic('spark','#eafaf8',15),editEl:ic('edit','#0b6b60',15),editSmEl:ic('edit','#9aa8a3',13),
+      bigCheckSmEl:ic('checkCirc','#1e9e6a',18),
+      routing:[{label:'Sent to Brightside Care (service provider)',iconEl:ic('send','#16b8a6',15)},{label:'Support coordinator notified',iconEl:ic('users','#16b8a6',15)},{label:'Saved to Margaret\u2019s client file',iconEl:ic('folder','#16b8a6',15)}],
+      homeEl:ic('home','#fff',20),pinDkEl:ic('pin','#16b8a6',16),checkCircEl:ic('checkCirc','#1e9e6a',22),
+      shieldEl:ic('shield','#06201c',18),
+      qrBigEl:ic('qr','#0c2622',96,1.4),qrSmEl:ic('qr','#06201c',18),
+      verifyMethods,chevEl:ic('chev','#b6c4be',16),
+      taskDone,taskTotal:4,tasks,noteEl:ic('note','#eafaf8',18),
+      moods,chips,noteDraft,sparkEl:ic('spark','#16b8a6',16),cameraEl:ic('camera','#9aa8a3',22),
+      travelPurposes,cameraSmEl:ic('camera','#9aa8a3',14),
+      flagEl:ic('flag','#d98b22',18),signEl:ic('sign','#06201c',18),
+      infoEl:ic('info','#9aa8a3',15),lockEl:ic('lock','#06201c',18),
+      signModes,isSig:signMode==='sig',isVerbal:signMode==='verbal',isSkip:signMode==='skip',
+      skipReasons,waveEl,micEl:ic('mic','#16b8a6',19),cameraVEl:ic('camera','#6366f1',19),
+      evMsg:ev.msg,
+      evBg:ev.ok?'#e9f6ef':'#fff7ed',evBd:ev.ok?'#cce9d8':'#f4e6cf',evFg:ev.ok?'#1e7a52':'#8a5a1e',
+      evIconEl:ev.ok?ic('checkCirc','#1e9e6a',22):ic('info','#d98b22',20),
+      bigCheckEl:ic('checkCirc','#1e9e6a',30),shieldWEl:ic('shield','#eafaf8',18),
+      proofs,recRows,
+      pdfEl:ic('pdf','#2c4a44',17),sendEl:ic('send','#06201c',17),
+      explain
+    };
+  }
+}
+</script>
+</body>
+</html>

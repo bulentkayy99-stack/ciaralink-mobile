@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:11px;height:11px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes scw-pulse{0%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}70%{box-shadow:0 0 0 13px rgba(99,102,241,0)}100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}}
+    @keyframes scw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+    @keyframes scw-dash{to{stroke-dashoffset:-22}}
+
+    /* ======================================================================
+       RESPONSIVE — phones & tablets. Desktop layout is UNCHANGED: every rule
+       below lives inside a media query and uses [style*="…"] attribute
+       selectors + !important so it overrides the inline desktop styles only
+       at small widths. No HTML / JS bindings are touched.
+       ====================================================================== */
+    @media (max-width:860px){
+      html,body{overflow-x:hidden;max-width:100%}
+
+      /* top wrapper: stack sidebar above content, clip horizontal overflow */
+      [style*="min-height:100vh"][style*="width:100%"]{flex-direction:column !important;overflow-x:hidden !important;width:100% !important;max-width:100% !important}
+
+      /* main column fills width, never forces overflow */
+      main{min-width:0 !important;width:100% !important;max-width:100% !important}
+
+      /* sidebar -> full-width top bar with a horizontally scrollable nav */
+      aside[style*="width:256px"]{
+        width:100% !important;max-width:100% !important;flex:0 0 auto !important;height:auto !important;
+        position:sticky !important;top:0 !important;z-index:40 !important;
+        flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;
+        gap:6px !important;border-right:none !important;
+        border-bottom:1px solid rgba(255,255,255,.07) !important;padding:8px 12px !important;
+      }
+      aside[style*="width:256px"]>div:first-child{padding:4px 6px !important;flex:0 0 auto !important}
+      aside[style*="width:256px"] nav{
+        flex:1 1 100% !important;min-width:0 !important;
+        display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+        overflow-x:auto !important;overflow-y:hidden !important;
+        gap:6px !important;padding:4px 0 2px !important;-webkit-overflow-scrolling:touch;
+      }
+      aside[style*="width:256px"] nav [style*="margin-top:14px"]{
+        margin-top:0 !important;display:flex !important;flex-direction:row !important;
+        align-items:center !important;gap:4px !important;flex:0 0 auto !important;
+      }
+      aside[style*="width:256px"] nav [style*="letter-spacing:.15em"]{display:none !important}
+      aside[style*="width:256px"] nav button{
+        width:auto !important;flex:0 0 auto !important;white-space:nowrap !important;
+        margin:0 !important;padding:8px 12px !important;
+      }
+      aside[style*="width:256px"]>div:last-child{border-top:none !important;padding:0 6px !important;flex:0 0 auto !important}
+
+      /* header: wrap controls, tighter padding */
+      [style*="backdrop-filter:blur(14px)"]{flex-wrap:wrap !important;gap:10px !important;padding:12px 16px !important}
+
+      /* scrollable content area: tighter padding */
+      [style*="padding:26px 30px 48px"]{padding:16px 14px 40px !important}
+
+      /* multi-column data tables -> single stacked column (the prefix match
+         also covers the 6-col 120px and 6-col 1fr caseload/billing variants) */
+      [style*="grid-template-columns:1.4fr 1fr 1fr 1fr 1fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      [style*="grid-template-columns:1.3fr 1fr 1fr 1fr 1fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      [style*="grid-template-columns:1.8fr 1fr 1fr 1fr 1fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      [style*="grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr"]{grid-template-columns:1fr !important;gap:4px !important}
+      /* hide the now-meaningless column-label header rows of those tables */
+      [style*="grid-template-columns"][style*="letter-spacing:.04em"]{display:none !important}
+      [style*="grid-template-columns"][style*="letter-spacing:.06em"]{display:none !important}
+
+      /* summary grids */
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr) !important}
+      [style*="grid-template-columns:1.55fr 1fr"]{grid-template-columns:1fr !important}
+
+      /* notification dropdown must stay inside the viewport */
+      [style*="width:340px"]{width:auto !important;max-width:calc(100vw - 24px) !important;right:8px !important}
+
+      /* goal label shrinks instead of forcing overflow */
+      [style*="flex:0 0 200px"]{flex:1 1 140px !important;min-width:0 !important}
+    }
+
+    @media (max-width:520px){
+      /* tighter padding everywhere */
+      [style*="padding:26px 30px 48px"]{padding:12px 10px 36px !important}
+      [style*="backdrop-filter:blur(14px)"]{padding:10px 12px !important;gap:8px !important}
+
+      /* collapse remaining multi-up grids to one column */
+      [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:1fr !important}
+      [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+
+      /* readable tap targets (>=40px) in the top nav */
+      aside[style*="width:256px"] nav button{min-height:40px !important}
+      aside[style*="width:256px"]>div:last-child{display:none !important}
+
+      /* Send-Referral modal -> full-screen sheet */
+      [style*="z-index:70"]{padding:0 !important;align-items:stretch !important}
+      [style*="width:640px"]{width:100% !important;max-width:100% !important;height:100vh !important;max-height:100vh !important;border-radius:0 !important}
+    }
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:256px;flex:0 0 256px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div>
+        <div style="font-size:10.5px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:3px">SUPPORT COORDINATION</div>
+      </div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="4">
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:0 10px 7px">{{ sec.title }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;margin-bottom:2px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+              <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+              <span style="flex:1">{{ it.label }}</span>
+              <sc-if value="{{ it.count }}" hint-placeholder-val="">
+                <span style="font-size:11px;font-weight:700;color:#9fb4ae;background:rgba(255,255,255,.07);border-radius:7px;padding:1px 7px">{{ it.count }}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+      <button onClick="{{ goBilling }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;margin-top:14px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:transparent;color:#9fb4ae">
+        <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px;font-size:15px">💳</span>
+        <span style="flex:1">Billing &amp; plan</span>
+      </button>
+    </nav>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:11px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#2f9e8f,#1c6b61);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#eafaf7">{{ userInitials }}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e7f2ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ userFull }}</div><div style="font-size:11px;color:#5f7a73;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ userRole }}</div></div>
+      <span style="display:flex;color:#5f7a73">{{ logoutEl }}</span>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eaeeec">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:14px 30px;background:rgba(234,238,236,.82);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">My Caseload</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+      <div style="flex:1;display:flex;justify-content:center">
+        <div style="display:flex;align-items:center;gap:10px;width:min(420px,100%);background:#fff;border:1px solid #e2e9e6;border-radius:12px;padding:9px 13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <span style="display:flex;color:#9aa8a3">{{ searchEl }}</span>
+          <span style="flex:1;font-size:13.5px;color:#9aa8a3">Search participants, providers, plans…</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3;background:#f1f4f2;border:1px solid #e2e9e6;border-radius:6px;padding:2px 6px">⌘K</span>
+        </div>
+      </div>
+      <button onClick="{{ openSendRef }}" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}New referral</button>
+      <div style="position:relative">
+        <button onClick="{{ toggleNotif }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e">{{ bellEl }}<sc-if value="{{ hasNotif }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></sc-if></button>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="">
+          <div style="position:absolute;right:0;top:48px;width:340px;background:#fff;border:1px solid #e2e9e6;border-radius:18px;box-shadow:0 24px 48px -16px rgba(20,48,43,.35);overflow:hidden;z-index:50">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eef2f0">
+              <span style="font-size:14px;font-weight:800;color:#14302b">Notifications</span>
+              <sc-if value="{{ hasNotif }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 9px;border-radius:999px">{{ notifBadge }}</span></sc-if>
+            </div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div style="display:flex;gap:11px;padding:12px 18px;border-bottom:1px solid #f4f7f5;background:{{ n.bg }}">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;background:{{ n.tintBg }}">{{ n.iconEl }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:600;color:#14302b;line-height:1.4">{{ n.text }}</div>
+                  <div style="font-size:11px;color:#9aa8a3;margin-top:3px">{{ n.time }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ notifsEmpty }}" hint-placeholder-val="">
+              <div style="padding:22px 18px;text-align:center;font-size:12.5px;color:#8a9a94;line-height:1.6">No notifications yet.<br>Alerts about reviews, referrals and budgets will appear here.</div>
+            </sc-if>
+            <div style="padding:10px 18px;display:flex;gap:9px;justify-content:center">
+              <button onClick="{{ markAllRead }}" style="font-size:12.5px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit">Mark all read</button>
+              <span style="color:#dde4e1">·</span>
+              <button onClick="{{ goNotifications }}" style="font-size:12.5px;font-weight:700;color:#16b8a6;background:none;border:none;cursor:pointer;font-family:inherit">View all →</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 30px 48px">
+    <div style="max-width:1320px;margin:0 auto">
+
+      <!-- ===== ALLIED HEALTH ===== -->
+      <sc-if value="{{ isAllied }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No allied health connections yet.<br>Connect an allied health professional or send a referral and they'll appear here.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:16px;padding:15px 20px;margin-bottom:18px;color:#eafaf8">
+          <span style="display:flex">{{ pulseEl }}</span>
+          <div style="flex:1;font-size:13.5px">Track every allied health connection — reports received, overdue, and what's needed for plan review.</div>
+          <button onClick="{{ connectAhp }}" style="padding:9px 16px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Connect AHP</button>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 120px;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PROFESSIONAL</span><span>DISCIPLINE</span><span>PARTICIPANT</span><span>REPORT</span><span>GOAL</span><span>STATUS</span></div>
+          <sc-for list="{{ ahList }}" as="a" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 120px;gap:8px;padding:14px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:{{ a.tint }}">{{ a.init }}</div><div style="min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.name }}</div></div></div>
+              <span style="font-size:12.5px;font-weight:600;color:#5f726d">{{ a.disc }}</span>
+              <span style="font-size:13px;font-weight:700;color:#14302b">{{ a.client }}</span>
+              <span style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;font-weight:700;color:{{ a.repFg }};background:{{ a.repBg }};padding:3px 9px;border-radius:7px">{{ a.report }}</span><sc-if value="{{ a.missing }}" hint-placeholder-val=""><button onClick="{{ chaseReport }}" style="display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer">{{ a.chaseEl }}Chase</button></sc-if></span>
+              <span style="font-size:12px;color:#6c7f79">{{ a.goal }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ a.stFg }};background:{{ a.stBg }};padding:3px 9px;border-radius:7px">{{ a.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== PLAN REVIEWS ===== -->
+      <sc-if value="{{ isReviews }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No plan reviews scheduled yet.<br>Reviews show here as participants and plan end dates are added.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px"><span style="display:flex">{{ calSmEl }}</span><span style="font-size:16px;font-weight:800;color:#14302b">3 plan reviews due in the next 14 days</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ reviewList }}" as="r" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <div style="width:42px;height:42px;border-radius:13px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:#14302b">{{ r.name }}</div></div>
+                <span style="font-size:11.5px;font-weight:800;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:5px 12px;border-radius:999px">Due in {{ r.due }}</span>
+                <button onClick="{{ goReviewPrep }}" style="padding:9px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Prepare review</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:#e9f6ef;border:1px solid #cce9d8;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:8px">READY</div><sc-for list="{{ r.ready }}" as="x" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:4px 0">{{ checkGrnEl }}<span style="font-size:12.5px;color:#1e7a52">{{ x }}</span></div></sc-for></div>
+                <div style="background:#fbe9ed;border:1px solid #f3d6dc;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:8px">MISSING</div><sc-if value="{{ r.hasMissing }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ r.missing }}" as="m" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:4px 0">{{ alertRedEl }}<span style="font-size:12.5px;color:#c0445c">{{ m }}</span></div></sc-for></sc-if>                <sc-if value="{{ r.nothingMissing }}" hint-placeholder-val=""><span style="font-size:12.5px;color:#1e7a52">Nothing missing ✓</span></sc-if></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== BUDGETS ===== -->
+      <sc-if value="{{ isBudgets }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No budget data yet.<br>Add participants and plans to track Core, Capacity &amp; Capital usage.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PARTICIPANT</span><span>CORE SUPPORTS</span><span>CAPACITY BLDG</span><span>PLAN ENDS</span><span>STATUS</span></div>
+          <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="6">
+            <div style="padding:14px 22px;border-bottom:1px solid #f1f4f2">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:{{ b.risk?'8px':'0' }}">
+                <div style="display:flex;align-items:center;gap:9px"><div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ b.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ b.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ b.name }}</span></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px"><span style="color:#8a9a94">{{ b.core.spent }}</span><span style="font-weight:700;color:{{ b.core.color }}">{{ b.core.pct }}%</span></div><div style="height:6px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ b.core.pct }}%;border-radius:99px;background:{{ b.core.color }}"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px"><span style="color:#8a9a94">{{ b.cap.spent }}</span><span style="font-weight:700;color:{{ b.cap.color }}">{{ b.cap.pct }}%</span></div><div style="height:6px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ b.cap.pct }}%;border-radius:99px;background:{{ b.cap.color }}"></div></div></div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ b.planEnd }}</span>
+                <sc-if value="{{ b.risk }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:3px 9px;border-radius:7px">At risk</span></sc-if>
+                <sc-if value="{{ !b.risk }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 9px;border-radius:7px">On track</span></sc-if>
+              </div>
+              <sc-if value="{{ b.risk }}" hint-placeholder-val=""><div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#c0445c;background:#fbe9ed;border-radius:9px;padding:7px 11px">{{ alertEl }}{{ b.riskMsg }}</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== AGREEMENTS ===== -->
+      <sc-if value="{{ isAgreements }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No service agreements yet.<br>Agreements appear here as providers are engaged for your participants.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PROVIDER</span><span>PARTICIPANT</span><span>SERVICE</span><span>ENDS</span><span>STATUS</span></div>
+          <sc-for list="{{ agreementRows }}" as="a" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;gap:8px;padding:13px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ a.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ a.init }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ a.name }}</span></div>
+              <span style="font-size:12.5px;color:#5f726d">{{ a.participant }}</span>
+              <span style="font-size:12.5px;color:#5f726d">{{ a.service }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ a.ends }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ a.stFg }};background:{{ a.stBg }};padding:3px 9px;border-radius:7px">{{ a.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== PARTICIPANTS ===== -->
+      <sc-if value="{{ isParticipants }}" hint-placeholder-val="">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Your caseload</span><span style="font-size:12px;color:#6c7f79">Consent status · plan dates · provider links</span></div>
+          <sc-for list="{{ participantRows }}" as="p" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid #f1f4f2">
+              <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ p.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:12px;color:#8a9a94;margin-top:2px">Provider: {{ p.provider }} · Plan ends: {{ p.review }}</div></div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:11px;font-weight:700;color:{{ p.consentFg }};background:{{ p.consentBg }};padding:3px 9px;border-radius:7px">{{ p.consentLabel }}</span>
+                <span style="font-size:11px;font-weight:700;color:{{ p.riskFg }};background:{{ p.riskBg }};padding:3px 9px;border-radius:7px">{{ p.risk }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== PROVIDERS ===== -->
+      <sc-if value="{{ isProviders }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No providers linked yet.<br>Providers appear here as you engage them for your participants.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ providerRows }}" as="p" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="display:flex;align-items:center;gap:13px;margin-bottom:13px">
+                <div style="width:44px;height:44px;border-radius:13px;flex:0 0 44px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ p.init }}</div>
+                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ p.name }}</div><div style="font-size:12.5px;color:#6c7f79">{{ p.type }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:4px 10px;border-radius:7px">{{ p.status }}</span>
+              </div>
+              <div style="display:flex;gap:11px;flex-wrap:wrap;margin-bottom:12px">
+                <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:11px;padding:9px 13px"><div style="font-size:10px;color:#9aa8a3">HOURS / WK</div><div style="font-size:14px;font-weight:800;color:#0b6b60;margin-top:2px">{{ p.hours }}</div></div>
+                <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:11px;padding:9px 13px"><div style="font-size:10px;color:#9aa8a3">AGREEMENT</div><div style="font-size:13px;font-weight:700;color:#14302b;margin-top:2px">{{ p.agreement }}</div></div>
+                <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:11px;padding:9px 13px;flex:1"><div style="font-size:10px;color:#9aa8a3">PARTICIPANTS</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px"><sc-for list="{{ p.participants }}" as="cl" hint-placeholder-count="2"><span style="font-size:12px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:6px">{{ cl }}</span></sc-for></div></div>
+              </div>
+              <div style="font-size:12.5px;color:#6c7f79">{{ p.contact }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== BILLING SC ===== -->
+      <sc-if value="{{ isBillingSC }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No budget data yet.<br>Funds-under-management and delivery figures appear here once plans and service delivery are recorded.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+          <sc-for list="{{ scBilling.stats }}" as="s" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)"><div style="font-size:12px;color:#6c7f79">{{ s.label }}</div><div style="font-size:26px;font-weight:800;color:{{ s.color }};margin-top:6px">{{ s.value }}</div></div>
+          </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PARTICIPANT</span><span>HOURS DELIVERED</span><span>HOURS REMAINING</span><span>BUDGET USED</span><span>BUDGET LEFT</span><span>STATUS</span></div>
+          <sc-for list="{{ scBilling.rows }}" as="r" hint-placeholder-count="6">
+            <div style="padding:12px 22px;border-bottom:1px solid #f1f4f2">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center">
+                <div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ r.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ r.init }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ r.name }}</span></div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:700;color:#14302b">{{ r.hoursDelivered }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#8a9a94">{{ r.hoursRemaining }}</span>
+                <span style="font-size:12.5px;font-weight:700;color:#14302b">{{ r.budgetUsed }}</span>
+                <span style="font-size:12.5px;font-weight:700;color:#0b6b60">{{ r.budgetRemaining }}</span>
+                <sc-if value="{{ r.flag }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:3px 9px;border-radius:7px">Action</span></sc-if>
+                <sc-if value="{{ !r.flag }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 9px;border-radius:7px">On track</span></sc-if>
+              </div>
+              <sc-if value="{{ r.flag }}" hint-placeholder-val=""><div style="margin-top:7px;font-size:11.5px;color:#c0445c;background:#fbe9ed;border-radius:8px;padding:6px 11px">{{ alertEl }}{{ r.flagMsg }}</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== GOALS ===== -->
+      <sc-if value="{{ isGoals }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No goal data yet.<br>Participant goals and progress appear here as plans are added.</div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Goal progress across your caseload</div>
+          <sc-for list="{{ goalRows }}" as="p" hint-placeholder-count="4">
+            <div style="padding:14px 22px;border-bottom:1px solid #f1f4f2">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ p.init }}</div>
+                <span style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</span>
+              </div>
+              <sc-for list="{{ p.goals }}" as="g" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                  <span style="flex:0 0 200px;font-size:12.5px;font-weight:600;color:#5f726d">{{ g.label }}</span>
+                  <div style="flex:1;height:7px;border-radius:99px;background:#eef2f0;overflow:hidden"><div style="height:100%;width:{{ g.pct }}%;border-radius:99px;background:{{ g.color }}"></div></div>
+                  <span style="flex:0 0 32px;font-size:12px;font-weight:700;color:{{ g.color }};text-align:right">{{ g.pct }}%</span>
+                  <span style="font-size:10.5px;font-weight:700;color:{{ g.color }};background:{{ g.color }}18;padding:2px 8px;border-radius:6px;flex:0 0 90px;text-align:center">{{ g.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== REFERRALS (SC) ===== -->
+      <sc-if value="{{ isRefSC }}" hint-placeholder-val="">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="flex:1">
+            <div style="font-size:15.5px;font-weight:800;color:#14302b">Referrals</div>
+            <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">Manage incoming referrals and connect participants with providers and allied health</div>
+          </div>
+          <button onClick="{{ openSendRef }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sendRefIconEl }}Send referral</button>
+        </div>
+        <div style="display:inline-flex;gap:0;background:#fff;border:1px solid #dde4e1;border-radius:13px;padding:4px;margin-bottom:16px">
+          <button onClick="{{ setRefTabIncoming }}" style="padding:8px 18px;border-radius:10px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:{{ refTabInBg }};color:{{ refTabInFg }}">Incoming · {{ incomingCount }}</button>
+          <button onClick="{{ setRefTabSent }}" style="padding:8px 18px;border-radius:10px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:{{ refTabSentBg }};color:{{ refTabSentFg }}">Sent · {{ sentCount }}</button>
+        </div>
+
+        <sc-if value="{{ isRefTabIncoming }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ incomingEmpty }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No incoming referrals yet.<br>Referrals sent to your organisation will appear here.</div>
+          </sc-if>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <sc-for list="{{ scReferrals }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid #f1f4f2">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ r.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ r.init }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ r.name }}</div><div style="font-size:12px;color:#8a9a94">{{ r.need }} · via {{ r.from }}</div><div style="font-size:12px;color:#9aa8a3;margin-top:3px">{{ r.when }}</div></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px">
+                  <span style="font-size:10.5px;font-weight:700;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:3px 9px;border-radius:7px">{{ r.urgency }}</span>
+                  <span style="font-size:11.5px;font-weight:700;color:#4338ca;background:#eef0fd;padding:3px 9px;border-radius:7px">{{ r.stage }}</span>
+                </div>
+                <button onClick="{{ goParticipantProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRefTabSent }}" hint-placeholder-val="">
+          <sc-if value="{{ sentEmpty }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No sent referrals yet.<br>Use “Send referral” to refer a participant to a provider or allied health professional.</div>
+          </sc-if>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3"><span>REFERRED TO</span><span>PARTICIPANT</span><span>DATE SENT</span><span>STATUS</span><span>NEXT ACTION</span></div>
+            <sc-for list="{{ sentReferrals }}" as="sr" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr;padding:14px 20px;border-bottom:1px solid #f4f7f5;align-items:center;gap:8px">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;background:{{ sr.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ sr.init }}</div>
+                  <div><div style="font-size:13px;font-weight:700;color:#14302b">{{ sr.recipient }}</div><div style="font-size:11px;color:#9aa8a3">{{ sr.type }}</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="width:26px;height:26px;border-radius:7px;flex:0 0 26px;background:{{ sr.ptTint }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">{{ sr.ptInit }}</div>
+                  <span style="font-size:12.5px;font-weight:600;color:#14302b">{{ sr.participant }}</span>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ sr.date }}</span>
+                <span style="font-size:11px;font-weight:700;color:{{ sr.stFg }};background:{{ sr.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ sr.status }}</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <sc-if value="{{ sr.urgent }}" hint-placeholder-val="">{{ alertSmEl }}</sc-if>
+                  <span style="font-size:12px;color:#41635c">{{ sr.nextAction }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ===== PROFILE (SC) ===== -->
+      <sc-if value="{{ isProfileSC }}" hint-placeholder-val="">
+      <div style="max-width:800px">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04);margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+            <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex:0 0 64px">{{ scProfileInit }}</div>
+            <div><div style="font-size:20px;font-weight:800;color:#14302b">{{ scProfile.name }}</div><div style="font-size:13px;color:#6c7f79;margin-top:3px">{{ scProfile.org }}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">EMAIL</div><div style="font-size:13px;font-weight:700;color:#0b6b60">{{ scProfile.email }}</div></div>
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">PHONE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#14302b">{{ scProfile.phone }}</div></div>
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">CASELOAD</div><div style="font-size:22px;font-weight:800;color:#0b6b60">{{ scProfile.caseload }}</div><div style="font-size:11px;color:#8a9a94">active participants</div></div>
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:6px">SERVICE REGIONS</div><div style="display:flex;gap:5px;flex-wrap:wrap"><sc-for list="{{ scProfile.regions }}" as="r" hint-placeholder-count="3"><span style="font-size:11.5px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:7px">{{ r }}</span></sc-for></div></div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:13.5px;font-weight:800;color:#14302b;margin-bottom:12px">Qualifications</div>
+          <sc-for list="{{ scProfile.quals }}" as="q" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f4f7f5">{{ checkGrnEl }}<span style="font-size:13px;font-weight:600;color:#14302b">{{ q }}</span></div></sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== AI FILE DROP ===== -->
+      <sc-if value="{{ isFiledrop }}" hint-placeholder-val="">
+        <div style="margin:-24px -28px -48px">
+          <iframe src="AI%20File%20Drop.dc.html" style="width:100%;height:calc(100vh - 104px);border:none;background:#eaeeec"></iframe>
+        </div>
+      </sc-if>
+
+      <!-- ===== CASE NOTES ===== -->
+      <sc-if value="{{ isNotes }}" hint-placeholder-val="">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 18px;margin-bottom:14px">
+          <div style="font-size:13.5px;font-weight:800;color:#14302b;margin-bottom:10px">Add coordination note</div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <select value="{{ noteParticipantId }}" onChange="{{ setNoteParticipant }}" style="height:42px;border:1.5px solid #dde4e1;border-radius:11px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff">
+              <option value="">Select participant…</option>
+              <sc-for list="{{ noteParticipantOptions }}" as="np" hint-placeholder-count="2"><option value="{{ np.value }}">{{ np.label }}</option></sc-for>
+            </select>
+            <textarea value="{{ noteBody }}" onInput="{{ setNoteBody }}" placeholder="Write a coordination note…" style="width:100%;height:80px;border:1.5px solid #dde4e1;border-radius:11px;padding:10px 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+            <div style="display:flex;justify-content:flex-end"><button onClick="{{ saveCoordNote }}" style="height:40px;padding:0 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Save note</button></div>
+          </div>
+        </div>
+        <sc-if value="{{ coordNotesEmpty }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px;text-align:center;font-size:12.5px;color:#8a9a94">No coordination notes yet — select a participant and add one above.</div>
+        </sc-if>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <sc-for list="{{ coordNotes }}" as="n" hint-placeholder-count="4">
+            <div style="display:flex;gap:13px;padding:16px 22px;border-bottom:1px solid #f1f4f2">
+              <div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;background:{{ n.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ n.init }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span style="font-size:14px;font-weight:700;color:#14302b">{{ n.participant }}</span><span style="font-size:11.5px;font-weight:700;color:#4338ca;background:#eef0fd;padding:2px 8px;border-radius:6px">{{ n.type }}</span><span style="font-size:12px;color:#9aa8a3;margin-left:auto">{{ n.date }}</span></div>
+                <div style="font-size:13px;color:#41635c;line-height:1.55;margin-top:6px">{{ n.note }}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><sc-for list="{{ n.tags }}" as="t" hint-placeholder-count="2"><span style="font-size:11px;font-weight:600;color:#5f726d;background:#f1f4f2;padding:3px 8px;border-radius:7px">{{ t }}</span></sc-for></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== DOCUMENTS ===== -->
+      <sc-if value="{{ isDocs }}" hint-placeholder-val="">
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Documents</span><button onClick="{{ uploadDocSC }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ addNoteEl }}Upload</button></div>
+          <sc-if value="{{ realDocsEmpty }}" hint-placeholder-val="">
+            <div style="padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No documents yet.<br>Click <b>Upload</b> to file a plan, consent, agreement or report — it appears here instantly.</div>
+          </sc-if>
+          <sc-if value="{{ realDocsHas }}" hint-placeholder-val="">
+          <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>DOCUMENT</span><span>PARTICIPANT</span><span>TYPE</span><span>DATE</span><span>STATUS</span></div>
+          <sc-for list="{{ realDocsRows }}" as="d" hint-placeholder-count="0">
+            <div onClick="{{ d.onOpen }}" style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;gap:8px;padding:12px 20px;border-bottom:1px solid #f4f7f5;align-items:center;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:7px;flex:0 0 28px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ docIconEl }}</div><span style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span></div>
+              <span style="font-size:12.5px;color:#5f726d">{{ d.participant }}</span>
+              <span style="font-size:11.5px;font-weight:600;color:{{ d.tagFg }};background:{{ d.tagBg }};padding:3px 9px;border-radius:7px">{{ d.tag }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ d.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ d.stFg }};background:{{ d.stBg }};padding:3px 9px;border-radius:7px">{{ d.status }}</span>
+            </div>
+          </sc-for>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Documents</span><button onClick="{{ uploadDocSC }}" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">{{ addNoteEl }}Upload</button></div>
+          <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>DOCUMENT</span><span>PARTICIPANT</span><span>TYPE</span><span>DATE</span><span>STATUS</span></div>
+          <sc-for list="{{ docsRows }}" as="d" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;gap:8px;padding:12px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:7px;flex:0 0 28px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ docIconEl }}</div><span style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span></div>
+              <span style="font-size:12.5px;color:#5f726d">{{ d.participant }}</span>
+              <span style="font-size:11.5px;font-weight:600;color:{{ d.tagFg }};background:{{ d.tagBg }};padding:3px 9px;border-radius:7px">{{ d.tag }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ d.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ d.stFg }};background:{{ d.stBg }};padding:3px 9px;border-radius:7px">{{ d.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- ===== CASELOAD (default) ===== -->
+      <sc-if value="{{ isCaseload }}" hint-placeholder-val="{{ true }}">
+
+      <div style="border-radius:20px;padding:20px 24px;color:#eafaf8;background:linear-gradient(135deg,#0c2622,#0e5147 70%,#0b6b60);position:relative;overflow:hidden;margin-bottom:18px;box-shadow:0 18px 40px -24px rgba(11,80,71,.8)">
+        <div style="position:absolute;right:-40px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.4),transparent 70%)"></div>
+        <div style="position:relative;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:300px">
+            <div style="display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.04em;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:5px 11px;border-radius:999px;color:#bdf0e8">{{ sparkSmEl }} CiaraLink COPILOT</div>
+            <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:12px;line-height:1.3;max-width:680px">I've got my eye on 3 plan reviews due in 14 days and 2 participants <span style="color:#7ce0d2">underspending Capacity</span> — and Liam W.'s Core budget will run dry by August unless we act.</div>
+            </sc-if>
+            <sc-if value="{{ realMode }}" hint-placeholder-val="">
+            <div style="font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:12px;line-height:1.3;max-width:680px">Welcome, {{ userFirst }}. Your caseload, plan reviews and budget alerts will appear here as you add participants.</div>
+            </sc-if>
+          </div>
+          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ reviewAtRiskPlans }}" style="display:flex;align-items:center;gap:8px;padding:11px 17px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ boltEl }}Review at-risk plans</button>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="4">
+          <div style="position:relative;overflow:hidden;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 14px 30px -22px rgba(20,48,43,.3)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:{{ kpi.tintBg }}">{{ kpi.iconEl }}</div>
+              <div style="font-size:12px;font-weight:700;color:{{ kpi.deltaColor }};background:{{ kpi.deltaBg }};padding:3px 9px;border-radius:999px">{{ kpi.deltaLabel }}</div>
+            </div>
+            <div style="margin-top:15px;font-size:29px;font-weight:800;letter-spacing:-.025em;color:#14302b;line-height:1">{{ kpi.value }}</div>
+            <div style="font-size:13px;font-weight:600;color:#5f726d;margin-top:6px">{{ kpi.label }}</div>
+            <div style="font-size:12px;color:#9aa8a3">{{ kpi.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:18px;align-items:start">
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #eef2f0">
+              <div><div style="font-size:15.5px;font-weight:800;color:#14302b">Participant caseload</div><div style="font-size:12px;color:#6c7f79">Plan utilisation · next review · risk</div></div>
+              <div style="display:flex;gap:7px">
+                <span style="font-size:12px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:5px 11px;border-radius:9px;cursor:pointer">{{ caseAllLabel }}</span>
+                <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;font-weight:600;color:#5f726d;background:#f1f4f2;padding:5px 11px;border-radius:9px;cursor:pointer">At risk 4</span></sc-if>
+              </div>
+            </div>
+            <sc-for list="{{ caseload }}" as="p" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid #f1f4f2">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ p.tint }}">{{ p.init }}</div>
+                <div style="flex:1 1 0;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</span><span style="font-size:11px;color:#9aa8a3">{{ p.plan }}</span></div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:7px">
+                    <div style="flex:1;height:7px;border-radius:99px;background:#eef2f0;overflow:hidden;max-width:220px"><div style="height:100%;width:{{ p.usePct }};border-radius:99px;background:{{ p.useColor }}"></div></div>
+                    <span style="font-size:11.5px;font-weight:700;color:#41635c">{{ p.usePct }} used</span>
+                  </div>
+                </div>
+                <div style="text-align:right;flex:0 0 92px"><div style="font-size:11px;color:#9aa8a3">Review</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ p.review }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ p.riskFg }};background:{{ p.riskBg }};padding:3px 9px;border-radius:7px;flex:0 0 auto">{{ p.risk }}</span>
+                <button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
+              <div style="padding:26px 22px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">No participants in your caseload yet.<br>Add a participant or accept a referral and they'll appear here.</div>
+            </sc-if>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 22px">
+            <div style="font-size:15.5px;font-weight:800;color:#14302b;margin-bottom:4px">Plan budget health</div>
+            <div style="font-size:12px;color:#6c7f79;margin-bottom:16px">Across your caseload · this plan period</div>
+            <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:24px;flex-wrap:wrap">
+              <sc-for list="{{ budgets }}" as="b" hint-placeholder-count="3">
+                <div style="flex:1;min-width:170px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;font-weight:700;color:#14302b">{{ b.cat }}</span><span style="font-size:12px;font-weight:700;color:{{ b.color }}">{{ b.pct }}</span></div>
+                  <div style="height:9px;border-radius:99px;background:#eef2f0;overflow:hidden;margin-top:8px"><div style="height:100%;width:{{ b.pct }};border-radius:99px;background:{{ b.color }}"></div></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11.5px;color:#8a9a94"><span>{{ b.spent }}</span><span>of {{ b.total }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+            <sc-if value="{{ realMode }}" hint-placeholder-val="">
+            <div style="padding:8px 4px 2px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">No budget data yet — add participants and plans to see Core, Capacity &amp; Capital usage.</div>
+            </sc-if>
+          </div>
+
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="padding:16px 20px 8px"><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center">{{ hubWhiteEl }}</div><div><div style="font-size:15px;font-weight:800;color:#14302b">Service Web — Liam W.</div><div style="font-size:11.5px;color:#6c7f79">Engaged providers + unmet needs</div></div></div></div>
+            <div style="position:relative;height:300px;background:radial-gradient(circle at 50% 48%,#f4f5ff,#fff 70%)">
+              <svg style="position:absolute;inset:0;width:100%;height:100%" preserveAspectRatio="none">
+                <line x1="50%" y1="48%" x2="20%" y2="24%" stroke="#6366f1" stroke-width="1.6" stroke-opacity=".55" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="82%" y2="22%" stroke="#6366f1" stroke-width="1.6" stroke-opacity=".55" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="16%" y2="74%" stroke="#6366f1" stroke-width="1.6" stroke-opacity=".55" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="84%" y2="74%" stroke="#e0556e" stroke-width="1.6" stroke-opacity=".45" stroke-dasharray="5 4"></line>
+                <line x1="50%" y1="48%" x2="50%" y2="88%" stroke="#e0556e" stroke-width="1.6" stroke-opacity=".45" stroke-dasharray="5 4"></line>
+              </svg>
+              <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center">
+                <div style="width:60px;height:60px;border-radius:17px;background:linear-gradient(150deg,#0e5147,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#eafaf8;animation:scw-pulse 2.4s infinite">LW</div>
+                <div style="margin-top:7px;font-size:12px;font-weight:800;color:#14302b">Liam W.</div>
+              </div>
+              <sc-for list="{{ webNodes }}" as="wn" hint-placeholder-count="5">
+                <div onClick="{{ wn.onClick }}" style="position:absolute;left:{{ wn.xp }};top:{{ wn.yp }};transform:translate(-50%,-50%);text-align:center;animation:scw-float {{ wn.dur }} ease-in-out infinite;cursor:{{ wn.isGap ? 'pointer' : 'default' }}">
+                  <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto;background:{{ wn.tint }};border:{{ wn.border }};box-shadow:0 8px 16px -8px rgba(20,48,43,.4)">{{ wn.iconEl }}</div>
+                  <div style="margin-top:6px;font-size:10.5px;font-weight:700;color:{{ wn.labelFg }};white-space:nowrap">{{ wn.label }}</div>
+                </div>
+              </sc-for>
+              <div style="position:absolute;left:16px;bottom:12px;display:flex;gap:12px;font-size:10.5px;color:#6c7f79">
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:3px;border-radius:9px;background:#6366f1"></span>Engaged</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:3px;border-radius:9px;background:#e0556e"></span>Unmet need</span>
+              </div>
+            </div>
+            <div style="padding:12px 18px;border-top:1px solid #eef2f0;display:flex;align-items:center;gap:10px;background:#fbfdfc">
+              <span style="display:flex;color:#e0556e">{{ alertEl }}</span>
+              <div style="flex:1;font-size:12.5px;color:#41635c"><b style="color:#14302b">2 unmet needs</b> — Speech Therapy & Transport</div>
+              <button onClick="{{ findProviders }}" style="font-size:12px;font-weight:800;color:#06201c;background:#16b8a6;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">Find providers</button>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ realMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="padding:16px 20px 8px"><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center">{{ hubWhiteEl }}</div><div><div style="font-size:15px;font-weight:800;color:#14302b">Service Web</div><div style="font-size:11.5px;color:#6c7f79">Provider &amp; allied-health connections</div></div></div></div>
+            <div style="padding:22px 20px 26px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">Select a participant to map their engaged providers and unmet needs.<br>Connections appear here as you add services and referrals.</div>
+          </div>
+          </sc-if>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><div style="font-size:15.5px;font-weight:800;color:#14302b">Tasks & reviews</div><span style="font-size:11.5px;font-weight:700;color:#d98b22;background:#fbf0df;padding:2px 8px;border-radius:999px;margin-left:auto">{{ taskBadge }}</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+              <input value="{{ newTaskTitle }}" onInput="{{ setNewTaskTitle }}" placeholder="New coordination task…" style="flex:1;min-width:170px;height:40px;border:1.5px solid #dde4e1;border-radius:10px;padding:0 12px;font-family:inherit;font-size:13.5px;color:#14302b;background:#fff">
+              <select value="{{ newTaskParticipantId }}" onChange="{{ setNewTaskParticipant }}" style="height:40px;border:1.5px solid #dde4e1;border-radius:10px;padding:0 10px;font-family:inherit;font-size:13px;color:#14302b;background:#fff;max-width:200px">
+                <sc-for list="{{ taskParticipantOptions }}" as="tp" hint-placeholder-count="2"><option value="{{ tp.value }}">{{ tp.label }}</option></sc-for>
+              </select>
+              <input type="date" value="{{ newTaskDue }}" onChange="{{ setNewTaskDue }}" style="height:40px;border:1.5px solid #dde4e1;border-radius:10px;padding:0 10px;font-family:inherit;font-size:13px;color:#14302b;background:#fff">
+              <button onClick="{{ createCoordTask }}" style="height:40px;padding:0 16px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Add task</button>
+            </div>
+            <sc-for list="{{ coordTasks }}" as="t" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f4f2">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;background:{{ t.tintBg }}">{{ t.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#14302b">{{ t.title }}</div><div style="font-size:11.5px;color:#8a9a94">{{ t.sub }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ t.dueFg }};background:{{ t.dueBg }};padding:3px 8px;border-radius:7px">{{ t.due }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ coordTasksEmpty }}" hint-placeholder-val="">
+              <div style="padding:18px 4px;text-align:center;font-size:12.5px;color:#8a9a94">No coordination tasks yet — add your first above.</div>
+            </sc-if>
+          </div>
+
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== SEND REFERRAL MODAL ===== -->
+<sc-if value="{{ sendRefOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:640px;max-width:100%;max-height:90vh;background:#fff;border-radius:22px;display:flex;flex-direction:column;box-shadow:0 32px 64px -20px rgba(0,0,0,.5);overflow:hidden">
+
+    <div style="display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #eef2f0;flex:0 0 auto">
+      <div style="flex:1"><div style="font-size:17px;font-weight:800;color:#14302b">Send Referral</div><div style="font-size:12px;color:#6c7f79;margin-top:2px">{{ sendRefSubtitle }}</div></div>
+      <button onClick="{{ closeSendRef }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xSmEl }}</button>
+    </div>
+
+    <div style="display:flex;background:#f7faf9;border-bottom:1px solid #eef2f0;flex:0 0 auto">
+      <sc-for list="{{ sendRefProgress }}" as="sp" hint-placeholder-count="4">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:11px 0;gap:4px">
+          <div style="width:24px;height:24px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:{{ sp.bg }};color:{{ sp.fg }}">{{ sp.num }}</div>
+          <div style="font-size:10px;font-weight:700;color:{{ sp.labelFg }}">{{ sp.label }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:22px 24px">
+
+      <sc-if value="{{ isSendRefStep0 }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:13.5px;font-weight:700;color:#14302b;margin-bottom:14px">Who are you referring to?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <button onClick="{{ setSendRefProvider }}" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;border-radius:14px;border:2px solid {{ refProvBd }};background:{{ refProvBg }};cursor:pointer;font-family:inherit">
+            <div style="width:48px;height:48px;border-radius:14px;background:{{ refProvIconBg }};display:flex;align-items:center;justify-content:center">{{ buildingEl }}</div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:800;color:{{ refProvFg }}">Provider</div><div style="font-size:11.5px;color:#6c7f79;margin-top:2px">Service provider organisation</div></div>
+          </button>
+          <button onClick="{{ setSendRefAllied }}" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;border-radius:14px;border:2px solid {{ refAhBd }};background:{{ refAhBg }};cursor:pointer;font-family:inherit">
+            <div style="width:48px;height:48px;border-radius:14px;background:{{ refAhIconBg }};display:flex;align-items:center;justify-content:center">{{ heartEl }}</div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:800;color:{{ refAhFg }}">Allied Health</div><div style="font-size:11.5px;color:#6c7f79;margin-top:2px">OT, physio, speech, psychology</div></div>
+          </button>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">{{ refRecipientLabel }}</label>
+          <select value="{{ refRecipient }}" onChange="{{ setRefRecipient }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+            <sc-if value="{{ isRefTypeProvider }}" hint-placeholder-val="{{ true }}">
+              <option>Brightside Care</option><option>Coburg Community Support</option><option>Northern Allied Services</option><option>Other provider…</option>
+            </sc-if>
+            <sc-if value="{{ isRefTypeAllied }}" hint-placeholder-val="">
+              <option>Jordan Pham — Physiotherapy</option><option>Inner West OT</option><option>Northside Speech Pathology</option><option>Other allied health professional…</option>
+            </sc-if>
+          </select>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSendRefStep1 }}" hint-placeholder-val="">
+        <div style="font-size:13.5px;font-weight:700;color:#14302b;margin-bottom:14px">Participant details</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">PARTICIPANT</label>
+            <select value="{{ refParticipantId }}" onChange="{{ setRefParticipant }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+              <sc-for list="{{ refParticipantOptions }}" as="rp" hint-placeholder-count="4"><option value="{{ rp.value }}">{{ rp.label }}</option></sc-for>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">PLAN START</label><input value="{{ refPlanStart }}" onInput="{{ setRefPlanStart }}" placeholder="e.g. 01 Jul 2026" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">PLAN END</label><input value="{{ refPlanEnd }}" onInput="{{ setRefPlanEnd }}" placeholder="e.g. 30 Jun 2027" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+          </div>
+          <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">RELEVANT GOALS</label>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;padding:12px;border:1.5px solid #dde4e1;border-radius:12px;background:#fff">
+              <sc-for list="{{ refGoals }}" as="rg" hint-placeholder-count="3"><span style="font-size:12px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:4px 10px;border-radius:8px">{{ rg }}</span></sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSendRefStep2 }}" hint-placeholder-val="">
+        <div style="font-size:13.5px;font-weight:700;color:#14302b;margin-bottom:14px">Referral details</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">SUPPORTS REQUIRED</label><input value="{{ refSupports }}" onInput="{{ setRefSupports }}" placeholder="e.g. Physiotherapy — gait assessment, 12-session block" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">FUNDING CATEGORY</label>
+              <select value="{{ refFunding }}" onChange="{{ setRefFunding }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"><option>Core Supports</option><option>Capacity Building</option><option>Capital Supports</option></select>
+            </div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">URGENCY</label>
+              <select value="{{ refUrgency }}" onChange="{{ setRefUrgency }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff"><option>Standard</option><option>High</option><option>Urgent</option></select>
+            </div>
+          </div>
+          <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">DOCUMENTS TO ATTACH</label>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;padding:10px 12px;border:1.5px solid #dde4e1;border-radius:12px;background:#fff">
+              <sc-for list="{{ refDocs }}" as="rd" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:8px;background:#f4f7f5;border:1px solid #e2e9e6">{{ fileSmEl }}<span style="font-size:12px;font-weight:600;color:#41635c">{{ rd }}</span></div></sc-for>
+              <button onClick="{{ addItemSC }}" style="padding:4px 10px;border-radius:8px;border:1px dashed #b6c4be;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:#6c7f79;cursor:pointer">+ Add</button>
+            </div>
+          </div>
+          <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">NOTES / MESSAGE</label><textarea value="{{ refNotes }}" onInput="{{ setRefNotes }}" placeholder="Add context, notes or special instructions…" style="width:100%;height:88px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea></div>
+          <div style="background:#f0faf8;border:1px solid #cce9d8;border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px">
+            <input type="checkbox" checked="{{ refConsent }}" onChange="{{ setRefConsent }}" style="margin-top:3px;accent-color:#16b8a6;width:16px;height:16px;flex:0 0 16px">
+            <span style="font-size:13px;color:#14302b;line-height:1.5">I confirm the participant has given consent for this referral and for their information to be shared with the recipient.</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSendRefStep3 }}" hint-placeholder-val="">
+        <div style="text-align:center;padding:16px 0">
+          <div style="width:72px;height:72px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">{{ refBigCheckEl }}</div>
+          <div style="font-size:20px;font-weight:800;color:#14302b;margin-bottom:8px">Referral sent</div>
+          <div style="font-size:13.5px;color:#6c7f79;line-height:1.6;margin-bottom:20px">Sent and appearing in the recipient's inbox. Track its status in the <b>Sent</b> tab.</div>
+          <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:14px;padding:16px 18px;text-align:left">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">SENT TO</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ refSentToName }}</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">STATUS</div><div style="font-size:13px;font-weight:700;color:#0b6b60">{{ refSentStatus }}</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">PARTICIPANT</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ refSentParticipant }}</div></div>
+              <div><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:3px">REFERENCE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#14302b">{{ refSentReference }}</div></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <div style="display:flex;gap:9px;padding:16px 24px;border-top:1px solid #eef2f0;flex:0 0 auto">
+      <sc-if value="{{ showRefBack }}" hint-placeholder-val=""><button onClick="{{ sendRefBack }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Back</button></sc-if>
+      <sc-if value="{{ showRefClose }}" hint-placeholder-val=""><button onClick="{{ closeSendRef }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Close</button></sc-if>
+      <sc-if value="{{ showRefNext }}" hint-placeholder-val="{{ true }}"><button onClick="{{ sendRefNext }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ sendRefBtnLabel }}</button></sc-if>
+    </div>
+
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'caseload', notifOpen:false, sendRefOpen:false, sendRefStep:0, sendRefType:'provider', refTab:'incoming', savedReferrals:[], savedNotes:[], noteFormOpen:false, noteText:'', noteParticipant:'Margaret Reyes', validationError:null, supabaseConnected:false, participantsLoading:true, participantsError:false, supabaseParticipants:[], orgId:null, liveReferrals:[], refParticipantId:'', toast:null, liveTasks:[], newTaskTitle:'', newTaskParticipantId:'', newTaskDue:'', liveNotes:[], noteBody:'', noteParticipantId:'', authName:null, authInitials:null, authRole:null, authOrg:null, authEmail:null, refRecipient:'', refSupports:'', refFunding:'Core Supports', refUrgency:'Standard', refNotes:'', refConsent:true, refPlanStart:'', refPlanEnd:'', lastSavedReferral:null, liveNotifications:[], notifLoaded:false, liveDocs:[], docsLoaded:false, refAttachments:[] };
+  componentDidMount(){
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      if(s.loggedIn && s.role && s.role!=='coordinator'){
+        const m={provider:'CiaraLink Provider Dashboard.dc.html',worker:'Support Worker.dc.html',allied:'Allied Health.dc.html'};
+        if(m[s.role]) window.location.href=m[s.role];
+      }
+    }catch(e){}
+    const AD=window.AegisData;
+    if(AD){
+      const refs=AD.get('sc_sent_referrals')||[];
+      const notes=AD.get('sc_case_notes')||[];
+      this.setState({savedReferrals:refs,savedNotes:notes});
+    }
+    this.loadParticipants();
+    this.loadOrgAndReferrals();
+    this.loadLiveTasks();
+    this.loadIdentity();
+    this.loadNotifs();
+    this.loadDocs();
+    this.setupFileInputs();
+  }
+
+  componentWillUnmount(){
+    try{ if(this._docFileInput&&this._docFileInput.parentNode) this._docFileInput.parentNode.removeChild(this._docFileInput); }catch(e){}
+    try{ if(this._refFileInput&&this._refFileInput.parentNode) this._refFileInput.parentNode.removeChild(this._refFileInput); }catch(e){}
+  }
+
+  // Hidden file inputs (created once, persist across DC re-renders) — same pattern as AI File Drop.
+  setupFileInputs(){
+    try{
+      if(!this._docFileInput){
+        const input=document.createElement('input');
+        input.type='file';
+        input.accept='.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx';
+        input.style.display='none';
+        input.addEventListener('change',()=>{ const f=input.files&&input.files[0]; input.value=''; if(f) this.doUploadDoc(f); });
+        document.body.appendChild(input);
+        this._docFileInput=input;
+      }
+      if(!this._refFileInput){
+        const input=document.createElement('input');
+        input.type='file';
+        input.accept='.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx';
+        input.style.display='none';
+        input.addEventListener('change',()=>{ const f=input.files&&input.files[0]; input.value=''; if(f) this.doRefAttach(f); });
+        document.body.appendChild(input);
+        this._refFileInput=input;
+      }
+    }catch(e){ console.error('setupFileInputs',e); }
+  }
+
+  // Real document list for the Documents view (RLS-scoped via loadDocumentsForCurrentUser).
+  loadDocs(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadDocumentsForCurrentUser){
+        Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
+          this.setState({liveDocs:(res && !res.error) ? (res.documents||[]) : [], docsLoaded:true});
+        }).catch(e=>{ console.warn('loadDocs error:',e&&e.message); this.setState({docsLoaded:true}); });
+      } else {
+        this.setState({docsLoaded:true});
+      }
+    }catch(e){ console.warn('loadDocs error:',e&&e.message); }
+  }
+
+  // Open a stored document in a new tab via a short-lived signed URL.
+  openDocument(path, bucket){
+    if(!path){ this.showToast('No file attached to this record'); return; }
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured() && typeof window.getDocumentSignedUrl==='function')){ this.showToast('Sign in to open documents'); return; }
+    Promise.resolve(window.getDocumentSignedUrl(path, bucket||'participant-documents')).then(res=>{
+      if(res && res.url && !res.error){ window.open(res.url,'_blank','noopener'); }
+      else this.showToast("Couldn't open document"+((res&&res.error)?': '+res.error:''));
+    }).catch(e=>this.showToast("Couldn't open document"));
+  }
+
+  // Real upload from the Documents view "Upload" button.
+  doUploadDoc(file){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured() && typeof window.uploadDocument==='function')){
+      this.showToast('Sign in to your CiaraLink account to upload documents'); return;
+    }
+    this.showToast('Uploading '+file.name+'…');
+    Promise.resolve(window.uploadDocument({ file:file, doc_type:'other', title:file.name })).then(res=>{
+      if(res && res.document && !res.error){ this.showToast('Filed '+file.name+' ✓'); this.loadDocs(); }
+      else this.showToast("Couldn't upload: "+((res&&res.error)||'unknown error'));
+    }).catch(e=>this.showToast("Couldn't upload: "+((e&&e.message)||'unknown error')));
+  }
+
+  // Attach a document to the referral being drafted. Records the filename (composed into the
+  // referral notes on send) and — when signed in with a participant selected — uploads the real
+  // file to storage and links it to that participant.
+  doRefAttach(file){
+    const name=file.name||'Document';
+    this.setState(s=>({refAttachments:[...(s.refAttachments||[]), name]}));
+    const pid=this.state.refParticipantId||'';
+    if(window.isSupabaseConfigured && window.isSupabaseConfigured() && typeof window.uploadDocument==='function' && pid){
+      this.showToast('Attaching '+name+'…');
+      Promise.resolve(window.uploadDocument({ file:file, participant_id:pid, doc_type:'referral_attachment', title:name })).then(res=>{
+        if(res && res.document && !res.error){ this.showToast('Attached '+name+' ✓'); this.loadDocs(); }
+        else this.showToast('Listed '+name+' (file not stored: '+((res&&res.error)||'unknown error')+')');
+      }).catch(e=>this.showToast('Listed '+name+' (file not stored)'));
+    } else {
+      this.showToast('Added '+name+' to this referral');
+    }
+  }
+
+  loadIdentity(){
+    if(!window.loadCurrentUserContext) return;
+    Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+      if(!ctx || ctx.error || !ctx.user) return;
+      const profileName = ctx.profile && ctx.profile.full_name && ctx.profile.full_name.trim();
+      const email = (ctx.user.email || '');
+      const name = profileName || (email ? email.split('@')[0] : '');
+      if(!name) return;
+      const parts = name.trim().split(/\s+/);
+      const initials = (parts.length > 1 ? (parts[0][0] + parts[parts.length-1][0]) : name.slice(0,2)).toUpperCase();
+      const roleLabels = { support_coordinator:'Support Coordinator', coordinator:'Support Coordinator', sc_owner:'Support Coordinator', provider_owner:'Provider Owner', provider_admin:'Provider Admin' };
+      const roleLabel = roleLabels[ctx.primaryRole] || 'Support Coordinator';
+      this.setState({ authName:name, authInitials:initials, authRole:roleLabel, authOrg:(ctx.organisationName||''), authEmail:email });
+    }).catch(()=>{});
+  }
+
+  loadNotifs(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadNotificationsForCurrentUser){
+        Promise.resolve(window.loadNotificationsForCurrentUser()).then(res=>{
+          this.setState({liveNotifications:(res && !res.error) ? (res.notifications||[]) : [], notifLoaded:true});
+        }).catch(e=>{ console.warn('loadNotifs error:',e&&e.message); this.setState({notifLoaded:true}); });
+      }
+    }catch(e){ console.warn('loadNotifs error:',e&&e.message); }
+  }
+
+  loadLiveTasks(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadTasksForCurrentUser){
+        Promise.resolve(window.loadTasksForCurrentUser()).then(res=>{
+          if(res && !res.error) this.setState({liveTasks:res.tasks||[]});
+        }).catch(e=>console.warn('loadLiveTasks error:',e&&e.message));
+      }
+    }catch(e){ console.warn('loadLiveTasks error:',e&&e.message); }
+  }
+
+  loadNotesForParticipant(participantId){
+    try{
+      if(participantId && window.isSupabaseConfigured && window.isSupabaseConfigured() && window.listParticipantNotes){
+        Promise.resolve(window.listParticipantNotes(participantId)).then(res=>{
+          this.setState({liveNotes:(res && !res.error) ? (res.notes||[]) : []});
+        }).catch(e=>{ console.warn('listParticipantNotes error:',e&&e.message); this.setState({liveNotes:[]}); });
+      } else {
+        this.setState({liveNotes:[]});
+      }
+    }catch(e){ console.warn('loadNotesForParticipant error:',e&&e.message); }
+  }
+
+  loadOrgAndReferrals(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured()){
+        if(window.loadCurrentUserContext){
+          Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+            if(ctx && ctx.organisationId) this.setState({orgId:ctx.organisationId});
+          }).catch(e=>console.warn('loadCurrentUserContext error:',e&&e.message));
+        }
+        if(window.loadReferralsForCurrentUser){
+          Promise.resolve(window.loadReferralsForCurrentUser()).then(res=>{
+            if(res && !res.error) this.setState({liveReferrals:res.referrals||[]});
+          }).catch(e=>console.warn('loadReferrals error:',e&&e.message));
+        }
+      }
+    }catch(e){ console.warn('loadOrgAndReferrals error:',e&&e.message); }
+  }
+
+  loadParticipants() {
+    try {
+      this.setState({ participantsLoading: true, participantsError: false });
+      if (window.queryParticipantsByCoordinator) {
+        Promise.resolve(window.queryParticipantsByCoordinator()).then(parts => {
+          if (parts && parts.length > 0) {
+            this.setState({ 
+              supabaseParticipants: parts,
+              supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
+              participantsLoading: false 
+            });
+          } else {
+            this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
+          }
+        }).catch(err => {
+          console.error('loadParticipants error:', err);
+          this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: false });
+        });
+      } else {
+        const script = document.createElement('script');
+        script.src = 'supabase-client.js';
+        script.onload = () => {
+          if (window.queryParticipantsByCoordinator) {
+            Promise.resolve(window.queryParticipantsByCoordinator()).then(parts => {
+              if (parts && parts.length > 0) {
+                this.setState({ 
+                  supabaseParticipants: parts,
+                  supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
+                  participantsLoading: false 
+                });
+              } else {
+                this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
+              }
+            }).catch(err => {
+              console.error('loadParticipants error:', err);
+              this.setState({ participantsError: true, participantsLoading: false });
+            });
+          } else {
+            this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
+          }
+        };
+        script.onerror = () => {
+          this.setState({ supabaseConnected: false, participantsLoading: false, participantsError: true });
+        };
+        document.head.appendChild(script);
+      }
+    } catch (err) {
+      console.error('loadParticipants error:', err);
+      this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: false });
+    }
+  }
+  ic(name, color, size){
+    const stroke=color||'#5f726d', s=size||18;
+    const P={
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      spark:'M12 3l1.7 5.6L19.5 10l-5.8 1.4L12 17l-1.7-5.6L4.5 10l5.8-1.4z',
+      hub:'M5 5m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M19 5m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M5 19m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M19 19m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M12 12m-2.4 0a2.4 2.4 0 1 0 4.8 0 2.4 2.4 0 1 0-4.8 0 M6.6 6.6l3.8 3.8 M17.4 6.6l-3.8 3.8 M6.6 17.4l3.8-3.8 M17.4 17.4l-3.8-3.8',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      calc:'M5 3h14v18H5z M9 7h6 M8 11h.01 M12 11h.01 M16 11h.01 M8 15h.01 M12 15h.01 M16 15h.01',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      building:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z',
+      x:'M6 6l12 12 M18 6L6 18',
+      check:'M20 6L9 17l-5-5',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      alert:'M12 9v4 M12 17h.01 M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0z',
+      task:'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+      handshake:'M11 17l2 2 4-4 M3 12l4-4 5 4 2-2 4 4-3 3-5-3-4 3z',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      plus:'M12 5v14 M5 12h14',
+      bolt:'M13 2L4 14h7l-1 8 9-12h-7z',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      truck:'M3 6h11v9H3z M14 9h4l3 3v3h-7 M7 18m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0 M17 18m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0',
+      speech:'M8 9h8 M8 13h5 M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z',
+      broom:'M19 5l-7 7 M12 12l-5 5-3-1 1-3 5-5 M11 4l4 4',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.grid}));
+  }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  renderVals(){
+    const ic=(n,c,s)=>{return this.ic(n,c,s);};
+    const view=String(this.state.view||'caseload');
+    // First-run gate: rich demo identity/numbers/people only when Supabase is NOT
+    // configured (preview). A signed-in coordinator sees real identity + empty-states.
+    const demoMode = !(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    // Real identity (populated by loadIdentity via loadCurrentUserContext); honest fallbacks, never a fake name.
+    const userFull = this.state.authName || 'Your account';
+    const userFirst = this.state.authName ? this.state.authName.split(/\s+/)[0] : 'there';
+    const userInitials = this.state.authInitials || 'CL';
+    const userRole = this.state.authRole || 'Support Coordinator';
+    const pageSub = demoMode
+      ? ('Morning, '+userFirst+' — 32 participants in your care, and I’ve lined up what needs you today')
+      : ('Welcome'+(this.state.authName?(', '+userFirst):'')+' — your caseload and what needs you appears here as participants are added');
+    const navMap={caseload:'caseload',allied:'allied',reviews:'reviews',budgets:'budgets',agreements:'agreements',participants:'participants',providers:'providers',notes:'notes',docs:'docs',planreview:'reviews',billing:'billing_sc',filedrop:'filedrop',goals:'goals',referrals_sc:'referrals_sc',profile_sc:'profile_sc'};
+    const navPartCount=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id).length;
+    const defs=[
+      {title:'WORKSPACE',items:[['caseload','My Caseload','user',null],['allied','Allied Health','pulse','NEW'],['goals','Goals','target',null],['referrals_sc','Referrals','inbox',null],['profile_sc','My Profile','user',null]]},
+      {title:'PLANS',items:[['budgets','Budgets','wallet',null],['agreements','Service Agreements','handshake',null],['reviews','Plan Reviews','cal',demoMode?'3':null]]},
+      {title:'PEOPLE',items:[['participants','Participants','users',demoMode?'32':(navPartCount?String(navPartCount):null)],['providers','Providers','users',null]]},
+      {title:'RECORDS',items:[['notes','Case Notes','file',null],['docs','Documents','file',null],['filedrop','AI File Drop','spark','AI']]},
+      {title:'SYSTEM',items:[['_consent','Consent Centre','shield',null,'Consent Centre.dc.html'],['_tasks','Task Centre','task',null,'Task Centre.dc.html'],['_settings','Settings','grid',null,'Settings.dc.html']]}
+    ];
+    const navSections=defs.map((sec)=>({title:sec.title,items:sec.items.map(([key,label,icon,count,href])=>{
+      const active=view===key||(navMap[key]===view&&key===view);
+      return {label,count,onClick:href?(()=>{window.location.href=href;}):()=>this.setState({view:key}),bg:active?'rgba(255,255,255,.08)':'transparent',color:active?'#f4faf8':'#9fb4ae',iconEl:ic(icon,active?'#22d3bf':'#7e948e',18)};
+    })}));
+
+    // Honest KPIs: in real mode only "Active participants" is sourced (live count from
+    // queryParticipantsByCoordinator -> supabaseParticipants, RLS-scoped). The rest show
+    // an em-dash + neutral "Preview" badge rather than fabricated figures.
+    const kpiSbParts=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id);
+    const kpiActiveCount=kpiSbParts.filter(p=>(p.status||'active')==='active').length;
+    const kpiHasParts=kpiSbParts.length>0;
+    const previewDelta={deltaColor:'#6c7f79',deltaBg:'#eef2f0'};
+    const liveDelta={deltaColor:'#0b6b60',deltaBg:'#e7f4f1'};
+    const kpiDefs = demoMode ? [
+      {label:'Active participants',value:'32',sub:'4 onboarding',icon:'users',delta:'+3',up:true,tintBg:'#e7f4f1',stroke:'#16b8a6'},
+      {label:'Avg plan utilisation',value:'68%',sub:'Target 75–90%',icon:'wallet',delta:'On track',up:true,tintBg:'#eef0fd',stroke:'#6366f1'},
+      {label:'Reviews due (14d)',value:'3',sub:'1 overdue',icon:'cal',delta:'Action',up:false,tintBg:'#fbf0df',stroke:'#d98b22'},
+      {label:'Unspent at risk',value:'$48k',sub:'2 participants',icon:'alert',delta:'Review',up:false,tintBg:'#fbe9ed',stroke:'#e0556e'}
+    ] : [
+      Object.assign({label:'Active participants',value:kpiHasParts?String(kpiActiveCount):'—',sub:kpiHasParts?'Synced from Supabase':'No participants yet',icon:'users',delta:kpiHasParts?'Live':'Preview',tintBg:'#e7f4f1',stroke:'#16b8a6'},kpiHasParts?liveDelta:previewDelta),
+      Object.assign({label:'Avg plan utilisation',value:'—',sub:'Preview — not yet tracked',icon:'wallet',delta:'Preview',tintBg:'#eef0fd',stroke:'#6366f1'},previewDelta),
+      Object.assign({label:'Reviews due (14d)',value:'—',sub:'Preview — not yet tracked',icon:'cal',delta:'Preview',tintBg:'#fbf0df',stroke:'#d98b22'},previewDelta),
+      Object.assign({label:'Unspent at risk',value:'—',sub:'Preview — not yet tracked',icon:'alert',delta:'Preview',tintBg:'#fbe9ed',stroke:'#e0556e'},previewDelta)
+    ];
+    const kpis=kpiDefs.map(k=>({label:k.label,value:k.value,sub:k.sub,iconEl:ic(k.icon,k.stroke,19),deltaLabel:k.delta,deltaColor:k.deltaColor||(k.up?'#1e9e6a':'#c0445c'),deltaBg:k.deltaBg||(k.up?'#e9f6ef':'#fbe9ed')}));
+
+    const C=(p)=>p<60?'#16b8a6':(p<85?'#6366f1':'#e0556e');
+    const demoCaseload=[
+      {name:'Liam Wright',init:'LW',tint:'#0e5147',plan:'until 14 Aug',usePct:'92%',review:'02 Jul',risk:'At risk',riskFg:'#c0445c',riskBg:'#fbe9ed'},
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',plan:'until 30 Nov',usePct:'71%',review:'21 Jun',risk:'Review due',riskFg:'#b4561f',riskBg:'#fbf0df'},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',plan:'until 12 Oct',usePct:'58%',review:'18 Sep',risk:'On track',riskFg:'#1e9e6a',riskBg:'#e9f6ef'},
+      {name:'Priya Sharma',init:'PS',tint:'#d98b22',plan:'until 05 Jan',usePct:'34%',review:'30 Aug',risk:'Underspend',riskFg:'#b4561f',riskBg:'#fbf0df'},
+      {name:'Tom Becker',init:'TB',tint:'#9333ea',plan:'until 22 Jul',usePct:'64%',review:'10 Jul',risk:'On track',riskFg:'#1e9e6a',riskBg:'#e9f6ef'},
+      {name:'Ruth Kim',init:'RK',tint:'#0891b2',plan:'until 19 Dec',usePct:'47%',review:'04 Oct',risk:'On track',riskFg:'#1e9e6a',riskBg:'#e9f6ef'}
+    ];
+    // Real caseload: participants already fetched via queryParticipantsByCoordinator()
+    // and held in this.state.supabaseParticipants (same source the referral dropdown
+    // uses — see refParticipantOptions). Map to the caseload item shape; fall back to
+    // the demo array when none are loaded so the view never renders blank. Budget/
+    // review fields have no backend yet, so they show '—' rather than fake numbers.
+    const scInitials=(s)=>String(s||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'P';
+    const scTints=['#0e5147','#16b8a6','#6366f1','#d98b22','#9333ea','#0891b2'];
+    // Real caseload: in demoMode show the demo people; in real mode map the
+    // RLS-scoped participants this coordinator actually loaded, else render an
+    // empty-state (never fall back to demo names for a signed-in user). Budget/
+    // review fields have no backend yet, so they show '—' rather than fake numbers.
+    const realCaseloadParts=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id);
+    const liveCaseload = demoMode ? demoCaseload
+      : realCaseloadParts.map((p,i)=>{
+          const nm=p.full_name||p.preferred_name||'Participant';
+          const st=(p.status||'').toString();
+          const active=st.toLowerCase()==='active';
+          return {
+            name:nm,
+            init:scInitials(nm),
+            tint:scTints[i%scTints.length],
+            plan:p.ndis_number?('NDIS '+p.ndis_number):'',
+            usePct:'—',
+            review:'—',
+            risk:active?'On track':(st?(st.charAt(0).toUpperCase()+st.slice(1)):'—'),
+            riskFg:active?'#1e9e6a':'#5f726d',
+            riskBg:active?'#e9f6ef':'#f1f4f2'
+          };
+        });
+    const caseload=liveCaseload.map(p=>({...p,useColor:C(parseInt(p.usePct))}));
+    const caseloadEmpty = !demoMode && caseload.length===0;
+    const caseAllLabel = demoMode ? 'All 32' : ('All '+caseload.length);
+
+    const budgets=[
+      {cat:'Core supports',pct:'74%',color:'#16b8a6',spent:'$186,400',total:'$252k'},
+      {cat:'Capacity building',pct:'52%',color:'#6366f1',spent:'$48,900',total:'$94k'},
+      {cat:'Capital',pct:'88%',color:'#e0556e',spent:'$31,200',total:'$35k'}
+    ];
+
+    const webBank=[
+      {label:'Physio',icon:'pulse',x:20,y:24,tint:'#6366f1',engaged:true},
+      {label:'OT',icon:'heart',x:82,y:22,tint:'#6366f1',engaged:true},
+      {label:'Cleaning',icon:'broom',x:16,y:74,tint:'#6366f1',engaged:true},
+      {label:'Speech (gap)',icon:'speech',x:84,y:74,tint:'#e0556e',engaged:false},
+      {label:'Transport (gap)',icon:'truck',x:50,y:88,tint:'#e0556e',engaged:false}
+    ];
+    const webNodes=webBank.map(n=>({
+      label:n.label,xp:n.x+'%',yp:n.y+'%',tint:n.engaged?n.tint:'#fff',
+      iconEl:ic(n.icon,n.engaged?'#fff':'#e0556e',20),
+      border:n.engaged?'none':'2.5px dashed #e0556e',
+      labelFg:n.engaged?'#2c4a44':'#c0445c',
+      lw:n.engaged?'2.4':'1.4',op:n.engaged?'0.9':'0.4',
+      dashArr:n.engaged?'0':'5 4',dur:(5+(n.x%4))+'s',
+      isGap:!n.engaged,
+      onClick:n.engaged?()=>{}:()=>{this.showToast('Gap: '+n.label+' — Find providers / Create referral / Ask Hugo');}
+    }));
+
+    const tasks=[
+      {title:'Plan review — Margaret R.',sub:'NDIS plan ends in 2 days',due:'2d',dueFg:'#c0445c',dueBg:'#fbe9ed',iconEl:ic('cal','#6366f1',16),tintBg:'#eef0fd'},
+      {title:'Service agreement — Physio Co.',sub:'Awaiting signature',due:'5d',dueFg:'#b4561f',dueBg:'#fbf0df',iconEl:ic('handshake','#16b8a6',16),tintBg:'#e7f4f1'},
+      {title:'Monthly check-in — Liam W.',sub:'Budget pacing call',due:'Today',dueFg:'#c0445c',dueBg:'#fbe9ed',iconEl:ic('user','#d98b22',16),tintBg:'#fbf0df'},
+      {title:'Upload report — Tom B.',sub:'OT assessment outcome',due:'1w',dueFg:'#1e9e6a',dueBg:'#e9f6ef',iconEl:ic('file','#1e9e6a',16),tintBg:'#e9f6ef'}
+    ];
+
+    const ahList=[
+      {name:'Jordan Pham',init:'JP',tint:'#6366f1',disc:'Physiotherapy',client:'David L.',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',report:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Gait improvement',missing:false,chaseEl:null},
+      {name:'Northside Speech',init:'NS',tint:'#0891b2',disc:'Speech Pathology',client:'Liam W.',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',report:'Overdue',repFg:'#c0445c',repBg:'#fbe9ed',goal:'Communication aids',missing:true,chaseEl:null},
+      {name:'Inner West OT',init:'IW',tint:'#9333ea',disc:'OT',client:'Margaret R.',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',report:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Independent living',missing:false,chaseEl:null},
+      {name:'Geelong Therapy',init:'GT',tint:'#d98b22',disc:'OT Paediatric',client:'Tom B.',status:'Waitlist',stFg:'#b4561f',stBg:'#fbf0df',report:'Not yet',repFg:'#b4561f',repBg:'#fbf0df',goal:'Sensory processing',missing:true,chaseEl:null}
+    ].map(function(a){a.chaseEl=ic('send','#06201c',13);return a;});
+    // ---- plan reviews ----
+    const reviewList=[
+      {name:'Margaret R.',init:'MR',tint:'#16b8a6',due:'2d',urgFg:'#c0445c',urgBg:'#fbe9ed',hasMissing:true,missing:['SC summary','Consent form'],ready:['OT report','Physio report'],nothingMissing:false},
+      {name:'Liam W.',init:'LW',tint:'#0e5147',due:'8d',urgFg:'#b4561f',urgBg:'#fbf0df',hasMissing:true,missing:['Speech report'],ready:['SC summary'],nothingMissing:false},
+      {name:'David L.',init:'DL',tint:'#6366f1',due:'14d',urgFg:'#b4561f',urgBg:'#fbf0df',hasMissing:false,missing:[],ready:['All reports'],nothingMissing:true}
+    ];
+    const isA=view==='allied';
+    const isR=view==='reviews';
+    const isB=view==='budgets';
+    const isAg=view==='agreements';
+    const isPart=view==='participants';
+    const isProv=view==='providers';
+    const isNotes=view==='notes';
+    const isDocs=view==='docs';
+    const isFD=view==='filedrop';
+    const isGoals=view==='goals';
+    const isRefSC=view==='referrals_sc';
+    const isProfileSC=view==='profile_sc';
+    const isBillingSC=view==='billing_sc';
+    const isC=!isA&&!isR&&!isB&&!isAg&&!isPart&&!isProv&&!isNotes&&!isDocs&&!isFD&&!isGoals&&!isRefSC&&!isProfileSC&&!isBillingSC;
+
+    // budgets data
+    const budgetRows=[
+      {name:'Liam Wright',init:'LW',tint:'#0e5147',core:{spent:'$31,400',total:'$74,200',pct:42,color:'#16b8a6'},cap:{spent:'$8,900',total:'$22,000',pct:40,color:'#6366f1'},planEnd:'14 Aug 2026',risk:true,riskMsg:'Core budget may run out by August'},
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',core:{spent:'$21,000',total:'$50,000',pct:42,color:'#16b8a6'},cap:{spent:'$2,000',total:'$14,000',pct:14,color:'#e0556e'},planEnd:'30 Nov 2026',risk:true,riskMsg:'Capacity Building only 14% used — underspend risk'},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',core:{spent:'$14,560',total:'$52,000',pct:28,color:'#16b8a6'},cap:{spent:'$6,200',total:'$18,000',pct:34,color:'#6366f1'},planEnd:'12 Oct 2026',risk:false,riskMsg:''},
+      {name:'Priya Sharma',init:'PS',tint:'#d98b22',core:{spent:'$8,640',total:'$48,000',pct:18,color:'#e0556e'},cap:{spent:'$1,200',total:'$10,000',pct:12,color:'#e0556e'},planEnd:'05 Jan 2027',risk:true,riskMsg:'Significant underspend across both categories'},
+      {name:'Tom Becker',init:'TB',tint:'#9333ea',core:{spent:'$27,520',total:'$43,000',pct:64,color:'#d98b22'},cap:{spent:'$8,400',total:'$12,000',pct:70,color:'#16b8a6'},planEnd:'22 Jul 2026',risk:false,riskMsg:''},
+      {name:'Ruth Kim',init:'RK',tint:'#0891b2',core:{spent:'$14,640',total:'$31,000',pct:47,color:'#16b8a6'},cap:{spent:'$3,800',total:'$9,000',pct:42,color:'#6366f1'},planEnd:'19 Dec 2026',risk:false,riskMsg:''}
+    ];
+
+    // agreements data
+    const agreementRows=[
+      {name:'Brightside Care',init:'BC',tint:'#16b8a6',participant:'Liam Wright',service:'Personal Care',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'},
+      {name:'Northern Allied',init:'NA',tint:'#6366f1',participant:'Margaret Reyes',service:'Physiotherapy',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'},
+      {name:'Coburg Community',init:'CC',tint:'#d98b22',participant:'Priya Sharma',service:'Community Access',status:'Awaiting signature',stFg:'#b4561f',stBg:'#fbf0df',ends:'—',review:'Chase'},
+      {name:'Northside Speech',init:'NS',tint:'#0891b2',participant:'Liam Wright',service:'Speech Pathology',status:'Draft',stFg:'#5f726d',stBg:'#f1f4f2',ends:'—',review:'Send'},
+      {name:'Inner West OT',init:'IW',tint:'#9333ea',participant:'Ruth Kim',service:'Occupational Therapy',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'}
+    ];
+
+    // participants pipeline view
+    const participantRows=caseload.map(p=>({...p,
+      provider:'Brightside Care',coordinator:'Sarah Kelly',
+      goals:['Independent living','Community access'],
+      consentShared:p.risk!=='At risk',
+      consentFg:p.risk!=='At risk'?'#1e7a52':'#c0445c',
+      consentBg:p.risk!=='At risk'?'#e9f6ef':'#fbe9ed',
+      consentLabel:p.risk!=='At risk'?'Consent given':'Consent needed'
+    }));
+
+    // providers view
+    const providerRows=[
+      {name:'Brightside Care',init:'BC',tint:'#16b8a6',type:'Service Provider',participants:['Liam W.','Margaret R.','Tom B.'],hours:'112h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'bulent@brightside.com.au'},
+      {name:'Northern Allied',init:'NA',tint:'#6366f1',type:'Allied Health',participants:['Margaret R.','David L.'],hours:'24h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'admin@northernallied.com.au'},
+      {name:'Coburg Community',init:'CC',tint:'#d98b22',type:'Service Provider',participants:['Priya S.'],hours:'18h/wk',status:'Agreement pending',stFg:'#b4561f',stBg:'#fbf0df',agreement:'Awaiting signature',contact:'info@coburgcommunity.com.au'}
+    ];
+
+    // case notes
+    const noteRows=[
+      {init:'LW',tint:'#0e5147',participant:'Liam Wright',date:'19 Jun 2026',type:'Phone call',note:'Discussed Core budget pacing with Liam and his nominee. Plan to request increase at review in August.',tags:['Budget','Plan review']},
+      {init:'MR',tint:'#16b8a6',participant:'Margaret Reyes',date:'18 Jun 2026',type:'Provider meeting',note:'Met with Brightside Care re: Capacity Building underspend. Agreed to add Speech Pathology referral.',tags:['Underspend','Allied health']},
+      {init:'PS',tint:'#d98b22',participant:'Priya Sharma',date:'17 Jun 2026',type:'Home visit',note:'Visited Priya and family. Plan goals reviewed. Service agreement sent to Coburg Community — awaiting signature.',tags:['Home visit','Agreement']},
+      {init:'DL',tint:'#6366f1',participant:'David Lowe',date:'16 Jun 2026',type:'Email',note:'Sent OT assessment report to plan manager. Requested capital budget variation for home modifications.',tags:['Report','Capital']}
+    ];
+
+    // docs
+    const docsRows=[
+      {name:'Liam Wright - NDIS Plan 2026–27',participant:'Liam Wright',type:'Plan',tag:'Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'01 Jul 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Margaret Reyes - Consent to Share',participant:'Margaret Reyes',type:'Consent',tag:'Consent',tagFg:'#4338ca',tagBg:'#eef0fd',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Priya Sharma - Service Agreement',participant:'Priya Sharma',type:'Agreement',tag:'Agreement',tagFg:'#c0445c',tagBg:'#fbe9ed',date:'—',status:'Missing',stFg:'#c0445c',stBg:'#fbe9ed'},
+      {name:'David Lowe - OT Assessment Report',participant:'David Lowe',type:'Report',tag:'Report',tagFg:'#b4561f',tagBg:'#fbf0df',date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Tom Becker - Plan Review Pack',participant:'Tom Becker',type:'Review',tag:'Review',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'15 Jun 2026',status:'Submitted',stFg:'#1e7a52',stBg:'#e9f6ef'}
+    ];
+    // ===== COORDINATION TASKS (real, via loadTasksForCurrentUser) =====
+    const scParticipants=this.state.supabaseParticipants||[];
+    const partOpt=(p)=>({value:p.id,label:(p.full_name||p.preferred_name||'Participant')+(p.ndis_number?(' — '+p.ndis_number):'')});
+    const mapCoordTask=(t)=>{
+      const pname=(t.participants&&(t.participants.preferred_name||t.participants.full_name))||'';
+      const done=t.status==='completed';
+      return {
+        title:t.title||'Task',
+        sub:pname||t.description||(t.status?('Status: '+t.status):'Coordination task'),
+        due:t.due_date?('Due '+t.due_date):(done?'Done':'No due date'),
+        dueFg:done?'#1e7a52':'#41635c',
+        dueBg:done?'#e9f6ef':'#eef2f0',
+        iconEl:ic('task',done?'#1e9e6a':'#16b8a6',16),
+        tintBg:done?'#e9f6ef':'#e7f4f1'
+      };
+    };
+    const coordTasksLive=this.state.supabaseConnected;
+    const coordTasks=coordTasksLive ? (this.state.liveTasks||[]).map(mapCoordTask) : tasks;
+    const coordTasksEmpty=coordTasksLive && coordTasks.length===0;
+    const taskBadge=coordTasksLive ? (coordTasks.length+' saved') : '7 due';
+    const taskParticipantOptions=[{value:'',label:'No participant (general task)'}].concat(scParticipants.map(partOpt));
+
+    // ===== COORDINATION NOTES (real, via listParticipantNotes) =====
+    const scTints2=['#0e5147','#16b8a6','#6366f1','#d98b22','#9333ea','#0891b2'];
+    const nameForId=(pid)=>{ const p=scParticipants.find(x=>x.id===pid); return p?(p.full_name||p.preferred_name||'Participant'):'Participant'; };
+    const fmtDate=(s)=>{ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(s).slice(0,10); } };
+    const liveNoteRows=(this.state.liveNotes||[]).map((n,i)=>{
+      const pname=(n.participants&&(n.participants.full_name||n.participants.preferred_name))||nameForId(n.participant_id);
+      return { init:scInitials(pname), tint:scTints2[i%scTints2.length], participant:pname, date:fmtDate(n.created_at), type:'Coordination', note:n.body||'', tags:[n.author_role||'support_coordinator'] };
+    });
+    const coordNotesLive=this.state.supabaseConnected;
+    const coordNotes=coordNotesLive ? liveNoteRows : noteRows;
+    const coordNotesEmpty=coordNotesLive && coordNotes.length===0;
+    const noteParticipantOptions=scParticipants.length ? scParticipants.map(partOpt) : [];
+
+    // ===== REFERRALS (real, RLS-scoped via loadReferralsForCurrentUser) =====
+    // Sent = from_org_id is my org; Incoming = to_org_id is my org. In real mode we
+    // show ONLY real rows (or an empty-state) — no phantom sample referrals.
+    const initialsOf=(s)=>String(s||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+    const refPName=(r)=>(r.participants&&(r.participants.full_name||r.participants.preferred_name))||'Participant';
+    const urgFromPriority=(p)=>p==='urgent'?'Urgent':(p==='high'?'High':'Standard');
+    const mapSentRef=(r)=>{ const pn=refPName(r); const allied=r.type==='allied_health'; return {recipient:allied?'Allied Health':'Provider',type:allied?'Allied Health':'Provider',init:'RF',tint:'#0b6b60',participant:pn,ptInit:(initialsOf(pn)||'P'),ptTint:'#0e5147',date:(r.created_at||'').slice(0,10),status:(r.status||'received'),stFg:'#0b6b60',stBg:'#e7f4f1',nextAction:'Saved to your account',urgent:(r.priority==='urgent')}; };
+    const mapIncomingRef=(r)=>{ const pn=refPName(r); const allied=r.type==='allied_health'; const urg=urgFromPriority(r.priority||'routine'); return {name:pn,init:(initialsOf(pn)||'P'),tint:'#16b8a6',from:'Referral',need:allied?'Allied Health':'Provider support',when:(r.created_at||'').slice(0,10),urgency:urg,urgFg:urg==='Standard'?'#1e7a52':'#c0445c',urgBg:urg==='Standard'?'#e9f6ef':'#fbe9ed',stage:(r.status||'received')}; };
+    const liveRefs=(this.state.liveReferrals||[]);
+    const liveSentRows=liveRefs.filter(r=>r.from_org_id && r.from_org_id===this.state.orgId).map(mapSentRef);
+    const liveIncomingRows=liveRefs.filter(r=>r.to_org_id && r.to_org_id===this.state.orgId).map(mapIncomingRef);
+    const demoIncomingRefs=[
+      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Self-referred',need:'Personal Care + SC',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Initial contact',when:'2h ago'},
+      {name:'James Nguyen',init:'JN',tint:'#6366f1',from:'Hospital discharge',need:'Allied Health + Community Access',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Referral received',when:'Yesterday'},
+      {name:'Sofia Patel',init:'SP',tint:'#d98b22',from:'Provider referral',need:'Support Coordination',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df',stage:'Assessment of needs',when:'3 days ago'}
+    ];
+    const demoSentRefs=[
+      {recipient:'Brightside Care',type:'Provider',init:'BC',tint:'#16b8a6',participant:'Margaret Reyes',ptInit:'MR',ptTint:'#0e5147',date:'20 Jun 2026',status:'Accepted',stFg:'#1e7a52',stBg:'#e9f6ef',nextAction:'Service agreement being drafted',urgent:false},
+      {recipient:'Jordan Pham',type:'Allied Health',init:'JP',tint:'#6366f1',participant:'David Lowe',ptInit:'DL',ptTint:'#6366f1',date:'18 Jun 2026',status:'Viewed',stFg:'#4338ca',stBg:'#eef0fd',nextAction:'Awaiting response',urgent:false},
+      {recipient:'Northside Speech',type:'Allied Health',init:'NS',tint:'#0891b2',participant:'Liam Wright',ptInit:'LW',ptTint:'#0e5147',date:'15 Jun 2026',status:'Info needed',stFg:'#b4561f',stBg:'#fbf0df',nextAction:'Upload consent form — requested',urgent:true},
+      {recipient:'Coburg Community',type:'Provider',init:'CC',tint:'#d98b22',participant:'Priya Sharma',ptInit:'PS',ptTint:'#d98b22',date:'10 Jun 2026',status:'Sent',stFg:'#0b6b60',stBg:'#e7f4f1',nextAction:'No response after 13 days',urgent:false}
+    ];
+    const scIncomingRefs = demoMode ? demoIncomingRefs : liveIncomingRows;
+    const scSentRefs = demoMode ? [...(this.state.savedReferrals||[]), ...demoSentRefs] : liveSentRows;
+    const incomingCount = scIncomingRefs.length;
+    const sentCountVal = scSentRefs.length;
+    const incomingEmpty = !demoMode && incomingCount===0;
+    const sentEmpty = !demoMode && sentCountVal===0;
+
+    // ===== NOTIFICATIONS (real, RLS-scoped via loadNotificationsForCurrentUser) =====
+    const demoNotifs=[
+      {text:'Plan review due in 2 days — Margaret Reyes · action needed',time:'Just now',bg:'#fffaf6',tintBg:'#fbe9ed',iconEl:ic('alert','#e0556e',15)},
+      {text:'Service agreement signed — Brightside Care · David Lowe',time:'1h ago',bg:'#f7fbf9',tintBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',15)},
+      {text:'New referral received — Hassan Ali from Northern Health',time:'3h ago',bg:'#f7fbf9',tintBg:'#e7f4f1',iconEl:ic('users','#16b8a6',15)},
+      {text:'Document uploaded — OT report for Margaret R. from Inner West OT',time:'Yesterday',bg:'#fff',tintBg:'#eef0fd',iconEl:ic('file','#6366f1',15)},
+      {text:'Budget alert — Priya Sharma Core Supports at 82% with 4 months remaining',time:'2 days ago',bg:'#fff',tintBg:'#fbf0df',iconEl:ic('wallet','#d98b22',15)}
+    ];
+    const notifIconFor=(t)=>{ const k=String(t||'').toLowerCase(); if(k.indexOf('alert')>-1||k.indexOf('review')>-1||k.indexOf('budget')>-1) return ic('alert','#e0556e',15); if(k.indexOf('referral')>-1) return ic('users','#16b8a6',15); if(k.indexOf('document')>-1||k.indexOf('report')>-1) return ic('file','#6366f1',15); return ic('check','#1e9e6a',15); };
+    const liveNotifRows=(this.state.liveNotifications||[]).map(n=>({ text:(n.title||n.body||'Notification'), time:fmtDate(n.created_at)||'', bg:n.read_at?'#fff':'#f7fbf9', tintBg:'#eef2f0', iconEl:notifIconFor(n.type||n.title), _unread:!n.read_at }));
+    const notifs = demoMode ? demoNotifs : liveNotifRows;
+    const notifUnread = demoMode ? demoNotifs.length : liveNotifRows.filter(n=>n._unread).length;
+    const hasNotif = notifs.length>0;
+    const notifsEmpty = !demoMode && notifs.length===0;
+    const notifBadge = notifUnread>0 ? (notifUnread+' new') : (notifs.length+' total');
+
+    // ===== DOCUMENTS (real, RLS-scoped via loadDocumentsForCurrentUser) =====
+    const docTagMap={
+      ndis_plan:{tag:'Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1'},
+      support_plan:{tag:'Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1'},
+      consent_form:{tag:'Consent',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      service_agreement:{tag:'Agreement',tagFg:'#c0445c',tagBg:'#fbe9ed'},
+      worker_agreement:{tag:'Agreement',tagFg:'#c0445c',tagBg:'#fbe9ed'},
+      allied_health_report:{tag:'Report',tagFg:'#b4561f',tagBg:'#fbf0df'},
+      progress_report:{tag:'Report',tagFg:'#b4561f',tagBg:'#fbf0df'},
+      functional_capacity_assessment:{tag:'FCA',tagFg:'#b4561f',tagBg:'#fbf0df'},
+      risk_assessment:{tag:'Risk',tagFg:'#c0445c',tagBg:'#fbe9ed'},
+      intake_form:{tag:'Intake',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      invoice:{tag:'Invoice',tagFg:'#b4561f',tagBg:'#fbf0df'},
+      timesheet:{tag:'Timesheet',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      referral_attachment:{tag:'Referral',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      other:{tag:'Document',tagFg:'#5f726d',tagBg:'#f1f4f2'}
+    };
+    const realDocsRows=(this.state.liveDocs||[]).map(d=>{
+      const t=String(d.type||'other').toLowerCase();
+      const tg=docTagMap[t]||{tag:(t.charAt(0).toUpperCase()+t.slice(1)),tagFg:'#5f726d',tagBg:'#f1f4f2'};
+      const pname=d.participant_id?nameForId(d.participant_id):'—';
+      const st=String(d.status||'filed');
+      return { name:d.title||'Document', participant:pname, tag:tg.tag, tagFg:tg.tagFg, tagBg:tg.tagBg, date:fmtDate(d.created_at)||'—', status:(st.charAt(0).toUpperCase()+st.slice(1)), stFg:'#1e7a52', stBg:'#e9f6ef', onOpen:()=>this.openDocument(d.storage_path,d.storage_bucket) };
+    });
+    const realDocsEmpty=realDocsRows.length===0;
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      coordTasks:coordTasks,
+      coordTasksEmpty:coordTasksEmpty,
+      taskBadge:taskBadge,
+      taskParticipantOptions:taskParticipantOptions,
+      newTaskTitle:this.state.newTaskTitle,
+      setNewTaskTitle:(e)=>this.setState({newTaskTitle:e.target.value}),
+      newTaskParticipantId:this.state.newTaskParticipantId,
+      setNewTaskParticipant:(e)=>this.setState({newTaskParticipantId:e.target.value}),
+      newTaskDue:this.state.newTaskDue,
+      setNewTaskDue:(e)=>this.setState({newTaskDue:e.target.value}),
+      createCoordTask:()=>{
+        const title=(this.state.newTaskTitle||'').trim();
+        if(!title){ this.showToast('Enter a task title'); return; }
+        if(!(this.state.supabaseConnected && window.createCoordinationTask)){ this.showToast('Not connected — task not saved'); return; }
+        const payload={ title:title, org_id:this.state.orgId||undefined, participant_id:this.state.newTaskParticipantId||undefined, due_date:this.state.newTaskDue||undefined };
+        Promise.resolve(window.createCoordinationTask(payload)).then(r=>{
+          if(r && r.task && !r.error){ this.setState({newTaskTitle:'',newTaskParticipantId:'',newTaskDue:''}); this.showToast('Task created ✓'); this.loadLiveTasks(); }
+          else this.showToast('Task not saved'+(r&&r.error?': '+r.error:''));
+        }).catch(e=>this.showToast('Task not saved'+(e&&e.message?': '+e.message:'')));
+      },
+      coordNotes:coordNotes,
+      coordNotesEmpty:coordNotesEmpty,
+      noteParticipantOptions:noteParticipantOptions,
+      noteParticipantId:this.state.noteParticipantId,
+      setNoteParticipant:(e)=>{ const pid=e.target.value; this.setState({noteParticipantId:pid}); this.loadNotesForParticipant(pid); },
+      noteBody:this.state.noteBody,
+      setNoteBody:(e)=>this.setState({noteBody:e.target.value}),
+      saveCoordNote:()=>{
+        const body=(this.state.noteBody||'').trim();
+        const pid=this.state.noteParticipantId||'';
+        if(!pid){ this.showToast('Select a participant'); return; }
+        if(!body){ this.showToast('Enter a note'); return; }
+        if(!(this.state.supabaseConnected && window.createCoordinationNote)){ this.showToast('Not connected — note not saved'); return; }
+        Promise.resolve(window.createCoordinationNote({ org_id:this.state.orgId||undefined, participant_id:pid, author_role:'support_coordinator', body:body })).then(r=>{
+          if(r && r.note && !r.error){ this.setState({noteBody:''}); this.showToast('Note saved ✓'); this.loadNotesForParticipant(pid); }
+          else this.showToast('Note not saved'+(r&&r.error?': '+r.error:''));
+        }).catch(e=>this.showToast('Note not saved'+(e&&e.message?': '+e.message:'')));
+      },
+      // Open the Send Referral wizard (real multi-step flow that persists via createReferral).
+      newReferral:()=>this.setState({sendRefOpen:true,sendRefStep:0,sendRefType:'provider',refTab:'incoming',refRecipient:'',refSupports:'',refFunding:'Core Supports',refUrgency:'Standard',refNotes:'',refConsent:true,refPlanStart:'',refPlanEnd:'',refParticipantId:'',refAttachments:[],lastSavedReferral:null}),
+      goBilling:()=>{window.location.href='billing.html';},
+      // Connect an allied health professional = send them a referral. Opens the wizard preset to allied health.
+      connectAhp:()=>this.setState({sendRefOpen:true,sendRefStep:0,sendRefType:'allied',refTab:'incoming',refRecipient:'',refSupports:'',refFunding:'Capacity Building',refUrgency:'Standard',refNotes:'',refConsent:true,refPlanStart:'',refPlanEnd:'',refParticipantId:'',refAttachments:[],lastSavedReferral:null}),
+      // Chase an outstanding allied-health report: log a real coordination follow-up task when signed in.
+      chaseReport:()=>{
+        if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.createCoordinationTask){
+          Promise.resolve(window.createCoordinationTask({ title:'Chase outstanding allied health report', org_id:this.state.orgId||undefined })).then(r=>{
+            if(r && r.task && !r.error){ this.showToast('Follow-up task created ✓'); this.loadLiveTasks(); }
+            else this.showToast('Could not log chase task'+(r&&r.error?': '+r.error:''));
+          }).catch(e=>this.showToast('Could not log chase task'));
+        } else {
+          this.showToast('Sign in to log a chase task for this report');
+        }
+      },
+      // Add a case note = jump to the Case Notes workspace where the real note composer lives.
+      addNoteSC:()=>this.setState({view:'notes'}),
+      // Real upload — opens the file picker; doUploadDoc files it via window.uploadDocument.
+      uploadDocSC:()=>{ if(this._docFileInput) this._docFileInput.click(); else this.showToast('Upload not ready — please reload'); },
+      // Review at-risk plans = open the Budgets view, where utilisation/underspend risk is surfaced per participant.
+      reviewAtRiskPlans:()=>this.setState({view:'budgets'}),
+      // Find providers for unmet needs = open the Providers directory view.
+      findProviders:()=>this.setState({view:'providers'}),
+      // Attach a document to the referral — opens the file picker; doRefAttach records it (and uploads when signed in).
+      addItemSC:()=>{ if(this._refFileInput) this._refFileInput.click(); else this.showToast('Attach not ready — please reload'); },
+      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
+      goReviewPrep:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      sendRefOpen:this.state.sendRefOpen,
+      refParticipantId:this.state.refParticipantId,
+      setRefParticipant:(e)=>this.setState({refParticipantId:e.target.value}),
+      refParticipantOptions:(!demoMode)
+        ? (this.state.supabaseParticipants||[]).map(p=>({value:p.id,label:(p.full_name||p.preferred_name||'Participant')+(p.ndis_number?(' — '+p.ndis_number):'')}))
+        : [{value:'Margaret Reyes',label:'Margaret Reyes — NDI-4310 887 226'},{value:'Liam Wright',label:'Liam Wright — NDI-3820 441 009'},{value:'David Lowe',label:'David Lowe — NDI-4012 553 781'},{value:'Priya Sharma',label:'Priya Sharma — NDI-3991 220 445'}],
+      openSendRef:()=>this.setState({sendRefOpen:true,sendRefStep:0,sendRefType:'provider',refTab:'incoming',refRecipient:'',refSupports:'',refFunding:'Core Supports',refUrgency:'Standard',refNotes:'',refConsent:true,refPlanStart:'',refPlanEnd:'',refParticipantId:'',refAttachments:[],lastSavedReferral:null}),
+      closeSendRef:()=>this.setState({sendRefOpen:false}),
+      // Modal field setters — every field is bound so nothing is silently dropped.
+      setRefRecipient:(e)=>this.setState({refRecipient:e.target.value}),
+      setRefSupports:(e)=>this.setState({refSupports:e.target.value}),
+      setRefFunding:(e)=>this.setState({refFunding:e.target.value}),
+      setRefUrgency:(e)=>this.setState({refUrgency:e.target.value}),
+      setRefNotes:(e)=>this.setState({refNotes:e.target.value}),
+      setRefConsent:(e)=>this.setState({refConsent:!!e.target.checked}),
+      setRefPlanStart:(e)=>this.setState({refPlanStart:e.target.value}),
+      setRefPlanEnd:(e)=>this.setState({refPlanEnd:e.target.value}),
+      refRecipient:this.state.refRecipient,
+      refSupports:this.state.refSupports,
+      refFunding:this.state.refFunding,
+      refUrgency:this.state.refUrgency,
+      refNotes:this.state.refNotes,
+      refConsent:this.state.refConsent,
+      refPlanStart:this.state.refPlanStart,
+      refPlanEnd:this.state.refPlanEnd,
+      sendRefNext:()=>{
+        const step=this.state.sendRefStep;
+        if(step===2){
+          // Consent is mandatory — never advance or persist without it.
+          if(this.state.refConsent===false){ this.showToast('Confirm participant consent before sending'); return; }
+          const sb=(this.state.supabaseParticipants||[]);
+          const pid=this.state.refParticipantId||(sb[0]&&sb[0].id)||'';
+          const selPart=sb.find(p=>p.id===pid);
+          const participantName=selPart?(selPart.full_name||selPart.preferred_name||'Participant'):(this.state.refParticipantId||'Participant');
+          const recipientName=this.state.refRecipient||(this.state.sendRefType==='provider'?'Brightside Care':'Jordan Pham — Physiotherapy');
+          const urgency=this.state.refUrgency||'Standard';
+          const priority=({Standard:'routine',High:'high',Urgent:'urgent'})[urgency]||'routine';
+          const funding=this.state.refFunding||'Core Supports';
+          const supports=(this.state.refSupports||'').trim();
+          const msg=(this.state.refNotes||'').trim();
+          const planStart=(this.state.refPlanStart||'').trim();
+          const planEnd=(this.state.refPlanEnd||'').trim();
+          const type=this.state.sendRefType==='provider'?'provider_referral':'allied_health';
+          // referrals has no dedicated columns for supports/funding/consent/plan dates,
+          // so compose every captured field into notes — nothing is dropped.
+          const attachments=(this.state.refAttachments||[]);
+          const composedNotes=[
+            'Recipient: '+recipientName,
+            supports?('Supports required: '+supports):null,
+            'Funding category: '+funding,
+            'Urgency: '+urgency,
+            (planStart||planEnd)?('Plan period: '+(planStart||'?')+' → '+(planEnd||'?')):null,
+            attachments.length?('Documents attached: '+attachments.join(', ')):null,
+            'Participant consent confirmed: Yes',
+            msg?('Notes: '+msg):null
+          ].filter(Boolean).join('\n');
+          if(this.state.supabaseConnected && this.state.orgId && pid && window.createReferral){
+            // RLS: referrals_org_scoped — from_org_id must be one of my active orgs.
+            Promise.resolve(window.createReferral({
+              from_org_id:this.state.orgId,
+              participant_id:pid,
+              type:type,
+              priority:priority,
+              status:'sent',
+              notes:composedNotes
+            })).then(r=>{
+              if(r && r.referral && !r.error){ this.setState({lastSavedReferral:r.referral}); this.showToast('Referral saved to your account ✓'); this.loadOrgAndReferrals(); }
+              else this.showToast('Referral not saved'+(r&&r.error?': '+r.error:''));
+            }).catch(e=>this.showToast('Referral not saved'+(e&&e.message?': '+e.message:'')));
+          } else if(!this.state.supabaseConnected){
+            // Preview only (Supabase not configured) — keep a local copy for the demo Sent tab.
+            const AD=window.AegisData;
+            if(AD){
+              const ref={
+                _id:AD.uid(),
+                recipient:recipientName,
+                type:this.state.sendRefType==='provider'?'Provider':'Allied Health',
+                init:(recipientName.split(/\s+/).map(w=>w[0]||'').join('').slice(0,2)||'RF').toUpperCase(),
+                tint:this.state.sendRefType==='provider'?'#16b8a6':'#6366f1',
+                participant:participantName,
+                ptInit:(participantName[0]||'P').toUpperCase(),ptTint:'#0e5147',
+                date:AD.now(),status:'Sent',stFg:'#0b6b60',stBg:'#e7f4f1',
+                nextAction:'Awaiting response',urgent:urgency==='Urgent'
+              };
+              AD.push('sc_sent_referrals',ref);
+              this.setState(s=>({savedReferrals:[ref,...(s.savedReferrals||[])],lastSavedReferral:null}));
+            }
+          }
+        }
+        this.setState(s=>({sendRefStep:Math.min(3,s.sendRefStep+1)}));
+      },
+      sendRefBack:()=>this.setState(s=>({sendRefStep:Math.max(0,s.sendRefStep-1)})),
+      setSendRefProvider:()=>this.setState({sendRefType:'provider'}),
+      setSendRefAllied:()=>this.setState({sendRefType:'allied'}),
+      setRefTabIncoming:()=>this.setState({refTab:'incoming'}),
+      setRefTabSent:()=>this.setState({refTab:'sent'}),
+      isRefTabIncoming:(this.state.refTab||'incoming')==='incoming',
+      isRefTabSent:this.state.refTab==='sent',
+      refTabInBg:(this.state.refTab||'incoming')==='incoming'?'#0c2622':'transparent',
+      refTabInFg:(this.state.refTab||'incoming')==='incoming'?'#f4faf8':'#6c7f79',
+      refTabSentBg:this.state.refTab==='sent'?'#0c2622':'transparent',
+      refTabSentFg:this.state.refTab==='sent'?'#f4faf8':'#6c7f79',
+      incomingCount:incomingCount,
+      sentEmpty:sentEmpty,
+      incomingEmpty:incomingEmpty,
+      isSendRefStep0:this.state.sendRefStep===0,
+      isSendRefStep1:this.state.sendRefStep===1,
+      isSendRefStep2:this.state.sendRefStep===2,
+      isSendRefStep3:this.state.sendRefStep===3,
+      isRefTypeProvider:this.state.sendRefType==='provider',
+      isRefTypeAllied:this.state.sendRefType==='allied',
+      refProvBd:this.state.sendRefType==='provider'?'#16b8a6':'#e2e9e6',
+      refProvBg:this.state.sendRefType==='provider'?'#f0faf8':'#fff',
+      refProvFg:this.state.sendRefType==='provider'?'#0b6b60':'#14302b',
+      refProvIconBg:this.state.sendRefType==='provider'?'#e7f4f1':'#f4f7f5',
+      refAhBd:this.state.sendRefType==='allied'?'#9333ea':'#e2e9e6',
+      refAhBg:this.state.sendRefType==='allied'?'#f8f0fe':'#fff',
+      refAhFg:this.state.sendRefType==='allied'?'#7c3aed':'#14302b',
+      refAhIconBg:this.state.sendRefType==='allied'?'#ecdffe':'#f4f7f5',
+      refRecipientLabel:this.state.sendRefType==='provider'?'SELECT PROVIDER':'SELECT ALLIED HEALTH PROFESSIONAL',
+      sendRefTypeName:this.state.sendRefType==='provider'?'Brightside Care':'Jordan Pham — Physiotherapy',
+      // Success summary reflects the ACTUAL saved/selected referral, not a fixed sample.
+      refSentToName:this.state.refRecipient||(this.state.sendRefType==='provider'?'Brightside Care':'Jordan Pham — Physiotherapy'),
+      refSentParticipant:(()=>{ const sb=(this.state.supabaseParticipants||[]); const pid=this.state.refParticipantId||(sb[0]&&sb[0].id)||''; const sel=sb.find(p=>p.id===pid); return sel?(sel.full_name||sel.preferred_name||'Participant'):(this.state.refParticipantId||'—'); })(),
+      refSentReference:(this.state.lastSavedReferral&&this.state.lastSavedReferral.id)?('REF-'+String(this.state.lastSavedReferral.id).replace(/-/g,'').slice(0,8).toUpperCase()):(demoMode?'Preview — not saved':'—'),
+      refSentStatus:(this.state.lastSavedReferral&&this.state.lastSavedReferral.status)?('Sent · '+this.state.lastSavedReferral.status):'Sent · awaiting response',
+      sendRefSubtitle:['Step 1 — Who are you referring to?','Step 2 — Participant details','Step 3 — Referral details','Referral sent successfully'][this.state.sendRefStep]||'',
+      sendRefProgress:['Recipient','Participant','Details','Sent'].map((label,i)=>{const done=i<this.state.sendRefStep,cur=i===this.state.sendRefStep,fin=i===3&&this.state.sendRefStep===3;return{num:fin?'✓':String(i+1),label,bg:(cur||done||fin)?'#0c2622':'#eef2f0',fg:(cur||done||fin)?'#eafaf8':'#9aa8a3',labelFg:(cur||done)?'#0b6b60':'#9aa8a3'};}),
+      showRefBack:this.state.sendRefStep>0&&this.state.sendRefStep<3,
+      showRefClose:this.state.sendRefStep===3,
+      showRefNext:this.state.sendRefStep<3,
+      sendRefBtnLabel:this.state.sendRefStep===2?'Send referral →':'Continue →',
+      refGoals:demoMode?['Independent mobility','Social participation','Communication & AAC']:[],
+      refDocs:(demoMode?['NDIS Plan 2026–27','Consent to share','OT assessment']:[]).concat(this.state.refAttachments||[]),
+      sentReferrals:scSentRefs,
+      sentCount:sentCountVal,
+      sendRefIconEl:ic('send','#06201c',15),
+      buildingEl:ic('building','#0b6b60',22),
+      heartEl:ic('heart','#7c3aed',22),
+      xSmEl:ic('x','#6c7f79',16),
+      refBigCheckEl:ic('check','#1e9e6a',28,2.4),
+      fileSmEl:ic('file','#6c7f79',14),
+      alertSmEl:ic('alert','#e0556e',14),
+      notifOpen:this.state.notifOpen,
+      toggleNotif:()=>this.setState(s=>({notifOpen:!s.notifOpen})),
+      notifs:notifs,
+      hasNotif:hasNotif,
+      notifsEmpty:notifsEmpty,
+      notifBadge:notifBadge,
+      markAllRead:()=>{
+        if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.markAllNotificationsRead){
+          Promise.resolve(window.markAllNotificationsRead()).then(r=>{
+            if(r && !r.error){ this.showToast((r.count||0)+' marked as read'); this.loadNotifs(); }
+            else this.showToast('Could not mark as read'+(r&&r.error?': '+r.error:''));
+            this.setState({notifOpen:false});
+          }).catch(e=>{ this.showToast('Could not mark as read'); this.setState({notifOpen:false}); });
+        } else {
+          this.setState({notifOpen:false});
+        }
+      },
+      logoEl:ic('hub','#eafaf8',21),logoutEl:React.createElement('button',{onClick:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73'}},ic('logout','#5f7a73',17)),searchEl:ic('search','#9aa8a3',17),
+      bellEl:ic('bell','#3a544e',18),plusEl:ic('plus','#06201c',16),boltEl:ic('bolt','#06201c',16),
+      sparkSmEl:ic('spark','#bdf0e8',14),hubWhiteEl:ic('hub','#eafaf8',17),alertEl:ic('alert','#e0556e',17),
+      navSections,kpis,caseload,budgets,webNodes,tasks,
+      showDemo:demoMode, realMode:!demoMode,
+      userFull, userFirst, userInitials, userRole, pageSub,
+      caseloadEmpty, caseAllLabel,
+      isCaseload:isC,isAllied:isA,isReviews:isR,
+      isBudgets:isB,isAgreements:isAg,isParticipants:isPart,isProviders:isProv,isNotes:isNotes,isDocs:isDocs,
+      isFiledrop:isFD, filedropSrc:'AI%20File%20Drop.dc.html',
+      isGoals,isRefSC,isProfileSC,isBillingSC,
+      goalRows:[
+        {name:'Liam Wright',init:'LW',tint:'#0e5147',goals:[{label:'Independent living skills',pct:88,color:'#1e9e6a',status:'Strong'},{label:'Community participation',pct:62,color:'#16b8a6',status:'On track'},{label:'Daily routine',pct:45,color:'#d98b22',status:'Needs attention'}]},
+        {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',goals:[{label:'Mobility & independence',pct:74,color:'#16b8a6',status:'On track'},{label:'Social confidence',pct:55,color:'#d98b22',status:'Needs attention'}]},
+        {name:'Priya Sharma',init:'PS',tint:'#d98b22',goals:[{label:'Return to community',pct:30,color:'#e0556e',status:'At risk'},{label:'Daily skills',pct:22,color:'#e0556e',status:'At risk'}]},
+        {name:'Tom Becker',init:'TB',tint:'#9333ea',goals:[{label:'Sensory regulation',pct:68,color:'#16b8a6',status:'On track'},{label:'Communication',pct:81,color:'#1e9e6a',status:'Strong'}]}
+      ],
+      scReferrals:scIncomingRefs,
+      scProfileInit: demoMode ? 'SK' : userInitials,
+      scProfile: demoMode
+        ? {name:'Sarah Kelly',org:'CiaraLink Support Coordination',regions:['Melbourne North','Glenroy','Coburg','Brunswick'],quals:['Cert IV Disability','Diploma Community Services'],caseload:32,email:'sarah.kelly@ciaralinksc.com.au',phone:'0438 221 770'}
+        : {name:userFull,org:(this.state.authOrg||'Support Coordination'),regions:[],quals:[],caseload:(navPartCount?navPartCount:'—'),email:(this.state.authEmail||'—'),phone:'—'},
+      scBilling:{
+        stats:[{label:'Total under management',value:'$303,200',color:'#0b6b60'},{label:'Delivered this month',value:'$28,400',color:'#14302b'},{label:'Remaining this period',value:'$274,800',color:'#1e9e6a'}],
+        rows:[
+          {name:'Liam Wright',init:'LW',tint:'#0e5147',hoursDelivered:'86h',hoursRemaining:'298h',budgetUsed:'$31,400',budgetRemaining:'$42,800',provider:'Brightside Care',flag:true,flagMsg:'Core budget at risk'},
+          {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',hoursDelivered:'62h',hoursRemaining:'278h',budgetUsed:'$21,000',budgetRemaining:'$29,000',provider:'Brightside Care',flag:true,flagMsg:'Capacity Building underspend'},
+          {name:'David Lowe',init:'DL',tint:'#6366f1',hoursDelivered:'34h',hoursRemaining:'256h',budgetUsed:'$14,560',budgetRemaining:'$37,440',provider:'Northern Allied',flag:false,flagMsg:''},
+          {name:'Priya Sharma',init:'PS',tint:'#d98b22',hoursDelivered:'21h',hoursRemaining:'249h',budgetUsed:'$8,640',budgetRemaining:'$39,360',provider:'Coburg Community',flag:true,flagMsg:'Significant underspend'},
+          {name:'Tom Becker',init:'TB',tint:'#9333ea',hoursDelivered:'112h',hoursRemaining:'168h',budgetUsed:'$27,520',budgetRemaining:'$15,480',provider:'Brightside Care',flag:false,flagMsg:''},
+          {name:'Ruth Kim',init:'RK',tint:'#0891b2',hoursDelivered:'58h',hoursRemaining:'202h',budgetUsed:'$14,640',budgetRemaining:'$16,360',provider:'Northern Allied',flag:false,flagMsg:''}
+        ]
+      },
+      budgetRows,agreementRows,participantRows,providerRows,noteRows,docsRows,
+      realDocsRows,realDocsEmpty,realDocsHas:!realDocsEmpty,
+      addNoteEl:ic('plus','#06201c',15),docIconEl:ic('file','#6366f1',15),
+      ahList,reviewList,
+      pulseEl:ic('pulse','#22d3bf',18),
+      checkGrnEl:ic('check','#1e9e6a',15),
+      alertRedEl:ic('alert','#e0556e',15),
+      calSmEl:ic('cal','#6366f1',15)
+    };
+  }
+}
+</script>
+
+</body>
+</html>

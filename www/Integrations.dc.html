@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260629"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260629"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes st-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <!-- Sidebar -->
+  <aside style="width:252px;flex:0 0 252px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4faf8">CiaraLink</div><div style="font-size:10px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:2px">INTEGRATIONS</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:10px 12px">
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="3">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:3px;border:none;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span>{{ it.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:6px">← Dashboard</button>
+      <button onClick="{{ goSettings }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#9fb4ae;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">⚙️ Settings</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(234,238,236,.88);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="flex:1"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">Integrations</div><div style="font-size:12.5px;color:#6c7f79;margin-top:2px">Connect your accounting software to push invoices &amp; bills</div></div>
+      <sc-if value="{{ orgName }}" hint-placeholder-val="">
+        <div style="font-size:12px;font-weight:700;color:#0b6b60;background:#e9f6ef;padding:6px 12px;border-radius:9px">{{ orgName }}</div>
+      </sc-if>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 56px">
+    <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+      <!-- AU DATA RESIDENCY TRUST -->
+      <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:20px 24px;color:#eafaf8">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:18px">🇦🇺</span>
+          <div style="font-size:15.5px;font-weight:800">Your data stays in Australia</div>
+        </div>
+        <div style="font-size:13px;color:#a9cfc8;line-height:1.55">CiaraLink is built to run on Australian infrastructure (AWS Asia Pacific — Sydney). When you connect Xero or MYOB, only the specific invoices and bills you choose are sent to that provider — your participant records never leave CiaraLink. See <a href="DATA_RESIDENCY.md" style="color:#7fe6d7;font-weight:700">our data-residency statement</a>.</div>
+      </div>
+
+      <sc-if value="{{ notConfigured }}" hint-placeholder-val="">
+        <div style="background:#fff8ec;border:1px solid #f3e2bf;border-radius:14px;padding:14px 18px;font-size:12.5px;color:#8a6d2f;line-height:1.5">
+          Accounting integrations aren't switched on for this workspace yet. An administrator needs to register a Xero app and set the server environment variables. See <b>INTEGRATION_NOTES_integrations.md</b>.
+        </div>
+      </sc-if>
+
+      <!-- PROVIDER CARDS -->
+      <sc-for list="{{ providers }}" as="p" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:46px;height:46px;border-radius:12px;flex:0 0 46px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff;background:{{ p.badgeBg }}">{{ p.badge }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:9px"><div style="font-size:15.5px;font-weight:800;color:#14302b">{{ p.name }}</div>
+                <span style="font-size:11px;font-weight:700;color:{{ p.statusFg }};background:{{ p.statusBg }};padding:3px 9px;border-radius:7px">{{ p.statusLabel }}</span>
+              </div>
+              <div style="font-size:12.5px;color:#6c7f79;margin-top:3px;line-height:1.45">{{ p.desc }}</div>
+              <sc-if value="{{ p.detail }}"><div style="font-size:11.5px;color:#9aa8a3;margin-top:6px;font-family:'IBM Plex Mono',monospace">{{ p.detail }}</div></sc-if>
+            </div>
+            <button onClick="{{ p.action }}" style="padding:10px 18px;border-radius:11px;border:1px solid {{ p.btnBd }};background:{{ p.btnBg }};color:{{ p.btnFg }};font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">{{ p.btnLabel }}</button>
+          </div>
+        </div>
+      </sc-for>
+
+      <!-- RECENT SYNC ACTIVITY -->
+      <sc-if value="{{ hasActivity }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Recent sync activity</div>
+          <sc-for list="{{ activity }}" as="a" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f4f7f5">
+              <span style="width:9px;height:9px;border-radius:50%;flex:0 0 9px;background:{{ a.dot }}"></span>
+              <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ a.title }}</div><div style="font-size:11.5px;color:#8a9a94">{{ a.sub }}</div></div>
+              <div style="font-size:11.5px;color:#9aa8a3;white-space:nowrap">{{ a.when }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="font-size:11.5px;color:#9aa8a3;line-height:1.5;padding:0 4px">
+        Invoices and bills are created in your accounting system as <b>drafts</b> for you to review and approve. CiaraLink never auto-approves financial documents. Connection credentials are stored server-side and are never visible to the browser.
+      </div>
+
+    </div>
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:24px;right:24px;z-index:99;background:#14302b;color:#eafaf7;padding:13px 18px;border-radius:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);animation:st-rise .25s ease">
+    {{ toast }}<button onClick="{{ clearToast }}" style="margin-left:6px;background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  state = { toast:null, orgs:[], orgId:null, orgName:null, providers:{xero:null,myob:null}, config:{xero:false,myob:false}, loading:true, busy:null, activity:[] };
+
+  componentDidMount(){
+    // Surface the result of an OAuth round-trip (?xero=connected|denied|error).
+    try{
+      const q=new URLSearchParams(window.location.search);
+      const xs=q.get('xero'), ms=q.get('myob');
+      if(xs==='connected') this.showToast('Xero connected successfully');
+      else if(xs==='denied') this.showToast('Xero connection was cancelled');
+      else if(xs==='error') this.showToast('Xero connection failed'+(q.get('reason')?' ('+q.get('reason')+')':''));
+      else if(ms==='error') this.showToast('MYOB is coming soon');
+      if(xs||ms){ const u=new URL(window.location.href); u.search=''; window.history.replaceState({},'',u.toString()); }
+    }catch(e){}
+    this.loadStatus(0);
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3800); }
+
+  async authHeaders(){
+    try{
+      if(typeof window.getSession==='function'){
+        const { data }=await window.getSession();
+        const tok=data && data.session && data.session.access_token;
+        if(tok) return { 'Authorization':'Bearer '+tok, 'Content-Type':'application/json' };
+      }
+    }catch(e){}
+    return null;
+  }
+
+  loadStatus(attempt){
+    attempt=attempt||0;
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())){ this.setState({loading:false}); return; }
+    if(window.getSupabaseClient && !window.getSupabaseClient() && attempt<25){
+      setTimeout(()=>this.loadStatus(attempt+1),200); return;
+    }
+    this.authHeaders().then(h=>{
+      if(!h){ this.setState({loading:false}); return; }
+      fetch('/api/integrations-status',{headers:h})
+        .then(r=>r.json())
+        .then(d=>{
+          if(d && !d.error){
+            const org=(d.orgs||[]).find(o=>o.orgId===d.orgId);
+            this.setState({orgs:d.orgs||[],orgId:d.orgId,orgName:org?org.name:null,providers:d.providers||{},config:d.config||{},loading:false});
+          } else { this.setState({loading:false}); }
+        })
+        .catch(()=>this.setState({loading:false}));
+      this.loadActivity(h);
+    });
+  }
+
+  // Best-effort: read the org's push history (RLS allows org members to read).
+  loadActivity(){
+    try{
+      const c=window.getSupabaseClient && window.getSupabaseClient();
+      if(!c) return;
+      c.from('integration_push_log').select('provider,entity_type,status,amount,external_number,created_at,message').order('created_at',{ascending:false}).limit(6)
+        .then(({data})=>{ if(Array.isArray(data)) this.setState({activity:data}); });
+    }catch(e){}
+  }
+
+  async connect(provider){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())){ this.showToast('Connect your account first'); return; }
+    const h=await this.authHeaders();
+    if(!h){ this.showToast('Please sign in again'); return; }
+    this.setState({busy:provider});
+    try{
+      const body=this.state.orgId?{orgId:this.state.orgId}:{};
+      const r=await fetch('/api/integrations-'+provider+'-connect',{method:'POST',headers:h,body:JSON.stringify(body)});
+      const d=await r.json().catch(()=>({}));
+      if(d && d.url){ window.location.href=d.url; return; }
+      if(d && d.configured===false){ this.showToast(d.error||(provider==='myob'?'MYOB is coming soon':'Not configured yet')); }
+      else { this.showToast((d&&d.error)||'Could not start connection'); }
+    }catch(e){ this.showToast('Network error'); }
+    this.setState({busy:null});
+  }
+
+  async disconnect(provider){
+    const h=await this.authHeaders();
+    if(!h){ this.showToast('Please sign in again'); return; }
+    this.setState({busy:provider});
+    try{
+      const body=this.state.orgId?{orgId:this.state.orgId}:{};
+      const r=await fetch('/api/integrations-'+provider+'-disconnect',{method:'POST',headers:h,body:JSON.stringify(body)});
+      const d=await r.json().catch(()=>({}));
+      if(d && d.ok){ this.showToast(provider.toUpperCase()+' disconnected'); this.loadStatus(0); }
+      else { this.showToast((d&&d.error)||'Could not disconnect'); }
+    }catch(e){ this.showToast('Network error'); }
+    this.setState({busy:null});
+  }
+
+  ic(n,c,s){
+    const P={
+      plug:'M9 2v6 M15 2v6 M7 8h10v3a5 5 0 0 1-10 0z M12 16v6',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      link:'M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1 M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1',
+    };
+    return React.createElement('svg',{width:s||18,height:s||18,viewBox:'0 0 24 24',fill:'none',stroke:c||'#5f726d',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[n]||P.grid}));
+  }
+
+  fmtWhen(iso){ try{ const d=new Date(iso); const days=Math.floor((Date.now()-d.getTime())/86400000); if(days<=0) return 'today'; if(days===1) return 'yesterday'; if(days<7) return days+'d ago'; return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }catch(e){ return ''; } }
+
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const S=this.state;
+
+    const navDefs=[{key:'integrations',label:'Accounting',icon:'plug',active:true}];
+    const nav=navDefs.map(it=>({label:it.label,onClick:()=>{},bg:it.active?'rgba(255,255,255,.08)':'transparent',color:it.active?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,it.active?'#22d3bf':'#7e948e',16)}));
+
+    const meta={
+      xero:{name:'Xero',badge:'X',badgeBg:'linear-gradient(150deg,#13b5ea,#0a7bb0)',desc:'Push approved claims and payroll as draft invoices & bills straight into your Xero organisation.'},
+      myob:{name:'MYOB',badge:'M',badgeBg:'linear-gradient(150deg,#6c2bd9,#4d1aa3)',desc:'Connect MYOB Business / AccountRight to sync invoices and bills. Coming soon.'},
+    };
+
+    const mkCard=(key)=>{
+      const m=meta[key];
+      const conn=S.providers[key];
+      const configured=!!(S.config&&S.config[key]);
+      const connected=!!(conn&&conn.connected);
+      const busy=S.busy===key;
+      let statusLabel,statusFg,statusBg,detail='';
+      if(connected){ statusLabel='Connected'; statusFg='#1e7a52'; statusBg='#e9f6ef';
+        detail=(conn.tenant_name?('● '+conn.tenant_name):'● Connected')+(conn.last_sync_at?('  ·  last sync '+this.fmtWhen(conn.last_sync_at)):''); }
+      else if(conn&&conn.status==='expired'){ statusLabel='Reconnect needed'; statusFg='#b4671e'; statusBg='#fbf0df'; }
+      else if(!configured && key==='myob'){ statusLabel='Coming soon'; statusFg='#6c7f79'; statusBg='#eef2f0'; }
+      else if(!configured){ statusLabel='Not set up'; statusFg='#6c7f79'; statusBg='#eef2f0'; }
+      else { statusLabel='Not connected'; statusFg='#6c7f79'; statusBg='#eef2f0'; }
+
+      let btnLabel,action,btnBg,btnFg,btnBd;
+      if(connected){ btnLabel=busy?'Working…':'Disconnect'; action=()=>!busy&&this.disconnect(key); btnBg='#fff'; btnFg='#c0445c'; btnBd='#fce4e9'; }
+      else { btnLabel=busy?'Connecting…':'Connect'; action=()=>!busy&&this.connect(key); btnBg='#16b8a6'; btnFg='#06201c'; btnBd='#16b8a6'; }
+
+      return {key,name:m.name,badge:m.badge,badgeBg:m.badgeBg,desc:m.desc,detail,statusLabel,statusFg,statusBg,btnLabel,action,btnBg,btnFg,btnBd};
+    };
+
+    const providers=[mkCard('xero'),mkCard('myob')];
+
+    const activity=(S.activity||[]).map(a=>({
+      dot:a.status==='success'?'#16b8a6':'#e0556e',
+      title:(a.provider?a.provider.toUpperCase():'')+' '+(a.entity_type||'')+(a.external_number?(' '+a.external_number):''),
+      sub:a.status==='success'?('$'+Number(a.amount||0).toFixed(2)+' AUD'):('Failed'+(a.message?(' · '+String(a.message).slice(0,80)):'')),
+      when:this.fmtWhen(a.created_at),
+    }));
+
+    const notConfigured = !S.loading && !S.config.xero && !S.config.myob;
+
+    return {
+      logoEl:ic('grid','#eafaf8',20),
+      nav,
+      orgName:S.orgName,
+      notConfigured,
+      providers,
+      hasActivity:activity.length>0,
+      activity,
+      toast:S.toast,
+      clearToast:()=>this.setState({toast:null}),
+      goBack:()=>{try{const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html'};window.location.href=m[s.role]||'Index.dc.html';}catch(e){window.location.href='Index.dc.html';}},
+      goSettings:()=>{window.location.href='Settings.dc.html';},
+    };
+  }
+}
+</script>
+</body>
+</html>

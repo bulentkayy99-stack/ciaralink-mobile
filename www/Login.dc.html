@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- CiaraLink Worker PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c2622">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CL Worker">
+<script src="/pwa.js" defer></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;min-height:100vh}
+    body{font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse-ring{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+    input:focus{outline:none;border-color:#16b8a6!important;box-shadow:0 0 0 3px rgba(22,184,166,.15)}
+    @media(max-width:768px){.left-panel{display:none!important}.right-panel{padding:28px!important}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;display:flex">
+
+  <!-- Left brand panel -->
+  <div class="left-panel" style="width:420px;flex:0 0 420px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);display:flex;flex-direction:column;padding:44px;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-80px;top:-80px;width:380px;height:380px;border-radius:50%;border:1px solid rgba(22,184,166,.07)"></div>
+    <div style="position:absolute;right:-40px;top:-40px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(22,184,166,.11)"></div>
+    <div style="position:absolute;left:-60px;bottom:-60px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(22,184,166,.07)"></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div>
+        <div style="font-size:10px;letter-spacing:.2em;color:#3d5e58;font-weight:700;margin-top:3px">CARE OS</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0">
+      <div style="font-size:34px;font-weight:800;color:#f4faf8;line-height:1.2;letter-spacing:-.02em;margin-bottom:16px">The operating<br/>system for<br/>modern care.</div>
+      <div style="font-size:14.5px;color:#4e726b;line-height:1.65">NDIS participant management, worker coordination, and allied health collaboration — unified in one platform.</div>
+    </div>
+    <div style="display:flex;gap:0;border-top:1px solid rgba(255,255,255,.06);padding-top:24px">
+      <div style="flex:1;padding-right:20px;border-right:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:22px;font-weight:800;color:#16b8a6">1,200+</div>
+        <div style="font-size:11.5px;color:#3d5e58;margin-top:3px">Participants</div>
+      </div>
+      <div style="flex:1;padding:0 20px;border-right:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:22px;font-weight:800;color:#f4faf8">340+</div>
+        <div style="font-size:11.5px;color:#3d5e58;margin-top:3px">Workers</div>
+      </div>
+      <div style="flex:1;padding-left:20px">
+        <div style="font-size:22px;font-weight:800;color:#f4faf8">98%</div>
+        <div style="font-size:11.5px;color:#3d5e58;margin-top:3px">On track</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="right-panel" style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px;background:#eaeeec">
+    <div style="width:100%;max-width:430px">
+
+      <!-- Connection status badge -->
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:11px;background:{{ modeBg }};border:1px solid {{ modeBorder }};margin-bottom:20px">
+        <div style="width:8px;height:8px;border-radius:50%;background:{{ modeDot }};flex:0 0 8px"></div>
+        <span style="font-size:12px;font-weight:700;color:{{ modeFg }}">{{ modeLabel }}</span>
+      </div>
+
+      <!-- Already signed in -->
+      <sc-if value="{{ signedInBanner }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:13px;background:#e7f4f1;border:1px solid #bfe3da;margin-bottom:22px">
+          <div style="font-size:13.5px;color:#14302b;font-weight:700">You're already signed in as {{ signedInEmail }}</div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ onContinueSignedIn }}" style="flex:1;height:42px;border:none;border-radius:11px;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Continue to dashboard</button>
+            <button onClick="{{ onSwitchAccount }}" style="flex:1;height:42px;border:1px solid #cdd8d3;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Sign out &amp; switch</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Mode toggle -->
+      <div style="display:flex;background:#fff;border:1px solid #dde4e1;border-radius:14px;padding:4px;margin-bottom:28px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <button onClick="{{ toSignIn }}" style="flex:1;height:40px;border:none;border-radius:11px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;background:{{ siTab }};color:{{ siColor }};box-shadow:{{ siShadow }}">Sign in</button>
+        <button onClick="{{ toSignUp }}" style="flex:1;height:40px;border:none;border-radius:11px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;background:{{ suTab }};color:{{ suColor }};box-shadow:{{ suShadow }}">Create account</button>
+      </div>
+
+      <div style="margin-bottom:22px">
+        <div style="font-size:22px;font-weight:800;color:#14302b;letter-spacing:-.02em">{{ heading }}</div>
+        <div style="font-size:13px;color:#4a6764;margin-top:5px">{{ subheading }}</div>
+      </div>
+
+      <!-- Role selector — preview mode only -->
+      <sc-if value="{{ showRoleSelector }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-bottom:20px">
+          <div style="font-size:11px;font-weight:700;color:#4a6764;letter-spacing:.08em;margin-bottom:9px">{{ roleSelectorLabel }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ r.select }}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border:1.5px solid {{ r.bd }};border-radius:12px;background:{{ r.bg }};cursor:pointer;font-family:inherit;text-align:left;transition:all .15s">
+                <span style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:{{ r.iconBg }};flex:0 0 30px">{{ r.iconEl }}</span>
+                <span style="font-size:12.5px;font-weight:700;color:{{ r.fg }}">{{ r.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Demo accounts quick-fill — Supabase mode -->
+      <sc-if value="{{ showDemoAccounts }}" hint-placeholder-val="">
+        <div style="margin-bottom:18px">
+          <button onClick="{{ toggleDemo }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:1px dashed #b8d4ce;border-radius:11px;background:#f4faf8;cursor:pointer;font-family:inherit;margin-bottom:0">
+            <span style="font-size:12px;font-weight:700;color:#0b6b60">🔑 Demo accounts</span>
+            <span style="font-size:11px;color:#4a6764;margin-left:auto">{{ demoToggleLabel }}</span>
+          </button>
+          <sc-if value="{{ demoOpen }}" hint-placeholder-val="">
+            <div style="border:1px solid #dde4e1;border-top:none;border-radius:0 0 11px 11px;background:#fff;overflow:hidden">
+              <sc-for list="{{ demoAccounts }}" as="da" hint-placeholder-count="7">
+                <button onClick="{{ da.fill }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:none;border-bottom:1px solid #f4f7f5;background:transparent;cursor:pointer;font-family:inherit;text-align:left">
+                  <div style="width:28px;height:28px;border-radius:8px;background:{{ da.bg }};display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 28px">{{ da.icon }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:12px;font-weight:700;color:#14302b">{{ da.role }}</div>
+                    <div style="font-size:11px;color:#4a6764;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ da.email }}</div>
+                  </div>
+                  <span style="font-size:11px;color:#16b8a6;font-weight:700;flex:0 0 auto">Fill →</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Name + org (signup only) -->
+      <sc-if value="{{ isSignUp }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:11px">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#4a6764;letter-spacing:.08em;margin-bottom:6px">FULL NAME</label>
+            <input ref="{{ fullNameRef }}" placeholder="Your full name" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;transition:border .15s" />
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#4a6764;letter-spacing:.08em;margin-bottom:6px">PHONE</label>
+            <input ref="{{ phoneRef }}" type="tel" placeholder="04xx xxx xxx" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;transition:border .15s" />
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Email + password -->
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#4a6764;letter-spacing:.08em;margin-bottom:6px">EMAIL</label>
+          <input ref="{{ emailRef }}" type="email" placeholder="you@example.com" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;transition:border .15s" />
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <label style="font-size:11px;font-weight:700;color:#4a6764;letter-spacing:.08em">PASSWORD</label>
+            <sc-if value="{{ isSignIn }}" hint-placeholder-val="{{ true }}"><span onClick="{{ forgotPw }}" style="font-size:12px;color:#0b6b60;font-weight:600;cursor:pointer">Forgot password?</span></sc-if>
+          </div>
+          <input ref="{{ passwordRef }}" type="password" placeholder="••••••••" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;transition:border .15s" />
+        </div>
+      </div>
+
+      <!-- Error -->
+      <sc-if value="{{ error }}" hint-placeholder-val="">
+        <div style="background:#fbe9ed;border:1px solid #f0c0cb;border-radius:10px;padding:10px 14px;font-size:13px;color:#c0445c;margin-bottom:14px;display:flex;align-items:center;gap:8px">{{ errIcon }}{{ error }}</div>
+      </sc-if>
+
+      <!-- Submit -->
+      <button onClick="{{ submit }}" style="width:100%;height:50px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:16px">
+        {{ submitLabel }}
+      </button>
+
+      <div style="text-align:center;font-size:13px;color:#4a6764">{{ altLink }}</div>
+
+      <div style="text-align:center;margin-top:20px;font-size:11.5px;color:#4a6764;line-height:1.5">
+        By continuing you agree to CiaraLink <span onClick="{{ showTerms }}" style="color:#0b6b60;cursor:pointer">Terms of Service</span> and <span onClick="{{ showPrivacy }}" style="color:#0b6b60;cursor:pointer">Privacy Policy</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" aria-label="Dismiss notification" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 1280, &quot;height&quot;: 800 }
+}">
+class Component extends DCLogic {
+  state = { mode: 'signin', role: 'provider', loading: false, error: null, demoOpen: false, supabaseReady: false, toast: null };
+  emailRef = React.createRef();
+  passwordRef = React.createRef();
+  fullNameRef = React.createRef();
+  phoneRef = React.createRef();
+
+  ic(name, c, s) {
+    const P = {
+      pulse: 'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      building: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10',
+      user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8',
+      star: 'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8-5-4.9 6.9-1z',
+      heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z',
+      arrow: 'M5 12h14 M12 5l7 7-7 7',
+      x: 'M6 6l12 12 M18 6L6 18',
+    };
+    return React.createElement('svg', { width: s || 18, height: s || 18, viewBox: '0 0 24 24', fill: 'none', stroke: c || '#5f726d', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      React.createElement('path', { d: P[name] || P.pulse }));
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  ensureSupabaseClient() {
+    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
+    if (!sbConfigured) return false;
+    if (window.supabaseClient) return true;
+
+    if (window.getSupabaseClient) {
+      const client = window.getSupabaseClient();
+      if (client) {
+        window.supabaseClient = client;
+        return true;
+      }
+    }
+
+    if (window.supabase) {
+      try {
+        window.supabaseClient = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+        return true;
+      } catch (e) {
+        console.warn('[Login] Failed to create Supabase client:', e.message);
+      }
+    }
+    return false;
+  }
+
+  waitForSupabaseClient(timeoutMs = 5000) {
+    return new Promise((resolve) => {
+      const started = Date.now();
+      const tick = () => {
+        const ready = this.ensureSupabaseClient();
+        this.setState({ supabaseReady: ready });
+        if (ready || Date.now() - started >= timeoutMs) {
+          resolve(ready);
+        } else {
+          setTimeout(tick, 100);
+        }
+      };
+      tick();
+    });
+  }
+
+  getRoleDest(role) {
+    const map = {
+      platform_admin: 'CiaraLink Provider Dashboard.dc.html',
+      provider_owner: 'CiaraLink Provider Dashboard.dc.html',
+      provider_admin: 'CiaraLink Provider Dashboard.dc.html',
+      provider_staff: 'CiaraLink Provider Dashboard.dc.html',
+      support_worker: 'Support Worker.dc.html',
+      abn_worker: 'Support Worker.dc.html',
+      support_coordinator: 'Support Coordination.dc.html',
+      allied_health: 'Allied Health.dc.html',
+      allied_health_admin: 'Allied Health.dc.html',
+      participant: 'Participant Dashboard.dc.html',
+      guardian_nominee: 'Participant Dashboard.dc.html',
+      // preview-mode shortcuts
+      provider: 'CiaraLink Provider Dashboard.dc.html',
+      worker: 'Support Worker.dc.html',
+      coordinator: 'Support Coordination.dc.html',
+      allied: 'Allied Health.dc.html',
+    };
+    return map[role] || 'Index.dc.html';
+  }
+
+  componentDidMount() {
+    // Check URL for session reset parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('resetSession')) {
+      this.clearAllSessions();
+      // Clean URL by removing query string
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    // Check for existing Supabase session
+    const checkExistingSession = () => {
+      if (window.supabaseClient) {
+        window.supabaseClient.auth.getSession().then(({ data }) => {
+          if (data && data.session) {
+            // Already logged in — DON'T auto-redirect; offer Continue / Sign out & switch.
+            this.setState({ signedInEmail: (data.session.user && data.session.user.email) || 'your account', signedInUserId: data.session.user.id });
+          }
+        });
+      } else {
+        // Check localStorage session (preview mode)
+        try {
+          const s = JSON.parse(localStorage.getItem('ciaralink_session') || '{}');
+          if (s.loggedIn && s.role) this.setState({ signedInEmail: s.email || 'your account', signedInRole: s.role });
+        } catch (e) {}
+      }
+    };
+
+    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
+    if (sbConfigured) {
+      this.waitForSupabaseClient().then(checkExistingSession);
+    } else {
+      setTimeout(checkExistingSession, 200);
+    }
+  }
+
+  clearAllSessions() {
+    // Clear all CiaraLink-related localStorage keys
+    localStorage.removeItem('ciaralink_session');
+    localStorage.removeItem('ciaralink_preview_session');
+    localStorage.removeItem('ciaralink_selected_role');
+    localStorage.removeItem('ciaralink_user_context');
+    localStorage.removeItem('ciaralink_auth_token');
+    
+    // Clear Supabase Auth session if available
+    if (window.supabaseClient) {
+      window.supabaseClient.auth.signOut().catch(e => console.warn('Signout warning:', e));
+    }
+    
+    this.setState({ error: null });
+  }
+
+  async fetchRoleAndRedirect(userId) {
+    try {
+      // Force a password change for accounts created by an admin with a temp password.
+      try {
+        const { data: u } = await window.supabaseClient.auth.getUser();
+        if (u && u.user && u.user.user_metadata && u.user.user_metadata.must_change_password) {
+          window.location.href = 'Set Password.dc.html';
+          return;
+        }
+      } catch (e) { /* non-fatal — continue to normal redirect */ }
+
+      const { data } = await window.supabaseClient
+        .from('organisation_members')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .limit(1)
+        .single();
+      const role = data?.role || 'provider_owner';
+      localStorage.setItem('ciaralink_session', JSON.stringify({ loggedIn: true, supabase: true, userId, role, ts: Date.now() }));
+      window.location.href = this.getRoleDest(role);
+    } catch (e) {
+      // Role fetch failed — go to index
+      window.location.href = 'Index.dc.html';
+    }
+  }
+
+  async doLogout() {
+    // Clear Supabase Auth session
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.auth.signOut();
+      } catch (e) {
+        console.warn('Logout warning:', e);
+      }
+    }
+    
+    // Clear all CiaraLink sessions
+    this.clearAllSessions();
+    
+    // Ensure we're back on the login form
+    window.location.href = 'Login.dc.html';
+  }
+
+  async doSubmit() {
+    const email = this.emailRef.current ? this.emailRef.current.value.trim() : '';
+    const password = this.passwordRef.current ? this.passwordRef.current.value : '';
+    const { mode, role } = this.state;
+
+    if (!email) { this.setState({ loading: false, error: 'Please enter your email address.' }); return; }
+    if (!password) { this.setState({ loading: false, error: 'Please enter your password.' }); return; }
+
+    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
+    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());
+    if (sbConfigured && !sbReady) {
+      sbReady = await this.waitForSupabaseClient();
+    }
+
+    if (sbReady) {
+      // ── Supabase Auth ──────────────────────────────────────
+      try {
+        if (mode === 'signin') {
+          const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          await this.fetchRoleAndRedirect(data.user.id);
+        } else {
+          const fullName = this.fullNameRef.current ? this.fullNameRef.current.value.trim() : '';
+          const phone = this.phoneRef.current ? this.phoneRef.current.value.trim() : '';
+          const ROLE_MAP = { provider: 'provider_owner', worker: 'support_worker', coordinator: 'support_coordinator', allied: 'allied_health', participant: 'participant' };
+          const roleEnum = ROLE_MAP[this.state.role] || this.state.role;
+          const signUpArgs = { email, password, options: { data: { full_name: fullName, phone: phone, role: roleEnum } } };
+          const { data, error } = await window.supabaseClient.auth.signUp(signUpArgs);
+          if (error) throw error;
+          if (data && data.session && data.user) {
+            // email confirmation is off -> user is auto-confirmed; send them straight in
+            await this.fetchRoleAndRedirect(data.user.id);
+          } else {
+            this.setState({ loading: false, error: null, mode: 'signin' });
+            this.showToast('Account created — you can sign in now.');
+          }
+        }
+      } catch (err) {
+        this.setState({ loading: false, error: err.message || 'Login failed. Check your email and password.' });
+      }
+    } else if (sbConfigured) {
+      this.setState({ loading: false, error: 'Supabase is still loading. Please try again in a moment.' });
+    } else {
+      // ── Preview mode fallback ──────────────────────────────
+      await new Promise(r => setTimeout(r, 800));
+      localStorage.setItem('ciaralink_session', JSON.stringify({ loggedIn: true, supabase: false, role, email, ts: Date.now() }));
+      window.location.href = this.getRoleDest(role);
+    }
+  }
+
+  renderVals() {
+    const ic = (n, c, s) => this.ic(n, c, s);
+    const { mode, role, loading, error, demoOpen, supabaseReady } = this.state;
+    const isSignIn = mode === 'signin';
+    const isSignUp = mode === 'signup';
+    // Check if Supabase is configured by looking at ENV directly
+    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
+    const sbReady = sbConfigured || supabaseReady;
+
+    // Connection status badge — neutral in production; dev/preview notice only when Supabase is unconfigured
+    const modeLabel = sbReady ? 'Secure sign-in' : '🟡 Preview mode — design preview, sign-in not connected';
+    const modeBg = sbReady ? '#e7f4f1' : '#fef3e2';
+    const modeBorder = sbReady ? '#b8e8df' : '#f9d99a';
+    const modeDot = sbReady ? '#16b8a6' : '#f59e0b';
+    const modeFg = sbReady ? '#0b6b60' : '#92400e';
+
+    // Role selector — shown on signup (pick your role) and in preview-mode signin
+    const showRoleSelector = isSignUp || (!sbReady && isSignIn);
+    const roleSelectorLabel = isSignUp ? 'I AM A…' : 'VIEW DASHBOARD AS';
+    // Demo logins are a design-preview affordance only — never shown to real (production) visitors.
+    const showDemoAccounts = !sbReady;
+
+    const roleOptions = [
+      { key: 'provider',    label: 'Provider',       icon: 'building', ac: '#0b6b60', aib: '#dcf0eb', abd: '#16b8a6', abg: '#f0faf8' },
+      { key: 'worker',      label: 'Support Worker', icon: 'user',     ac: '#4338ca', aib: '#e8eafd', abd: '#6366f1', abg: '#f3f3fe' },
+      { key: 'coordinator', label: 'Coordinator',    icon: 'star',     ac: '#b4561f', aib: '#fbeedd', abd: '#d98b22', abg: '#fdf5e8' },
+      { key: 'allied',      label: 'Allied Health',  icon: 'heart',    ac: '#7c3aed', aib: '#ecdffe', abd: '#9333ea', abg: '#f6eefe' },
+      { key: 'participant', label: 'Participant',    icon: 'user',     ac: '#0e7490', aib: '#cfeef3', abd: '#0891b2', abg: '#eef9fb' },
+    ];
+    const roles = roleOptions.map(r => {
+      const active = role === r.key;
+      return { ...r, iconEl: ic(r.icon, active ? r.ac : '#aab8b2', 15), bd: active ? r.abd : '#dde4e1', bg: active ? r.abg : '#fff', iconBg: active ? r.aib : '#f4f7f5', fg: active ? r.ac : '#4a6764', select: () => this.setState({ role: r.key, error: null }) };
+    });
+
+    // Demo accounts (Supabase mode)
+    const DEMO = [
+      { role: 'Provider Owner',       email: 'demo-provider-owner@ciaralink.example', icon: '🏢', bg: '#e7f4f1', pw: 'DemoPassword123!' },
+      { role: 'Provider Admin',       email: 'demo-provider-admin@ciaralink.example', icon: '⚙️', bg: '#eef0fd', pw: 'DemoPassword123!' },
+      { role: 'Support Worker',       email: 'demo-worker@ciaralink.example',          icon: '👤', bg: '#f3f3fe', pw: 'DemoPassword123!' },
+      { role: 'Support Coordinator',  email: 'demo-sc@ciaralink.example',              icon: '⭐', bg: '#fdf5e8', pw: 'DemoPassword123!' },
+      { role: 'Allied Health',        email: 'demo-allied@ciaralink.example',          icon: '💜', bg: '#f6eefe', pw: 'DemoPassword123!' },
+      { role: 'Participant',          email: 'demo-participant@ciaralink.example',      icon: '🙂', bg: '#eef9fb', pw: 'DemoPassword123!' },
+      { role: 'Guardian',             email: 'demo-guardian@ciaralink.example',        icon: '🛡', bg: '#fef3c7', pw: 'DemoPassword123!' },
+    ];
+    const demoAccounts = DEMO.map(d => ({
+      ...d,
+      fill: () => {
+        if (this.emailRef.current) this.emailRef.current.value = d.email;
+        if (this.passwordRef.current) this.passwordRef.current.value = d.pw;
+        this.setState({ demoOpen: false });
+      },
+    }));
+    const demoToggleLabel = demoOpen ? 'Hide ▲' : 'Click to expand ▼';
+    const toggleDemo = () => this.setState(s => ({ demoOpen: !s.demoOpen }));
+
+    const siActive = isSignIn;
+    const siTab = siActive ? '#fff' : 'transparent'; const siColor = siActive ? '#14302b' : '#4a6764'; const siShadow = siActive ? '0 1px 3px rgba(20,48,43,.1)' : 'none';
+    const suActive = isSignUp;
+    const suTab = suActive ? '#fff' : 'transparent'; const suColor = suActive ? '#14302b' : '#4a6764'; const suShadow = suActive ? '0 1px 3px rgba(20,48,43,.1)' : 'none';
+
+    const heading = isSignIn ? 'Welcome back' : 'Create your account';
+    const subheading = sbReady
+      ? (isSignIn ? 'Sign in to your CiaraLink account.' : 'Tell us who you are to get started.')
+      : (isSignIn ? 'Select your role to enter the preview.' : 'Choose your role to get started.');
+
+    const submit = () => {
+      if (loading) return;
+      this.setState({ loading: true, error: null });
+      this.doSubmit();
+    };
+
+    const spinner = React.createElement('span', { style: { width: 16, height: 16, border: '2.5px solid rgba(6,32,28,.2)', borderTopColor: '#06201c', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'block' } });
+    const submitLabel = loading
+      ? React.createElement('span', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, spinner, isSignIn ? 'Signing in…' : 'Creating account…')
+      : React.createElement('span', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, isSignIn ? 'Sign in — enter dashboard' : 'Create account & continue', ic('arrow', '#06201c', 16));
+
+    const altLink = isSignIn
+      ? React.createElement('span', {}, 'Don\'t have an account? ', React.createElement('span', { onClick: () => this.setState({ mode: 'signup', error: null }), style: { color: '#0b6b60', fontWeight: 700, cursor: 'pointer' } }, 'Create one'))
+      : React.createElement('span', {}, 'Already have an account? ', React.createElement('span', { onClick: () => this.setState({ mode: 'signin', error: null }), style: { color: '#0b6b60', fontWeight: 700, cursor: 'pointer' } }, 'Sign in'));
+
+    return {
+      toast: this.state.toast,
+      clearToast: () => this.setState({ toast: null }),
+      forgotPw: () => {
+        const email = this.emailRef.current ? this.emailRef.current.value.trim() : '';
+        if (!email) { this.setState({ error: 'Enter your email address above, then tap "Forgot password?".' }); return; }
+        const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
+        if (!sbConfigured || !this.ensureSupabaseClient()) { this.showToast('Password reset needs Supabase — not available in preview mode.'); return; }
+        const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';
+        window.supabaseClient.auth.resetPasswordForEmail(email, { redirectTo })
+          .then(({ error }) => {
+            if (error) { this.setState({ error: error.message }); }
+            else { this.showToast('Check your email for a reset link.'); }
+          })
+          .catch((e) => this.setState({ error: e.message || 'Could not send reset email.' }));
+      },
+      showTerms: () => window.open('terms.html', '_blank'),
+      showPrivacy: () => window.open('privacy.html', '_blank'),
+      logoEl: ic('pulse', '#eafaf8', 22),
+      isSignIn, isSignUp, error, roles,
+      showRoleSelector, roleSelectorLabel, showDemoAccounts,
+      demoAccounts, demoOpen, demoToggleLabel, toggleDemo,
+      siTab, siColor, siShadow, suTab, suColor, suShadow,
+      heading, subheading, submit, submitLabel, altLink,
+      modeLabel, modeBg, modeBorder, modeDot, modeFg,
+      emailRef: this.emailRef, passwordRef: this.passwordRef, fullNameRef: this.fullNameRef, phoneRef: this.phoneRef,
+      errIcon: ic('x', '#c0445c', 15),
+      toSignIn: () => this.setState({ mode: 'signin', error: null }),
+      toSignUp: () => this.setState({ mode: 'signup', error: null }),
+      signedInBanner: !!this.state.signedInEmail,
+      signedInEmail: this.state.signedInEmail || '',
+      onContinueSignedIn: () => {
+        if (this.state.signedInUserId) this.fetchRoleAndRedirect(this.state.signedInUserId);
+        else if (this.state.signedInRole) window.location.href = this.getRoleDest(this.state.signedInRole);
+      },
+      onSwitchAccount: () => {
+        this.clearAllSessions();
+        this.setState({ signedInEmail: null, signedInUserId: null, signedInRole: null });
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

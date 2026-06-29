@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260629"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260629"></script>
+  <script src="./incident-client.js?v=20260629"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    .ir-scrl::-webkit-scrollbar{width:0;display:none}
+    .ir-in{width:100%;border:1.5px solid #dde4e1;border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;outline:none}
+    .ir-in:focus{border-color:#c1483a}
+    @keyframes ir-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;width:100%;display:flex;align-items:flex-start;justify-content:center;padding:34px 16px;background:radial-gradient(120% 90% at 50% 0%,#3a1410 0%,#241010 55%,#160a08 100%)">
+  <div style="position:relative;width:420px;max-width:100%;border-radius:30px;background:#f4f5f7;box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);overflow:hidden">
+
+    <!-- header -->
+    <div style="padding:22px 22px 16px;color:#fff;background:linear-gradient(150deg,#c1483a,#8e2f25)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div style="width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center">{{ shieldEl }}</div>
+        <div style="flex:1"><div style="font-size:18px;font-weight:800;letter-spacing:-.01em">Report an incident</div><div style="font-size:12px;opacity:.85">Fast, secure · NDIS SIRS aligned</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:11.5px;background:rgba(0,0,0,.18);border-radius:10px;padding:8px 11px">{{ connLabel }}</div>
+    </div>
+
+    <div class="ir-scrl" style="max-height:calc(100vh - 120px);overflow-y:auto">
+
+    <!-- ============ FORM ============ -->
+    <sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:18px 20px 26px;animation:ir-rise .25s ease">
+
+      <!-- SIRS classification preview -->
+      <div style="border-radius:14px;padding:13px 14px;margin-bottom:16px;border:1px solid {{ sirsBorder }};background:{{ sirsBg }}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="display:flex">{{ sirsIconEl }}</span>
+          <span style="font-size:13px;font-weight:800;color:{{ sirsFg }}">{{ sirsHeading }}</span>
+        </div>
+        <div style="font-size:12px;color:{{ sirsFg }};opacity:.9;margin-top:5px">{{ sirsDetail }}</div>
+        <sc-if value="{{ sirsReportable }}" hint-placeholder-val="">
+          <div style="font-size:11.5px;font-weight:700;color:{{ sirsFg }};margin-top:7px">Notify NDIS Commission within {{ sirsTimeframe }} — by {{ sirsDeadline }}</div>
+        </sc-if>
+      </div>
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">INCIDENT TYPE</label>
+      <select value="{{ type }}" onChange="{{ onType }}" class="ir-in" style="margin-bottom:14px">
+        <sc-for list="{{ typeOptions }}" as="o" hint-placeholder-count="6">
+          <option value="{{ o.value }}">{{ o.label }}</option>
+        </sc-for>
+      </select>
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">SEVERITY</label>
+      <div style="display:flex;gap:7px;margin-bottom:14px">
+        <sc-for list="{{ severityChips }}" as="s" hint-placeholder-count="4">
+          <button onClick="{{ s.onClick }}" style="flex:1;border:1.5px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }};border-radius:11px;padding:9px 4px;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px">{{ s.label }}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ hasParticipants }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">PARTICIPANT INVOLVED (optional)</label>
+        <select value="{{ participantId }}" onChange="{{ onParticipant }}" class="ir-in" style="margin-bottom:14px">
+          <option value="">— None / not specific —</option>
+          <sc-for list="{{ participants }}" as="p" hint-placeholder-count="3">
+            <option value="{{ p.id }}">{{ p.full_name }}</option>
+          </sc-for>
+        </select>
+      </div>
+      </sc-if>
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">SHORT TITLE</label>
+      <input value="{{ title }}" onChange="{{ onTitle }}" placeholder="e.g. Fall in bathroom" class="ir-in" style="margin-bottom:14px" />
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">WHAT HAPPENED</label>
+      <textarea value="{{ description }}" onChange="{{ onDescription }}" placeholder="Describe what happened, who was there, and the outcome…" class="ir-in" style="margin-bottom:14px;min-height:96px;resize:vertical"></textarea>
+
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1">
+          <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">WHEN</label>
+          <input type="datetime-local" value="{{ occurredAt }}" onChange="{{ onOccurred }}" class="ir-in" />
+        </div>
+        <div style="flex:1">
+          <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">LOCATION</label>
+          <input value="{{ location }}" onChange="{{ onLocation }}" placeholder="Address / room" class="ir-in" />
+        </div>
+      </div>
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">IMMEDIATE ACTIONS TAKEN</label>
+      <textarea value="{{ immediateActions }}" onChange="{{ onActions }}" placeholder="First aid given, manager called, area made safe…" class="ir-in" style="margin-bottom:14px;min-height:64px;resize:vertical"></textarea>
+
+      <label style="display:block;font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:6px">PHOTOS / DOCUMENTS</label>
+      <div style="border:1.5px dashed #cdd6d2;border-radius:12px;padding:14px;text-align:center;background:#fff;margin-bottom:8px">
+        <input type="file" multiple onChange="{{ onFiles }}" style="font-family:inherit;font-size:12.5px;width:100%" />
+        <div style="font-size:11px;color:#9aa8a3;margin-top:6px">Stored privately in Supabase · org-only access</div>
+      </div>
+      <sc-if value="{{ hasFiles }}" hint-placeholder-val="">
+        <div style="margin-bottom:14px">
+          <sc-for list="{{ fileList }}" as="f" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#41635c;background:#eef3f1;border-radius:9px;padding:7px 10px;margin-top:6px">{{ paperEl }}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span><span style="color:#9aa8a3">{{ f.size }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <button onClick="{{ submit }}" style="margin-top:6px;width:100%;height:52px;border-radius:14px;border:none;background:{{ submitBg }};color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px">{{ submitLabel }}</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:#9aa8a3">The right people are notified automatically based on severity</div>
+    </div>
+    </sc-if>
+
+    <!-- ============ SUCCESS ============ -->
+    <sc-if value="{{ submitted }}" hint-placeholder-val="">
+    <div style="padding:26px 22px 28px;animation:ir-rise .25s ease">
+      <div style="text-align:center">
+        <div style="width:64px;height:64px;border-radius:50%;margin:0 auto;background:#e7f6ee;display:flex;align-items:center;justify-content:center">{{ bigCheckEl }}</div>
+        <div style="font-size:19px;font-weight:800;color:#14302b;margin-top:14px">Incident reported</div>
+        <div style="font-size:13px;color:#6c7f79;margin-top:4px">Reference <b style="font-family:'IBM Plex Mono',monospace;color:#14302b">{{ lastRef }}</b></div>
+      </div>
+
+      <sc-if value="{{ lastSirs }}" hint-placeholder-val="">
+        <div style="margin-top:18px;border-radius:14px;padding:14px;border:1px solid #f3d6cf;background:#fdeee9">
+          <div style="font-size:13px;font-weight:800;color:#a93a2c">SIRS reportable — {{ lastSirsLabel }}</div>
+          <div style="font-size:12px;color:#a93a2c;margin-top:5px">Notify the NDIS Commission within {{ lastSirsTimeframe }} — by {{ lastDeadline }}. Your provider has been alerted.</div>
+        </div>
+      </sc-if>
+
+      <button onClick="{{ reset }}" style="margin-top:20px;width:100%;height:50px;border-radius:14px;border:none;background:#c1483a;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">Report another</button>
+    </div>
+    </sc-if>
+
+    <!-- recent reports -->
+    <sc-if value="{{ hasMine }}" hint-placeholder-val="">
+    <div style="padding:0 20px 26px">
+      <div style="font-size:11px;font-weight:700;color:#8a948f;letter-spacing:.06em;margin-bottom:8px">YOUR RECENT REPORTS</div>
+      <sc-for list="{{ myList }}" as="m" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e7ece9;border-radius:12px;padding:11px 12px;margin-bottom:8px">
+          <div style="width:9px;height:9px;border-radius:99px;background:{{ m.dot }}"></div>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.title }}</div><div style="font-size:11px;color:#8a948f">{{ m.meta }}</div></div>
+          <div style="font-size:10.5px;font-weight:700;color:{{ m.statusFg }};background:{{ m.statusBg }};padding:3px 8px;border-radius:999px">{{ m.statusLabel }}</div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    </div>
+
+    <sc-if value="{{ toast }}" hint-placeholder-val="">
+      <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#14302b;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);z-index:50">{{ toast }}</div>
+    </sc-if>
+
+  </div>
+</div>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    loading: true,
+    connected: false,
+    orgId: null,
+    reporterLabel: null,
+    participants: [],
+    type: 'serious_injury',
+    severity: 'major',
+    title: '',
+    description: '',
+    location: '',
+    occurredAt: '',
+    immediateActions: '',
+    participantId: '',
+    files: [],
+    submitting: false,
+    submitted: false,
+    lastRef: null,
+    lastIncident: null,
+    myIncidents: [],
+    toast: null,
+  };
+
+  componentDidMount() {
+    try { this.setState({ occurredAt: this.nowLocal() }); } catch (e) {}
+    try {
+      const connected = window.isSupabaseConfigured ? window.isSupabaseConfigured() : false;
+      this.setState({ connected: connected });
+      if (window.loadCurrentUserContext) {
+        Promise.resolve(window.loadCurrentUserContext()).then((ctx) => {
+          if (ctx && !ctx.error) {
+            this.setState({
+              orgId: ctx.organisationId || null,
+              reporterLabel: (ctx.profile && ctx.profile.full_name) || (ctx.user && ctx.user.email) || null,
+            });
+          }
+        }).catch(() => {});
+      }
+      if (window.loadParticipantsForCurrentUser) {
+        Promise.resolve(window.loadParticipantsForCurrentUser()).then((res) => {
+          if (res && !res.error && res.participants) this.setState({ participants: res.participants });
+        }).catch(() => {});
+      }
+      this.loadMine();
+    } catch (e) {}
+    this.setState({ loading: false });
+  }
+
+  loadMine() {
+    if (!window.loadMyReportedIncidents) return;
+    Promise.resolve(window.loadMyReportedIncidents(5)).then((res) => {
+      if (res && !res.error) this.setState({ myIncidents: res.incidents || [] });
+    }).catch(() => {});
+  }
+
+  nowLocal() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  occurredIso() {
+    if (!this.state.occurredAt) return null;
+    const d = new Date(this.state.occurredAt);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  }
+
+  showToast(msg) {
+    this.setState({ toast: msg });
+    setTimeout(() => this.setState({ toast: null }), 3200);
+  }
+
+  fmtSize(n) {
+    if (!n && n !== 0) return '';
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return Math.round(n / 1024) + ' KB';
+    return (n / 1048576).toFixed(1) + ' MB';
+  }
+
+  fmtWhen(iso) {
+    try { return new Date(iso).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+    catch (e) { return ''; }
+  }
+
+  svg(children, color, size) {
+    const R = React;
+    return R.createElement('svg', { width: size || 18, height: size || 18, viewBox: '0 0 24 24', fill: 'none', stroke: color || 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, children);
+  }
+
+  submit() {
+    if (this.state.submitting) return;
+    const s = this.state;
+    if (!s.title.trim() || !s.description.trim()) { this.showToast('Add a title and a description'); return; }
+    if (!s.connected) { this.showToast('Not connected — sign in to submit'); return; }
+    if (!s.orgId) { this.showToast('No organisation found for your account'); return; }
+    this.setState({ submitting: true });
+    const self = this;
+
+    Promise.resolve(window.createIncident({
+      org_id: s.orgId,
+      reporter_label: s.reporterLabel,
+      participant_id: s.participantId || undefined,
+      incident_type: s.type,
+      severity: s.severity,
+      title: s.title.trim(),
+      description: s.description.trim(),
+      location: s.location.trim() || undefined,
+      occurred_at: self.occurredIso() || undefined,
+      immediate_actions: s.immediateActions.trim() || undefined,
+    })).then((res) => {
+      if (!res || res.error || !res.incident) {
+        self.setState({ submitting: false });
+        self.showToast("Couldn't submit: " + ((res && res.error) || 'unknown error'));
+        return;
+      }
+      const inc = res.incident;
+      const jobs = [];
+      // Affected participant as an "involved" record.
+      if (s.participantId && window.addIncidentInvolved) {
+        jobs.push(window.addIncidentInvolved(inc.id, [{ person_type: 'participant', participant_id: s.participantId, involvement: 'affected' }]));
+      }
+      // Evidence uploads.
+      (s.files || []).forEach((f) => {
+        if (window.uploadIncidentEvidence) jobs.push(window.uploadIncidentEvidence({ file: f, incident_id: inc.id, org_id: s.orgId }));
+      });
+      Promise.all(jobs).catch(() => {}).then(() => {
+        self.setState({
+          submitting: false,
+          submitted: true,
+          lastRef: inc.id.slice(0, 8).toUpperCase(),
+          lastIncident: inc,
+        });
+        self.loadMine();
+      });
+    }).catch((e) => {
+      self.setState({ submitting: false });
+      self.showToast('Error: ' + (e && e.message));
+    });
+  }
+
+  reset() {
+    this.setState({
+      submitted: false, lastRef: null, lastIncident: null,
+      type: 'serious_injury', severity: 'major', title: '', description: '',
+      location: '', occurredAt: this.nowLocal(), immediateActions: '', participantId: '', files: [],
+    });
+  }
+
+  renderVals() {
+    const self = this;
+    const s = this.state;
+    const SIRS = window.IncidentSIRS;
+    const cls = SIRS ? SIRS.classifyIncident(s.type, this.occurredIso()) : { sirs_reportable: false };
+
+    // SIRS preview banner styling.
+    const reportable = !!cls.sirs_reportable;
+    const sirsBg = reportable ? '#fdeee9' : '#eef6f1';
+    const sirsBorder = reportable ? '#f3d6cf' : '#d6ebe0';
+    const sirsFg = reportable ? '#a93a2c' : '#1e7a52';
+
+    // Severity chips.
+    const sevOpts = (SIRS && SIRS.SEVERITY_OPTIONS) || [];
+    const severityChips = sevOpts.map((o) => {
+      const on = s.severity === o.value;
+      return {
+        label: o.label,
+        onClick: () => self.setState({ severity: o.value }),
+        bg: on ? '#c1483a' : '#fff',
+        fg: on ? '#fff' : '#6c7f79',
+        bd: on ? '#c1483a' : '#dde4e1',
+      };
+    });
+
+    // Type options.
+    const typeOptions = ((SIRS && SIRS.TYPE_OPTIONS) || []).map((o) => ({
+      value: o.value,
+      label: (o.group && o.group.indexOf('Reportable') === 0 ? '\u26A0 ' : '') + o.label,
+    }));
+
+    // Staged files.
+    const fileList = (s.files || []).map((f) => ({ name: f.name, size: self.fmtSize(f.size) }));
+
+    // Recent reports.
+    const statusMap = {
+      reported: { label: 'Reported', fg: '#1e6fa9', bg: '#e7f0f8', dot: '#3b82c4' },
+      under_review: { label: 'In review', fg: '#915e10', bg: '#fbf0db', dot: '#d99a2b' },
+      escalated: { label: 'Escalated', fg: '#a93a2c', bg: '#fdeee9', dot: '#c1483a' },
+      action_required: { label: 'Action', fg: '#a93a2c', bg: '#fdeee9', dot: '#c1483a' },
+      resolved: { label: 'Resolved', fg: '#1e7a52', bg: '#e7f6ee', dot: '#2faa6e' },
+      closed: { label: 'Closed', fg: '#6c7f79', bg: '#eef3f1', dot: '#9aa8a3' },
+    };
+    const myList = (s.myIncidents || []).map((m) => {
+      const st = statusMap[m.status] || statusMap.reported;
+      return {
+        title: m.title,
+        meta: (m.sirs_reportable ? 'SIRS · ' : '') + self.fmtWhen(m.occurred_at),
+        dot: st.dot, statusLabel: st.label, statusFg: st.fg, statusBg: st.bg,
+      };
+    });
+
+    const lastInc = s.lastIncident;
+
+    return {
+      // connection
+      connLabel: s.connected ? 'Connected — incidents are saved securely' : 'Preview mode — sign in to submit a real report',
+      // view switches
+      showForm: !s.submitted,
+      submitted: !!s.submitted,
+      // SIRS preview
+      sirsReportable: reportable,
+      sirsHeading: reportable ? 'SIRS reportable incident' : 'Not SIRS reportable',
+      sirsDetail: reportable
+        ? ('Category: ' + (cls.sirs_category_label || ''))
+        : 'Logged internally — your provider still reviews every incident.',
+      sirsTimeframe: cls.deadline_label || '',
+      sirsDeadline: cls.reporting_deadline ? self.fmtWhen(cls.reporting_deadline) : '',
+      sirsBg: sirsBg, sirsBorder: sirsBorder, sirsFg: sirsFg,
+      sirsIconEl: self.svg(reportable
+        ? [React.createElement('path', { key: 1, d: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' }), React.createElement('line', { key: 2, x1: 12, y1: 9, x2: 12, y2: 13 }), React.createElement('line', { key: 3, x1: 12, y1: 17, x2: 12.01, y2: 17 })]
+        : [React.createElement('path', { key: 1, d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14' }), React.createElement('polyline', { key: 2, points: '22 4 12 14.01 9 11.01' })], sirsFg, 18),
+      // form fields
+      type: s.type,
+      severity: s.severity,
+      title: s.title,
+      description: s.description,
+      location: s.location,
+      occurredAt: s.occurredAt,
+      immediateActions: s.immediateActions,
+      participantId: s.participantId,
+      typeOptions: typeOptions,
+      severityChips: severityChips,
+      participants: s.participants,
+      hasParticipants: (s.participants || []).length > 0,
+      hasFiles: fileList.length > 0,
+      fileList: fileList,
+      // handlers
+      onType: (e) => self.setState({ type: e && e.target ? e.target.value : e }),
+      onParticipant: (e) => self.setState({ participantId: e && e.target ? e.target.value : e }),
+      onTitle: (e) => self.setState({ title: e && e.target ? e.target.value : e }),
+      onDescription: (e) => self.setState({ description: e && e.target ? e.target.value : e }),
+      onLocation: (e) => self.setState({ location: e && e.target ? e.target.value : e }),
+      onOccurred: (e) => self.setState({ occurredAt: e && e.target ? e.target.value : e }),
+      onActions: (e) => self.setState({ immediateActions: e && e.target ? e.target.value : e }),
+      onFiles: (e) => { const fl = e && e.target && e.target.files ? Array.prototype.slice.call(e.target.files) : []; self.setState({ files: fl }); },
+      submit: () => self.submit(),
+      reset: () => self.reset(),
+      submitLabel: s.submitting ? 'Submitting…' : 'Submit incident report',
+      submitBg: s.submitting ? '#9aa8a3' : '#c1483a',
+      // success
+      lastRef: s.lastRef,
+      lastSirs: !!(lastInc && lastInc.sirs_reportable),
+      lastSirsLabel: lastInc && lastInc.sirs_category && SIRS && SIRS.SIRS_CATEGORIES[lastInc.sirs_category] ? SIRS.SIRS_CATEGORIES[lastInc.sirs_category].label : '',
+      lastSirsTimeframe: lastInc && lastInc.reporting_timeframe === '5_business_days' ? '5 business days' : '24 hours',
+      lastDeadline: lastInc && lastInc.reporting_deadline ? self.fmtWhen(lastInc.reporting_deadline) : '',
+      // recent
+      hasMine: myList.length > 0 && !s.submitted,
+      myList: myList,
+      // icons
+      shieldEl: self.svg([React.createElement('path', { key: 1, d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' })], '#fff', 20),
+      paperEl: self.svg([React.createElement('path', { key: 1, d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }), React.createElement('polyline', { key: 2, points: '14 2 14 8 20 8' })], '#41635c', 15),
+      bigCheckEl: self.svg([React.createElement('path', { key: 1, d: 'M20 6L9 17l-5-5' })], '#2faa6e', 30),
+      toast: s.toast,
+    };
+  }
+}
+</script>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,187 @@
+{
+  "providers_starter": {
+    "product": "prod_UmmY5nIVaMV14d",
+    "name": "CiaraLink — Providers · Starter",
+    "category": "providers",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCz1ElpzmLM2qqPB8SD2v4",
+      "year": "price_1TnCz2ElpzmLM2qqcf0VUsTa"
+    }
+  },
+  "providers_team": {
+    "product": "prod_UmmY0keB5aqZEw",
+    "name": "CiaraLink — Providers · Team",
+    "category": "providers",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCz3ElpzmLM2qq776zjCFe",
+      "year": "price_1TnCz4ElpzmLM2qqJv1gGWkm"
+    }
+  },
+  "providers_provider": {
+    "product": "prod_UmmYTvdyOwN4ew",
+    "name": "CiaraLink — Providers · Provider",
+    "category": "providers",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCz5ElpzmLM2qqOM5TLHEy",
+      "year": "price_1TnCz6ElpzmLM2qq8ZklgNNe"
+    }
+  },
+  "providers_extra_user_starter": {
+    "product": "prod_UmmYDVFwRd5wnO",
+    "name": "CiaraLink — Providers · Extra User (Starter)",
+    "category": "providers_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCz8ElpzmLM2qqfcHGt4pG"
+    }
+  },
+  "providers_extra_user_team": {
+    "product": "prod_UmmY2cCWvnbYj1",
+    "name": "CiaraLink — Providers · Extra User (Team)",
+    "category": "providers_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCzAElpzmLM2qqNAF3i7xl"
+    }
+  },
+  "providers_extra_user_provider": {
+    "product": "prod_UmmYn228yrl7yJ",
+    "name": "CiaraLink — Providers · Extra User (Provider)",
+    "category": "providers_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCzCElpzmLM2qqxpXhtstH"
+    }
+  },
+  "support_workers_pro": {
+    "product": "prod_UmmYSpbIKjHR19",
+    "name": "CiaraLink — Support Workers · Pro",
+    "category": "support_workers",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzDElpzmLM2qq9clB3DAL",
+      "year": "price_1TnCzEElpzmLM2qqrZQXvOgK"
+    }
+  },
+  "support_workers_premium": {
+    "product": "prod_UmmYhXe4T7ykB2",
+    "name": "CiaraLink — Support Workers · Premium",
+    "category": "support_workers",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzGElpzmLM2qqTTpZwy7u",
+      "year": "price_1TnCzHElpzmLM2qqL6bQ05Iu"
+    }
+  },
+  "coordination_starter": {
+    "product": "prod_UmmYuZ7E2ZgHi6",
+    "name": "CiaraLink — Support Coordination · Starter",
+    "category": "coordination",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzJElpzmLM2qqZwZb3vlZ",
+      "year": "price_1TnCzKElpzmLM2qq1mWfXuKu"
+    }
+  },
+  "coordination_standard": {
+    "product": "prod_UmmYgoSrT4QhUk",
+    "name": "CiaraLink — Support Coordination · Standard",
+    "category": "coordination",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzLElpzmLM2qqYhKH1g1c",
+      "year": "price_1TnCzMElpzmLM2qqxsIrik8U"
+    }
+  },
+  "coordination_pro": {
+    "product": "prod_UmmYlMX4YwHPW8",
+    "name": "CiaraLink — Support Coordination · Pro",
+    "category": "coordination",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzOElpzmLM2qqhhYxRpba",
+      "year": "price_1TnCzOElpzmLM2qqd1ctpXD1"
+    }
+  },
+  "coordination_extra_user_starter_standard": {
+    "product": "prod_UmmY5hXcSrYQE7",
+    "name": "CiaraLink — Support Coordination · Extra User (Starter/Standard)",
+    "category": "coordination_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCzQElpzmLM2qqs9NRAtwe"
+    }
+  },
+  "coordination_extra_user_pro": {
+    "product": "prod_UmmYZAcIdmfTaf",
+    "name": "CiaraLink — Support Coordination · Extra User (Pro)",
+    "category": "coordination_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCzSElpzmLM2qqWxg2KQc3"
+    }
+  },
+  "allied_health_starter": {
+    "product": "prod_UmmYwHw6xnVrOc",
+    "name": "CiaraLink — Allied Health · Starter",
+    "category": "allied_health",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzUElpzmLM2qqkZQVnv1G",
+      "year": "price_1TnCzVElpzmLM2qq3iTFNmtp"
+    }
+  },
+  "allied_health_practice": {
+    "product": "prod_UmmYIixPzJzX15",
+    "name": "CiaraLink — Allied Health · Practice",
+    "category": "allied_health",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzWElpzmLM2qqCHG4Eomc",
+      "year": "price_1TnCzXElpzmLM2qqpvA0xunT"
+    }
+  },
+  "allied_health_clinic": {
+    "product": "prod_UmmYIehZrEXMm2",
+    "name": "CiaraLink — Allied Health · Clinic",
+    "category": "allied_health",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzYElpzmLM2qqjJpbajGP",
+      "year": "price_1TnCzZElpzmLM2qq4KJCkVUu"
+    }
+  },
+  "allied_health_discipline": {
+    "product": "prod_UmmYBOanD0Wan9",
+    "name": "CiaraLink — Allied Health · Discipline",
+    "category": "allied_health_addon",
+    "per_unit": true,
+    "prices": {
+      "month": "price_1TnCzaElpzmLM2qqmFIQfpWp",
+      "year": "price_1TnCzbElpzmLM2qquTgi62AU"
+    }
+  },
+  "priority_referrals_lite": {
+    "product": "prod_UmmYqv4H4SPkdb",
+    "name": "CiaraLink — Priority Referrals · Lite",
+    "category": "addon_referrals",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzdElpzmLM2qqVICJrwzj",
+      "year": "price_1TnCzeElpzmLM2qqFoRNBOxV"
+    }
+  },
+  "priority_referrals_pro": {
+    "product": "prod_UmmYnDJMEcLJ8A",
+    "name": "CiaraLink — Priority Referrals · Pro",
+    "category": "addon_referrals",
+    "per_unit": false,
+    "prices": {
+      "month": "price_1TnCzfElpzmLM2qqWOoIvhec",
+      "year": "price_1TnCzgElpzmLM2qqJoPrYXjG"
+    }
+  }
+}

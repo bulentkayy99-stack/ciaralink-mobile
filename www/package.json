@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ops:ready": "node ops/ciaralink-one-shot.mjs",
+    "ops:verify": "node ops/ciaralink-one-shot.mjs --verify-only",
+    "ops:check": "node --check ops/ciaralink-one-shot.mjs"
+  }
+}

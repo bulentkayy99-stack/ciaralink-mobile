@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="hugo-owl.js"></script>
+  <script src="data.js"></script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+    @keyframes cn-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes cn-ping{0%{transform:scale(.7);opacity:.85}70%{transform:scale(2);opacity:0}100%{opacity:0}}
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:230px;flex:0 0 230px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10px;letter-spacing:.13em;color:#5f7a73;font-weight:600;margin-top:3px">CONNECT</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:14px 10px 7px">FIND CAPACITY</div>
+      <sc-for list="{{ nav }}" as="it" hint-placeholder-count="3">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span style="flex:1">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;background:{{ it.badgeBg }};color:{{ it.badgeFg }}">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+      <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:14px 10px 7px">MESSAGES</div>
+      <sc-for list="{{ navMsgItems }}" as="it" hint-placeholder-count="2">
+        <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 11px;margin-bottom:3px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+          <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+          <span style="flex:1">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}" hint-placeholder-val=""><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;background:{{ it.badgeBg }};color:{{ it.badgeFg }}">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="margin:12px;padding:13px 14px;background:rgba(22,184,166,.1);border:1px solid rgba(22,184,166,.2);border-radius:13px">
+      <div style="font-size:11.5px;font-weight:800;color:#7ce0d2">0% referral fees</div>
+      <div style="font-size:11px;color:#86a39b;line-height:1.45;margin-top:3px">A referral network with zero referral fees — because the NDIS says there shouldn't be any.</div>
+    </div>
+    <button onClick="{{ goBack }}" style="margin:0 12px 6px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:none;border-radius:10px;background:rgba(22,184,166,.1);color:#16b8a6;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:rgba(22,184,166,.18)">← Provider dashboard</button>
+    <button onClick="{{ signOut }}" style="margin:0 12px 14px;width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05);color:#9fb4ae">{{ logoutSmEl }}Sign out</button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eaeeec">
+    <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:22px 28px 48px">
+
+      <!-- ============ CAPACITY BOARD ============ -->
+      <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1240px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:12px 14px;margin-bottom:18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:#f7faf9;border:1px solid #eef2f0;border-radius:10px;padding:9px 12px"><span style="display:flex">{{ searchEl }}</span><span style="font-size:13px;color:#9aa8a3">Search discipline, suburb, language…</span></div>
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.onClick }}" style="display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}{{ f.caretEl }}</button>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+          <span style="display:flex">{{ liveDotEl }}</span>
+          <span style="font-size:13px;font-weight:700;color:#14302b">{{ openCount }} live openings</span>
+          <span style="font-size:12.5px;color:#9aa8a3">· confirmed this week · stale posts auto-grey</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ openings }}" as="o" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid {{ o.cardBd }};border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 14px 30px -26px rgba(20,48,43,.4);overflow:hidden;opacity:{{ o.cardOpacity }}">
+              <div style="display:flex;align-items:flex-start;gap:13px;padding:16px 18px 12px">
+                <div style="position:relative;width:46px;height:46px;flex:0 0 46px"><div style="width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ o.tint }}">{{ o.init }}</div><div style="position:absolute;bottom:-3px;right:-3px;width:18px;height:18px;border-radius:7px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center">{{ o.discIconEl }}</div></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px;font-weight:800;color:#14302b">{{ o.name }}</span><sc-if value="{{ o.fast }}" hint-placeholder-val=""><span style="display:flex;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:2px 7px;border-radius:6px">{{ o.boltEl }}Fast responder</span></sc-if></div>
+                  <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">{{ o.discipline }} · {{ o.org }}</div>
+                </div>
+                <span style="font-size:10.5px;font-weight:800;color:{{ o.statusFg }};background:{{ o.statusBg }};padding:4px 9px;border-radius:7px;white-space:nowrap">{{ o.status }}</span>
+              </div>
+              <div style="padding:0 18px 12px"><div style="font-size:13px;font-weight:700;color:#0b6b60;background:#f1faf8;border:1px solid #e0efe9;border-radius:11px;padding:9px 12px">{{ o.slots }}</div></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 18px 14px">
+                <sc-for list="{{ o.tags }}" as="t" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#41635c;background:#eef4f2;padding:4px 9px;border-radius:8px">{{ t.iconEl }}{{ t.label }}</span></sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid #f1f4f2;background:#fbfdfc">
+                <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:{{ o.expFg }}">{{ o.clockEl }}{{ o.expiry }}</div>
+                <div style="flex:1"></div>
+                <button onClick="{{ goParticipantProfile }}" style="padding:8px 13px;border-radius:10px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View</button>
+                <button onClick="{{ o.onRefer }}" style="display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ o.sendEl }}Refer</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ WARM HANDOFF (referral tracker) ============ -->
+      <sc-if value="{{ isHandoff }}" hint-placeholder-val="">
+      <div style="max-width:1240px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:15px 18px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Your referrals</div>
+            <sc-for list="{{ referrals }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ r.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 18px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ r.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ r.rowBg }}">
+                <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ r.who }}</div><div style="font-size:11.5px;color:#8a9a94">{{ r.discipline }}</div></div>
+                <span style="font-size:10px;font-weight:800;color:{{ r.stFg }};background:{{ r.stBg }};padding:3px 8px;border-radius:6px">{{ r.stLabel }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.4);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:13px;padding:18px 22px;border-bottom:1px solid #eef2f0">
+              <div style="width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ d.tint }}">{{ d.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:17px;font-weight:800;color:#14302b">{{ d.who }}</div><div style="font-size:12.5px;color:#6c7f79">{{ d.discipline }} · referred {{ d.when }}</div></div>
+              <span style="font-size:11.5px;font-weight:800;color:{{ d.stFg }};background:{{ d.stBg }};padding:5px 11px;border-radius:8px">{{ d.stLabel }}</span>
+            </div>
+
+            <div style="padding:20px 22px">
+              <!-- status timeline -->
+              <div style="display:flex;align-items:center;margin-bottom:20px">
+                <sc-for list="{{ d.steps }}" as="s" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;flex:1;min-width:0">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto">
+                      <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ s.dotBg }};border:2px solid {{ s.dotBd }}">{{ s.iconEl }}</div>
+                      <span style="font-size:10.5px;font-weight:700;color:{{ s.fg }};white-space:nowrap">{{ s.label }}</span>
+                      <span style="font-size:9.5px;color:#9aa8a3;white-space:nowrap">{{ s.time }}</span>
+                    </div>
+                    <sc-if value="{{ s.hasLine }}" hint-placeholder-val="{{ true }}"><div style="flex:1;height:2px;margin:0 6px;margin-bottom:30px;background:{{ s.lineBg }}"></div></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+
+              <!-- anti-shotgun -->
+              <div style="display:flex;align-items:center;gap:11px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:12px 14px;margin-bottom:14px">
+                <span style="display:flex">{{ d.shotgunIconEl }}</span>
+                <div style="flex:1;font-size:12.5px;color:#8a5a1e">{{ d.shotgunText }}</div>
+              </div>
+
+              <!-- consent-gated reveal -->
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">WHAT THE PROVIDER CAN SEE</div>
+              <sc-for list="{{ d.reveal }}" as="rv" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border:1px solid {{ rv.bd }};border-radius:11px;margin-bottom:8px;background:{{ rv.bg }}">
+                  <span style="display:flex">{{ rv.iconEl }}</span>
+                  <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ rv.label }}</div><div style="font-size:11px;color:#8a9a94">{{ rv.detail }}</div></div>
+                  <span style="font-size:10px;font-weight:700;color:{{ rv.tagFg }};background:{{ rv.tagBg }};padding:3px 8px;border-radius:6px">{{ rv.tag }}</span>
+                </div>
+              </sc-for>
+
+              <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:#9aa8a3">{{ d.auditEl }}Full audit trail — every view logged with who, what & when</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ============ POST CAPACITY ============ -->
+      <sc-if value="{{ isPost }}" hint-placeholder-val="">
+      <div style="max-width:840px;margin:0 auto">
+
+        <sc-if value="{{ isPostStep2 }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #cce9d8;border-radius:20px;padding:28px 28px 24px;text-align:center;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.3)">
+            <div style="width:60px;height:60px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ checkGrnEl }}</div>
+            <div style="font-size:20px;font-weight:800;color:#14302b;margin-top:13px">Capacity posted — live for 14 days</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:6px">Coordinators searching for OT, Paediatric in Geelong will see your post. I'll remind you to refresh it before it expires.</div>
+            <button onClick="{{ resetPost }}" style="margin-top:18px;padding:11px 24px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Post another opening</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPostStep0 }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.3);overflow:hidden">
+            <div style="padding:18px 22px;border-bottom:1px solid #eef2f0">
+              <div style="font-size:16px;font-weight:800;color:#14302b">Step 1 — What are you offering?</div>
+              <div style="font-size:12.5px;color:#6c7f79;margin-top:2px">Select discipline, delivery mode and who you can see</div>
+            </div>
+            <div style="padding:20px 22px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">DISCIPLINE</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+                <sc-for list="{{ postDiscs }}" as="d" hint-placeholder-count="8"><button onClick="{{ d.onClick }}" style="padding:8px 14px;border-radius:99px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.fg }}">{{ d.label }}</button></sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">SUB-SPECIALTY (optional)</div>
+              <input value="{{ postSubSpecialty }}" onChange="{{ setPostSubSpecialty }}" placeholder="e.g. Paediatric, Hand therapy" style="width:100%;height:44px;border:1px solid #e2e9e6;border-radius:12px;padding:0 13px;font-family:inherit;font-size:13.5px;font-weight:600;color:#14302b;margin-bottom:16px;background:#f7faf9;outline:none" />
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">DELIVERY MODE</div>
+              <div style="display:flex;gap:8px;margin-bottom:16px">
+                <sc-for list="{{ postModes }}" as="m" hint-placeholder-count="3"><button onClick="{{ m.onClick }}" style="flex:1;padding:9px 10px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ m.bd }};background:{{ m.bg }};color:{{ m.fg }}">{{ m.label }}</button></sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">LOCATION / REGION</div>
+              <input value="{{ postLocation }}" onChange="{{ setPostLocation }}" placeholder="e.g. Geelong VIC, or Telehealth state-wide" style="width:100%;height:44px;border:1px solid #e2e9e6;border-radius:12px;padding:0 13px;font-family:inherit;font-size:13.5px;font-weight:600;color:#14302b;margin-bottom:16px;background:#f7faf9;outline:none" />
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">OPEN SLOTS</div>
+              <div style="display:flex;gap:9px;margin-bottom:20px">
+                <input value="{{ postSlots }}" onChange="{{ setPostSlots }}" placeholder="Open slots (e.g. 3)" style="height:44px;flex:1;width:100%;border:1px solid #e2e9e6;border-radius:12px;padding:0 13px;font-family:inherit;font-size:13.5px;font-weight:700;color:#0b6b60;background:#f4faf8;outline:none" />
+                <input value="{{ postWaitlist }}" onChange="{{ setPostWaitlist }}" placeholder="Waitlist note (e.g. ~2 weeks)" style="height:44px;flex:1;width:100%;border:1px solid #e2e9e6;border-radius:12px;padding:0 13px;font-family:inherit;font-size:13px;color:#14302b;background:#f7faf9;outline:none" />
+              </div>
+              <button onClick="{{ nextPostStep }}" style="width:100%;height:52px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Next — Funding, ages &amp; languages →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPostStep1 }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -26px rgba(20,48,43,.3);overflow:hidden">
+            <div style="padding:18px 22px;border-bottom:1px solid #eef2f0;display:flex;align-items:center;gap:14px"><button onClick="{{ prevPostStep }}" style="width:36px;height:36px;border-radius:10px;border:1px solid #e7ece9;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#5f726d">←</button><div><div style="font-size:16px;font-weight:800;color:#14302b">Step 2 — Who can you see?</div><div style="font-size:12.5px;color:#6c7f79">Funding types, age group and languages spoken</div></div></div>
+            <div style="padding:20px 22px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">FUNDING TYPES ACCEPTED</div>
+              <div style="display:flex;gap:8px;margin-bottom:16px">
+                <sc-for list="{{ postFunding }}" as="f" hint-placeholder-count="3"><button onClick="{{ f.onClick }}" style="flex:1;padding:9px 10px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button></sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">AGE GROUP</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+                <sc-for list="{{ postAges }}" as="ag" hint-placeholder-count="4"><button onClick="{{ ag.onClick }}" style="padding:8px 14px;border-radius:99px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ ag.bd }};background:{{ ag.bg }};color:{{ ag.fg }}">{{ ag.label }}</button></sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#8a9a94;margin-bottom:9px">LANGUAGES SPOKEN</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px">
+                <sc-for list="{{ postLangs }}" as="l" hint-placeholder-count="5"><button onClick="{{ l.onClick }}" style="padding:7px 13px;border-radius:99px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid {{ l.bd }};background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;background:#f7faf9;border:1px solid #e7ece9;border-radius:13px;padding:12px 14px;margin-bottom:16px">{{ infoBlEl }}<div style="flex:1;font-size:12.5px;color:#5f726d">This post stays live for <b style="color:#14302b">14 days</b>, then needs a refresh. You can edit or close it anytime.</div></div>
+              <button onClick="{{ submitPost }}" style="width:100%;height:52px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Post capacity →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ myPosts.length }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-top:18px">
+            <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">Your active posts</div>
+            <sc-for list="{{ myPosts }}" as="p" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid #f4f7f5">
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:12px;color:#8a9a94">{{ p.slots }}<span style="display:inline-flex;align-items:center;gap:5px;margin-left:10px;font-size:11.5px;font-weight:600;color:{{ p.expFg }}">{{ p.exp }}</span></div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:3px 9px;border-radius:7px">{{ p.status }}</span>
+                <button onClick="{{ p.onRefresh }}" style="display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:9px;border:1px solid #e0efe9;background:#f4faf8;color:#0b6b60;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">{{ refreshEl }}Refresh</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ============ MY RESPONSIVENESS ============ -->
+      <sc-if value="{{ isScore }}" hint-placeholder-val="">
+      <div style="max-width:900px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:20px 24px;margin-bottom:18px;color:#eafaf8">
+          <div style="width:50px;height:50px;border-radius:15px;background:rgba(124,224,210,.18);display:flex;align-items:center;justify-content:center;flex:0 0 50px">{{ activityEl }}</div>
+          <div style="flex:1"><div style="font-size:16px;font-weight:800">Your responsiveness score</div><div style="font-size:12.5px;color:#a9cfc8;margin-top:3px">Based only on how you respond — never on money or subscription.</div></div>
+          <div style="text-align:center;background:rgba(22,184,166,.22);border:1px solid rgba(22,184,166,.4);border-radius:14px;padding:11px 18px"><div style="font-size:30px;font-weight:800;color:#7ce0d2;line-height:1">A</div><div style="font-size:10px;color:#a9cfc8;letter-spacing:.06em">FAST RESPONDER</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+          <sc-for list="{{ scoreItems }}" as="s" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="font-size:12px;color:#8a9a94;margin-bottom:6px">{{ s.label }}</div>
+              <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ s.value }}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11.5px;color:#6c7f79">{{ checkGrnEl }}{{ s.goal }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-bottom:16px">
+          <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">How to keep your score strong</div>
+          <sc-for list="{{ tipItems }}" as="tip" hint-placeholder-count="3">
+            <div style="display:flex;align-items:flex-start;gap:11px;padding:13px 18px;border-bottom:1px solid #f4f7f5">
+              <div style="width:8px;height:8px;border-radius:99px;flex:0 0 8px;margin-top:5px;background:#16b8a6"></div>
+              <span style="font-size:13px;color:#41635c;line-height:1.5">{{ tip }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#fff7ed;border:1px solid #f4e6cf;border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:11px">{{ infoBlEl }}<div style="font-size:12.5px;color:#8a5a1e;flex:1">Ranking on the Capacity Board is based <b style="color:#14302b">only on behaviour</b> (response time, reliability, freshness). Subscriptions and payments have <b style="color:#14302b">no effect on rank</b> — ever.</div></div>
+      </div>
+      </sc-if>
+
+      <!-- ============ MESSAGES ============ -->
+      <sc-if value="{{ isMessages }}" hint-placeholder-val="">
+      <div style="display:flex;gap:0;height:calc(100vh - 68px);margin:-22px -28px -48px -28px;overflow:hidden">
+
+        <!-- Thread list -->
+        <div style="width:200px;flex:0 0 200px;border-right:1px solid #e7ece9;background:#fff;display:flex;flex-direction:column;overflow:hidden">
+          <div style="padding:12px 14px;border-bottom:1px solid #f4f7f5">
+            <div style="display:flex;align-items:center;gap:8px;background:#f4f7f5;border-radius:10px;padding:8px 11px">
+              {{ speechIconEl }}
+              <input placeholder="Search messages…" style="flex:1;border:none;background:none;font-family:inherit;font-size:13px;color:#14302b;outline:none" />
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto">
+            <sc-for list="{{ threads }}" as="th" hint-placeholder-count="5">
+              <button onClick="{{ th.select }}" style="width:100%;display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:none;border-bottom:1px solid #f4f7f5;background:{{ th.bg }};cursor:pointer;text-align:left">
+                <div style="position:relative;flex:0 0 38px">
+                  <div style="width:38px;height:38px;border-radius:11px;background:{{ th.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff">{{ th.init }}</div>
+                  <sc-if value="{{ th.unreadDot }}" hint-placeholder-val=""><div style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#e0556e;border:2px solid #fff"></div></sc-if>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+                    <span style="font-size:12.5px;font-weight:700;color:{{ th.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">{{ th.name }}</span>
+                    <span style="font-size:9.5px;color:#9aa8a3;white-space:nowrap">{{ th.lastTime }}</span>
+                  </div>
+                  <div style="font-size:10.5px;color:#9aa8a3;margin-top:1px">{{ th.role }} · {{ th.type }}</div>
+                  <div style="font-size:11.5px;color:#6c7f79;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ th.lastMsg }}</div>
+                  <div style="margin-top:3px"><span style="font-size:9.5px;font-weight:700;color:{{ th.convStatusColor }}">● {{ th.convStatus }}</span></div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Chat thread -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#f7faf9">
+          <!-- Thread header -->
+          <div style="display:flex;align-items:center;gap:11px;padding:11px 16px;background:#fff;border-bottom:1px solid #e7ece9;flex-wrap:wrap">
+            <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ curThread.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">{{ curThread.init }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <span style="font-size:14px;font-weight:800;color:#14302b">{{ curThread.name }}</span>
+                <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;color:{{ curThread.typeFg }};background:{{ curThread.typeBg }}">{{ curThread.type }}</span>
+              </div>
+              <div style="font-size:11px;color:#6c7f79;margin-top:2px">{{ curThread.role }} · {{ curThread.org }} · re: <b style="color:#14302b">{{ curThread.participant }}</b></div>
+              <div style="font-size:11px;color:#9aa8a3;margin-top:1px">{{ curThread.status }} · {{ curThread.lastActive }}</div>
+            </div>
+            <button onClick="{{ goParticipantProfile }}" style="padding:6px 11px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;color:#41635c;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Profile →</button>
+          </div>
+
+          <!-- Messages -->
+          <div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ curMsgs }}" as="msg" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-end;gap:8px;flex-direction:{{ msg.rowDir }}">
+                <sc-if value="{{ msg.showAvatar }}" hint-placeholder-val="{{ true }}">
+                  <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ curThread.tint }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">{{ curThread.init }}</div>
+                </sc-if>
+                <div style="max-width:68%">
+                  <div style="padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.5;background:{{ msg.bubbleBg }};color:{{ msg.bubbleFg }};box-shadow:0 1px 2px rgba(20,48,43,.06)">{{ msg.text }}</div>
+                  <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-direction:{{ msg.rowDir }}">
+                    <span style="font-size:10px;color:#9aa8a3">{{ msg.time }}</span>
+                    <sc-if value="{{ msg.showStatus }}" hint-placeholder-val=""><span style="font-size:10px;color:#16b8a6;font-weight:700">✓✓ {{ msg.statusLabel }}</span></sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- Input toolbar -->
+          <div style="background:#fff;border-top:1px solid #e7ece9">
+            <sc-if value="{{ msgInput }}" hint-placeholder-val="">
+              <div style="padding:6px 14px 0;display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;color:#9aa8a3">Hugo draft</span>
+                <button onClick="{{ clearMsg }}" style="padding:2px 8px;border-radius:6px;border:1px solid #fca5b8;background:#fef0f3;color:#9b1c3a;font-family:inherit;font-size:10.5px;font-weight:700;cursor:pointer">Clear ✕</button>
+              </div>
+            </sc-if>
+            <div style="padding:10px 14px;display:flex;gap:8px;align-items:flex-end">
+              <textarea value="{{ msgInput }}" onChange="{{ setMsgInput }}" onKeyDown="{{ msgKeyDown }}" placeholder="Type a message… or pick a Hugo suggestion →" style="flex:1;border:1.5px solid #dde4e1;border-radius:11px;padding:9px 12px;font-family:inherit;font-size:13px;color:#14302b;background:#f9fbfa;resize:none;height:42px;outline:none;line-height:1.4"></textarea>
+              <button onClick="{{ sendMsgBtn }}" style="width:42px;height:42px;border-radius:11px;border:none;background:#16b8a6;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 42px" style-hover="background:#2bcbb9">{{ sendIconEl }}</button>
+            </div>
+            <div style="padding:0 14px 8px;font-size:10.5px;color:#b6c4be">Enter to send · Suggested replies → pick from Hugo panel</div>
+          </div>
+        </div>
+
+        <!-- Context + Hugo panel -->
+        <div style="width:230px;flex:0 0 230px;border-left:1px solid #e7ece9;background:#fff;display:flex;flex-direction:column;overflow:hidden">
+
+          <!-- Context header -->
+          <div style="padding:10px 13px;border-bottom:1px solid #f4f7f5;background:#f9fbfa">
+            <div style="font-size:11px;font-weight:800;color:#14302b;margin-bottom:8px">{{ curCtx.title }}</div>
+            <div style="font-size:11px;color:#6c7f79;margin-bottom:8px">{{ curCtx.detail }}</div>
+            <sc-for list="{{ curCtx.items }}" as="ci" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px solid #f4f7f5">
+                <span style="font-size:10.5px;color:#9aa8a3">{{ ci.label }}</span>
+                <span style="font-size:10.5px;font-weight:700;color:#14302b;text-align:right">{{ ci.value }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:9px">
+              <sc-for list="{{ curCtx.actions }}" as="ca" hint-placeholder-count="2">
+                <button onClick="{{ ca.go }}" style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;color:#0b6b60;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:left" style-hover="background:#f0faf8;border-color:#16b8a6">{{ ca.label }} →</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- Hugo reply suggestions -->
+          <div style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:11px">
+              <hugo-owl mood="happy" palette="mint" style="width:30px;height:30px;flex:0 0 30px"></hugo-owl>
+              <div><div style="font-size:12px;font-weight:800;color:#f4faf8">Hugo</div><div style="font-size:10px;color:#7ce0d2">Reply assistant</div></div>
+            </div>
+            <div style="font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-top:2px">SUGGESTED REPLIES</div>
+            <sc-for list="{{ curSuggestions }}" as="sr" hint-placeholder-count="4">
+              <button onClick="{{ sr.use }}" style="width:100%;padding:7px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;text-align:left;line-height:1.4" style-hover="background:#f0faf8;border-color:#16b8a6;color:#0b6b60">{{ sr.text }}</button>
+            </sc-for>
+            <div style="font-size:10.5px;font-weight:700;color:#9aa8a3;letter-spacing:.06em;margin-top:4px">HUGO ACTIONS</div>
+            <sc-for list="{{ hugoSuggestions }}" as="hs" hint-placeholder-count="3">
+              <button onClick="{{ hs.click }}" style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #eef2f0;background:#f9fbfa;color:#0b6b60;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:left" style-hover="background:#f0faf8;border-color:#16b8a6">{{ hs.label }}</button>
+            </sc-for>
+          </div>
+          <div style="padding:8px 12px;border-top:1px solid #f4f7f5;font-size:10px;color:#b6c4be;text-align:center">🦉 Hugo · Safe messaging · Voice in v2</div>
+        </div>
+
+      </div>
+      </sc-if>
+
+      <!-- Toast -->
+      <sc-if value="{{ toast }}" hint-placeholder-val="">
+        <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#14302b;color:#eafaf7;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 16px 32px -10px rgba(0,0,0,.4);white-space:nowrap">
+          <span>{{ toast }}</span>
+          <button onClick="{{ clearToast }}" style="background:none;border:none;color:#6aada0;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+        </div>
+      </sc-if>
+
+      <!-- ============ CAPACITY RADAR ============ -->
+      <sc-if value="{{ isRadar }}" hint-placeholder-val="">
+      <div style="max-width:1080px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ radarBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a">Set a standing need and stop re-ringing the same providers. I'll ping you the moment matching capacity opens — <b>hunt becomes get-notified</b>.</div>
+          <button onClick="{{ newRadar }}" style="padding:9px 15px;border-radius:10px;border:none;background:#2a4a8a;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">+ New radar</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ radars }}" as="r" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:11px;padding:15px 18px">
+                <div style="position:relative;width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center"><sc-if value="{{ r.active }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;border-radius:12px;background:#16b8a6;opacity:.25;animation:cn-ping 2.2s ease-out infinite"></div></sc-if><div style="position:relative;width:40px;height:40px;border-radius:12px;background:{{ r.tintBg }};display:flex;align-items:center;justify-content:center">{{ r.iconEl }}</div></div>
+                <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;color:#14302b">{{ r.title }}</div><div style="font-size:12px;color:#8a9a94">{{ r.detail }}</div></div>
+                <button onClick="{{ r.onToggle }}" style="font-size:10.5px;font-weight:700;color:{{ r.stFg }};background:{{ r.stBg }};padding:4px 10px;border-radius:7px;border:none;cursor:pointer;font-family:inherit">{{ r.status }}</button>
+              </div>
+              <sc-if value="{{ r.hasHit }}" hint-placeholder-val="">
+                <div style="display:flex;align-items:center;gap:11px;padding:12px 18px;border-top:1px solid #f1f4f2;background:#f1faf8">
+                  <span style="display:flex">{{ r.hitIconEl }}</span>
+                  <div style="flex:1;font-size:12.5px;color:#0b6b60"><b style="color:#14302b">{{ r.hit }}</b> just opened capacity</div>
+                  <button onClick="{{ goSendReferral }}" style="padding:7px 13px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">Refer</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { view:'board', sel:0, postOpen:false, postStep:0, postDiscipline:0, postModes:{0:true,2:true}, postFunding:{0:true,1:true}, postLangs:{0:true}, postAge:0, postSubSpecialty:'', postLocation:'', postSlots:'', postWaitlist:'', postSubmitting:false, activeThread:0, msgInput:'', hugoInput:'', messages:{}, threadUnread:{0:true,2:true}, convStatus:{}, toast:null, lastSent:{}, filterState:{discipline:null,location:null,funding:null,age:null}, realBoard:null, realMyPosts:null, realRadars:null, dataLoaded:false };
+
+  componentDidMount(){
+    try{
+      const AD=window.AegisData;
+      if(AD){ const m=AD.get('ciaralink_messages'); if(m) this.setState({messages:m}); }
+    }catch(e){}
+    this.waitForHelpers();
+  }
+
+  // Helpers (supabase-client.js) load async — poll until ready, then pull real data.
+  waitForHelpers(tries){
+    tries=tries||0;
+    if(typeof window.isSupabaseConfigured==='function' && typeof window.loadCapacityBoard==='function'){
+      if(window.isSupabaseConfigured()){ this.loadConnectData(); }
+      return;
+    }
+    if(tries>40) return; // ~10s; stay in preview/demo mode
+    setTimeout(()=>this.waitForHelpers(tries+1),250);
+  }
+
+  async loadConnectData(){
+    try{
+      const [board,mine,radars]=await Promise.all([
+        window.loadCapacityBoard(),
+        window.loadMyCapacityPosts(),
+        window.loadCapacityRadars()
+      ]);
+      this.setState({
+        realBoard:(board&&!board.error)?board.posts:[],
+        realMyPosts:(mine&&!mine.error)?mine.posts:[],
+        realRadars:(radars&&!radars.error)?radars.posts||radars.radars:[],
+        dataLoaded:true
+      });
+    }catch(e){ this.setState({dataLoaded:true}); }
+  }
+
+  // ---- real actions ----
+  async submitPost(){
+    // In preview/unconfigured mode just advance the wizard (design preview).
+    if(!(typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured())){
+      this.setState(s=>({postStep:2})); return;
+    }
+    if(this.state.postSubmitting) return;
+    this.setState({postSubmitting:true});
+    const discList=['Occupational Therapy','Physiotherapy','Speech Pathology','Psychology','Dietetics','Social Work','Exercise Physiology','Other'];
+    const modeList=['in-person','telehealth','both'];
+    const fundList=['agency','plan','self'];
+    const ageList=['0-12','13-17','18+','all'];
+    const langList=['English','Arabic','Mandarin','Greek','Turkish','Vietnamese','Italian'];
+    const pm=this.state.postModes||{},pf=this.state.postFunding||{},pl=this.state.postLangs||{};
+    const slotsNum=parseInt((this.state.postSlots||'').replace(/[^0-9]/g,''),10);
+    const payload={
+      discipline:discList[this.state.postDiscipline||0],
+      sub_specialty:this.state.postSubSpecialty||null,
+      delivery_modes:modeList.filter((_,i)=>pm[i]),
+      location:this.state.postLocation||null,
+      funding_types:fundList.filter((_,i)=>pf[i]),
+      age_group:ageList[this.state.postAge||0],
+      languages:langList.filter((_,i)=>pl[i]),
+      open_slots:isNaN(slotsNum)?0:slotsNum,
+      waitlist_info:this.state.postWaitlist||null,
+      status:'active'
+    };
+    const res=await window.createCapacityPost(payload);
+    this.setState({postSubmitting:false});
+    if(res&&res.post&&!res.error){
+      this.setState({postStep:2});
+      this.loadConnectData();
+    } else {
+      this.showToast("Couldn't post capacity: "+((res&&res.error)||'unknown error'));
+    }
+  }
+
+  async doRefreshPost(id){
+    if(!id || !(typeof window.refreshCapacityPost==='function')){ this.showToast('Refresh unavailable in preview mode'); return; }
+    const res=await window.refreshCapacityPost(id);
+    if(res&&res.post&&!res.error){ this.showToast('Post refreshed — live for another 14 days ✓'); this.loadConnectData(); }
+    else { this.showToast("Couldn't refresh: "+((res&&res.error)||'unknown error')); }
+  }
+
+  async doNewRadar(){
+    if(!(typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured() && typeof window.createCapacityRadar==='function')){
+      this.showToast('New radar available once signed in'); return;
+    }
+    let title=null;
+    try{ title=window.prompt('What capacity are you watching for?\n(e.g. "Paediatric Speech — Telehealth, Bendigo")'); }catch(e){}
+    if(!title || !title.trim()) return;
+    const res=await window.createCapacityRadar({title:title.trim()});
+    if(res&&res.radar&&!res.error){ this.showToast("Radar set — you'll be pinged when matching capacity opens ✓"); this.loadConnectData(); }
+    else { this.showToast("Couldn't create radar: "+((res&&res.error)||'unknown error')); }
+  }
+
+  cycleFilter(key,options){
+    const fs=this.state.filterState||{};
+    const cur=fs[key];
+    let next;
+    if(cur==null) next=options[0];
+    else { const i=options.indexOf(cur); next=(i<0||i>=options.length-1)?null:options[i+1]; }
+    this.setState({filterState:{...fs,[key]:next}});
+  }
+
+  sendMsg(){
+    const {msgInput,activeThread,messages}=this.state;
+    if(!msgInput.trim()) return;
+    const thread=messages[activeThread]||[];
+    const newMsg={from:'me',text:msgInput.trim(),time:new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),id:Date.now(),status:'delivered'};
+    const updated={...messages,[activeThread]:[...thread,newMsg]};
+    const AD=window.AegisData;
+    if(AD){
+      AD.set('ciaralink_messages',updated);
+      // Create notification for recipient
+      const threadNames={0:'Sarah Kelly',1:'Jordan Pham',2:'Brightside Care',3:'Margaret Reyes',4:'Mariam T.'};
+      const threadRoles={0:'Support Coordinator',1:'Physiotherapist',2:'Provider',3:'Participant',4:'Guardian'};
+      AD.push('notifications',{
+        id:Date.now(),
+        title:'Message sent to '+threadNames[activeThread],
+        body:msgInput.trim().slice(0,60)+(msgInput.trim().length>60?'…':''),
+        role:threadRoles[activeThread],
+        time:new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+        type:'message',
+        url:'CiaraLink Connect.dc.html',
+        read:false
+      });
+    }
+    // Update convo status to 'waiting'
+    const convStatus={...(this.state.convStatus||{}),[activeThread]:'Waiting for reply'};
+    this.setState({messages:updated,msgInput:'',convStatus,lastSent:{[activeThread]:Date.now()}});
+  }
+
+  createTask(text){
+    const AD=window.AegisData;
+    if(AD){
+      AD.push('tasks_custom',{
+        id:Date.now(),
+        title:text,
+        created:new Date().toLocaleDateString('en-AU'),
+        status:'pending',
+        source:'chat'
+      });
+    }
+    this.showToast('Task created in Task Centre ✓');
+  }
+
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  hugoDraft(prompt){
+    const drafts={
+      'Draft a message':"Hi, I wanted to follow up on our recent conversation. Could you please provide an update when you get a chance? Thank you.",
+      'Summarise thread':"This conversation covers the referral for Margaret R. Key points: report requested 20 Jun, OT confirmed availability, review scheduled for 21 Jul.",
+      'Request report':"Hi, could you please upload the latest OT assessment report for Margaret Reyes before her plan review on 21 July? Thank you.",
+      'Follow up':"Just following up on my previous message — please let me know if you need anything further. Happy to help.",
+      'Confirm appointment':"Confirming the appointment for 21 July at 10:00 AM. Please let me know if you need to reschedule.",
+    };
+    const draft=drafts[prompt]||"I'll help you draft that message. What would you like to say?";
+    this.setState({msgInput:draft});
+  }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      logo:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      radar:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 12m-4.5 0a4.5 4.5 0 1 0 9 0 4.5 4.5 0 1 0-9 0 M12 12l6-4',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      caret:'M6 9l6 6 6-6',
+      bolt:'M13 2L4 14h7l-1 8 9-12h-7z',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      video:'M3 6h12v12H3z M15 10l6-3v10l-6-3',
+      globe:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M3 12h18 M12 3a14 14 0 0 1 0 18 M12 3a14 14 0 0 0 0 18',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      check:'M20 6L9 17l-5-5',
+      eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0',
+      lock:'M5 11h14v10H5z M8 11V8a4 4 0 0 1 8 0v3',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      info:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 11v5 M12 8h.01',
+      brain:'M9 3a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V14a3 3 0 0 0 4 2.8 M15 3a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V14a3 3 0 0 1-4 2.8 M9 3a3 3 0 0 1 6 0 M9 16.8V19a3 3 0 0 0 6 0v-2.2',
+      hand:'M11 17l2 2 4-4 M3 12l4-4 5 4 2-2 4 4-3 3-5-3-4 3z',
+      activity:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      speech:'M8 9h8 M8 13h5 M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z',
+      eyeoff:'M3 3l18 18 M10.6 10.6a3 3 0 0 0 4.2 4.2 M9.4 5.2A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4 M6.2 6.2A17 17 0 0 0 2 12s3.5 7 10 7a9.5 9.5 0 0 0 3-.5',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.grid}));
+  }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const view=this.state.view;
+    const navDefs=[['board','Capacity Board','grid','12'],['post','Post Capacity','plus',null],['handoff','Warm Handoff','send',null],['radar','Capacity Radar','radar','2'],['score','My Responsiveness','activity',null]];
+    const navMsg=[['messages','Messages','speech','3'],['threads','Care Team Threads','users',null]];
+    const nav=[
+      ...navDefs.map(([key,label,icon,badge])=>{const a=view===key;return{label,badge,badgeBg:'#16b8a6',badgeFg:'#06201c',onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18),isHeader:false};}),
+    ];
+    const navMsgItems=navMsg.map(([key,label,icon,badge])=>{const a=view===key;return{label,badge,badgeBg:'#e0556e',badgeFg:'#fff',onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};});
+    const pages={board:{title:'Capacity Board',sub:'Live, self-expiring openings from allied health — no more ringing around'},post:{title:'Post Capacity',sub:'Tell coordinators you\'re taking new clients — auto-expires in 14 days, yours to refresh anytime'},handoff:{title:'Warm Handoff',sub:'Closed-loop referrals — every one acknowledged, never ghosted'},radar:{title:'Capacity Radar',sub:'Standing needs that ping you the moment capacity opens'},score:{title:'My Responsiveness',sub:'How coordinators see you — based only on how you respond, never on money'},messages:{title:'Messages',sub:'Secure messaging with your connected care team — consent-gated, participant-linked'},threads:{title:'Care Team Threads',sub:'Group conversations linked to participants, referrals, shifts and documents'}};
+
+    const tag=(icon,label)=>({iconEl:ic(icon,'#6c8c83',12),label});
+    const stOpen={status:'Open intake',statusFg:'#1e7a52',statusBg:'#e9f6ef'};
+    const stWait={status:'Waitlist ~2wk',statusFg:'#b4561f',statusBg:'#fbf0df'};
+    const stPaused={status:'Paused',statusFg:'#8a9a94',statusBg:'#f1f4f2'};
+
+    // Demo openings — shown only in Preview Mode (Supabase not configured).
+    const demoOpenings=[
+      {name:'Geelong Therapy Co',init:'GT',tint:'#16b8a6',discipline:'Occupational Therapy',org:'Paediatric',disc:'activity',fast:true,...stOpen,slots:'3 OT slots · paediatric · taking new clients',tags:[tag('video','Telehealth'),tag('pin','Geelong'),tag('wallet','Plan / agency'),tag('user','0–12 yrs')],expiry:'Confirmed 2 days ago · expires in 5d',expFresh:true,cardOpacity:'1',cardBd:'#e7ece9',_disc:'Occupational Therapy',_loc:'Geelong',_fund:['agency','plan'],_age:'0-12'},
+      {name:'Northside Speech',init:'NS',tint:'#6366f1',discipline:'Speech Pathology',org:'All ages',disc:'speech',fast:true,...stOpen,slots:'2 speech slots · telehealth state-wide',tags:[tag('video','Telehealth'),tag('globe','Arabic'),tag('wallet','Self / plan'),tag('user','All ages')],expiry:'Confirmed today · expires in 6d',expFresh:true,cardOpacity:'1',cardBd:'#e7ece9',_disc:'Speech Pathology',_loc:'Telehealth / state-wide',_fund:['self','plan'],_age:'all'},
+      {name:'Bayside Physio',init:'BP',tint:'#0891b2',discipline:'Physiotherapy',org:'Adults',disc:'activity',fast:false,...stWait,slots:'Waitlist open · ~2 week wait · mobility focus',tags:[tag('pin','Frankston'),tag('wallet','Agency'),tag('user','18+ yrs')],expiry:'Confirmed 4 days ago · expires in 3d',expFresh:false,cardOpacity:'1',cardBd:'#e7ece9',_disc:'Physiotherapy',_loc:'Frankston',_fund:['agency'],_age:'18+'},
+      {name:'Inner West Psychology',init:'IW',tint:'#9333ea',discipline:'Psychology',org:'Adults',disc:'brain',fast:false,...stPaused,slots:'Intake paused — refreshed weekly',tags:[tag('pin','Footscray'),tag('wallet','Plan'),tag('user','16+ yrs')],expiry:'Last confirmed 9 days ago · stale',expFresh:false,cardOpacity:'.62',cardBd:'#eef2f0',_disc:'Psychology',_loc:'Footscray',_fund:['plan'],_age:'18+'}
+    ];
+
+    // Map a real capacity_posts row to the board card shape.
+    const palette=['#16b8a6','#6366f1','#0891b2','#9333ea','#d98b22','#0b6b60','#e0556e'];
+    const discIcon={'Occupational Therapy':'activity','Physiotherapy':'activity','Speech Pathology':'speech','Psychology':'brain','Dietetics':'hand','Social Work':'user','Exercise Physiology':'activity'};
+    const ageLabel={'0-12':'0–12 yrs','13-17':'13–17 yrs','18+':'18+ yrs','all':'All ages'};
+    const fundLabel={agency:'Agency',plan:'Plan',self:'Self'};
+    const hashN=(s)=>{let h=0;s=String(s||'');for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return Math.abs(h);};
+    const mapPost=(p)=>{
+      const name=p.org_name||'NDIS Provider';
+      const init=(name.split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2)||'PR').toUpperCase();
+      const tint=palette[hashN(p.id)%palette.length];
+      const days=Math.max(0,Math.ceil((new Date(p.expires_at).getTime()-Date.now())/86400000));
+      const fresh=days>=3;
+      const paused=p.status==='paused';
+      const st=paused?stPaused:(p.status==='waitlist'?stWait:stOpen);
+      const modes=p.delivery_modes||[];
+      const tags=[];
+      if(modes.includes('telehealth')||modes.includes('both')) tags.push(tag('video','Telehealth'));
+      if((modes.includes('in-person')||modes.includes('both'))) tags.push(tag('pin',p.location||'In-person'));
+      else if(p.location) tags.push(tag('pin',p.location));
+      if((p.funding_types||[]).length) tags.push(tag('wallet',(p.funding_types||[]).map(f=>fundLabel[f]||f).join(' / ')));
+      if(p.age_group) tags.push(tag('user',ageLabel[p.age_group]||p.age_group));
+      (p.languages||[]).slice(0,1).forEach(l=>tags.push(tag('globe',l)));
+      const slotTxt=p.open_slots>0?(p.open_slots+' open slot'+(p.open_slots>1?'s':'')+(p.sub_specialty?(' · '+p.sub_specialty):'')+' · taking new clients'):(p.waitlist_info||'Waitlist open');
+      return {name,init,tint,discipline:p.discipline,org:p.sub_specialty||(ageLabel[p.age_group]||'All ages'),disc:discIcon[p.discipline]||'activity',fast:fresh,...st,slots:slotTxt,tags,expiry:(paused?'Paused · ':'Confirmed · ')+'expires in '+days+'d',expFresh:fresh,cardOpacity:paused?'.62':'1',cardBd:paused?'#eef2f0':'#e7ece9',_disc:p.discipline,_loc:p.location||'',_fund:p.funding_types||[],_age:p.age_group||'',_id:p.id};
+    };
+
+    const configured = typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured();
+    // Real data once loaded; demo only in Preview Mode. (Empty real board => empty, not fake.)
+    const baseOpenings = configured ? ((this.state.realBoard||[]).map(mapPost)) : demoOpenings;
+
+    // ---- real, working board filters ----
+    const fs=this.state.filterState||{};
+    const uniq=(arr)=>arr.filter((v,i)=>v&&arr.indexOf(v)===i);
+    const discOpts=uniq(baseOpenings.map(o=>o._disc));
+    const locOpts=uniq(baseOpenings.map(o=>o._loc));
+    const fundOpts=['agency','plan','self'];
+    const ageOpts=['0-12','13-17','18+','all'];
+    const filtered=baseOpenings.filter(o=>{
+      if(fs.discipline && o._disc!==fs.discipline) return false;
+      if(fs.location && o._loc!==fs.location) return false;
+      if(fs.funding && !((o._fund||[]).includes(fs.funding))) return false;
+      if(fs.age && fs.age!=='all' && o._age!=='all' && o._age!==fs.age) return false;
+      return true;
+    });
+    const openings=filtered.map(o=>({...o,discIconEl:ic(o.disc,o.tint,11),boltEl:ic('bolt','#0b6b60',11),clockEl:ic('clock',o.expFresh?'#1e9e6a':'#b4561f',13),expFg:o.expFresh?'#1e7a52':'#b4561f',sendEl:ic('send','#06201c',13),onRefer:()=>this.setState({view:'handoff',sel:0})}));
+    const openCount=String(openings.length);
+    const filterDefs=[
+      {key:'discipline',base:'Discipline',opts:discOpts,cur:fs.discipline},
+      {key:'location',base:'Location',opts:locOpts,cur:fs.location},
+      {key:'funding',base:'Funding',opts:fundOpts,cur:fs.funding,labelMap:fundLabel},
+      {key:'age',base:'Age group',opts:ageOpts,cur:fs.age,labelMap:ageLabel}
+    ];
+    const filters=filterDefs.map(f=>{
+      const active=f.cur!=null;
+      const shown=active?((f.labelMap&&f.labelMap[f.cur])||f.cur):f.base;
+      return {label:shown,onClick:()=>{ if(!f.opts||!f.opts.length){ this.showToast('No '+f.base.toLowerCase()+' options on the board yet'); return;} this.cycleFilter(f.key,f.opts); },bd:active?'#16b8a6':'#e2e9e6',bg:active?'#e7f4f1':'#fff',fg:active?'#0b6b60':'#5f726d',caretEl:ic('caret',active?'#16b8a6':'#9aa8a3',13)};
+    });
+
+    // warm handoff
+    const refDefs=[
+      {who:'Eleni Pappas',init:'EP',tint:'#16b8a6',discipline:'OT · Geelong Therapy Co',st:'accepted'},
+      {who:'Hassan Ali',init:'HA',tint:'#6366f1',discipline:'Speech · Northside Speech',st:'seen'},
+      {who:'Joan Wu',init:'JW',tint:'#0891b2',discipline:'Physio · Bayside Physio',st:'waitlist'},
+      {who:'Peter Novak',init:'PN',tint:'#9333ea',discipline:'Psychology · Inner West',st:'declined'}
+    ];
+    const stMap={accepted:{stLabel:'ACCEPTED',stFg:'#1e7a52',stBg:'#e9f6ef'},seen:{stLabel:'SEEN',stFg:'#b4561f',stBg:'#fbf0df'},waitlist:{stLabel:'WAITLIST',stFg:'#4338ca',stBg:'#eef0fd'},declined:{stLabel:'DECLINED',stFg:'#c0445c',stBg:'#fbe9ed'}};
+    const referrals=refDefs.map((r,i)=>{const s=stMap[r.st];const a=this.state.sel===i;return{who:r.who,init:r.init,tint:r.tint,discipline:r.discipline,stLabel:s.stLabel,stFg:s.stFg,stBg:s.stBg,onClick:()=>this.setState({sel:i}),rowBg:a?'#f4faf8':'#fff',selBar:a?'#16b8a6':'transparent'};});
+    const cur=refDefs[this.state.sel]||refDefs[0];
+    const cs=stMap[cur.st];
+    const stepState=(reached,active)=>({dotBg:reached?'#16b8a6':'#fff',dotBd:reached?'#16b8a6':'#cdd8d3',iconEl:reached?ic('check','#fff',15,2.6):(active?ic('clock','#d98b22',14):React.createElement('span')),fg:reached?'#0b6b60':'#9aa8a3',lineBg:reached?'#16b8a6':'#e7ece9'});
+    const reachedTo={seen:1,waitlist:2,accepted:3,declined:2};
+    const rIdx=reachedTo[cur.st];
+    const stepLabels=[['Sent','9:02'],['Seen','9:14'],[cur.st==='waitlist'?'Waitlisted':(cur.st==='declined'?'Declined':'Reviewed'),'10:30'],['Accepted', cur.st==='accepted'?'11:05':'—']];
+    const steps=stepLabels.map((l,i)=>{const reached=i<=rIdx && !(cur.st==='declined'&&i===3);const r=stepState(reached,i===rIdx+1);return{label:l[0],time:l[1],...r,hasLine:i<3};});
+    const shotgun={accepted:'You asked 3 providers — Geelong accepted first, so the other 2 were auto-closed. No wasted intake.',seen:'You\u2019re asking 3 providers. Each sees \u201cyou\u2019re 1 of 3\u201d — the moment one accepts, the rest auto-close.',waitlist:'Bayside added Joan to their waitlist. 2 other providers still reviewing.',declined:'Inner West declined (at capacity). Your other 2 referrals are still live.'}[cur.st];
+
+    const reveal=[
+      {label:'Referral reason',detail:'Why you\u2019re referring + service needed',tag:'Shared now',tagFg:'#1e7a52',tagBg:'#e9f6ef',bd:'#cce9d8',bg:'#f4faf8',iconEl:ic('eye','#1e9e6a',16)},
+      {label:'Basic details',detail:'First name, age, suburb, funding type',tag:'Shared now',tagFg:'#1e7a52',tagBg:'#e9f6ef',bd:'#cce9d8',bg:'#f4faf8',iconEl:ic('eye','#1e9e6a',16)},
+      {label:'Clinical info & plan',detail:'Assessments, goals, full NDIS plan',tag: cur.st==='accepted'?'Unlocked':'Locked',tagFg:cur.st==='accepted'?'#1e7a52':'#8a9a94',tagBg:cur.st==='accepted'?'#e9f6ef':'#f1f4f2',bd:'#eef2f0',bg:'#fff',iconEl:ic(cur.st==='accepted'?'eye':'lock',cur.st==='accepted'?'#1e9e6a':'#b6c4be',16)},
+      {label:'Contact details',detail:'Participant & nominee contacts',tag: cur.st==='accepted'?'Unlocked':'On accept',tagFg:cur.st==='accepted'?'#1e7a52':'#8a9a94',tagBg:cur.st==='accepted'?'#e9f6ef':'#f1f4f2',bd:'#eef2f0',bg:'#fff',iconEl:ic(cur.st==='accepted'?'eye':'lock',cur.st==='accepted'?'#1e9e6a':'#b6c4be',16)}
+    ];
+
+    const d={who:cur.who,init:cur.init,tint:cur.tint,discipline:cur.discipline,when:'today 9:02',stLabel:cs.stLabel,stFg:cs.stFg,stBg:cs.stBg,steps,shotgunText:shotgun,shotgunIconEl:ic('info','#d98b22',17),reveal,auditEl:ic('shield','#9aa8a3',14)};
+
+    // radar — real radars once configured; demo only in Preview Mode.
+    const demoRadars=[
+      {title:'Paediatric Speech',detail:'Telehealth · plan-managed · Bendigo',tintBg:'#eef0fd',icon:'speech',active:true,status:'Watching',stFg:'#0b6b60',stBg:'#e7f4f1',hasHit:true,hit:'Northside Speech'},
+      {title:'Adult OT — home mods',detail:'In-person · agency · Geelong',tintBg:'#e7f4f1',icon:'activity',active:true,status:'Watching',stFg:'#0b6b60',stBg:'#e7f4f1',hasHit:false,hit:''},
+      {title:'Psychology · Arabic',detail:'Telehealth · self/plan · any',tintBg:'#fbf0df',icon:'brain',active:false,status:'Paused',stFg:'#8a9a94',stBg:'#f1f4f2',hasHit:false,hit:''}
+    ];
+    const radarSrc = configured
+      ? (this.state.realRadars||[]).map(r=>{
+          const det=[r.delivery_mode,r.funding,r.location,r.age_group].filter(Boolean).join(' · ')||(r.detail||'Watching for matching capacity');
+          return {title:r.title,detail:det,tintBg:'#e7f4f1',icon:discIcon[r.discipline]||'radar',active:!!r.active,status:r.active?'Watching':'Paused',stFg:r.active?'#0b6b60':'#8a9a94',stBg:r.active?'#e7f4f1':'#f1f4f2',hasHit:false,hit:'',_id:r.id};
+        })
+      : demoRadars;
+    const radars=radarSrc.map(r=>({...r,iconEl:ic(r.icon,'#0b6b60',17),hitIconEl:ic('bolt','#16b8a6',16),onToggle:r._id?(()=>{ window.toggleCapacityRadar(r._id,!r.active).then(()=>this.loadConnectData()); }):(()=>this.showToast('Radar toggle available once signed in'))}));
+
+    // ---- post capacity form ----
+    const discList=['Occupational Therapy','Physiotherapy','Speech Pathology','Psychology','Dietetics','Social Work','Exercise Physiology','Other'];
+    const disc=this.state.postDiscipline||0;
+    const postDiscs=discList.map((l,i)=>{const a=disc===i;return{label:l,onClick:()=>this.setState({postDiscipline:i}),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+    const pm=this.state.postModes||{};
+    const modeList=['In-person','Telehealth','Both'];
+    const postModes=modeList.map((l,i)=>{const a=!!pm[i];return{label:l,onClick:()=>this.setState(s=>({postModes:{...(s.postModes||{}),[i]:!s.postModes?.[i]}})),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+    const pf=this.state.postFunding||{};
+    const fundList=['Agency-managed','Plan-managed','Self-managed'];
+    const postFunding=fundList.map((l,i)=>{const a=!!pf[i];return{label:l,onClick:()=>this.setState(s=>({postFunding:{...(s.postFunding||{}),[i]:!s.postFunding?.[i]}})),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+    const pl=this.state.postLangs||{};
+    const langList=['English','Arabic','Mandarin','Greek','Turkish','Vietnamese','Italian'];
+    const postLangs=langList.map((l,i)=>{const a=!!pl[i];return{label:l,onClick:()=>this.setState(s=>({postLangs:{...(s.postLangs||{}),[i]:!s.postLangs?.[i]}})),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+    // Age group is now a real single-select (was the "filterAge — coming soon" stub).
+    const ageDisplay=['0–12 (paediatric)','13–17','18+ (adults)','All ages'];
+    const postAgeIdx=this.state.postAge||0;
+    const postAges=ageDisplay.map((l,i)=>{const a=postAgeIdx===i;return{label:l,onClick:()=>this.setState({postAge:i}),bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};});
+    const postStep=this.state.postStep||0;
+    const postSubmitted=postStep===2;
+    // Your active posts — real once configured; demo only in Preview Mode.
+    const demoMyPosts=[
+      {name:'OT — Paediatric · Geelong + Telehealth',slots:'3 open',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',exp:'Expires in 11d',expFg:'#1e7a52',onRefresh:()=>this.showToast('Refresh available once signed in')},
+      {name:'OT — Home modifications · In-person',slots:'1 waitlist',status:'Waitlist',stFg:'#b4561f',stBg:'#fbf0df',exp:'Expires in 4d',expFg:'#b4561f',onRefresh:()=>this.showToast('Refresh available once signed in')}
+    ];
+    const myPosts = configured
+      ? (this.state.realMyPosts||[]).map(p=>{
+          const days=Math.max(0,Math.ceil((new Date(p.expires_at).getTime()-Date.now())/86400000));
+          const stMy=p.status==='waitlist'?{status:'Waitlist',stFg:'#b4561f',stBg:'#fbf0df'}:(p.status==='paused'?{status:'Paused',stFg:'#8a9a94',stBg:'#f1f4f2'}:{status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'});
+          const modeTxt=(p.delivery_modes||[]).map(m=>m==='in-person'?'In-person':(m==='telehealth'?'Telehealth':'Both')).join(' + ');
+          const nm=[p.discipline,p.sub_specialty,p.location,modeTxt].filter(Boolean).join(' · ');
+          const expFg=days>=3?'#1e7a52':'#b4561f';
+          return {name:nm||p.discipline,slots:(p.open_slots>0?(p.open_slots+' open'):(p.waitlist_info||'Waitlist')),...stMy,exp:'Expires in '+days+'d',expFg,onRefresh:()=>this.doRefreshPost(p.id)};
+        })
+      : demoMyPosts;
+
+    // ---- reliability score ----
+    const scoreItems=[
+      {label:'Average acknowledgement time',value:'4h 12m',goal:'SLA: 48h',good:true},
+      {label:'Referrals responded to',value:'94%',goal:'of 18 received',good:true},
+      {label:'Within-SLA responses',value:'89%',goal:'responded in time',good:true},
+      {label:'Capacity freshness',value:'Good',goal:'posts refreshed on time',good:true}
+    ];
+    const tipItems=['Respond to new referrals within 48h — even a quick "seen" helps.','Keep your capacity posts refreshed so coordinators know you\'re current.','When declining, add a brief reason — it helps coordinators find the right fit faster.'];
+
+    // ---- messaging ----
+    const threadDefs=[
+      {id:0,name:'Sarah Kelly',org:'Support Coordination Services',role:'Support Coordinator',init:'SK',tint:'#6366f1',type:'Direct',typeFg:'#4338ca',typeBg:'#eef0fd',participant:'Margaret R.',status:'Review evidence requested',lastActive:'Active 2m ago',lastMsg:'Can you confirm the OT report is uploaded?',lastTime:'2m ago',unread:true,
+        context:{kind:'plan-review',title:'Plan Review Prep',detail:'Margaret R. · Review in 11 days',items:[{label:'Review date',value:'21 Jul 2026'},{label:'Missing',value:'OT report, SC summary'},{label:'Evidence',value:'70% complete'}],actions:[{label:'Open review prep',url:'Plan Review Prep.dc.html'},{label:'Upload report',url:'AI File Drop.dc.html'}]},
+        suggestedReplies:["I'll upload the OT report today.","I can send it through by Friday.","Can you confirm which report you need?","I've attached the latest OT report."]
+      },
+      {id:1,name:'Jordan Pham',org:'Northern Allied Health',role:'Physiotherapist',init:'JP',tint:'#9333ea',type:'Referral',typeFg:'#7e22ce',typeBg:'#f3e8ff',participant:'Margaret R.',status:'Referral accepted',lastActive:'Active 1h ago',lastMsg:'I\'ve uploaded the physio summary for review.',lastTime:'1h ago',unread:false,
+        context:{kind:'referral',title:'Referral — Physiotherapy',detail:'Margaret R. · Accepted',items:[{label:'Referral type',value:'Physio assessment'},{label:'Status',value:'Accepted ✓'},{label:'Report',value:'Physio summary uploaded'}],actions:[{label:'View referral',url:'Support Coordination.dc.html'},{label:'View report',url:'Participant Profile.dc.html'}]},
+        suggestedReplies:["Thank you — I'll add this to the review evidence.","Can you also send the recommendations?","I've linked this to Margaret's profile.","I'll forward this to the support coordinator."]
+      },
+      {id:2,name:'Brightside Care',org:'NDIS Registered Provider',role:'Service Provider',init:'BC',tint:'#16b8a6',type:'Shift',typeFg:'#0b6b60',typeBg:'#e7f4f1',participant:'David L.',status:'Shift invitation pending',lastActive:'Active 3h ago',lastMsg:'Worker confirmed for tonight\'s shift.',lastTime:'3h ago',unread:true,
+        context:{kind:'shift',title:'Shift — Personal Care',detail:'David L. · Tonight 7pm–11pm',items:[{label:'Date',value:'Tonight, 23 Jun'},{label:'Time',value:'7:00pm – 11:00pm'},{label:'Worker',value:'Amara Okafor'},{label:'Status',value:'Confirmed ✓'}],actions:[{label:'View shift',url:'CiaraLink Provider Dashboard.dc.html'},{label:'Update shift',url:'CiaraLink Provider Dashboard.dc.html'}]},
+        suggestedReplies:["Thanks — shift is confirmed.","Can you confirm arrival time?","I've updated the shift notes.","Please send through the support plan before the shift."]
+      },
+      {id:3,name:'Margaret Reyes',org:'NDIS Participant',role:'Participant',init:'MR',tint:'#0891b2',type:'Direct',typeFg:'#0c6591',typeBg:'#e0f2fe',participant:'Margaret R.',status:'Active participant',lastActive:'Active yesterday',lastMsg:'Thank you for the update!',lastTime:'Yesterday',unread:false,
+        context:{kind:'participant',title:'Participant Profile',detail:'Margaret Reyes · Plan active',items:[{label:'NDIS number',value:'NDI-4310 887 226'},{label:'Plan ends',value:'30 Jun 2027'},{label:'SC',value:'Sarah Kelly'}],actions:[{label:'View profile',url:'Participant Profile.dc.html'},{label:'View care team',url:'Care Ecosystem.dc.html'}]},
+        suggestedReplies:["You're welcome! Let me know if you need anything.","Happy to help — please reach out anytime.","I'll follow up with your coordinator today.","Noted — I'll update your care team."]
+      },
+      {id:4,name:'Mariam T.',org:'Guardian / Nominee',role:'Guardian',init:'MT',tint:'#e0556e',type:'Care Team',typeFg:'#9b1c3a',typeBg:'#fde8ed',participant:'Margaret R.',status:'Nominee — full access',lastActive:'Active 2 days ago',lastMsg:'Please keep us updated on the review.',lastTime:'2 days ago',unread:false,
+        context:{kind:'care-team',title:'Care Team Chat',detail:'Margaret R. · Care team group',items:[{label:'Team members',value:'SC, Provider, AH, Guardian'},{label:'Consent',value:'Full access granted'},{label:'Review',value:'21 Jul 2026'}],actions:[{label:'Care ecosystem',url:'Care Ecosystem.dc.html'},{label:'Plan review',url:'Plan Review Prep.dc.html'}]},
+        suggestedReplies:["Of course — I'll send updates before the review.","We'll keep you informed at each stage.","The review is on 21 July — I'll send details soon.","I've added you to the review evidence notification list."]
+      },
+    ];
+    const activeThread=this.state.activeThread||0;
+    const savedMessages=this.state.messages||{};
+    const defaultMsgs={
+      0:[
+        {from:'other',text:'Hi, just checking in about Margaret\'s plan review — do you have the OT report yet?',time:'9:14'},
+        {from:'me',text:'Still waiting on Jordan to upload. I\'ll follow up today.',time:'9:22'},
+        {from:'other',text:'The review is in 11 days — we need it at least a week before.',time:'9:31'},
+        {from:'other',text:'Can you confirm the OT report is uploaded?',time:'10:02'},
+      ],
+      1:[
+        {from:'other',text:'Hi, I\'ve completed the physio assessment for Margaret.',time:'8:45'},
+        {from:'other',text:'I\'ve uploaded the physio summary for review.',time:'8:46'},
+      ],
+      2:[
+        {from:'other',text:'Worker confirmed for tonight\'s shift.',time:'14:32'},
+      ],
+    };
+    const convStatus=this.state.convStatus||{};
+    const lastSent=this.state.lastSent||{};
+    const convStatusDefs={0:'Action required',1:'Waiting for reply',2:'Open',3:'Resolved',4:'Open'};
+    const threads=threadDefs.map((t,i)=>{
+      const isActive=activeThread===t.id;
+      const msgs=[...(defaultMsgs[t.id]||[]),...(savedMessages[t.id]||[])];
+      const status=convStatus[t.id]||(lastSent[t.id]?'Waiting for reply':convStatusDefs[t.id]||'Open');
+      const statusColor=status==='Action required'?'#e0556e':status==='Waiting for reply'?'#d98b22':status==='Resolved'?'#16b8a6':'#9aa8a3';
+      return {...t,isActive,msgs,
+        bg:isActive?'rgba(255,255,255,.09)':'transparent',
+        fg:isActive?'#f4faf8':'#c8d8d2',
+        select:()=>this.setState({activeThread:t.id,threadUnread:{...this.state.threadUnread,[t.id]:false}}),
+        unreadDot:this.state.threadUnread?.[t.id],
+        convStatus:status,
+        convStatusColor:statusColor,
+      };
+    });
+    const cur2=threadDefs[activeThread]||threadDefs[0];
+    const curMsgs=[...(defaultMsgs[activeThread]||[]),...(savedMessages[activeThread]||[])].map((m,i,arr)=>({
+      ...m,
+      isMe:m.from==='me',
+      bubbleBg:m.from==='me'?'#16b8a6':'#fff',
+      bubbleFg:m.from==='me'?'#06201c':'#14302b',
+      rowDir:m.from==='me'?'row-reverse':'row',
+      showAvatar:m.from!=='me',
+      statusLabel:m.from==='me'?(i===arr.length-1?'Delivered':'Read'):'',
+      showStatus:m.from==='me'&&i===arr.length-1,
+    }));
+    // Hugo messaging actions
+    const lastReceivedMsg=([...(defaultMsgs[activeThread]||[]),...(savedMessages[activeThread]||[])]).filter(m=>m.from!=='me').slice(-1)[0];
+    const lastMsgText=lastReceivedMsg?lastReceivedMsg.text:'';
+    const hugoMsgActions=[
+      {label:'Summarise this thread',click:()=>this.showToast('Summary: '+cur2.name+' re: '+cur2.participant+' — '+cur2.status+'. Last message: "'+lastMsgText.slice(0,60)+'"')},
+      {label:'Create task from this',click:()=>this.createTask('Follow up with '+cur2.name+' re: '+cur2.participant)},
+      {label:'Set a reminder',click:()=>{ this.createTask('Reminder: respond to '+cur2.name); }},
+      {label:'Draft professional reply',click:()=>this.setState({msgInput:'Hi '+cur2.name.split(' ')[0]+', thank you for your message. I will attend to this and follow up shortly. Kind regards.'})},
+      {label:'Find related file',click:()=>{ window.location.href='AI File Drop.dc.html'; }},
+    ];
+    const hugoSuggestions=hugoMsgActions;
+    const rawCtx=cur2.context||{title:'',detail:'',items:[],actions:[]};
+    const curCtx={...rawCtx,actions:(rawCtx.actions||[]).map(a=>({...a,go:()=>{ window.location.href=a.url; }})),items:rawCtx.items||[]};
+    const curSuggestions=(cur2.suggestedReplies||[]).map(s=>({text:s,use:()=>this.setState({msgInput:s})}));
+
+    return {
+      signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
+      goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
+      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goSendReferral:()=>{ window.location.href='Support Coordination.dc.html'; },
+      logoutSmEl:ic('logout','#6c8a83',15),
+      logoEl:ic('logo','#eafaf8',21),nav,navMsgItems,pageTitle:pages[view].title,pageSub:pages[view].sub,
+      isBoard:view==='board',isPost:view==='post',isHandoff:view==='handoff',isRadar:view==='radar',isScore:view==='score',
+      isMessages:view==='messages'||view==='threads',
+      threads,curThread:cur2,curMsgs,curCtx,curSuggestions,
+      msgInput:this.state.msgInput,
+      setMsgInput:(e)=>this.setState({msgInput:e.target.value}),
+      msgKeyDown:(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.sendMsg();} },
+      sendMsgBtn:()=>this.sendMsg(),
+      clearMsg:()=>this.setState({msgInput:''}),
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      hugoSuggestions:hugoSuggestions,
+      sendIconEl:ic('send','#06201c',15),
+      speechIconEl:ic('speech','#16b8a6',16),
+      msgTypeTag:(type)=>{const m={Direct:'#6366f1',Referral:'#d98b22',Shift:'#16b8a6','Care Team':'#9333ea'};return m[type]||'#9aa8a3';},
+      searchEl:ic('search','#9aa8a3',16),filters,liveDotEl:ic('activity','#16b8a6',16),openCount,openings,
+      referrals,d,
+      radars,radarBlueEl:ic('radar','#2a4a8a',18),
+      newRadar:()=>this.doNewRadar(),
+      postDiscs,postModes,postFunding,postLangs,postAges,postStep,postSubmitted,myPosts,
+      postSubSpecialty:this.state.postSubSpecialty,setPostSubSpecialty:(e)=>this.setState({postSubSpecialty:e.target.value}),
+      postLocation:this.state.postLocation,setPostLocation:(e)=>this.setState({postLocation:e.target.value}),
+      postSlots:this.state.postSlots,setPostSlots:(e)=>this.setState({postSlots:e.target.value}),
+      postWaitlist:this.state.postWaitlist,setPostWaitlist:(e)=>this.setState({postWaitlist:e.target.value}),
+      submitPost:()=>this.submitPost(),
+      nextPostStep:()=>this.setState(s=>({postStep:Math.min(2,(s.postStep||0)+1)})),
+      prevPostStep:()=>this.setState(s=>({postStep:Math.max(0,(s.postStep||0)-1)})),
+      resetPost:()=>this.setState({postStep:0,postSubSpecialty:'',postLocation:'',postSlots:'',postWaitlist:''}),
+      isPostStep0:postStep===0,isPostStep1:postStep===1,isPostStep2:postStep===2,
+      scoreItems,tipItems,
+      checkGrnEl:ic('check','#1e9e6a',16,2.4),infoBlEl:ic('info','#2a4a8a',17),
+      activityEl:ic('activity','#16b8a6',22),refreshEl:ic('refresh','#d98b22',15),
+      plusNavEl:ic('plus','#7e948e',18)
+    };
+  }
+}
+</script>
+</body>
+</html>

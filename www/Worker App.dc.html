@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- CiaraLink Worker PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0c2622">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CL Worker">
+<script src="/pwa.js" defer></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="data.js"></script>
+  <script>
+    // Initialize window.ENV if not already set (by optional env.local.js)
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    .scrl::-webkit-scrollbar{width:0;display:none}
+    @keyframes wk-pop{0%{transform:scale(.96);opacity:0}100%{transform:scale(1);opacity:1}}
+    @keyframes wk-pulse{0%{box-shadow:0 0 0 0 rgba(22,184,166,.5)}70%{box-shadow:0 0 0 16px rgba(22,184,166,0)}100%{box-shadow:0 0 0 0 rgba(22,184,166,0)}}
+  </style>
+</helmet>
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:40px 20px;background:radial-gradient(120% 90% at 50% 0%,#103a34 0%,#0a201c 55%,#071512 100%)">
+
+  <div style="position:relative;width:392px;height:840px;border-radius:50px;padding:13px;background:linear-gradient(160deg,#1c1c20,#000);box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)">
+    <div style="position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#f4f7f5;display:flex;flex-direction:column">
+
+      <div style="position:absolute;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:14px 26px 8px;font-size:14px;font-weight:700;color:{{ statusColor }}">
+        <span>9:41</span>
+        <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:108px;height:30px;background:#000;border-radius:18px"></div>
+        <span style="display:flex;gap:6px;align-items:center">{{ sigEl }}{{ wifiEl }}{{ battEl }}</span>
+      </div>
+
+      <div class="scrl" style="flex:1;overflow-y:auto;padding-top:52px">
+
+        <!-- HOME -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:6px 20px 24px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+            <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">{{ greetInitials }}</div>
+            <div style="flex:1"><div style="font-size:13px;color:#6c7f79">Good morning,</div><div style="font-size:18px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ greetName }} 👋</div></div>
+            <div style="position:relative;width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></div>
+          </div>
+
+          <div style="border-radius:24px;padding:20px;color:#eafaf8;background:linear-gradient(150deg,#0c2622,#0e5147);position:relative;overflow:hidden;box-shadow:0 20px 38px -22px rgba(11,80,71,.9)">
+            <div style="position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(22,184,166,.4),transparent 70%)"></div>
+            <div style="position:relative">
+              <sc-if value="{{ heroHasShift }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:#bdf0e8"><span style="width:8px;height:8px;border-radius:99px;background:#7ce0d2"></span>{{ heroWhen }}</div>
+              <div style="font-size:20px;font-weight:800;margin-top:12px;letter-spacing:-.01em">{{ heroClient }}</div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:#a9cfc8;margin-top:5px">{{ pinSmEl }}{{ heroLoc }}</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:12px;font-size:13px;color:#dff5f1">
+                <span style="display:flex;align-items:center;gap:6px">{{ clockSmEl }}{{ heroTime }}</span>
+                <span style="display:flex;align-items:center;gap:6px">{{ tagSmEl }}{{ heroService }}</span>
+              </div>
+              <button onClick="{{ clockAction }}" style="margin-top:16px;width:100%;height:50px;border-radius:15px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;animation:wk-pulse 2.6s infinite" style-hover="background:#2bcbb9">{{ qrWhiteEl }}{{ clockBtnLabel }}</button>
+              </sc-if>
+              <sc-if value="{{ heroNoShift }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:#bdf0e8"><span style="width:8px;height:8px;border-radius:99px;background:#7ce0d2"></span>NO UPCOMING SHIFTS</div>
+              <div style="font-size:20px;font-weight:800;margin-top:12px;letter-spacing:-.01em">No shifts assigned yet</div>
+              <div style="font-size:13px;color:#a9cfc8;margin-top:6px;line-height:1.5">New shifts that match you will appear here. Tap Find to pick up open work.</div>
+              <button onClick="{{ goFind }}" style="margin-top:16px;width:100%;height:50px;border-radius:15px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:#2bcbb9">Find shifts</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:14px">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 16px">
+              <div style="font-size:24px;font-weight:800;color:#14302b;letter-spacing:-.02em">{{ weekEarned }}</div>
+              <div style="font-size:12px;color:#8a9a94">earned this week</div>
+            </div>
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 16px">
+              <div style="font-size:24px;font-weight:800;color:#14302b;letter-spacing:-.02em">{{ weekHours }}</div>
+              <div style="font-size:12px;color:#8a9a94">{{ weekShiftsNote }}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px">
+            <div style="font-size:16px;font-weight:800;color:#14302b">Shifts that match you</div>
+            <button onClick="{{ goFind }}" style="font-size:12.5px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit">{{ seeAllLabel }}</button>
+          </div>
+          <sc-for list="{{ matchShifts }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="width:46px;height:46px;border-radius:14px;flex:0 0 46px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ m.tint }}">{{ m.init }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:700;color:#14302b">{{ m.client }}</div>
+                <div style="font-size:12px;color:#8a9a94">{{ m.meta }}</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:13px;font-weight:800;color:#0b6b60">{{ m.pay }}</span><span style="font-size:11px;color:#9aa8a3">· {{ m.dist }}</span></div>
+              </div>
+              <div style="text-align:center;flex:0 0 auto"><div style="font-size:15px;font-weight:800;color:#16b8a6">{{ m.score }}</div><div style="font-size:9.5px;color:#9aa8a3;letter-spacing:.04em">MATCH</div></div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noShifts }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 16px;text-align:center">
+              <div style="font-size:14px;font-weight:700;color:#14302b">No shifts assigned yet</div>
+              <div style="font-size:12.5px;color:#8a9a94;margin-top:4px">When a provider assigns you a shift, it’ll show up here.</div>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- FIND -->
+        <sc-if value="{{ isFind }}" hint-placeholder-val="">
+        <div style="padding:6px 20px 24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b">Find shifts</div>
+            <div style="width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e">{{ filterEl }}</div>
+          </div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:18px">{{ findSubtitle }}</div>
+
+          <sc-if value="{{ findHasDemo }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;height:430px">
+            <div style="position:absolute;left:14px;right:14px;top:14px;height:400px;border-radius:26px;background:#fff;border:1px solid #eef2f0;opacity:.5"></div>
+            <div style="position:absolute;left:7px;right:7px;top:7px;height:410px;border-radius:26px;background:#fff;border:1px solid #e7ece9;opacity:.8"></div>
+            <div style="position:absolute;inset:0;border-radius:26px;background:#fff;border:1px solid #e2e9e6;box-shadow:0 22px 44px -24px rgba(20,48,43,.4);overflow:hidden;display:flex;flex-direction:column">
+              <div style="padding:20px;background:linear-gradient(150deg,{{ card.tintDark }},{{ card.tint }});color:#fff;position:relative">
+                <div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:7px 11px">
+                  <div style="font-size:22px;font-weight:800;line-height:1">{{ card.score }}</div><div style="font-size:8.5px;letter-spacing:.1em">MATCH</div>
+                </div>
+                <div style="width:58px;height:58px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800">{{ card.init }}</div>
+                <div style="font-size:21px;font-weight:800;margin-top:13px;letter-spacing:-.01em">{{ card.client }}</div>
+                <div style="font-size:13px;opacity:.85;margin-top:3px">{{ card.service }}</div>
+              </div>
+              <div style="padding:18px 20px;flex:1">
+                <div style="display:flex;gap:10px;margin-bottom:14px">
+                  <div style="flex:1;background:#f4faf8;border-radius:13px;padding:11px 13px"><div style="font-size:18px;font-weight:800;color:#0b6b60">{{ card.pay }}</div><div style="font-size:11px;color:#6c7f79">{{ card.payNote }}</div></div>
+                  <div style="flex:1;background:#f4faf8;border-radius:13px;padding:11px 13px"><div style="font-size:18px;font-weight:800;color:#14302b">{{ card.dist }}</div><div style="font-size:11px;color:#6c7f79">{{ card.travel }}</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#41635c;margin-bottom:8px">{{ calSmEl }}{{ card.when }}</div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#41635c;margin-bottom:14px">{{ pinDkEl }}{{ card.where }}</div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap">
+                  <sc-for list="{{ card.tags }}" as="t" hint-placeholder-count="3">
+                    <span style="font-size:11.5px;font-weight:600;color:#41635c;background:#eef4f2;padding:4px 10px;border-radius:8px">{{ t }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:18px">
+            <button onClick="{{ skipShift }}" style="width:60px;height:60px;border-radius:50%;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#e0556e;box-shadow:0 8px 18px -8px rgba(20,48,43,.25)" style-hover="background:#fdeef0">{{ xBigEl }}</button>
+            <button onClick="{{ saveShift }}" style="width:50px;height:50px;border-radius:50%;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6366f1" style-hover="background:#eef0fd">{{ starEl }}</button>
+            <button onClick="{{ acceptShift }}" style="width:68px;height:68px;border-radius:50%;border:none;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;box-shadow:0 12px 24px -10px rgba(14,147,132,.8)" style-hover="filter:brightness(1.08)">{{ checkBigEl }}</button>
+          </div>
+          </sc-if>
+          <sc-if value="{{ findEmpty }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:40px 20px;text-align:center;margin-top:10px">
+              <div style="font-size:15px;font-weight:800;color:#14302b">No open shifts available yet</div>
+              <div style="font-size:12.5px;color:#8a9a94;margin-top:6px;line-height:1.5">When a provider posts shifts that match you, they'll appear here to accept or skip.</div>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- SCHEDULE -->
+        <sc-if value="{{ isSchedule }}" hint-placeholder-val="">
+        <div style="padding:6px 20px 24px">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#14302b;margin-bottom:2px">Your schedule</div>
+          <div style="font-size:13px;color:#6c7f79;margin-bottom:18px">{{ scheduleSubtitle }}</div>
+          <sc-if value="{{ noShifts }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:28px 18px;text-align:center;margin-top:8px">
+              <div style="font-size:15px;font-weight:800;color:#14302b">No shifts assigned yet</div>
+              <div style="font-size:13px;color:#8a9a94;margin-top:6px;line-height:1.5">You don’t have any scheduled shifts. New assigned shifts will appear here automatically.</div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ schedule }}" as="day" hint-placeholder-count="3">
+            <div style="margin-bottom:18px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span style="font-size:13px;font-weight:800;color:#14302b">{{ day.label }}</span><span style="font-size:12px;color:#9aa8a3">{{ day.date }}</span><div style="flex:1;height:1px;background:#e7ece9"></div></div>
+              <sc-for list="{{ day.shifts }}" as="s" hint-placeholder-count="2">
+                <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:12px 14px;margin-bottom:9px">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:4px;height:38px;border-radius:9px;background:{{ s.bar }}"></div>
+                    <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ s.client }}</div><div style="font-size:12px;color:#8a9a94">{{ s.service }}</div></div>
+                    <div style="text-align:right;flex:0 0 auto"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:#41635c;white-space:nowrap">{{ s.time }}</div><div style="font-size:11px;font-weight:700;color:{{ s.statusFg }};margin-top:2px">{{ s.status }}</div></div>
+                  </div>
+                  <sc-if value="{{ s.canNote }}" hint-placeholder-val="">
+                    <button onClick="{{ s.writeNote }}" style="width:100%;margin-top:9px;height:36px;border-radius:11px;border:1px solid #e2e9e6;background:#f7faf9;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:#e7f4f1;border-color:#16b8a6">+ Write shift note</button>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+
+        <!-- PROFILE -->
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="">
+        <div style="padding:6px 20px 24px">
+          <div style="text-align:center;padding:8px 0 18px">
+            <div style="width:84px;height:84px;border-radius:26px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;margin:0 auto;box-shadow:0 14px 28px -12px rgba(14,147,132,.7)">{{ greetInitials }}</div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:-.02em;color:#14302b;margin-top:13px">{{ profileName }}</div>
+            <div style="font-size:13px;color:#6c7f79">{{ profileRole }}</div>
+            <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+            <div style="display:inline-flex;align-items:center;gap:6px;margin-top:9px;font-size:13px;font-weight:700;color:#b4561f;background:#fbf0df;padding:5px 12px;border-radius:999px">{{ starGoldEl }}4.9 · 312 shifts</div>
+            </sc-if>
+          </div>
+          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:11px;margin-bottom:16px">
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;text-align:center"><div style="font-size:20px;font-weight:800;color:#14302b">98%</div><div style="font-size:11px;color:#8a9a94">reliability</div></div>
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;text-align:center"><div style="font-size:20px;font-weight:800;color:#16b8a6">$840</div><div style="font-size:11px;color:#8a9a94">this week</div></div>
+            <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:14px;text-align:center"><div style="font-size:20px;font-weight:800;color:#14302b">5</div><div style="font-size:11px;color:#8a9a94">repeat clients</div></div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden;margin-bottom:16px">
+            <div style="padding:13px 16px 8px;font-size:13px;font-weight:800;color:#14302b">Compliance & credentials</div>
+            <sc-for list="{{ creds }}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 16px;border-top:1px solid #f1f4f2">
+                <div style="width:30px;height:30px;border-radius:9px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;background:{{ c.tintBg }}">{{ c.iconEl }}</div>
+                <span style="flex:1;font-size:13px;font-weight:600;color:#14302b">{{ c.label }}</span>
+                <span style="font-size:11px;font-weight:700;color:{{ c.fg }};background:{{ c.bg }};padding:3px 9px;border-radius:7px">{{ c.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:14px 16px">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:10px">Skills & preferences</div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <sc-for list="{{ skills }}" as="sk" hint-placeholder-count="5">
+                <span style="font-size:12px;font-weight:600;color:#41635c;background:#eef4f2;padding:5px 11px;border-radius:9px">{{ sk }}</span>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ realProfile }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;margin-bottom:16px">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:6px">Compliance & credentials</div>
+            <div style="font-size:12.5px;color:#8a9a94;line-height:1.55">Your verified credentials and skills will appear here once they're on file with your provider.</div>
+          </div>
+          </sc-if>
+          <button onClick="{{ goBilling }}" style="width:100%;margin-top:14px;height:48px;border-radius:16px;border:1px solid #e7ece9;background:#fff;color:#14302b;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>💳</span>Billing &amp; plan</button>
+          <button onClick="{{ signOut }}" style="width:100%;margin-top:10px;height:48px;border-radius:16px;border:1px solid #fce4e9;background:#fff8f9;color:#c0445c;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Sign out of CiaraLink</button>
+        </div>
+        </sc-if>
+
+      </div>
+
+      <div style="display:flex;border-top:1px solid #e7ece9;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);padding:8px 10px 22px">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.onClick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 0;border:none;background:none;cursor:pointer;font-family:inherit">
+            <span style="display:flex">{{ t.iconEl }}</span>
+            <span style="font-size:10.5px;font-weight:700;color:{{ t.fg }}">{{ t.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Shift Note Modal (full-screen overlay on the phone) -->
+<sc-if value="{{ waaNoteOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:80;background:rgba(12,38,34,.55);display:flex;align-items:flex-end;justify-content:center">
+  <div style="width:100%;max-width:420px;background:#fff;border-radius:24px 24px 0 0;padding:22px 22px 36px;box-shadow:0 -20px 48px -16px rgba(0,0,0,.4)">
+    <div style="width:40px;height:4px;border-radius:99px;background:#e2e9e6;margin:0 auto 18px"></div>
+    <div style="font-size:17px;font-weight:800;color:#14302b;margin-bottom:4px">Write shift note</div>
+    <div style="font-size:13px;color:#6c7f79;margin-bottom:14px">{{ waaNoteClient }} · {{ waaNoteDate }}</div>
+    <textarea onChange="{{ onWaaNoteChange }}" placeholder="What happened? Any observations, progress or concerns from the shift…" style="width:100%;height:120px;border:1.5px solid #dde4e1;border-radius:14px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5;margin-bottom:13px"></textarea>
+    <div style="display:flex;gap:9px">
+      <button onClick="{{ closeWaaNote }}" style="flex:1;height:48px;border-radius:14px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Cancel</button>
+      <button onClick="{{ submitWaaNote }}" style="flex:2;height:48px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">Save note ✓</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { tab:'home', shiftIdx:0, waaNoteOpen:false, waaNoteText:'', waaNoteClient:'', waaNoteDate:'', waaNoteShift:null, waaSavedNotes:[], shifts:[], loaded:false, configured:false, toast:null, authName:null, authInitials:null, authRole:null };
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  componentDidMount(){
+    const AD=window.AegisData;
+    if(AD){ const n=AD.get('waa_notes')||[]; if(n.length) this.setState({waaSavedNotes:n}); }
+    this.loadWorkerData();
+    this.loadIdentity();
+  }
+  // Load the signed-in worker's real name + role for the greeting/profile.
+  // Mirrors Support Worker.dc.html. Only sets identity when a real user is
+  // present; otherwise the header falls back to a neutral "there"/"CL".
+  loadIdentity(){
+    if(!window.loadCurrentUserContext) return;
+    Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+      if(!ctx||ctx.error||!ctx.user) return;
+      const profileName=ctx.profile&&ctx.profile.full_name&&ctx.profile.full_name.trim();
+      const email=(ctx.user.email||'');
+      const name=profileName||(email?email.split('@')[0]:'');
+      if(!name) return;
+      const parts=name.trim().split(/\s+/);
+      const initials=(parts.length>1?(parts[0][0]+parts[parts.length-1][0]):name.slice(0,2)).toUpperCase();
+      const roleLabels={ support_worker:'Support Worker', abn_worker:'Independent Worker' };
+      const roleLabel=roleLabels[ctx.primaryRole]||'Support Worker';
+      this.setState({ authName:name, authInitials:initials, authRole:roleLabel });
+    }).catch(()=>{});
+  }
+  // Load the logged-in worker's real assigned shifts from Supabase (RLS-scoped).
+  // queryShiftsForWorker() returns demo shifts upstream when Supabase is unconfigured.
+  loadWorkerData(){
+    const apply=()=>{
+      // Real mode = Supabase configured. In real mode an empty/placeholder
+      // result means the worker genuinely has no assigned shifts (empty-state),
+      // not a demo preview. queryShiftsForWorker() returns demo-* rows when
+      // unconfigured AND as a fallback when a real worker has none.
+      const configured=!!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+      if(window.queryShiftsForWorker){
+        Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
+          this.setState({ shifts:shifts||[], loaded:true, configured });
+        }).catch(err=>{ console.error('loadWorkerData shifts error:',err); this.setState({ loaded:true, configured }); });
+      } else {
+        this.setState({ loaded:true, configured });
+      }
+    };
+    try{
+      if(window.queryShiftsForWorker){ apply(); }
+      else {
+        const script=document.createElement('script');
+        script.src='supabase-client.js';
+        script.onload=apply;
+        script.onerror=()=>{};
+        document.head.appendChild(script);
+      }
+    }catch(err){ console.error('loadWorkerData error:',err); }
+  }
+  ic(name,color,size,sw){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      home:'M3 11l9-8 9 8 M5 10v10h5v-6h4v6h5V10',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      user:'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      pin:'M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z M12 10m-2.3 0a2.3 2.3 0 1 0 4.6 0 2.3 2.3 0 1 0-4.6 0',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      tag:'M3 12V3h9l9 9-9 9z M7 7h.01',
+      qr:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h3v3h-3z M20 14v7 M14 20h3',
+      filter:'M3 5h18l-7 8v6l-4-2v-4z',
+      x:'M6 6l12 12 M18 6L6 18',
+      check:'M20 6L9 17l-5-5',
+      star:'M12 3l2.5 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.5 6.8 19.3l1.1-5.9L3.6 9.2l5.9-.8z',
+      shield:'M12 2l8 4v6c0 5-3.5 8.2-8 10-4.5-1.8-8-5-8-10V6z M9 12l2 2 4-4',
+      heart:'M12 21s-7.5-4.8-10-9.3A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 6.7C19.5 16.2 12 21 12 21z',
+      doc:'M5 3h10l4 4v14H5z M14 3v5h5',
+      sig:'M2 18h2 M6 18V9 M10 18V6 M14 18v-5 M18 18v-9 M22 18V4',
+      wifi:'M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20h.01',
+      batt:'M3 8h16v8H3z M21 11v2'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.home}));
+  }
+  renderVals(){
+    const ic=(n,c,s,w)=>this.ic(n,c,s,w);
+    const tab=this.state.tab;
+    // demoMode = Supabase NOT configured (preview). In real mode we must never
+    // render demo identity ("Amara"/"AO") or demo financials ($840/32h/9 shifts).
+    const demoMode = !(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    // Real identity from loadCurrentUserContext(); fallback "there"/"CL" in real
+    // mode (never a fake name), demo preview keeps the showcase identity.
+    const greetName = this.state.authName ? this.state.authName.split(/\s+/)[0] : (demoMode ? 'Amara' : 'there');
+    const greetInitials = this.state.authInitials || (demoMode ? 'AO' : 'CL');
+    const profileName = this.state.authName || (demoMode ? 'Amara Okafor' : 'Your account');
+    const profileRole = this.state.authRole || (demoMode ? 'Senior Support Worker · Personal Care' : 'Support Worker');
+    const tabDefs=[['home','Home','home'],['find','Find','search'],['schedule','Schedule','cal'],['profile','Profile','user']];
+    const tabs=tabDefs.map(([key,label,icon])=>{
+      const a=tab===key;
+      return {label,onClick:()=>this.setState({tab:key}),fg:a?'#0b6b60':'#9aa8a3',iconEl:ic(icon,a?'#16b8a6':'#9aa8a3',23,a?2.1:1.7)};
+    });
+
+    const matchShiftsDemo=[
+      {client:'David L.',init:'DL',tint:'#6366f1',meta:'Wed · Personal Care · 4h',pay:'$184',dist:'1.8km',score:'94'},
+      {client:'Ruth K.',init:'RK',tint:'#0891b2',meta:'Thu · Community Access · 3h',pay:'$138',dist:'3.4km',score:'90'},
+      {client:'Sam W.',init:'SW',tint:'#d98b22',meta:'Fri · Personal Care · 5h',pay:'$230',dist:'2.6km',score:'87'}
+    ];
+
+    const cards=[
+      {client:'David Lowe',init:'DL',service:'Personal Care · NDIS',tint:'#0e5147',tintDark:'#0c2622',score:'94',pay:'$46/hr',payNote:'incl. weekend',dist:'1.8km',travel:'8 min drive',when:'Sat 21 Jun · 9:00–13:00',where:'Brunswick West VIC',tags:['Hoist trained','Medication','Female worker']},
+      {client:'Ruth Kim',init:'RK',service:'Community Access',tint:'#0891b2',tintDark:'#073f4a',score:'90',pay:'$42/hr',payNote:'standard rate',dist:'3.4km',travel:'12 min drive',when:'Sun 22 Jun · 10:00–13:00',where:'Coburg VIC',tags:['Driver','Social support','First Aid']},
+      {client:'Sam Wills',init:'SW',service:'Personal Care · NDIS',tint:'#9333ea',tintDark:'#4c1d75',score:'87',pay:'$44/hr',payNote:'incl. travel',dist:'2.6km',travel:'10 min drive',when:'Mon 23 Jun · 14:00–19:00',where:'Pascoe Vale VIC',tags:['Manual handling','Meal prep','Evening']}
+    ];
+    const card=cards[this.state.shiftIdx % cards.length];
+
+    // shift (optional) carries the real Supabase row so the saved note can be
+    // linked to its shift/participant/org under RLS. Demo rows pass no shift.
+    const waaOpenNote=(client,date,shift)=>this.setState({waaNoteOpen:true,waaNoteClient:client,waaNoteDate:date,waaNoteText:'',waaNoteShift:shift?{id:shift.id,participant_id:shift.participant_id,org_id:shift.org_id}:null});
+    const scheduleDemo=[
+      {label:'Yesterday',date:'Wed 18 Jun',shifts:[
+        {client:'Margaret R.',service:'Personal Care',time:'11:00–14:58',status:'Completed ✓',statusFg:'#1e7a52',bar:'#1e9e6a',canNote:true,writeNote:()=>waaOpenNote('Margaret R.','Wed 18 Jun')},
+        {client:'David L.',service:'Physiotherapy assist',time:'16:00–17:30',status:'Completed ✓',statusFg:'#1e7a52',bar:'#1e9e6a',canNote:true,writeNote:()=>waaOpenNote('David L.','Wed 18 Jun')},
+      ]},
+      {label:'Today',date:'Thu 19 Jun',shifts:[
+        {client:'Margaret R.',service:'Personal Care',time:'11:00–15:00',status:'Upcoming',statusFg:'#0b6b60',bar:'#16b8a6',canNote:false,writeNote:()=>{}},
+        {client:'Priya S.',service:'Personal Care',time:'16:00–18:00',status:'Upcoming',statusFg:'#0b6b60',bar:'#16b8a6',canNote:false,writeNote:()=>{}}
+      ]},
+      {label:'Tomorrow',date:'Fri 20 Jun',shifts:[
+        {client:'Tom B.',service:'Community Access',time:'10:00–13:00',status:'Confirmed',statusFg:'#6366f1',bar:'#6366f1',canNote:false,writeNote:()=>{}}
+      ]},
+      {label:'Saturday',date:'Sat 21 Jun',shifts:[
+        {client:'David L.',service:'Personal Care',time:'09:00–13:00',status:'New',statusFg:'#d98b22',bar:'#d98b22',canNote:false,writeNote:()=>{}},
+        {client:'Sam W.',service:'Personal Care',time:'14:00–19:00',status:'Confirmed',statusFg:'#6366f1',bar:'#16b8a6',canNote:false,writeNote:()=>{}}
+      ]}
+    ];
+
+    // ---- Real assigned shifts (this.state.shifts, RLS-scoped via
+    // queryShiftsForWorker; demo fallback handled upstream). start_time/end_time
+    // may be ISO timestamps (Supabase) or pre-formatted demo strings like
+    // "Today 11:00" — handle both gracefully. Falls back to the demo arrays
+    // above when the worker has no shifts so the UI never renders blank.
+    // In real (Supabase-configured) mode the upstream helper still returns
+    // demo-* placeholder rows when the worker has none — treat those as an
+    // empty assignment list so the worker sees a clean empty-state, not demo
+    // clients. In unconfigured preview the demo rows are kept on purpose.
+    const configured=!!this.state.configured;
+    const loadedShifts=this.state.shifts||[];
+    const _isDemoRow=(s)=>String((s&&s.id)||'').indexOf('demo-shift-')===0;
+    const allDemoRows=loadedShifts.length>0 && loadedShifts.every(_isDemoRow);
+    const realShifts=(configured && allDemoRows) ? [] : loadedShifts;
+    const noShifts=configured && this.state.loaded && realShifts.length===0;
+    const _isISO=(s)=>/\d{4}-\d{2}-\d{2}/.test(String(s||''));
+    const _timePart=(s)=>{ const m=String(s||'').match(/\d{1,2}:\d{2}/); return m?m[0]:''; };
+    const _datePart=(s)=>{
+      if(!s) return '';
+      if(_isISO(s)){ const d=new Date(s); if(!isNaN(d.getTime())) return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
+      const t=_timePart(s); const rest=t?String(s).replace(t,'').replace(/[·,\-]\s*$/,'').trim():String(s);
+      return rest||t||String(s);
+    };
+    const _timeRange=(a,b)=>{ const sa=_timePart(a),sb=_timePart(b); return sa&&sb?(sa+'–'+sb):(sa||sb||'—'); };
+    const _pName=(sh)=>(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    const _wkTints=['#16b8a6','#d98b22','#6366f1','#9333ea','#0891b2','#0e5147'];
+    const _schedStatus={
+      accepted:{label:'Confirmed',statusFg:'#6366f1',bar:'#16b8a6',canNote:false},
+      in_progress:{label:'In progress',statusFg:'#0b6b60',bar:'#16b8a6',canNote:true},
+      offered:{label:'Offered',statusFg:'#d98b22',bar:'#d98b22',canNote:false},
+      completed:{label:'Completed ✓',statusFg:'#1e7a52',bar:'#1e9e6a',canNote:true}
+    };
+
+    // Home "Shifts that match you" preview from real assigned shifts.
+    // Real shifts → mapped; real mode with none → empty (empty-state shown);
+    // unconfigured preview → demo cards.
+    const matchShifts = realShifts.length>0
+      ? realShifts.slice(0,3).map((sh,i)=>{
+          const nm=_pName(sh);
+          return {client:nm,init:nm.substring(0,2).toUpperCase(),tint:_wkTints[i%_wkTints.length],
+            meta:[_datePart(sh.start_time),sh.support_type||sh.title].filter(Boolean).join(' · '),
+            pay:_timeRange(sh.start_time,sh.end_time),dist:sh.location||'',score:''};
+        })
+      : (noShifts ? [] : matchShiftsDemo);
+
+    // Schedule tab grouped by day from real assigned shifts.
+    let schedule;
+    if(realShifts.length>0){
+      const groups=[]; const byKey={};
+      realShifts.forEach(sh=>{
+        const key=_datePart(sh.start_time)||'Scheduled';
+        if(!byKey[key]){ byKey[key]={label:key,date:'',shifts:[]}; groups.push(byKey[key]); }
+        const nm=_pName(sh); const st=_schedStatus[sh.status]||_schedStatus.accepted;
+        byKey[key].shifts.push({client:nm,service:sh.support_type||sh.title||'Support',
+          time:_timeRange(sh.start_time,sh.end_time),status:st.label,statusFg:st.statusFg,bar:st.bar,
+          canNote:st.canNote,writeNote:st.canNote?(()=>waaOpenNote(nm,key,sh)):(()=>{})});
+      });
+      schedule=groups;
+    } else {
+      schedule = noShifts ? [] : scheduleDemo;
+    }
+    const scheduleSubtitle = noShifts
+      ? 'No scheduled shifts yet'
+      : (realShifts.length>0
+          ? ('Assigned · '+realShifts.length+' shift'+(realShifts.length===1?'':'s'))
+          : 'This week · 9 shifts · 32 hours');
+
+    // Clock in/out target: the worker's current real shift. Prefer one already
+    // in progress (so the button becomes Clock-out), else the next accepted one.
+    const clockShift = realShifts.find(s=>s.status==='in_progress')
+      || realShifts.find(s=>s.status==='accepted') || null;
+    const clockedIn = !!(clockShift && clockShift.status==='in_progress');
+
+    // Hero "next shift" card: the shift the clock button acts on, else the next
+    // assigned one. In real mode with no shifts → honest empty hero.
+    const heroShift = clockShift || realShifts[0] || null;
+    const heroWhen = heroShift ? (heroShift.status==='in_progress'?'SHIFT IN PROGRESS':'NEXT SHIFT') : '';
+
+    const creds=[
+      {label:'First Aid & CPR',status:'Valid',fg:'#1e9e6a',bg:'#e9f6ef',iconEl:ic('heart','#1e9e6a',16),tintBg:'#e9f6ef'},
+      {label:'NDIS Worker Screening',status:'Valid',fg:'#1e9e6a',bg:'#e9f6ef',iconEl:ic('shield','#16b8a6',16),tintBg:'#e7f4f1'},
+      {label:'Manual Handling',status:'Exp. 60d',fg:'#b4561f',bg:'#fbf0df',iconEl:ic('doc','#d98b22',16),tintBg:'#fbf0df'},
+      {label:'Police Check',status:'Valid',fg:'#1e9e6a',bg:'#e9f6ef',iconEl:ic('doc','#6366f1',16),tintBg:'#eef0fd'}
+    ];
+    const skills=['Personal care','Hoist transfers','Medication','Meal prep','Female worker','Driver','Dementia care','Auslan basics'];
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      clockBtnLabel: clockedIn ? 'Clock out' : 'Clock in',
+      noShifts,
+      // Identity (real or neutral fallback) for header + profile.
+      greetName, greetInitials, profileName, profileRole,
+      showDemo: demoMode,
+      realProfile: !demoMode,
+      // FIND tab: demo shows the swipe-stack showcase; real mode has no open-shift
+      // marketplace data source yet, so show an honest empty-state instead of a fake card.
+      findSubtitle: demoMode ? '12 open shifts near you · swipe to choose' : 'Open shifts from providers will appear here',
+      findHasDemo: demoMode,
+      findEmpty: !demoMode,
+      // Demo financials are showcase-only. Real mode shows honest zero/empty
+      // figures, never fabricated earnings/hours/shift counts.
+      weekEarned: demoMode ? '$840' : '$0',
+      weekHours: demoMode ? '32h' : '—',
+      weekShiftsNote: demoMode ? 'across 9 shifts' : 'this week',
+      seeAllLabel: demoMode ? 'See all 12' : 'See all',
+      scheduleSubtitle,
+      heroHasShift: !!heroShift,
+      heroNoShift: this.state.loaded && !heroShift,
+      heroWhen,
+      heroClient: heroShift ? _pName(heroShift) : '',
+      heroLoc: heroShift ? (heroShift.location || 'Location to be confirmed') : '',
+      heroTime: heroShift ? _timeRange(heroShift.start_time, heroShift.end_time) : '',
+      heroService: heroShift ? (heroShift.support_type || heroShift.title || 'Support') : '',
+      // Real clock in/out against the worker's current Supabase shift (RLS-scoped).
+      // Falls back to the preview toast when there is no real assigned shift.
+      clockAction:()=>{
+        const sh=clockShift;
+        if(!configured){ this.showToast('Preview mode — clock-in needs a live shift'); return; }
+        if(!sh || !window.clockInShift){ this.showToast('No confirmed shift to clock in to'); return; }
+        const fn = clockedIn ? window.clockOutShift : window.clockInShift;
+        Promise.resolve(fn(sh.id)).then(({error})=>{
+          if(error){ console.error('clock action error:',error); this.showToast('Clock-'+(clockedIn?'out':'in')+' failed — try again'); return; }
+          this.showToast(clockedIn?'Clocked out ✓':'Clocked in ✓');
+          this.loadWorkerData();
+        }).catch(err=>{ console.error('clock action error:',err); this.showToast('Clock action failed'); });
+      },
+      // REAL "save shift for later": adds the current Find card to a private
+      // shortlist. Always persists on-device (AegisData) so the showcase swipe
+      // works and survives reload (same pattern as shift notes above); when a
+      // live open-shift feed exists and the card carries a real shifts.id it is
+      // also saved to Supabase via saveShiftForWorker (RLS: saved_shifts_*).
+      saveShift:()=>{
+        const c=card;
+        if(!c) return;
+        const AD=window.AegisData;
+        const entry={_id:AD?AD.uid():'sv'+Date.now(),client:c.client,service:c.service,when:c.when,where:c.where,pay:c.pay,saved_at:AD?AD.now():new Date().toISOString()};
+        if(AD){ const dup=(AD.get('waa_saved_shifts')||[]).some(x=>x.client===c.client&&x.when===c.when); if(!dup) AD.push('waa_saved_shifts',entry); }
+        if(configured && c.shiftId && window.saveShiftForWorker){
+          Promise.resolve(window.saveShiftForWorker({shift_id:c.shiftId,org_id:c.orgId,client_label:c.client,service_label:c.service,when_label:c.when,location_label:c.where,pay_label:c.pay}))
+            .then(({error})=>{ if(error) console.error('saveShiftForWorker error:',error); })
+            .catch(err=>console.error('saveShiftForWorker error:',err));
+        }
+        this.showToast('Saved '+(c.client||'shift')+' to your shortlist');
+        this.setState(s=>({shiftIdx:s.shiftIdx+1}));
+      },
+      statusColor: tab==='home'?'#14302b':'#14302b',
+      sigEl:ic('sig','#14302b',15,2),wifiEl:ic('wifi','#14302b',15,2),battEl:ic('batt','#14302b',16,1.8),
+      bellEl:ic('bell','#3a544e',19),pinSmEl:ic('pin','#a9cfc8',15),clockSmEl:ic('clock','#dff5f1',15),
+      tagSmEl:ic('tag','#dff5f1',15),qrWhiteEl:ic('qr','#06201c',18),filterEl:ic('filter','#3a544e',18),
+      calSmEl:ic('cal','#16b8a6',16),pinDkEl:ic('pin','#16b8a6',16),
+      xBigEl:ic('x','#e0556e',26,2.4),starEl:ic('star','#6366f1',20),checkBigEl:ic('check','#fff',30,2.6),
+      starGoldEl:ic('star','#d98b22',15),
+      isHome:tab==='home',isFind:tab==='find',isSchedule:tab==='schedule',isProfile:tab==='profile',
+      waaNoteOpen:this.state.waaNoteOpen,
+      waaNoteClient:this.state.waaNoteClient,
+      waaNoteDate:this.state.waaNoteDate,
+      closeWaaNote:()=>this.setState({waaNoteOpen:false}),
+      onWaaNoteChange:(e)=>this.setState({waaNoteText:e.target.value}),
+      submitWaaNote:()=>{
+        const txt=(this.state.waaNoteText||'').trim();
+        if(!txt) return;
+        const AD=window.AegisData;
+        const now=AD?AD.now():new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});
+        const note={_id:AD?AD.uid():'n'+Date.now(),client:this.state.waaNoteClient,date:now,body:txt,init:'AO'};
+        if(AD) AD.push('sw_shift_notes',note);
+        // Persist to Supabase when this note is linked to a real shift (RLS:
+        // shift_notes_worker_insert). Keeps the on-device copy either way.
+        const sh=this.state.waaNoteShift;
+        if(sh && sh.participant_id && window.createShiftNote){
+          Promise.resolve(window.createShiftNote({shift_id:sh.id,participant_id:sh.participant_id,org_id:sh.org_id,body:txt}))
+            .then(({error})=>{ if(error){ console.error('createShiftNote error:',error); this.showToast('Saved on device — sync failed'); } else { this.showToast('Shift note saved'); } })
+            .catch(err=>{ console.error('createShiftNote error:',err); this.showToast('Saved on device — sync failed'); });
+        }
+        this.setState(s=>({waaNoteOpen:false,waaNoteText:'',waaNoteShift:null,waaSavedNotes:[note,...(s.waaSavedNotes||[])]}));
+      },
+      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},
+      goBilling:()=>{ window.location.href='billing.html'; },
+      goFind:()=>this.setState({tab:'find'}),
+      skipShift:()=>this.setState(s=>({shiftIdx:s.shiftIdx+1})),
+      acceptShift:()=>this.setState(s=>({shiftIdx:s.shiftIdx+1})),
+      tabs,matchShifts,card,schedule,creds,skills
+    };
+  }
+}
+</script>
+</body>
+</html>

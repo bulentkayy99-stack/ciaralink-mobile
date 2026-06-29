@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { margin:0; font-family:'Inter',sans-serif; background:#f0f0ee; }
+    @keyframes fade-in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    code { font-family:'IBM Plex Mono',monospace; font-size:12px; background:#f0f4f2; padding:2px 6px; border-radius:5px; color:#0b6b60; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#f0f0ee;display:flex;flex-direction:column">
+
+  <!-- Top bar -->
+  <header style="position:sticky;top:0;z-index:50;background:#0c2622;display:flex;align-items:center;gap:12px;padding:0 28px;height:54px;border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 4v4c0 3.3 2.6 5.7 6 6.5 3.4-.8 6-3.2 6-6.5V4L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 8l2 2 3-3" stroke="#7ce0d2" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span style="font-size:14px;font-weight:800;color:#f4faf8">CiaraLink</span>
+    <span style="color:#2e5a52;font-size:13px">/</span>
+    <span style="font-size:13px;color:#9dcdc8;font-weight:600">Production Backend Architecture</span>
+    <div style="flex:1"></div>
+    <a href="CiaraLink Security Checklist.dc.html" style="padding:6px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#9dcdc8;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.08)">Security Checklist →</a>
+    <a href="Index.dc.html" style="padding:6px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#9dcdc8;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.08)">← Index</a>
+  </header>
+
+  <div style="display:flex;flex:1;max-width:1280px;margin:0 auto;width:100%;box-sizing:border-box">
+
+    <!-- Sidebar nav -->
+    <nav style="width:220px;flex:0 0 220px;padding:28px 0 28px 20px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto">
+      <sc-for list="{{ navSections }}" as="ns" hint-placeholder-count="7">
+        <div style="margin-bottom:18px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#8aa09a;text-transform:uppercase;margin-bottom:6px;padding-left:8px">{{ ns.title }}</div>
+          <sc-for list="{{ ns.links }}" as="lk" hint-placeholder-count="3">
+            <a href="{{ lk.href }}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;text-decoration:none;color:#41635c;font-size:12.5px;font-weight:600;margin-bottom:2px">
+              <span style="font-size:11px">{{ lk.icon }}</span>{{ lk.label }}
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+
+    <!-- Main content -->
+    <main style="flex:1;min-width:0;padding:28px 32px 80px 20px">
+
+      <!-- Hero -->
+      <div style="background:linear-gradient(135deg,#0c2622 0%,#0e3d34 60%,#0c2622 100%);border-radius:22px;padding:28px 34px;margin-bottom:22px;position:relative;overflow:hidden">
+        <div style="position:absolute;right:-30px;top:-30px;width:180px;height:180px;border-radius:50%;background:rgba(22,184,166,.07)"></div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:.2em;color:#7ce0d2;margin-bottom:8px">CiaraLink · PRODUCTION BACKEND PLAN · JUNE 2026</div>
+        <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:10px">Production Backend<br/><span style="color:#7ce0d2">Architecture Plan</span></div>
+        <div style="font-size:13.5px;color:#9dcdc8;line-height:1.7;max-width:640px;margin-bottom:18px">Full specification for the CiaraLink production stack — Supabase auth, PostgreSQL schema, Row-Level Security policies, private file storage, Edge Function APIs, audit logging, and a 4-phase delivery roadmap. This document is the engineering brief to move CiaraLink from frontend prototype to a secure production platform.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <sc-for list="{{ stackBadges }}" as="b" hint-placeholder-count="5">
+            <div style="padding:6px 14px;border-radius:10px;background:rgba(22,184,166,.15);border:1px solid rgba(22,184,166,.25);font-size:12px;font-weight:700;color:#7ce0d2">{{ b }}</div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 1: Stack ─── -->
+      <div id="stack" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">01 · Recommended Production Stack</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <sc-for list="{{ stackCards }}" as="sc2" hint-placeholder-count="6">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;animation:fade-in .2s ease both">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="width:36px;height:36px;border-radius:11px;flex:0 0 36px;background:{{ sc2.iconBg }};display:flex;align-items:center;justify-content:center;font-size:17px">{{ sc2.icon }}</div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:800;color:#14302b">{{ sc2.name }}</div>
+                  <div style="font-size:11px;color:#8aa09a;font-weight:600">{{ sc2.role }}</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#41635c;line-height:1.6">{{ sc2.desc }}</div>
+              <div style="margin-top:10px;font-size:11px;font-weight:700;color:{{ sc2.altFg }};background:{{ sc2.altBg }};padding:4px 10px;border-radius:7px;display:inline-block">{{ sc2.alt }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 2: Schema ─── -->
+      <div id="schema" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">02 · Database Schema</div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden;margin-bottom:12px">
+          <div style="padding:14px 20px;background:#f7faf9;border-bottom:1px solid #e7ece9;display:flex;align-items:center;gap:10px">
+            <span style="font-size:13px;font-weight:800;color:#14302b">Table Groups</span>
+            <span style="font-size:12px;color:#6c7f79">— click a table to expand columns</span>
+          </div>
+          <div style="padding:16px 20px">
+            <sc-for list="{{ tableGroups }}" as="tg" hint-placeholder-count="5">
+              <div style="margin-bottom:18px">
+                <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:{{ tg.labelFg }};background:{{ tg.labelBg }};padding:3px 10px;border-radius:7px;display:inline-block;margin-bottom:10px">{{ tg.name }}</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <sc-for list="{{ tg.tables }}" as="tbl" hint-placeholder-count="3">
+                    <div style="border:1px solid #e7ece9;border-radius:12px;overflow:hidden">
+                      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fafbfa;cursor:pointer" onClick="{{ tbl.toggle }}">
+                        <code>{{ tbl.name }}</code>
+                        <span style="font-size:12px;color:#6c7f79;flex:1">{{ tbl.desc }}</span>
+                        <span style="font-size:11px;color:#8aa09a;font-weight:700">{{ tbl.colCount }} cols</span>
+                        <span style="font-size:13px;color:#8aa09a">{{ tbl.arrow }}</span>
+                      </div>
+                      <sc-if value="{{ tbl.open }}" hint-placeholder-val="{{ false }}">
+                        <div style="padding:10px 14px;border-top:1px solid #f0f4f2;display:flex;flex-wrap:wrap;gap:6px">
+                          <sc-for list="{{ tbl.cols }}" as="col" hint-placeholder-count="6">
+                            <div style="background:#f0f4f2;border-radius:8px;padding:4px 10px;display:flex;align-items:center;gap:6px">
+                              <code style="background:none;padding:0;color:#14302b;font-size:11.5px">{{ col.name }}</code>
+                              <span style="font-size:10.5px;color:#8aa09a">{{ col.type }}</span>
+                              <sc-if value="{{ col.pk }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:800;color:#d97706;background:#fef3c7;padding:1px 5px;border-radius:4px">PK</span></sc-if>
+                              <sc-if value="{{ col.fk }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:800;color:#2563eb;background:#dbeafe;padding:1px 5px;border-radius:4px">FK</span></sc-if>
+                              <sc-if value="{{ col.rls }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:800;color:#0b6b60;background:#e7f4f1;padding:1px 5px;border-radius:4px">RLS</span></sc-if>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 3: RLS ─── -->
+      <div id="rls" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">03 · Row-Level Security Policy Matrix</div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden">
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;min-width:800px">
+              <thead>
+                <tr style="background:#f7faf9;border-bottom:2px solid #e7ece9">
+                  <th style="padding:10px 14px;text-align:left;font-size:11.5px;font-weight:800;color:#14302b;white-space:nowrap;min-width:140px">Table</th>
+                  <sc-for list="{{ rlsRoles }}" as="rr" hint-placeholder-count="7">
+                    <th style="padding:10px 10px;text-align:center;font-size:10.5px;font-weight:800;color:#14302b;white-space:nowrap">{{ rr }}</th>
+                  </sc-for>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ rlsRows }}" as="row" hint-placeholder-count="12">
+                  <tr style="border-bottom:1px solid #f0f4f2">
+                    <td style="padding:9px 14px"><code>{{ row.table }}</code></td>
+                    <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="7">
+                      <td style="padding:9px 10px;text-align:center">
+                        <span style="font-size:11px;font-weight:700;color:{{ cell.fg }};background:{{ cell.bg }};padding:2px 8px;border-radius:6px;white-space:nowrap">{{ cell.label }}</span>
+                      </td>
+                    </sc-for>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 16px;background:#f7faf9;border-top:1px solid #e7ece9;display:flex;gap:16px;flex-wrap:wrap">
+            <sc-for list="{{ rlsLegend }}" as="lg" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;font-weight:700;color:{{ lg.fg }};background:{{ lg.bg }};padding:2px 8px;border-radius:6px">{{ lg.label }}</span>
+                <span style="font-size:11.5px;color:#6c7f79">{{ lg.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 4: Storage ─── -->
+      <div id="storage" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">04 · Secure File Storage</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <sc-for list="{{ buckets }}" as="bk" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ bk.iconBg }};display:flex;align-items:center;justify-content:center;font-size:16px">{{ bk.icon }}</div>
+                <div>
+                  <code style="font-size:12.5px;color:#14302b">{{ bk.name }}</code>
+                  <div style="font-size:10.5px;color:#8aa09a;font-weight:600;margin-top:1px">{{ bk.visibility }}</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#41635c;margin-bottom:10px;line-height:1.6">{{ bk.desc }}</div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <sc-for list="{{ bk.rules }}" as="r" hint-placeholder-count="3">
+                  <div style="font-size:11.5px;color:#6c7f79;display:flex;gap:6px;align-items:flex-start"><span style="color:#16b8a6;font-weight:800">→</span> {{ r }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 20px">
+          <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:12px">Document Permission Flow</div>
+          <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap">
+            <sc-for list="{{ docFlow }}" as="df" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:0">
+                <div style="background:{{ df.bg }};border:1.5px solid {{ df.bdr }};border-radius:12px;padding:10px 16px;text-align:center;min-width:110px">
+                  <div style="font-size:11px;font-weight:800;color:{{ df.fg }}">{{ df.step }}</div>
+                  <div style="font-size:10.5px;color:#6c7f79;margin-top:2px">{{ df.label }}</div>
+                </div>
+                <sc-if value="{{ df.hasArrow }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:16px;color:#d0d8d4;padding:0 6px">→</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 5: API Functions ─── -->
+      <div id="api" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">05 · Edge Function API Plan</div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden">
+          <sc-for list="{{ apiGroups }}" as="ag" hint-placeholder-count="8">
+            <div style="border-bottom:1px solid #f0f4f2">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:#fafbfa;cursor:pointer" onClick="{{ ag.toggle }}">
+                <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ ag.iconBg }};display:flex;align-items:center;justify-content:center;font-size:13px">{{ ag.icon }}</div>
+                <code style="font-size:13px;color:#0b6b60">{{ ag.prefix }}</code>
+                <span style="font-size:12.5px;color:#6c7f79;flex:1">{{ ag.desc }}</span>
+                <span style="font-size:11px;color:#8aa09a;font-weight:700">{{ ag.count }} endpoints</span>
+                <span style="font-size:13px;color:#8aa09a">{{ ag.arrow }}</span>
+              </div>
+              <sc-if value="{{ ag.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:10px 18px 14px;display:flex;flex-direction:column;gap:5px">
+                  <sc-for list="{{ ag.endpoints }}" as="ep" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:7px 10px;background:#f7faf9;border-radius:9px">
+                      <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;background:{{ ep.methodBg }};color:{{ ep.methodFg }};margin-top:1px;flex:0 0 auto">{{ ep.method }}</span>
+                      <code style="font-size:12px;color:#14302b;flex:0 0 auto">{{ ep.path }}</code>
+                      <span style="font-size:12px;color:#6c7f79;flex:1">{{ ep.note }}</span>
+                      <span style="font-size:10.5px;font-weight:700;color:{{ ep.authFg }};background:{{ ep.authBg }};padding:1px 7px;border-radius:5px;flex:0 0 auto">{{ ep.auth }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 6: Audit Log ─── -->
+      <div id="audit" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">06 · Audit Log Design</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:20px">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:12px">audit_logs table schema</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <sc-for list="{{ auditCols }}" as="ac" hint-placeholder-count="12">
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;background:#f7faf9">
+                  <code style="font-size:12px;color:#0b6b60;min-width:160px">{{ ac.col }}</code>
+                  <span style="font-size:11.5px;color:#8aa09a;min-width:90px">{{ ac.type }}</span>
+                  <span style="font-size:11.5px;color:#41635c">{{ ac.note }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:20px">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:12px">Events to log</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <sc-for list="{{ auditEvents }}" as="ae" hint-placeholder-count="20">
+                <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #f7faf9">
+                  <span style="font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:5px;background:{{ ae.bg }};color:{{ ae.fg }};min-width:60px;text-align:center">{{ ae.cat }}</span>
+                  <span style="font-size:12.5px;color:#41635c">{{ ae.event }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 7: Roadmap ─── -->
+      <div id="roadmap" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">07 · Production Delivery Roadmap</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ phases }}" as="ph" hint-placeholder-count="4">
+            <div style="background:#fff;border:1.5px solid {{ ph.bdr }};border-radius:20px;overflow:hidden">
+              <div style="background:{{ ph.headerBg }};padding:18px 24px;display:flex;align-items:center;gap:16px">
+                <div style="width:48px;height:48px;border-radius:14px;flex:0 0 48px;background:{{ ph.iconBg }};display:flex;align-items:center;justify-content:center;font-size:20px">{{ ph.icon }}</div>
+                <div style="flex:1">
+                  <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:{{ ph.labelFg }}">{{ ph.label }}</div>
+                  <div style="font-size:16px;font-weight:800;color:#14302b;margin-top:2px">{{ ph.title }}</div>
+                  <div style="font-size:12.5px;color:#41635c;margin-top:3px">{{ ph.sub }}</div>
+                </div>
+                <div style="text-align:right;flex:0 0 auto">
+                  <div style="font-size:12px;font-weight:700;color:{{ ph.labelFg }}">{{ ph.duration }}</div>
+                  <div style="font-size:11px;color:#8aa09a;margin-top:2px">{{ ph.deliverables }} deliverables</div>
+                </div>
+              </div>
+              <div style="padding:16px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+                <sc-for list="{{ ph.tasks }}" as="tk" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f7faf9;border-radius:10px">
+                    <div style="width:18px;height:18px;border-radius:5px;flex:0 0 18px;background:{{ ph.iconBg }};display:flex;align-items:center;justify-content:center;margin-top:1px">
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="{{ ph.checkFg }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span style="font-size:12px;color:#41635c;line-height:1.5">{{ tk }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:10px 24px 14px;display:flex;gap:8px;flex-wrap:wrap">
+                <sc-for list="{{ ph.gates }}" as="gt" hint-placeholder-count="3">
+                  <div style="font-size:11px;font-weight:700;color:{{ ph.labelFg }};background:{{ ph.gateBg }};border:1px solid {{ ph.bdr }};padding:3px 10px;border-radius:7px">🔒 Gate: {{ gt }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─── SECTION 8: Security Rules ─── -->
+      <div id="security" style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#8aa09a;text-transform:uppercase;margin-bottom:12px">08 · Core Security Rules</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <sc-for list="{{ secRules }}" as="sr" hint-placeholder-count="9">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:16px 18px">
+              <div style="font-size:18px;margin-bottom:8px">{{ sr.icon }}</div>
+              <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:5px">{{ sr.title }}</div>
+              <div style="font-size:12px;color:#41635c;line-height:1.6">{{ sr.body }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Final statement -->
+      <div style="background:#0c2622;border-radius:18px;padding:22px 28px">
+        <div style="font-size:13.5px;color:#eafaf8;font-weight:700;font-style:italic;line-height:1.65">"Make CiaraLink secure by design — not patched later. This architecture plan is the engineering brief. Production launch remains blocked until every phase is complete, tested, and evidenced."</div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <a href="CiaraLink Security Checklist.dc.html" style="padding:8px 16px;border-radius:10px;background:rgba(22,184,166,.2);border:1px solid rgba(22,184,166,.3);color:#7ce0d2;font-size:12.5px;font-weight:700;text-decoration:none">Security Checklist (25 items) →</a>
+          <a href="Launch Readiness.dc.html" style="padding:8px 16px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#9dcdc8;font-size:12.5px;font-weight:700;text-decoration:none">Launch Readiness Report →</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  state = { openTables: {}, openApis: {} };
+
+  col(name, type, flags) {
+    return { name, type, pk: !!(flags&&flags.pk), fk: !!(flags&&flags.fk), rls: !!(flags&&flags.rls) };
+  }
+
+  renderVals() {
+    const { openTables, openApis } = this.state;
+    const toggleTable = (id) => () => this.setState(s => ({ openTables: { ...s.openTables, [id]: !s.openTables[id] } }));
+    const toggleApi = (id) => () => this.setState(s => ({ openApis: { ...s.openApis, [id]: !s.openApis[id] } }));
+    const C = this.col.bind(this);
+
+    const navSections = [
+      { title: 'Architecture', links: [
+        { href: '#stack', icon: '🏗', label: 'Production Stack' },
+        { href: '#schema', icon: '🗄', label: 'Database Schema' },
+        { href: '#rls', icon: '🔐', label: 'RLS Policies' },
+      ]},
+      { title: 'Infrastructure', links: [
+        { href: '#storage', icon: '📁', label: 'File Storage' },
+        { href: '#api', icon: '⚡', label: 'API Functions' },
+        { href: '#audit', icon: '📋', label: 'Audit Logging' },
+      ]},
+      { title: 'Delivery', links: [
+        { href: '#roadmap', icon: '🗺', label: 'Roadmap' },
+        { href: '#security', icon: '🛡', label: 'Security Rules' },
+      ]},
+    ];
+
+    const stackBadges = ['Supabase', 'PostgreSQL 15', 'Row-Level Security', 'Edge Functions', 'Supabase Storage', 'TypeScript APIs'];
+
+    const stackCards = [
+      { name: 'Supabase Auth', role: 'Authentication', icon: '🔑', iconBg: '#fde8ed', desc: 'Email/password login, invite-only accounts, JWT sessions, MFA support, password reset, session expiry. No self-registration.', alt: 'Alt: Auth0, Clerk', altFg: '#6c7f79', altBg: '#f0f4f2' },
+      { name: 'PostgreSQL 15', role: 'Database', icon: '🗄', iconBg: '#dbeafe', desc: 'Primary data store. Encrypted at rest. Strict schema with typed columns. All sensitive tables have RLS enabled. Audit log append-only.', alt: 'Supabase-hosted', altFg: '#1e40af', altBg: '#dbeafe' },
+      { name: 'Row-Level Security', role: 'Access Control', icon: '🔐', iconBg: '#e7f4f1', desc: 'Postgres RLS policies enforce org-scoped access on every sensitive table. No bypassing via URL or API. Tested adversarially before production.', alt: 'Required — no alternative', altFg: '#0b6b60', altBg: '#e7f4f1' },
+      { name: 'Supabase Storage', role: 'File Storage', icon: '📁', iconBg: '#ede9fe', desc: 'Private buckets with signed URLs (15–60 min expiry). File type validation, malware scanning, per-file permission records. No public document URLs.', alt: 'Alt: AWS S3, GCS', altFg: '#5b21b6', altBg: '#ede9fe' },
+      { name: 'Edge Functions', role: 'API Layer', icon: '⚡', iconBg: '#fef3c7', desc: 'Deno/TypeScript server-side functions for auth actions, AI classification, file processing, consent enforcement, audit writes. No secrets in frontend.', alt: 'Alt: Next.js API, Hono', altFg: '#92400e', altBg: '#fef3c7' },
+      { name: 'Monitoring', role: 'Observability', icon: '📊', iconBg: '#f0f4f2', desc: 'Supabase dashboard metrics + Sentry for errors + uptime monitoring. Alerts on failed logins, RLS violations, storage errors, high latency.', alt: 'Alt: Datadog, LogRocket', altFg: '#6c7f79', altBg: '#f0f4f2' },
+    ];
+
+    const mkTable = (id, name, desc, cols) => ({
+      name, desc, colCount: cols.length, cols,
+      open: !!openTables[id], arrow: openTables[id] ? '▲' : '▼',
+      toggle: toggleTable(id),
+    });
+
+    const tableGroups = [
+      { name: 'Identity & Organisations', labelFg: '#1e40af', labelBg: '#dbeafe', tables: [
+        mkTable('users', 'users', 'One row per authenticated user', [C('id','uuid',{pk:1}),C('email','text',{rls:1}),C('role','text',{rls:1}),C('status','text',{}),C('mfa_enabled','boolean',{}),C('invited_by','uuid',{fk:1}),C('created_at','timestamptz',{}),C('last_login','timestamptz',{})]),
+        mkTable('user_profiles', 'user_profiles', 'Extended user info', [C('id','uuid',{pk:1}),C('user_id','uuid',{fk:1,rls:1}),C('full_name','text',{}),C('phone','text',{}),C('avatar_url','text',{}),C('timezone','text',{}),C('updated_at','timestamptz',{})]),
+        mkTable('organisations', 'organisations', 'Provider, SC, allied health, sole trader orgs', [C('id','uuid',{pk:1}),C('name','text',{}),C('type','text',{}),C('abn','text',{}),C('status','text',{}),C('created_at','timestamptz',{}),C('created_by','uuid',{fk:1})]),
+        mkTable('organisation_members', 'organisation_members', 'User ↔ org membership with role', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('user_id','uuid',{fk:1,rls:1}),C('role','text',{rls:1}),C('invited_by','uuid',{fk:1}),C('joined_at','timestamptz',{}),C('status','text',{})]),
+      ]},
+      { name: 'Participants & Care', labelFg: '#0b6b60', labelBg: '#e7f4f1', tables: [
+        mkTable('participants', 'participants', 'Core participant record', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('ndis_number','text',{rls:1}),C('full_name','text',{}),C('dob','date',{}),C('status','text',{}),C('plan_start','date',{}),C('plan_end','date',{}),C('created_by','uuid',{fk:1}),C('created_at','timestamptz',{}),C('archived_at','timestamptz',{})]),
+        mkTable('participant_contacts', 'participant_contacts', 'Emergency and family contacts', [C('id','uuid',{pk:1}),C('participant_id','uuid',{fk:1,rls:1}),C('name','text',{}),C('relationship','text',{}),C('phone','text',{}),C('email','text',{}),C('is_primary','boolean',{})]),
+        mkTable('participant_representatives', 'participant_representatives', 'Guardians and nominees', [C('id','uuid',{pk:1}),C('participant_id','uuid',{fk:1,rls:1}),C('user_id','uuid',{fk:1,rls:1}),C('type','text',{}),C('consent_given','boolean',{}),C('consent_date','timestamptz',{})]),
+        mkTable('care_team_relationships', 'care_team_relationships', 'Who is on the participant care team', [C('id','uuid',{pk:1}),C('participant_id','uuid',{fk:1,rls:1}),C('user_id','uuid',{fk:1,rls:1}),C('role','text',{rls:1}),C('org_id','uuid',{fk:1,rls:1}),C('status','text',{}),C('consent_given','boolean',{rls:1})]),
+        mkTable('provider_participant_links', 'provider_participant_links', 'Provider org ↔ participant links', [C('id','uuid',{pk:1}),C('provider_org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('status','text',{}),C('linked_by','uuid',{fk:1}),C('linked_at','timestamptz',{})]),
+      ]},
+      { name: 'Workers & Shifts', labelFg: '#5b21b6', labelBg: '#ede9fe', tables: [
+        mkTable('worker_profiles', 'worker_profiles', 'Extended worker record', [C('id','uuid',{pk:1}),C('user_id','uuid',{fk:1,rls:1}),C('org_id','uuid',{fk:1,rls:1}),C('abn','text',{}),C('employment_type','text',{}),C('ndis_check_status','text',{}),C('status','text',{})]),
+        mkTable('worker_credentials', 'worker_credentials', 'WWCC, police check, First Aid, insurance', [C('id','uuid',{pk:1}),C('worker_id','uuid',{fk:1,rls:1}),C('type','text',{}),C('number','text',{}),C('expiry','date',{}),C('verified','boolean',{}),C('doc_id','uuid',{fk:1})]),
+        mkTable('shifts', 'shifts', 'Scheduled support shifts', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('worker_id','uuid',{fk:1,rls:1}),C('start_time','timestamptz',{}),C('end_time','timestamptz',{}),C('status','text',{}),C('created_by','uuid',{fk:1}),C('created_at','timestamptz',{})]),
+        mkTable('shift_assignments', 'shift_assignments', 'Offered and accepted shift allocations', [C('id','uuid',{pk:1}),C('shift_id','uuid',{fk:1,rls:1}),C('worker_id','uuid',{fk:1,rls:1}),C('status','text',{}),C('offered_at','timestamptz',{}),C('accepted_at','timestamptz',{})]),
+      ]},
+      { name: 'Agreements & Referrals', labelFg: '#92400e', labelBg: '#fef3c7', tables: [
+        mkTable('referrals', 'referrals', 'Participant referrals between orgs', [C('id','uuid',{pk:1}),C('from_org_id','uuid',{fk:1,rls:1}),C('to_org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('type','text',{}),C('status','text',{}),C('created_by','uuid',{fk:1}),C('created_at','timestamptz',{})]),
+        mkTable('service_agreements', 'service_agreements', 'NDIS service agreements', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('status','text',{}),C('start_date','date',{}),C('end_date','date',{}),C('signed_at','timestamptz',{}),C('signed_by','uuid',{fk:1})]),
+        mkTable('worker_agreements', 'worker_agreements', 'Worker employment/contractor agreements', [C('id','uuid',{pk:1}),C('worker_id','uuid',{fk:1,rls:1}),C('org_id','uuid',{fk:1,rls:1}),C('type','text',{}),C('status','text',{}),C('signed_at','timestamptz',{})]),
+      ]},
+      { name: 'Documents & Consent', labelFg: '#c0445c', labelBg: '#fbe9ed', tables: [
+        mkTable('documents', 'documents', 'All uploaded documents', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('uploaded_by','uuid',{fk:1,rls:1}),C('type','text',{}),C('title','text',{}),C('storage_path','text',{}),C('size_bytes','integer',{}),C('mime_type','text',{}),C('status','text',{}),C('created_at','timestamptz',{})]),
+        mkTable('document_permissions', 'document_permissions', 'Who can access each document', [C('id','uuid',{pk:1}),C('document_id','uuid',{fk:1,rls:1}),C('user_id','uuid',{fk:1,rls:1}),C('org_id','uuid',{fk:1,rls:1}),C('permission','text',{}),C('granted_by','uuid',{fk:1}),C('consent_id','uuid',{fk:1}),C('expires_at','timestamptz',{})]),
+        mkTable('consent_records', 'consent_records', 'Participant consent grants and revocations', [C('id','uuid',{pk:1}),C('participant_id','uuid',{fk:1,rls:1}),C('granted_by','uuid',{fk:1}),C('scope','text',{}),C('expires_at','timestamptz',{}),C('revoked_at','timestamptz',{}),C('created_at','timestamptz',{})]),
+      ]},
+      { name: 'Messaging & Tasks', labelFg: '#1e40af', labelBg: '#dbeafe', tables: [
+        mkTable('message_threads', 'message_threads', 'Conversation threads', [C('id','uuid',{pk:1}),C('participant_id','uuid',{fk:1,rls:1}),C('org_id','uuid',{fk:1,rls:1}),C('subject','text',{}),C('type','text',{}),C('created_by','uuid',{fk:1}),C('created_at','timestamptz',{})]),
+        mkTable('messages', 'messages', 'Individual messages in threads', [C('id','uuid',{pk:1}),C('thread_id','uuid',{fk:1,rls:1}),C('sender_id','uuid',{fk:1,rls:1}),C('body','text',{}),C('type','text',{}),C('created_at','timestamptz',{}),C('deleted_at','timestamptz',{})]),
+        mkTable('tasks', 'tasks', 'Action items and follow-ups', [C('id','uuid',{pk:1}),C('org_id','uuid',{fk:1,rls:1}),C('participant_id','uuid',{fk:1,rls:1}),C('assigned_to','uuid',{fk:1,rls:1}),C('created_by','uuid',{fk:1}),C('title','text',{}),C('type','text',{}),C('status','text',{}),C('due_date','date',{}),C('created_at','timestamptz',{})]),
+        mkTable('notifications', 'notifications', 'In-app notifications', [C('id','uuid',{pk:1}),C('user_id','uuid',{fk:1,rls:1}),C('type','text',{}),C('title','text',{}),C('body','text',{}),C('reference_id','uuid',{}),C('reference_type','text',{}),C('read_at','timestamptz',{})]),
+      ]},
+      { name: 'Audit & Logging', labelFg: '#0b6b60', labelBg: '#e7f4f1', tables: [
+        mkTable('audit_logs', 'audit_logs', 'Tamper-resistant log of all sensitive actions', [C('id','uuid',{pk:1}),C('user_id','uuid',{fk:1}),C('user_role','text',{}),C('org_id','uuid',{fk:1}),C('action','text',{}),C('record_type','text',{}),C('record_id','uuid',{}),C('participant_id','uuid',{}),C('result','text',{}),C('ip_address','text',{}),C('device','text',{}),C('created_at','timestamptz',{})]),
+        mkTable('file_access_logs', 'file_access_logs', 'Every file view, download and upload', [C('id','uuid',{pk:1}),C('document_id','uuid',{fk:1}),C('user_id','uuid',{fk:1}),C('action','text',{}),C('participant_id','uuid',{}),C('ip_address','text',{}),C('created_at','timestamptz',{})]),
+      ]},
+    ];
+
+    const rlsRoles = ['Platform\nAdmin','Provider\nOwner/Admin','Support\nWorker','SC','Allied\nHealth','Participant','Guardian'];
+    const mkCell = (label, color) => {
+      const map = { 'Full': ['#14302b','#e7f4f1'], 'Org-scoped': ['#0b6b60','#dcfce7'], 'Assigned only': ['#1e40af','#dbeafe'], 'Linked only': ['#5b21b6','#ede9fe'], 'Own only': ['#d97706','#fef3c7'], 'Approved': ['#0b6b60','#e7f4f1'], 'Auth only': ['#92400e','#fef3c7'], 'None': ['#8aa09a','#f0f4f2'] };
+      const [fg, bg] = map[label] || map['None'];
+      return { label, fg, bg };
+    };
+    const rlsRows = [
+      { table: 'participants', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Assigned only'),mkCell('Linked only'),mkCell('Linked only'),mkCell('Own only'),mkCell('Approved')] },
+      { table: 'documents', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Assigned only'),mkCell('Linked only'),mkCell('Approved'),mkCell('Own only'),mkCell('Approved')] },
+      { table: 'shifts', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Assigned only'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None')] },
+      { table: 'referrals', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('None'),mkCell('Org-scoped'),mkCell('Approved'),mkCell('Own only'),mkCell('Approved')] },
+      { table: 'service_agreements', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('Own only'),mkCell('Approved')] },
+      { table: 'consent_records', cells: [mkCell('Full'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('Own only'),mkCell('Own only')] },
+      { table: 'messages', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Assigned only'),mkCell('Linked only'),mkCell('Linked only'),mkCell('Own only'),mkCell('Approved')] },
+      { table: 'tasks', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Assigned only'),mkCell('Org-scoped'),mkCell('Linked only'),mkCell('Own only'),mkCell('None')] },
+      { table: 'worker_credentials', cells: [mkCell('Full'),mkCell('Org-scoped'),mkCell('Own only'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None')] },
+      { table: 'audit_logs', cells: [mkCell('Full'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None'),mkCell('None')] },
+    ];
+    const rlsLegend = [
+      { label: 'Full', fg: '#14302b', bg: '#e7f4f1', desc: 'All records (audited)' },
+      { label: 'Org-scoped', fg: '#0b6b60', bg: '#dcfce7', desc: 'Own org only' },
+      { label: 'Assigned only', fg: '#1e40af', bg: '#dbeafe', desc: 'Assigned records only' },
+      { label: 'Own only', fg: '#d97706', bg: '#fef3c7', desc: 'Own data only' },
+      { label: 'None', fg: '#8aa09a', bg: '#f0f4f2', desc: 'No access' },
+    ];
+
+    const buckets = [
+      { name: 'participant-documents', visibility: '🔒 Private — signed URLs only', icon: '📄', iconBg: '#fde8ed',
+        desc: 'NDIS plans, service agreements, consent forms, health reports, functional assessments, support plans, risk assessments.',
+        rules: ['Signed URLs expire in 15–60 minutes', 'Permission check via document_permissions table before issuing URL', 'Audit log entry on every download', 'Malware scan on upload via Edge Function'] },
+      { name: 'worker-credentials', visibility: '🔒 Private — org admin only', icon: '🪪', iconBg: '#ede9fe',
+        desc: 'Police checks, WWCC, First Aid, insurance certificates, ABN documents.',
+        rules: ['Only Provider Owner/Admin can view worker credentials', 'Worker can view own credentials only', 'Signed URLs expire in 15 minutes', 'Expiry alerts trigger 30 days before document expires'] },
+      { name: 'organisation-assets', visibility: '🔒 Semi-private — org members', icon: '🏢', iconBg: '#dbeafe',
+        desc: 'Organisation logos, policy templates, public-facing resources, brand assets.',
+        rules: ['Readable by all org members', 'Write restricted to Owner/Admin', 'No participant data in this bucket', 'No signed URL required for org-level assets'] },
+      { name: 'ai-uploads-staging', visibility: '⏳ Temporary — auto-purged 24h', icon: '🤖', iconBg: '#fef3c7',
+        desc: 'Temporary storage for AI File Drop processing. Files moved to participant-documents after classification + permission check.',
+        rules: ['Auto-purged after 24 hours if unprocessed', 'Never directly accessible by user', 'Classification runs server-side — no raw AI prompt in frontend', 'Ask user confirmation before linking to participant record'] },
+    ];
+
+    const docFlow = [
+      { step: 'Upload', label: 'File received', bg: '#f7faf9', bdr: '#e7ece9', fg: '#41635c', hasArrow: true },
+      { step: 'Scan', label: 'Malware check', bg: '#fef3c7', bdr: '#f4d0a0', fg: '#92400e', hasArrow: true },
+      { step: 'Validate', label: 'MIME + size', bg: '#fef3c7', bdr: '#f4d0a0', fg: '#92400e', hasArrow: true },
+      { step: 'Classify', label: 'Server-side AI', bg: '#dbeafe', bdr: '#bfdbfe', fg: '#1e40af', hasArrow: true },
+      { step: 'Confirm', label: 'User approves', bg: '#e7f4f1', bdr: '#b8e8df', fg: '#0b6b60', hasArrow: true },
+      { step: 'Store', label: 'Private bucket', bg: '#e7f4f1', bdr: '#b8e8df', fg: '#0b6b60', hasArrow: true },
+      { step: 'Log', label: 'Audit record', bg: '#f0f4f2', bdr: '#d4dbd8', fg: '#41635c', hasArrow: false },
+    ];
+
+    const mkMethod = (m) => {
+      const map = { GET:['#1e40af','#dbeafe'], POST:['#0b6b60','#e7f4f1'], PUT:['#92400e','#fef3c7'], DELETE:['#c0445c','#fbe9ed'], PATCH:['#5b21b6','#ede9fe'] };
+      const [fg, bg] = map[m] || map.GET;
+      return { method: m, methodFg: fg, methodBg: bg };
+    };
+    const mkAuth = (a) => {
+      const map = { 'JWT required': ['#0b6b60','#e7f4f1'], 'Admin only': ['#c0445c','#fbe9ed'], 'Service role': ['#5b21b6','#ede9fe'] };
+      const [fg, bg] = map[a] || ['#0b6b60','#e7f4f1'];
+      return { auth: a, authFg: fg, authBg: bg };
+    };
+    const ep = (method, path, note, auth) => ({ ...mkMethod(method), path, note, ...mkAuth(auth || 'JWT required') });
+
+    const apiGroups = [
+      { prefix: 'auth/*', desc: 'Authentication and session management', icon: '🔑', iconBg: '#fde8ed', count: 6,
+        open: !!openApis['auth'], arrow: openApis['auth'] ? '▲' : '▼', toggle: toggleApi('auth'),
+        endpoints: [ep('POST','/auth/invite','Invite a user to an organisation'),ep('POST','/auth/accept-invite','Accept invite and set password'),ep('POST','/auth/reset-password','Send password reset link'),ep('POST','/auth/logout','Invalidate session and token'),ep('POST','/auth/mfa/enroll','Enrol TOTP MFA for account'),ep('GET','/auth/sessions','List active sessions for user')] },
+      { prefix: 'participants/*', desc: 'Participant CRUD and care team management', icon: '👤', iconBg: '#e7f4f1', count: 7,
+        open: !!openApis['participants'], arrow: openApis['participants'] ? '▲' : '▼', toggle: toggleApi('participants'),
+        endpoints: [ep('GET','/participants','List org-scoped participants'),ep('GET','/participants/:id','Get participant — RLS enforced'),ep('POST','/participants','Create participant — org_id from JWT'),ep('PUT','/participants/:id','Update participant fields'),ep('GET','/participants/:id/care-team','Get care team with consent status'),ep('POST','/participants/:id/consent','Grant/update consent record'),ep('DELETE','/participants/:id/consent/:cid','Revoke consent — blocks access immediately','Admin only')] },
+      { prefix: 'documents/*', desc: 'Document upload, download URL, sharing and permissions', icon: '📄', iconBg: '#ede9fe', count: 6,
+        open: !!openApis['documents'], arrow: openApis['documents'] ? '▲' : '▼', toggle: toggleApi('documents'),
+        endpoints: [ep('POST','/documents/upload','Upload to private bucket via signed upload URL'),ep('GET','/documents/:id/download-url','Issue signed download URL — permission check first'),ep('POST','/documents/:id/share','Grant document access to user/org'),ep('DELETE','/documents/:id/share/:uid','Revoke document access'),ep('GET','/documents','List documents — RLS enforced'),ep('POST','/ai/classify','Server-side AI classification of uploaded file','Service role')] },
+      { prefix: 'shifts/*', desc: 'Shift creation, assignment and verification', icon: '🕐', iconBg: '#fef3c7', count: 5,
+        open: !!openApis['shifts'], arrow: openApis['shifts'] ? '▲' : '▼', toggle: toggleApi('shifts'),
+        endpoints: [ep('POST','/shifts','Create shift — provider can only assign own participants'),ep('GET','/shifts','List — worker sees assigned only; provider sees org only'),ep('PUT','/shifts/:id','Update shift — logs change + notifies worker'),ep('POST','/shifts/:id/assign','Offer shift to worker'),ep('POST','/shifts/:id/verify','Worker check-in with location + timestamp')] },
+      { prefix: 'messages/*', desc: 'Secure messaging with access control', icon: '💬', iconBg: '#dbeafe', count: 4,
+        open: !!openApis['messages'], arrow: openApis['messages'] ? '▲' : '▼', toggle: toggleApi('messages'),
+        endpoints: [ep('GET','/messages/threads','List threads — connected users only'),ep('GET','/messages/threads/:id','Get thread messages — RLS enforced'),ep('POST','/messages','Send message — validates recipient connection'),ep('POST','/messages/threads','Create thread — linked to participant/shift/referral')] },
+      { prefix: 'referrals/*', desc: 'Referrals between orgs with participant consent', icon: '📬', iconBg: '#fef3c7', count: 3,
+        open: !!openApis['referrals'], arrow: openApis['referrals'] ? '▲' : '▼', toggle: toggleApi('referrals'),
+        endpoints: [ep('POST','/referrals','Create referral — validates consent + org link'),ep('GET','/referrals','List — org-scoped'),ep('PATCH','/referrals/:id/status','Update referral stage')] },
+      { prefix: 'audit/*', desc: 'Audit log queries — admin only', icon: '📋', iconBg: '#e7f4f1', count: 2,
+        open: !!openApis['audit'], arrow: openApis['audit'] ? '▲' : '▼', toggle: toggleApi('audit'),
+        endpoints: [ep('GET','/audit','Query audit log — filter by user/action/date','Admin only'),ep('GET','/audit/participant/:id','All events for a participant','Admin only')] },
+    ];
+
+    const auditCols = [
+      { col: 'id', type: 'uuid PK', note: 'Immutable — never updated' },
+      { col: 'user_id', type: 'uuid FK', note: 'Null only for system actions' },
+      { col: 'user_role', type: 'text', note: 'Snapshot of role at time of action' },
+      { col: 'org_id', type: 'uuid FK', note: 'Organisation at time of action' },
+      { col: 'action', type: 'text', note: 'e.g. PARTICIPANT_VIEWED, DOC_DOWNLOADED' },
+      { col: 'record_type', type: 'text', note: 'e.g. participant, document, shift' },
+      { col: 'record_id', type: 'uuid', note: 'ID of the affected record' },
+      { col: 'participant_id', type: 'uuid', note: 'Set when action involves a participant' },
+      { col: 'result', type: 'text', note: 'success | denied | error' },
+      { col: 'ip_address', type: 'text', note: 'From request headers' },
+      { col: 'device', type: 'text', note: 'User-agent parsed summary' },
+      { col: 'created_at', type: 'timestamptz', note: 'Immutable — set by DB trigger' },
+    ];
+
+    const auditEvents = [
+      { cat: 'Auth', event: 'Login / logout / failed login', bg: '#dbeafe', fg: '#1e40af' },
+      { cat: 'Auth', event: 'Password reset requested', bg: '#dbeafe', fg: '#1e40af' },
+      { cat: 'Participant', event: 'Participant record viewed', bg: '#e7f4f1', fg: '#0b6b60' },
+      { cat: 'Participant', event: 'Participant record updated', bg: '#e7f4f1', fg: '#0b6b60' },
+      { cat: 'Document', event: 'Document uploaded', bg: '#ede9fe', fg: '#5b21b6' },
+      { cat: 'Document', event: 'Document viewed / downloaded', bg: '#ede9fe', fg: '#5b21b6' },
+      { cat: 'Document', event: 'Document shared / unshared', bg: '#ede9fe', fg: '#5b21b6' },
+      { cat: 'Consent', event: 'Consent granted / revoked', bg: '#fef3c7', fg: '#92400e' },
+      { cat: 'Shift', event: 'Shift created / updated', bg: '#fbe9ed', fg: '#c0445c' },
+      { cat: 'Shift', event: 'Worker assigned to shift', bg: '#fbe9ed', fg: '#c0445c' },
+      { cat: 'Comms', event: 'Message sent / referral sent', bg: '#dbeafe', fg: '#1e40af' },
+      { cat: 'Comms', event: 'Agreement sent / signed', bg: '#dbeafe', fg: '#1e40af' },
+      { cat: 'Access', event: 'Access denied (RLS violation)', bg: '#fde8ed', fg: '#e0556e' },
+      { cat: 'Admin', event: 'Admin action / org change', bg: '#fde8ed', fg: '#e0556e' },
+      { cat: 'Data', event: 'Data export / deletion request', bg: '#f0f4f2', fg: '#41635c' },
+    ];
+
+    const phases = [
+      { label: 'PHASE 1 · MONTHS 1–2', title: 'Authentication, Database & RLS', icon: '🔑',
+        sub: 'The foundation — no other phase can start without this',
+        duration: '6–8 weeks', deliverables: 10, bdr: '#fca5b8', headerBg: '#fff8f9',
+        iconBg: '#fde8ed', labelFg: '#c0445c', checkFg: '#e0556e', gateBg: '#fde8ed',
+        tasks: ['Set up Supabase project (production + staging)', 'Implement Supabase Auth — invite-only, email verify, MFA', 'Build full database schema (25 tables)', 'Enable RLS on all sensitive tables', 'Write and test RLS policies per role', 'Replace localStorage with real DB calls', 'Implement session expiry + secure logout', 'Remove fake role switching from production build', 'Set up environment variables (no secrets in code)', 'Adversarial RLS testing — attempt cross-org access'],
+        gates: ['Auth end-to-end tested', 'RLS blocks all cross-org reads', 'No fake role switch in production'] },
+      { label: 'PHASE 2 · MONTHS 2–3', title: 'Documents, Consent & File Storage', icon: '📄',
+        sub: 'Secure sensitive files and enforce consent at the data layer',
+        duration: '4–6 weeks', deliverables: 8, bdr: '#c4b5fd', headerBg: '#fdfcff',
+        iconBg: '#ede9fe', labelFg: '#5b21b6', checkFg: '#7c3aed', gateBg: '#ede9fe',
+        tasks: ['Set up Supabase Storage private buckets', 'Implement signed URL generation with expiry', 'Build document upload Edge Function (scan + validate + classify)', 'Build document_permissions table + access checks', 'Implement consent_records table + revoke logic', 'Wire consent revoke to block document access immediately', 'AI File Drop: rebuild with server-side classification', 'Audit log for every file upload, view and download'],
+        gates: ['No public document URLs exist', 'Consent revoke blocks access within 1 request', 'Audit log verified on upload/download'] },
+      { label: 'PHASE 3 · MONTHS 3–4', title: 'Messaging, Shifts, Referrals & APIs', icon: '⚡',
+        sub: 'Secure all transactional workflows with server-side permission checks',
+        duration: '4–6 weeks', deliverables: 8, bdr: '#a7f3d0', headerBg: '#f6fdfb',
+        iconBg: '#e7f4f1', labelFg: '#0b6b60', checkFg: '#16b8a6', gateBg: '#e7f4f1',
+        tasks: ['Build message threads with connected-users-only access', 'Secure shift creation (org-scoped, participant-linked)', 'Secure shift assignment (worker sees assigned only)', 'Build referral API with consent + org validation', 'Implement rate limiting on all API endpoints', 'Add CORS and CSRF protection', 'Server-side input validation on all endpoints', 'API error handling — no secrets in error responses'],
+        gates: ['Workers cannot see unassigned participants', 'Rate limiting verified under load', 'Input validation passes OWASP test cases'] },
+      { label: 'PHASE 4 · MONTHS 4–5', title: 'Audit, Security Review, Privacy & Legal', icon: '🛡',
+        sub: 'Final hardening, legal pages, penetration test, and production launch gate',
+        duration: '3–4 weeks', deliverables: 8, bdr: '#fde68a', headerBg: '#fffdf5',
+        iconBg: '#fef3c7', labelFg: '#92400e', checkFg: '#d97706', gateBg: '#fef3c7',
+        tasks: ['Activate audit_logs on all sensitive actions', 'Verify audit logs are tamper-resistant (append-only, no delete)', 'Commission independent penetration test or security review', 'Publish Privacy Policy, Terms of Use, consent and data rights pages', 'Add AI disclaimer to all Hugo-assisted screens', 'Configure automated backups + test restore', 'Set up breach detection + incident response plan', 'Pass production launch gate — all 13 items checked'],
+        gates: ['Penetration test passed or scheduled', 'Legal pages live and reviewed', 'All 25 security checklist items complete'] },
+    ];
+
+    const secRules = [
+      { icon: '🚫', title: 'Never trust the frontend', body: 'Every access decision happens server-side. The frontend is UX only — never a security boundary.' },
+      { icon: '🔐', title: 'RLS is the last line of defence', body: 'Even if an API is misconfigured, Postgres RLS should block unauthorised data access at the database level.' },
+      { icon: '📝', title: 'Audit everything sensitive', body: 'Every document view, consent change, participant access and failed login must produce an audit log entry.' },
+      { icon: '🔑', title: 'Secrets never in frontend', body: 'No API keys, service role keys or JWT secrets in source code, .env files committed to git, or browser localStorage.' },
+      { icon: '⏱', title: 'Signed URLs expire fast', body: 'Document download links expire in 15–60 minutes. Never issue permanent links to private participant documents.' },
+      { icon: '🛑', title: 'Consent revoke = immediate block', body: 'When consent is revoked, access is blocked on the next request — not at next login or cache expiry.' },
+      { icon: '📦', title: 'Environments stay separate', body: 'Dev uses demo data only. Staging mirrors production. Production gets real users only after all 4 phases pass.' },
+      { icon: '🔄', title: 'Backups tested before go-live', body: 'A backup that has never been restored is not a backup. Full restore must be verified before production launch.' },
+      { icon: '⚖️', title: 'Privacy by design, not afterthought', body: 'Data minimisation, purpose limitation and consent enforcement are built into the schema — not bolted on later.' },
+    ];
+
+    return { navSections, stackBadges, stackCards, tableGroups, rlsRoles, rlsRows, rlsLegend, buckets, docFlow, apiGroups, auditCols, auditEvents, phases, secRules };
+  }
+}
+</script>
+</body>
+</html>

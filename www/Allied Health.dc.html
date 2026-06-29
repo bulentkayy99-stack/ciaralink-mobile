@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <script src="data.js"></script>
+  <script src="hugo.js"></script>
+<script src="chat-drawer.js"></script>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:11px;height:11px}
+    ::-webkit-scrollbar-thumb{background:#cdd8d3;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+
+    /* ===== RESPONSIVE (mobile / tablet) — overrides live ONLY inside media queries, desktop unchanged ===== */
+    @media (max-width:860px){
+      /* top wrapper: stack vertically + kill horizontal overflow */
+      div[style*="min-height:100vh"][style*="width:100%"]{flex-direction:column !important;overflow-x:hidden !important}
+
+      /* sidebar -> horizontal, scrollable top app bar */
+      aside[style*="width:256px"]{
+        width:100% !important;flex:0 0 auto !important;height:auto !important;
+        position:static !important;
+        flex-direction:row !important;align-items:center !important;
+        overflow-x:auto !important;overflow-y:hidden !important;
+        border-right:none !important;border-bottom:1px solid rgba(255,255,255,.08) !important;
+      }
+      aside[style*="width:256px"] > div[style*="padding:22px 20px 18px"]{padding:11px 14px !important;flex:0 0 auto !important}
+      aside[style*="width:256px"] nav{flex:1 1 auto !important;display:flex !important;flex-direction:row !important;overflow-x:auto !important;overflow-y:hidden !important;padding:8px 10px !important;gap:6px}
+      aside[style*="width:256px"] nav div[style*="margin-top:14px"]{margin-top:0 !important;display:flex !important;flex-direction:row !important;align-items:center !important;gap:4px;flex:0 0 auto}
+      aside[style*="width:256px"] nav div[style*="letter-spacing:.15em"]{display:none !important}
+      aside[style*="width:256px"] nav button{white-space:nowrap !important;margin-bottom:0 !important;flex:0 0 auto;min-height:40px}
+      aside[style*="width:256px"] > div[style*="padding:10px 16px 0"]{display:none !important}
+      aside[style*="width:256px"] > div[style*="border-top:1px solid rgba(255,255,255,.06)"]{flex:0 0 auto !important;padding:8px 12px !important;border-top:none !important;max-width:180px}
+
+      /* main: full width, no overflow */
+      main[style*="flex:1"][style*="min-width:0"]{min-width:0 !important;width:100% !important}
+
+      /* header: wrap, tighter, drop the centred search */
+      header[style*="padding:14px 30px"]{padding:12px 16px !important;gap:10px !important;flex-wrap:wrap !important}
+      header[style*="padding:14px 30px"] > div[style*="justify-content:center"]{display:none !important}
+
+      /* content scroll area: tighter padding */
+      main > div[style*="overflow-y:auto"][style*="padding:26px 30px 48px"]{padding:18px 16px 40px !important}
+
+      /* every multi-column grid -> single column */
+      main div[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+      /* hide table header label rows (would otherwise stack as a confusing list) */
+      main div[style*="grid-template-columns"][style*="background:#f7faf9"]{display:none !important}
+    }
+
+    @media (max-width:520px){
+      main > div[style*="overflow-y:auto"][style*="padding:26px 30px 48px"]{padding:14px 12px 32px !important}
+      header[style*="padding:14px 30px"]{padding:10px 12px !important;gap:8px !important}
+      /* shrink + stretch the two header CTAs so they stay tappable */
+      header[style*="padding:14px 30px"] button[style*="padding:9px 14px"]{padding:10px 12px !important;font-size:12.5px !important;flex:1 1 auto !important;justify-content:center;min-height:42px}
+      aside[style*="width:256px"] nav button{padding:10px 12px !important}
+      /* modals / sheets: full-width with minimal gutter */
+      div[style*="position:fixed"][style*="inset:0"]{padding:12px !important}
+    }
+  </style>
+</helmet>
+<div style="display:flex;min-height:100vh;width:100%">
+
+  <aside style="width:256px;flex:0 0 256px;background:linear-gradient(185deg,#0c2622 0%,#0a1c19 60%,#091815 100%);color:#9fb4ae;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(14,147,132,.7)">{{ logoEl }}</div>
+      <div><div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:#f4faf8;line-height:1">CiaraLink</div><div style="font-size:10.5px;letter-spacing:.14em;color:#5f7a73;font-weight:600;margin-top:3px">ALLIED HEALTH</div></div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:6px 12px 12px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="4">
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px;letter-spacing:.15em;font-weight:700;color:#56716a;padding:0 10px 7px">{{ sec.title }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;margin-bottom:2px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
+              <span style="display:flex;width:18px;height:18px;align-items:center;justify-content:center;flex:0 0 18px">{{ it.iconEl }}</span>
+              <span style="flex:1">{{ it.label }}</span>
+              <sc-if value="{{ it.count }}" hint-placeholder-val="">
+                <span style="font-size:11px;font-weight:700;color:#9fb4ae;background:rgba(255,255,255,.07);border-radius:7px;padding:1px 7px">{{ it.count }}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="padding:10px 16px 0">
+      <button onClick="{{ goBilling }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:transparent;color:#9fb4ae;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:rgba(255,255,255,.05)"><span style="font-size:14px">💳</span><span style="flex:1;text-align:left">Billing &amp; plan</span></button>
+    </div>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:11px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#eafaf7">{{ userInitials }}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e7f2ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ userFull }}</div><div style="font-size:11px;color:#5f7a73;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ userRole }}</div></div>
+      <span style="display:flex;color:#5f7a73">{{ logoutEl }}</span>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#eaeeec">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:14px 30px;background:rgba(234,238,236,.82);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
+      <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">My Practice</div><div style="font-size:12.5px;color:#6c7f79">{{ practiceSub }}</div></div>
+      <div style="flex:1;display:flex;justify-content:center">
+        <div style="display:flex;align-items:center;gap:10px;width:min(420px,100%);background:#fff;border:1px solid #e2e9e6;border-radius:12px;padding:9px 13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <span style="display:flex;color:#9aa8a3">{{ searchEl }}</span><span style="flex:1;font-size:13.5px;color:#9aa8a3">Search clients, assessments, notes…</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa8a3;background:#f1f4f2;border:1px solid #e2e9e6;border-radius:6px;padding:2px 6px">⌘K</span>
+        </div>
+      </div>
+      <button onClick="{{ openQr }}" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:1px solid #cfeae5;background:#eafaf7;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#dcf4ef">{{ qrBtnEl }}Link provider</button>
+      <button onClick="{{ openNoteForm }}" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}New session note</button>
+      <div style="position:relative">
+        <button onClick="{{ toggleNotif }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></button>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="">
+          <div style="position:absolute;right:0;top:48px;width:340px;background:#fff;border:1px solid #e2e9e6;border-radius:18px;box-shadow:0 24px 48px -16px rgba(20,48,43,.35);overflow:hidden;z-index:50">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eef2f0">
+              <span style="font-size:14px;font-weight:800;color:#14302b">Notifications</span>
+              <span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 9px;border-radius:999px">{{ notifNewLabel }}</span>
+            </div>
+            <sc-if value="{{ notifsEmpty }}" hint-placeholder-val="">
+              <div style="padding:22px 18px;text-align:center;color:#9aa8a3;font-size:12.5px">No notifications yet</div>
+            </sc-if>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div style="display:flex;gap:11px;padding:12px 18px;border-bottom:1px solid #f4f7f5;background:{{ n.bg }}">
+                <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;background:{{ n.tintBg }}">{{ n.iconEl }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:600;color:#14302b;line-height:1.4">{{ n.text }}</div>
+                  <div style="font-size:11px;color:#9aa8a3;margin-top:3px">{{ n.time }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="padding:10px 18px;display:flex;gap:9px;justify-content:center">
+              <button onClick="{{ markAllRead }}" style="font-size:12.5px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit">Mark all read</button>
+              <span style="color:#dde4e1">·</span>
+              <button onClick="{{ goNotifications }}" style="font-size:12.5px;font-weight:700;color:#16b8a6;background:none;border:none;cursor:pointer;font-family:inherit">View all →</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 30px 48px">
+    <div style="max-width:1320px;margin:0 auto">
+
+      <!-- ===== ASSESSMENTS ===== -->
+      <sc-if value="{{ isAssessments }}" hint-placeholder-val="">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+          <div style="flex:1;font-size:13px;color:#6c7f79">Your assessment history — stored, versioned and shareable with approved parties.</div>
+          <button onClick="{{ uploadAssessment }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">{{ uploadAssessEl }}Upload / create</button>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>ASSESSMENT</span><span>PARTICIPANT</span><span>DATE</span><span>OUTCOME</span><span>STATUS</span></div>
+          <sc-if value="{{ assessmentsEmpty }}" hint-placeholder-val="">
+            <div style="padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px">No assessments yet — uploaded and shared assessments will appear here.</div>
+          </sc-if>
+          <sc-for list="{{ assessments }}" as="a" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:8px;padding:14px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:9px;flex:0 0 34px;background:{{ a.tint }}1a;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:{{ a.tint }}">{{ a.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ a.name }}</span></div>
+              <span style="font-size:13px;font-weight:700;color:#14302b">{{ a.client }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ a.date }}</span>
+              <span style="font-size:12px;color:#6c7f79">{{ a.outcome }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ a.stFg }};background:{{ a.stBg }};padding:3px 9px;border-radius:7px">{{ a.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== PLAN REVIEW CONTRIBUTION ===== -->
+      <sc-if value="{{ isPlanReview }}" hint-placeholder-val="">
+      <div>
+        <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">No plan reviews in progress — evidence checklists appear here when a review is due.</div>
+        </sc-if>
+        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:14px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:16px;padding:16px 22px;margin-bottom:18px;color:#eafaf8">
+          <span style="display:flex">{{ chevEl }}</span>
+          <div style="flex:1;font-size:13.5px">Preparing evidence for <b>Margaret R.'s</b> plan review — due in 11 days. Tick off what you've submitted; I'll flag what's still missing.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Evidence checklist</div>
+            <sc-for list="{{ prEvidence }}" as="e" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:13px;padding:13px 20px;border-bottom:1px solid #f4f7f5">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ e.tintBg }};display:flex;align-items:center;justify-content:center">{{ e.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b">{{ e.label }}</div><sc-if value="{{ e.done }}" hint-placeholder-val="{{ true }}"><div style="font-size:11.5px;color:#1e7a52">{{ e.count }} file{{ e.count>1?'s':'' }} submitted</div></sc-if><sc-if value="{{ e.notDone }}" hint-placeholder-val=""><div style="font-size:11.5px;color:#b4561f">Not yet submitted</div></sc-if></div>
+                <sc-if value="{{ e.done }}" hint-placeholder-val="{{ true }}">{{ checkGrnEl }}</sc-if>
+                <sc-if value="{{ e.notDone }}" hint-placeholder-val="">{{ alertAmberEl }}</sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 18px">
+              <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:13px">My recommendations for next plan</div>
+              <sc-for list="{{ prRecs }}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid #f4f7f5">
+                  <div style="width:6px;height:6px;border-radius:99px;flex:0 0 6px;background:#16b8a6;margin-top:6px"></div>
+                  <span style="font-size:12.5px;color:#41635c;line-height:1.5">{{ r }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:15px 18px">
+              <div style="font-size:13.5px;font-weight:800;color:#14302b;margin-bottom:9px">Submit to coordinator</div>
+              <div style="font-size:12.5px;color:#6c7f79;margin-bottom:13px;line-height:1.5">Send your evidence pack to Sarah Kelly (Support Coordinator) so it's ready for the review meeting.</div>
+              <button onClick="{{ sendEvidencePack }}" style="width:100%;height:46px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2bcbb9">{{ sendEl }}Send evidence pack</button>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ===== REFERRALS AH ===== -->
+      <sc-if value="{{ isReferralsAH }}" hint-placeholder-val="">
+      <div style="max-width:1000px;margin:0 auto">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Incoming referrals</span><span style="font-size:11.5px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:999px">{{ referralsCountLabel }}</span></div>
+          <sc-if value="{{ referralsEmpty }}" hint-placeholder-val="">
+            <div style="padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px">No referrals yet — incoming referrals will appear here.</div>
+          </sc-if>
+          <sc-for list="{{ ahReferrals }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:13px;padding:15px 20px;border-bottom:1px solid #f1f4f2">
+              <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ r.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ r.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ r.name }}</div><div style="font-size:12px;color:#8a9a94">{{ r.need }} · from {{ r.from }}</div><div style="font-size:11.5px;color:#9aa8a3;margin-top:2px">{{ r.when }}</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                <span style="font-size:10.5px;font-weight:700;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:3px 9px;border-radius:7px">{{ r.urgency }}</span>
+                <span style="font-size:11px;font-weight:700;color:{{ r.stageFg }};background:{{ r.stageBg }};padding:3px 9px;border-radius:7px">{{ r.stage }}</span>
+              </div>
+              <button onClick="{{ goParticipantProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== RECOMMENDATIONS ===== -->
+      <sc-if value="{{ isRecsAH }}" hint-placeholder-val="">
+      <div style="max-width:1000px;margin:0 auto">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button onClick="{{ newRecommendation }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ New recommendation</button></div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PARTICIPANT</span><span>TYPE</span><span>RECOMMENDATION</span><span>DATE</span><span>STATUS</span></div>
+          <sc-if value="{{ recsEmpty }}" hint-placeholder-val="">
+            <div style="padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px">No recommendations yet — recommendations you create will appear here.</div>
+          </sc-if>
+          <sc-for list="{{ ahRecs }}" as="r" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr 1fr 1fr;gap:8px;padding:13px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:{{ r.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ r.init }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ r.client }}</span></div>
+              <span style="font-size:11.5px;font-weight:700;color:#4338ca;background:#eef0fd;padding:3px 9px;border-radius:7px">{{ r.type }}</span>
+              <span style="font-size:12.5px;color:#41635c">{{ r.rec }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ r.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ r.stFg }};background:{{ r.stBg }};padding:3px 9px;border-radius:7px">{{ r.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== COLLABORATION ===== -->
+      <sc-if value="{{ isCollabAH }}" hint-placeholder-val="">
+      <div style="max-width:900px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:#f4faf8;border:1px solid #e0efe9;border-radius:13px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:#41635c">All sharing is consent-gated — participants control what each party can see.</div>
+        <sc-if value="{{ collabEmpty }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">No care-team connections yet — shared providers and consent appear here.</div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <sc-for list="{{ ahCollab }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+              <div style="width:42px;height:42px;border-radius:12px;flex:0 0 42px;background:{{ c.tint }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ c.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:12.5px;color:#6c7f79">{{ c.role }} · last contact {{ c.lastContact }}</div></div>
+              <div style="text-align:right"><div style="font-size:11px;color:#9aa8a3;margin-bottom:4px">WHAT I SHARE</div><div style="font-size:12.5px;font-weight:700;color:#41635c">{{ c.shared }}</div></div>
+              <span style="font-size:11px;font-weight:700;color:{{ c.consentFg }};background:{{ c.consentBg }};padding:4px 10px;border-radius:7px">{{ c.consent }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== DOCUMENTS AH ===== -->
+      <sc-if value="{{ isDocsAH }}" hint-placeholder-val="">
+      <div style="max-width:1000px;margin:0 auto">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Documents</span><button onClick="{{ uploadDocAH }}" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Upload</button></div>
+          <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:8px;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>DOCUMENT</span><span>TYPE</span><span>DATE</span><span>STATUS</span></div>
+          <sc-if value="{{ docsEmpty }}" hint-placeholder-val="">
+            <div style="padding:26px 20px;text-align:center;color:#9aa8a3;font-size:13px">No documents yet — use Upload to add your first document.</div>
+          </sc-if>
+          <sc-for list="{{ ahDocs }}" as="d" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:8px;padding:12px 20px;border-bottom:1px solid #f4f7f5;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:7px;flex:0 0 28px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ fileSmAH }}</div><span style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span></div>
+              <span style="font-size:11.5px;font-weight:600;color:{{ d.tagFg }};background:{{ d.tagBg }};padding:3px 9px;border-radius:7px">{{ d.tag }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a9a94">{{ d.date }}</span>
+              <span style="font-size:11px;font-weight:700;color:{{ d.stFg }};background:{{ d.stBg }};padding:3px 9px;border-radius:7px">{{ d.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SCHEDULE ===== -->
+      <sc-if value="{{ isSchedule }}" hint-placeholder-val="">
+      <div style="max-width:1100px;margin:0 auto">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">This week's schedule</div>
+          <div style="position:relative;padding:16px 22px">
+            <div style="position:absolute;left:75px;top:20px;bottom:20px;width:2px;background:#eef2f0"></div>
+            <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;gap:16px;padding:8px 0;position:relative">
+                <div style="flex:0 0 56px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8a9a94;padding-top:12px">{{ s.time }}</div>
+                <div style="position:relative;z-index:1;margin-top:12px"><div style="width:11px;height:11px;border-radius:99px;border:2.5px solid {{ s.dot }};background:#fff"></div></div>
+                <div style="flex:1;background:{{ s.bg }};border:1px solid {{ s.bd }};border-radius:13px;padding:11px 14px">
+                  <div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:8px;background:{{ s.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ s.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ s.client }}</span><span style="font-size:11px;font-weight:600;color:{{ s.tagFg }};background:{{ s.tagBg }};padding:2px 7px;border-radius:6px;margin-left:auto">{{ s.type }}</span></div>
+                  <div style="font-size:12px;color:#6c7f79;margin-top:6px">{{ s.note }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== GOALS AH ===== -->
+      <sc-if value="{{ isGoalsAH }}" hint-placeholder-val="">
+      <div style="max-width:1100px;margin:0 auto">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+          <div style="padding:15px 20px;border-bottom:1px solid #eef2f0;font-size:14px;font-weight:800;color:#14302b">Therapy goals & outcomes across your caseload</div>
+          <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
+            <div style="padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px">No participants linked to your caseload yet</div>
+          </sc-if>
+          <sc-for list="{{ caseload }}" as="c" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid #f1f4f2">
+              <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ c.tint }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ c.init }}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:12px;color:#8a9a94">{{ c.goal }}</div><div style="height:7px;border-radius:99px;background:#eef2f0;overflow:hidden;margin-top:7px;max-width:280px"><div style="height:100%;width:{{ c.pct }};border-radius:99px;background:{{ c.color }}"></div></div></div>
+              <div style="text-align:right"><div style="font-size:15px;font-weight:800;color:{{ c.color }}">{{ c.pct }}</div><div style="font-size:11px;color:#9aa8a3">{{ c.sessions }}</div></div>
+              <span style="font-size:11px;font-weight:700;color:{{ c.trendFg }};background:{{ c.trendBg }};padding:3px 9px;border-radius:7px">{{ c.trend }}</span>
+              <button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== BILLING AH ===== -->
+      <sc-if value="{{ isBillingAH }}" hint-placeholder-val="">
+      <div style="max-width:900px;margin:0 auto">
+        <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;color:#9aa8a3;font-size:13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">No billing data yet — billed hours and NDIS line items appear here as you log sessions.</div>
+        </sc-if>
+        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)"><div style="font-size:12px;color:#6c7f79">Billed this fortnight</div><div style="font-size:28px;font-weight:800;color:#0b6b60;margin-top:6px">$1,840</div></div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)"><div style="font-size:12px;color:#6c7f79">Hours delivered</div><div style="font-size:28px;font-weight:800;color:#14302b;margin-top:6px">41h</div></div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)"><div style="font-size:12px;color:#6c7f79">Utilisation rate</div><div style="font-size:28px;font-weight:800;color:#1e9e6a;margin-top:6px">92%</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:14px">NDIS line items this period</div>
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="10">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:80px;justify-content:flex-end;display:inline-block;width:8%;margin-right:1%">
+              <div style="width:100%;border-radius:4px 4px 2px 2px;background:{{ b.color }};height:{{ b.h }}"></div>
+              <span style="font-size:9px;color:#9aa8a3;display:block;text-align:center">{{ b.day }}</span>
+            </div>
+          </sc-for>
+          <div style="display:flex;align-items:flex-end;gap:1%;height:80px;margin-top:0">
+            <sc-for list="{{ bars }}" as="b" hint-placeholder-count="10">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+                <div style="width:100%;border-radius:4px 4px 2px 2px;height:{{ b.h }};background:{{ b.color }}"></div>
+                <span style="font-size:8.5px;color:#9aa8a3">{{ b.day }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ===== AI FILE DROP AH ===== -->
+      <sc-if value="{{ isFiledropAH }}" hint-placeholder-val="">
+        <div style="margin:-24px -28px -48px">
+          <iframe src="AI%20File%20Drop.dc.html" style="width:100%;height:calc(100vh - 104px);border:none;background:#eaeeec"></iframe>
+        </div>
+      </sc-if>
+
+      <!-- ===== PROFILE AH ===== -->
+      <sc-if value="{{ isProfileAH }}" hint-placeholder-val="">
+      <div style="max-width:700px;margin:0 auto">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(20,48,43,.04);margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(150deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex:0 0 64px">{{ userInitials }}</div>
+            <div><div style="font-size:20px;font-weight:800;color:#14302b">{{ userFull }}</div><div style="font-size:13px;color:#6c7f79;margin-top:3px">{{ userRole }}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+            <sc-if value="{{ profileHasEmail }}" hint-placeholder-val="">
+              <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">EMAIL</div><div style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
+            </sc-if>
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">ROLE</div><div style="font-size:13px;font-weight:700;color:#14302b">{{ userRole }}</div></div>
+            <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:4px">ACTIVE CASELOAD</div><div style="font-size:22px;font-weight:800;color:#0b6b60">{{ profileCaseload }}</div><div style="font-size:11px;color:#8a9a94">{{ profileCaseloadSub }}</div></div>
+            <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:12px 14px"><div style="font-size:10.5px;color:#9aa8a3;margin-bottom:6px">SERVICE AREAS</div><div style="display:flex;gap:5px;flex-wrap:wrap"><span style="font-size:11.5px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 8px;border-radius:6px">Glenroy</span><span style="font-size:11.5px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 8px;border-radius:6px">Brunswick</span><span style="font-size:11.5px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 8px;border-radius:6px">Coburg</span></div></div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== MY PRACTICE (default) ===== -->
+      <sc-if value="{{ isPractice }}" hint-placeholder-val="{{ true }}">
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px">
+        <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="4">
+          <div style="position:relative;overflow:hidden;background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 14px 30px -22px rgba(20,48,43,.3)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:{{ kpi.tintBg }}">{{ kpi.iconEl }}</div>
+              <div style="font-size:12px;font-weight:700;color:{{ kpi.deltaColor }};background:{{ kpi.deltaBg }};padding:3px 9px;border-radius:999px">{{ kpi.deltaLabel }}</div>
+            </div>
+            <div style="margin-top:15px;font-size:29px;font-weight:800;letter-spacing:-.025em;color:#14302b;line-height:1">{{ kpi.value }}</div>
+            <div style="font-size:13px;font-weight:600;color:#5f726d;margin-top:6px">{{ kpi.label }}</div>
+            <div style="font-size:12px;color:#9aa8a3">{{ kpi.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:18px;align-items:start">
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #eef2f0">
+              <div style="font-size:15.5px;font-weight:800;color:#14302b">Today's sessions</div>
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:999px">5 booked</span></sc-if>
+            </div>
+            <div style="padding:6px 0">
+              <sc-if value="{{ noSessions }}" hint-placeholder-val="">
+                <div style="padding:22px;text-align:center;color:#9aa8a3;font-size:13px;line-height:1.6">No sessions scheduled yet — your booked sessions will appear here.</div>
+              </sc-if>
+              <div style="position:relative">
+                <div style="position:absolute;left:62px;top:8px;bottom:8px;width:2px;background:#eef2f0"></div>
+                <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="5">
+                  <div style="display:flex;gap:12px;padding:8px 18px 8px 12px;position:relative">
+                    <div style="flex:0 0 44px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8a9a94;padding-top:13px">{{ s.time }}</div>
+                    <div style="position:relative;z-index:1;margin-top:13px"><div style="width:11px;height:11px;border-radius:99px;border:2.5px solid {{ s.dot }};background:#fff"></div></div>
+                    <div style="flex:1;min-width:0;background:{{ s.bg }};border:1px solid {{ s.bd }};border-radius:12px;padding:10px 12px">
+                      <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:{{ s.tint }}">{{ s.init }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ s.client }}</span><span style="font-size:11px;font-weight:600;color:{{ s.tagFg }};background:{{ s.tagBg }};padding:2px 7px;border-radius:6px;margin-left:auto">{{ s.type }}</span></div>
+                      <div style="font-size:11.5px;color:#6c7f79;margin-top:6px">{{ s.note }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><div style="font-size:15.5px;font-weight:800;color:#14302b">Reports & docs due</div><sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><span style="font-size:11.5px;font-weight:700;color:#d98b22;background:#fbf0df;padding:2px 8px;border-radius:999px;margin-left:auto">4</span></sc-if></div>
+            <sc-if value="{{ noReports }}" hint-placeholder-val="">
+              <div style="padding:14px 0 2px;text-align:center;color:#9aa8a3;font-size:13px">No reports due — items appear as your caseload grows.</div>
+            </sc-if>
+            <sc-for list="{{ reports }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f4f2">
+                <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;background:{{ r.tintBg }}">{{ r.iconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#14302b">{{ r.title }}</div><div style="font-size:11.5px;color:#8a9a94">{{ r.sub }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ r.dueFg }};background:{{ r.dueBg }};padding:3px 8px;border-radius:7px">{{ r.due }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #eef2f0">
+              <div><div style="font-size:15.5px;font-weight:800;color:#14302b">My caseload — goal progress</div><div style="font-size:12px;color:#6c7f79">Outcome tracking across active clients</div></div>
+              <button onClick="{{ viewAllReferrals }}" style="font-size:12.5px;font-weight:700;color:#0b6b60;background:none;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px">View all {{ chevEl }}</button>
+            </div>
+            <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
+              <div style="padding:26px 22px;text-align:center;color:#9aa8a3;font-size:13px">No participants linked to your caseload yet</div>
+            </sc-if>
+            <sc-for list="{{ caseload }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid #f1f4f2">
+                <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ c.tint }}">{{ c.init }}</div>
+                <div style="flex:1 1 0;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700;color:#14302b">{{ c.name }}</span><span style="font-size:11px;color:#9aa8a3">{{ c.goal }}</span></div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:7px">
+                    <div style="flex:1;height:7px;border-radius:99px;background:#eef2f0;overflow:hidden;max-width:260px"><div style="height:100%;width:{{ c.pct }};border-radius:99px;background:{{ c.color }}"></div></div>
+                    <span style="font-size:11.5px;font-weight:700;color:{{ c.color }}">{{ c.pct }}</span>
+                  </div>
+                </div>
+                <div style="text-align:right;flex:0 0 80px"><div style="font-size:11px;color:#9aa8a3">Sessions</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ c.sessions }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:{{ c.trendFg }};background:{{ c.trendBg }};padding:3px 9px;border-radius:7px">{{ c.trend }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:18px">
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px">
+              <div style="font-size:15.5px;font-weight:800;color:#14302b;margin-bottom:4px">Billable hours</div>
+              <div style="font-size:12px;color:#6c7f79;margin-bottom:14px">This fortnight · NDIS line items</div>
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:flex-end;gap:8px;height:120px">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="10">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+                    <div style="width:100%;border-radius:6px 6px 3px 3px;height:{{ b.h }};background:{{ b.color }}"></div>
+                    <span style="font-size:9.5px;color:#9aa8a3">{{ b.day }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #f1f4f2">
+                <div><div style="font-size:22px;font-weight:800;color:#14302b">58.5h</div><div style="font-size:11.5px;color:#8a9a94">billed</div></div>
+                <div><div style="font-size:22px;font-weight:800;color:#16b8a6">$9,240</div><div style="font-size:11.5px;color:#8a9a94">claimed</div></div>
+                <div style="margin-left:auto;text-align:right"><div style="font-size:13px;font-weight:700;color:#1e9e6a">92%</div><div style="font-size:11px;color:#8a9a94">utilisation</div></div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:14px;margin-top:6px;padding:18px 0 4px">
+                <div><div style="font-size:22px;font-weight:800;color:#14302b">—</div><div style="font-size:11.5px;color:#8a9a94">billed</div></div>
+                <div><div style="font-size:22px;font-weight:800;color:#9aa8a3">—</div><div style="font-size:11.5px;color:#8a9a94">claimed</div></div>
+                <div style="margin-left:auto;text-align:right"><div style="font-size:11px;font-weight:700;color:#6c7f79;background:#eef2f0;padding:2px 8px;border-radius:999px">Preview</div></div>
+              </div>
+              <div style="font-size:12px;color:#9aa8a3;margin-top:8px;line-height:1.6">No billable data yet — figures appear as you log sessions.</div>
+              </sc-if>
+            </div>
+
+            <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px;display:flex;flex-direction:column">
+              <div style="font-size:15.5px;font-weight:800;color:#14302b;margin-bottom:14px">Quick actions</div>
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="4">
+                <button onClick="{{ a.onClick }}" style="display:flex;align-items:center;gap:11px;padding:11px;border-radius:12px;border:1px solid #eef2f0;background:#fbfdfc;cursor:pointer;font-family:inherit;text-align:left;margin-bottom:9px" style-hover="border:1px solid #16b8a6;background:#f4faf8">
+                  <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;background:{{ a.tintBg }}">{{ a.iconEl }}</div>
+                  <span style="font-size:13px;font-weight:700;color:#14302b">{{ a.label }}</span>
+                  <span style="margin-left:auto;display:flex;color:#b6c4be">{{ chevEl }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SESSION NOTES ===== -->
+      <sc-if value="{{ isNotesAH }}" hint-placeholder-val="">
+        <div style="max-width:900px;margin:0 auto">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+            <button onClick="{{ openNoteForm }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}New session note</button>
+          </div>
+          <sc-if value="{{ hasAhNotes }}" hint-placeholder-val="">
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+              <sc-for list="{{ ahSavedNotes }}" as="sn" hint-placeholder-count="2">
+                <div style="background:#fff;border:2px solid #e7f4f1;border-radius:16px;padding:16px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                    <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ sn.init }}</div>
+                    <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#14302b">{{ sn.client }}</div><div style="font-size:11.5px;color:#8a9a94">{{ sn.author }} · {{ sn.date }}</div></div>
+                    <span style="font-size:11px;font-weight:700;color:#0e7490;background:#e0f2f5;padding:2px 8px;border-radius:6px">{{ sn.type }}</span>
+                    <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:2px 8px;border-radius:6px">Saved ✓</span>
+                  </div>
+                  <div style="font-size:13px;color:#41635c;line-height:1.6">{{ sn.body }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04);text-align:center;color:#9aa8a3;font-size:13px">
+            <sc-if value="{{ hasAhNotes }}" hint-placeholder-val="">{{ ahNoteCountLabel }}</sc-if>
+            <sc-if value="{{ noAhNotes }}" hint-placeholder-val="{{ true }}">{{ ahNotesEmptyLabel }}</sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== CARE NETWORK ===== -->
+      <sc-if value="{{ isNetworkAH }}" hint-placeholder-val="">
+      <div style="max-width:1200px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div>
+            <div style="font-size:15.5px;font-weight:800;color:#14302b">Care Network</div>
+            <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;color:#6c7f79;margin-top:3px">Margaret Reyes — click any node to view connection details</div></sc-if>
+            <sc-if value="{{ previewMode }}" hint-placeholder-val=""><div style="font-size:12.5px;color:#6c7f79;margin-top:3px">Care-team connections appear here once a participant network is linked</div></sc-if>
+          </div>
+          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:3px 9px;border-radius:7px">5 active</span>
+            <span style="font-size:11px;font-weight:700;color:#6c7f79;background:#f1f4f2;padding:3px 9px;border-radius:7px">1 inactive</span>
+          </div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ previewMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:30px 24px;text-align:center;color:#9aa8a3;font-size:13px;box-shadow:0 1px 2px rgba(20,48,43,.04)">No care network to display yet — linked participants and their care team will be mapped here.</div>
+        </sc-if>
+        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">{{ networkSvgEl }}</div>
+          <div>{{ networkDetailEl }}</div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+    </div>
+    </div>
+  </main>
+
+  <sc-if value="{{ qrOpen }}" hint-placeholder-val="">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(12,38,34,.45);display:flex;align-items:center;justify-content:center;padding:30px">
+      <div style="width:420px;max-width:100%;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)">
+        <div style="display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid #eef2f0">
+          <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">Link to a provider</div><div style="font-size:12px;color:#6c7f79">They scan to connect — care team links instantly, with consent</div></div>
+          <button onClick="{{ closeQr }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xEl }}</button>
+        </div>
+        <div style="padding:24px;text-align:center">
+          <div style="display:inline-flex;padding:18px;background:#fff;border:1px solid #eef2f0;border-radius:18px;box-shadow:0 10px 24px -14px rgba(20,48,43,.3)">{{ qrBigEl }}</div>
+          <div style="font-size:14px;font-weight:800;color:#14302b;margin-top:16px">{{ userFull }} · {{ userRole }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9aa8a3;margin-top:3px">ciaralink.care/link/JP-4471</div>
+          <div style="display:flex;gap:9px;margin-top:18px">
+            <button onClick="{{ copyLink }}" style="flex:1;height:46px;border-radius:13px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Copy link</button>
+            <button onClick="{{ closeQr }}" style="flex:1;height:46px;border-radius:13px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Session Note Form Modal -->
+  <sc-if value="{{ noteFormOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:580px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef2f0">
+        <div style="font-size:16px;font-weight:800;color:#14302b">New session note</div>
+        <button onClick="{{ closeNoteForm }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ xEl }}</button>
+      </div>
+      <div style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">CLIENT</label>
+          <sc-if value="{{ noteFormHasParticipants }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ noteClients }}" as="nc" hint-placeholder-count="4">
+                <button onClick="{{ nc.onClick }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ nc.bd }};background:{{ nc.bg }};color:{{ nc.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ nc.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
+            <div style="font-size:12.5px;color:#9aa8a3;background:#f7faf9;border:1px solid #eef2f0;border-radius:10px;padding:10px 13px">No participants linked to your caseload yet.</div>
+          </sc-if>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">SESSION NOTE</label>
+          <textarea onChange="{{ onNoteTextChange }}" placeholder="Describe what was covered in the session, progress observed, any concerns or next steps…" style="width:100%;height:120px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ closeNoteForm }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onClick="{{ submitNote }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save session note →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- Recommendation Form Modal -->
+  <sc-if value="{{ recFormOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:580px;max-width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 32px 64px -20px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef2f0">
+        <div style="font-size:16px;font-weight:800;color:#14302b">New recommendation</div>
+        <button onClick="{{ closeRecForm }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ xEl }}</button>
+      </div>
+      <div style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">PARTICIPANT</label>
+          <sc-if value="{{ recFormHasParticipants }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ recParticipantOptions }}" as="rp" hint-placeholder-count="3">
+                <button onClick="{{ rp.onClick }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ rp.bd }};background:{{ rp.bg }};color:{{ rp.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ rp.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">CATEGORY</label>
+          <div style="display:flex;flex-wrap:wrap;gap:7px">
+            <sc-for list="{{ recCategoryOptions }}" as="rc" hint-placeholder-count="5">
+              <button onClick="{{ rc.onClick }}" style="padding:6px 13px;border-radius:9px;border:1.5px solid {{ rc.bd }};background:{{ rc.bg }};color:{{ rc.fg }};font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">{{ rc.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:7px">RECOMMENDATION</label>
+          <textarea onChange="{{ onRecTextChange }}" placeholder="e.g. Ceiling hoist for bedroom and bathroom; progressive gait training over a 12-session block…" style="width:100%;height:110px;border:1.5px solid #dde4e1;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff;resize:none;line-height:1.5"></textarea>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ closeRecForm }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onClick="{{ submitRecommendation }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Save recommendation →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}" style="background:none;border:none;color:#7ce0d2;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { qrOpen:false, view:'practice', selectedNode:null, notifOpen:false, noteFormOpen:false, noteText:'', noteClient:'Margaret Reyes', noteType:'Session Note', savedNotes:[], supabaseConnected:false, isConfigured:false, participantsLoading:true, participantsError:false, supabaseParticipants:[], orgId:null, noteParticipantId:null, notesParticipantId:null, realNotes:[], notesLoading:false, noteSaving:false, toast:null, authName:null, authInitials:null, authRole:null, authEmail:null, realReferrals:[], referralsLoaded:false, realDocs:[], docsLoaded:false, docUploading:false, realNotifs:[], notifsLoaded:false, realRecs:[], recsLoaded:false, recFormOpen:false, recParticipantId:null, recCategory:'equipment', recText:'', recSaving:false, evidenceSending:false };
+  componentDidMount(){
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      if(s.loggedIn && s.role && s.role!=='allied'){
+        const m={provider:'CiaraLink Provider Dashboard.dc.html',worker:'Support Worker.dc.html',coordinator:'Support Coordination.dc.html'};
+        if(m[s.role]) window.location.href=m[s.role];
+      }
+    }catch(e){}
+    const AD=window.AegisData;
+    if(AD){ const n=AD.get('ah_notes')||[]; if(n.length) this.setState({savedNotes:n}); }
+    this.loadRealData();
+    this.loadIdentity();
+    this.loadAuxData();
+  }
+
+  // Real (Supabase) mode: load referrals, documents and notifications for the
+  // signed-in user via existing window helpers. Each is independent and falls
+  // back to an honest empty-state (never demo) when configured-but-empty.
+  loadAuxData() {
+    const configured = window.isSupabaseConfigured ? window.isSupabaseConfigured() : false;
+    if (!configured) return;
+    if (window.loadReferralsForCurrentUser) {
+      Promise.resolve(window.loadReferralsForCurrentUser()).then(res => {
+        const referrals = (res && res.referrals) || (Array.isArray(res) ? res : []) || [];
+        this.setState({ realReferrals: referrals, referralsLoaded: true });
+      }).catch(() => this.setState({ referralsLoaded: true }));
+    }
+    if (window.loadDocumentsForCurrentUser) {
+      Promise.resolve(window.loadDocumentsForCurrentUser()).then(res => {
+        const documents = (res && res.documents) || (Array.isArray(res) ? res : []) || [];
+        this.setState({ realDocs: documents, docsLoaded: true });
+      }).catch(() => this.setState({ docsLoaded: true }));
+    }
+    if (window.loadNotificationsForCurrentUser) {
+      Promise.resolve(window.loadNotificationsForCurrentUser()).then(res => {
+        const notifications = (res && res.notifications) || (Array.isArray(res) ? res : []) || [];
+        this.setState({ realNotifs: notifications, notifsLoaded: true });
+      }).catch(() => this.setState({ notifsLoaded: true }));
+    }
+    if (window.loadRecommendationsForCurrentUser) {
+      Promise.resolve(window.loadRecommendationsForCurrentUser()).then(res => {
+        const recommendations = (res && res.recommendations) || (Array.isArray(res) ? res : []) || [];
+        this.setState({ realRecs: recommendations, recsLoaded: true });
+      }).catch(() => this.setState({ recsLoaded: true }));
+    }
+  }
+
+  // Refresh just the recommendations list (after a new one is created).
+  refreshRecs() {
+    if (!window.loadRecommendationsForCurrentUser) return;
+    Promise.resolve(window.loadRecommendationsForCurrentUser()).then(res => {
+      const recommendations = (res && res.recommendations) || [];
+      this.setState({ realRecs: recommendations });
+    }).catch(() => {});
+  }
+
+  // Load the signed-in user's real name + role for the greeting, sidebar chip and
+  // profile header. Falls back to a generic label (never a fake specific name) when
+  // not signed in / Supabase unconfigured.
+  loadIdentity() {
+    if (!window.loadCurrentUserContext) return;
+    Promise.resolve(window.loadCurrentUserContext()).then(ctx => {
+      if (!ctx || ctx.error || !ctx.user) return;
+      const profileName = ctx.profile && ctx.profile.full_name && ctx.profile.full_name.trim();
+      const email = (ctx.user.email || '');
+      if (email) this.setState({ authEmail: email });
+      const name = profileName || (email ? email.split('@')[0] : '');
+      if (!name) return;
+      const parts = name.trim().split(/\s+/);
+      const initials = (parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : name.slice(0, 2)).toUpperCase();
+      const roleLabels = { allied_health:'Allied Health', allied:'Allied Health', therapist:'Allied Health', provider_owner:'Allied Health', provider_admin:'Allied Health', provider_staff:'Allied Health' };
+      const roleLabel = roleLabels[ctx.primaryRole] || 'Allied Health';
+      this.setState({ authName: name, authInitials: initials, authRole: roleLabel });
+    }).catch(() => {});
+  }
+
+  // Real (Supabase) mode: load this allied-health user's org context + their
+  // care-team-linked caseload, then the session notes for the first participant.
+  // Falls back silently to demo/preview content when Supabase isn't configured.
+  loadRealData() {
+    try {
+      const configured = window.isSupabaseConfigured ? window.isSupabaseConfigured() : false;
+      this.setState({ isConfigured: configured, participantsLoading: true, participantsError: false });
+      if (!configured || !window.loadParticipantsForCurrentUser) {
+        this.setState({ supabaseConnected: false, participantsLoading: false });
+        return;
+      }
+      // org_id comes from the logged-in user's active membership — never hardcoded.
+      if (window.loadCurrentUserContext) {
+        Promise.resolve(window.loadCurrentUserContext()).then(ctx => {
+          const orgId = ctx && (ctx.organisationId || ctx.org_id) || null;
+          this.setState({ orgId, userContext: ctx });
+        }).catch(() => {});
+      }
+      Promise.resolve(window.loadParticipantsForCurrentUser()).then(res => {
+        const parts = (res && res.participants) || (Array.isArray(res) ? res : []) || [];
+        if (parts.length > 0) {
+          const first = parts[0];
+          const nm = first.full_name || first.preferred_name || 'Participant';
+          this.setState({
+            supabaseParticipants: parts,
+            supabaseConnected: true,
+            participantsLoading: false,
+            noteParticipantId: first.id,
+            noteClient: nm,
+            notesParticipantId: first.id
+          });
+          this.loadNotesFor(first.id);
+        } else {
+          // Configured but no linked participants → real empty caseload (no demo).
+          this.setState({ supabaseParticipants: [], supabaseConnected: false, participantsLoading: false });
+        }
+      }).catch(err => {
+        console.error('loadParticipants error:', err);
+        this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: false });
+      });
+    } catch (err) {
+      console.error('loadRealData error:', err);
+      this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: false });
+    }
+  }
+
+  // Load saved session notes (newest first) for a participant, real mode only.
+  loadNotesFor(participantId) {
+    if (!participantId || !window.listParticipantNotes) { this.setState({ realNotes: [], notesLoading: false }); return; }
+    this.setState({ notesLoading: true });
+    Promise.resolve(window.listParticipantNotes(participantId)).then(res => {
+      const notes = (res && res.notes) || (Array.isArray(res) ? res : []) || [];
+      this.setState({ realNotes: notes, notesLoading: false });
+    }).catch(err => {
+      console.error('loadNotesFor error:', err);
+      this.setState({ realNotes: [], notesLoading: false });
+    });
+  }
+  ic(name,color,size){
+    const stroke=color||'#5f726d',s=size||18;
+    const P={
+      grid:'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+      cal:'M3 5h18v16H3z M3 10h18 M8 2v4 M16 2v4',
+      users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
+      target:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 12m-5 0a5 5 0 1 0 10 0 5 5 0 1 0-10 0 M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0',
+      clipboard:'M9 4h6v3H9z M8 4H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2 M9 12h6 M9 16h4',
+      file:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      chart:'M3 3v18h18 M7 14l3-4 3 3 4-6',
+      wallet:'M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2H3z M3 9h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M16 13h2',
+      pulse:'M2 12h4l2.5 7 4.5-15 2.5 8H22',
+      clock:'M12 12m-9 0a9 9 0 1 0 18 0 9 9 0 1 0-18 0 M12 7v5l3 2',
+      bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+      search:'M11 11m-7 0a7 7 0 1 0 14 0 7 7 0 1 0-14 0 M21 21l-4-4',
+      plus:'M12 5v14 M5 12h14',
+      chev:'M9 6l6 6-6 6',
+      logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
+      note:'M5 3h10l4 4v14H5z M14 3v5h5 M9 13h6 M9 17h4',
+      video:'M3 6h12v12H3z M15 10l6-3v10l-6-3',
+      link:'M9 11l-4 4a3 3 0 1 0 4.2 4.2l4-4 M15 13l4-4a3 3 0 1 0-4.2-4.2l-4 4 M9 15l6-6',
+      qr:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h3v3h-3z M20 14v7 M14 20h3',
+      x:'M6 6l12 12 M18 6L6 18',
+      send:'M22 2L11 13 M22 2l-7 20-4-9-9-4z',
+      up:'M12 19V5 M5 12l7-7 7 7',
+      shield:'M12 2l8 4v6c0 5-4 9-8 10C8 21 4 17 4 12V6z',
+      task:'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'
+    };
+    return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.grid}));
+  }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  renderVals(){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const view=this.state.view;
+    const navMap={practice:'practice',schedule:'schedule',caseload:'caseload_ah',goals:'goals_ah',assessments:'assessments',notes:'notes_ah',reports:'planreview',billing:'billing_ah',planreview:'planreview',filedrop:'filedrop_ah',profile_ah:'profile_ah',referrals_ah:'referrals_ah',recs_ah:'recs_ah',collab_ah:'collab_ah',docs_ah:'docs_ah'};
+    const defs=[
+      {title:'WORKSPACE',items:[['practice','My Practice','grid',null],['schedule','Schedule','cal',null],['profile_ah','My Profile','user',null]]},
+      {title:'CLIENTS',items:[['caseload','Caseload','users','24'],['goals','Goals & Outcomes','target',null],['assessments','Assessments','clipboard',null],['recs_ah','Recommendations','spark',null],['referrals_ah','Referrals','inbox',null],['network_ah','Care Network','link',null]]},
+      {title:'SYSTEM',items:[['_team','Team & Users','users',null,'Team.dc.html'],['_consent','Consent Centre','shield',null,'Consent Centre.dc.html'],['_tasks','Task Centre','task',null,'Task Centre.dc.html'],['_settings','Settings','grid',null,'Settings.dc.html']]},
+      {title:'RECORDS',items:[['notes','Session Notes','note',null],['planreview','Plan Review','file','4'],['docs_ah','Documents','folder',null],['collab_ah','Collaboration','users',null],['billing','Billing','wallet',null],['filedrop','AI File Drop','spark','AI']]}
+    ];
+    const navSections=defs.map((sec)=>({title:sec.title,items:sec.items.map(([key,label,icon,count,href])=>{
+      const active=view===key;
+      return {label,count,onClick:href?(()=>{window.location.href=href;}):()=>this.setState({view:key}),bg:active?'rgba(255,255,255,.08)':'transparent',color:active?'#f4faf8':'#9fb4ae',iconEl:ic(icon,active?'#22d3bf':'#7e948e',18)};
+    })}));
+
+    // First-run gate: the rich demo numbers/people only render in unconfigured
+    // preview mode. A real (signed-in, Supabase-configured) user gets honest
+    // empty-states / em-dashes — never fake figures or fake people.
+    const demoMode=!(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const previewMode=!demoMode;
+
+    const sbPartsKpi=this.state.supabaseParticipants||[];
+    const realModeKpi=this.state.supabaseConnected===true && sbPartsKpi.length>0;
+    const activeClientCount=sbPartsKpi.filter(p=>p&&(p.status||'active')==='active').length;
+    const previewBadge={deltaLabel:'Preview',deltaColor:'#6c7f79',deltaBg:'#eef2f0'};
+    const liveBadge={deltaLabel:'Live',deltaColor:'#0b6b60',deltaBg:'#e7f4f1'};
+    const kpiDefs=demoMode?[
+      {label:'Sessions today',value:'5',sub:'1 telehealth',icon:'cal',delta:'Next 9:30',up:true,tintBg:'#e7f4f1',stroke:'#16b8a6'},
+      {label:'Active clients',value:'24',sub:'3 new this month',icon:'users',delta:'+3',up:true,tintBg:'#eef0fd',stroke:'#6366f1'},
+      {label:'Goals on track',value:'81%',sub:'19 of 24 clients',icon:'target',delta:'+6%',up:true,tintBg:'#e9f6ef',stroke:'#1e9e6a'},
+      {label:'Reports overdue',value:'2',sub:'2 due this week',icon:'file',delta:'Action',up:false,tintBg:'#fbf0df',stroke:'#d98b22'}
+    ]:[
+      Object.assign({label:'Active clients',value:realModeKpi?String(activeClientCount):'—',sub:realModeKpi?'Synced from Supabase':'Connect Supabase to view',icon:'users',tintBg:'#eef0fd',stroke:'#6366f1'},realModeKpi?liveBadge:previewBadge),
+      Object.assign({label:'Sessions today',value:'—',sub:'Preview — not yet tracked',icon:'cal',tintBg:'#e7f4f1',stroke:'#16b8a6'},previewBadge),
+      Object.assign({label:'Goals on track',value:'—',sub:'Preview — not yet tracked',icon:'target',tintBg:'#e9f6ef',stroke:'#1e9e6a'},previewBadge),
+      Object.assign({label:'Reports overdue',value:'—',sub:'Preview — not yet tracked',icon:'file',tintBg:'#fbf0df',stroke:'#d98b22'},previewBadge)
+    ];
+    const kpis=kpiDefs.map(k=>({label:k.label,value:k.value,sub:k.sub,iconEl:ic(k.icon,k.stroke,19),deltaLabel:k.deltaLabel!=null?k.deltaLabel:k.delta,deltaColor:k.deltaColor!=null?k.deltaColor:(k.up?'#1e9e6a':'#c0445c'),deltaBg:k.deltaBg!=null?k.deltaBg:(k.up?'#e9f6ef':'#fbe9ed')}));
+
+    const sessions=demoMode?[
+      {time:'08:30',dot:'#16b8a6',bg:'#f4faf8',bd:'#dcefe9',init:'MR',tint:'#16b8a6',client:'Margaret R.',type:'Physio',tagFg:'#0b6b60',tagBg:'#e7f4f1',note:'Gait retraining · review hoist transfer'},
+      {time:'09:30',dot:'#6366f1',bg:'#f6f6fe',bd:'#e4e5fb',init:'DL',tint:'#6366f1',client:'David L.',type:'Initial assess',tagFg:'#4f46e5',tagBg:'#eef0fd',note:'New referral · lower-limb assessment'},
+      {time:'11:00',dot:'#0891b2',bg:'#eef9fb',bd:'#cfeef3',init:'RK',tint:'#0891b2',client:'Ruth K.',type:'Telehealth',tagFg:'#0e7490',tagBg:'#e0f2f5',note:'Home exercise program check-in'},
+      {time:'13:30',dot:'#16b8a6',bg:'#f4faf8',bd:'#dcefe9',init:'TB',tint:'#9333ea',client:'Tom B.',type:'Physio',tagFg:'#0b6b60',tagBg:'#e7f4f1',note:'Balance & falls-prevention block 4/8'},
+      {time:'15:00',dot:'#d98b22',bg:'#fffaf2',bd:'#f4e6cf',init:'PS',tint:'#d98b22',client:'Priya S.',type:'Review',tagFg:'#b4561f',tagBg:'#fbf0df',note:'Goal review + outcome measures'}
+    ]:[];
+    const noSessions=sessions.length===0;
+
+    const reports=demoMode?[
+      {title:'Progress report — David L.',sub:'For plan review',due:'2d',dueFg:'#c0445c',dueBg:'#fbe9ed',iconEl:ic('file','#6366f1',16),tintBg:'#eef0fd'},
+      {title:'Outcome summary — Tom B.',sub:'Block 4 complete',due:'4d',dueFg:'#b4561f',dueBg:'#fbf0df',iconEl:ic('chart','#16b8a6',16),tintBg:'#e7f4f1'},
+      {title:'Assessment — Ruth K.',sub:'Telehealth follow-up',due:'1w',dueFg:'#1e9e6a',dueBg:'#e9f6ef',iconEl:ic('clipboard','#1e9e6a',16),tintBg:'#e9f6ef'}
+    ]:[];
+    const noReports=reports.length===0;
+
+    const Cc=(p)=>p>=75?'#1e9e6a':(p>=50?'#16b8a6':'#d98b22');
+    const caseloadDemo=[
+      {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',goal:'Independent mobility',pct:'88%',sessions:'12/16',trend:'Improving',trendFg:'#1e9e6a',trendBg:'#e9f6ef'},
+      {name:'Tom Becker',init:'TB',tint:'#9333ea',goal:'Falls prevention',pct:'62%',sessions:'4/8',trend:'On track',trendFg:'#0b6b60',trendBg:'#e7f4f1'},
+      {name:'Priya Sharma',init:'PS',tint:'#d98b22',goal:'Return to work',pct:'45%',sessions:'6/12',trend:'Plateau',trendFg:'#b4561f',trendBg:'#fbf0df'},
+      {name:'David Lowe',init:'DL',tint:'#6366f1',goal:'Pain management',pct:'30%',sessions:'2/10',trend:'New',trendFg:'#4f46e5',trendBg:'#eef0fd'},
+      {name:'Ruth Kim',init:'RK',tint:'#0891b2',goal:'Strength & balance',pct:'76%',sessions:'9/12',trend:'Improving',trendFg:'#1e9e6a',trendBg:'#e9f6ef'}
+    ].map(c=>({...c,color:Cc(parseInt(c.pct))}));
+    // Wire the caseload list to the real participants already fetched into state.
+    // (Goal progress / session counts have no backend yet, so they stay neutral —
+    //  only the participant identity is real. Falls back to demo when none loaded.)
+    const caseTints=['#16b8a6','#9333ea','#d98b22','#6366f1','#0891b2'];
+    const sbParts=this.state.supabaseParticipants||[];
+    const realMode=this.state.supabaseConnected===true && sbParts.length>0;
+    // Demo content only renders in preview / when Supabase isn't configured.
+    // Configured-but-empty caseload shows a real empty-state, never demo.
+    // (demoMode is already defined above as NOT-configured; configured users —
+    //  even with an empty caseload — never see demo clients or fake "saved" toasts.)
+    const caseloadEmpty=this.state.isConfigured===true && sbParts.length===0;
+    const realCaseload=sbParts.length>0
+      ? sbParts.map((p,idx)=>{
+          const nm=p.full_name||p.preferred_name||'Unnamed participant';
+          const init=(nm.trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2)||'P').toUpperCase();
+          const isActive=(p.status||'active')==='active';
+          const statusLabel=(p.status||'active').replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+          return {
+            name:nm,
+            init,
+            tint:caseTints[idx%caseTints.length],
+            goal:p.ndis_number?('NDIS '+p.ndis_number):'NDIS participant',
+            pct:'0%',
+            color:'#9aa8a3',
+            sessions:'—',
+            trend:statusLabel,
+            trendFg:isActive?'#1e7a52':'#5f726d',
+            trendBg:isActive?'#e9f6ef':'#f1f4f2'
+          };
+        })
+      : [];
+    // Real caseload when we have linked participants; empty array when configured
+    // but none linked (drives empty-state); demo only in preview/unconfigured.
+    const caseload=realMode?realCaseload:(this.state.isConfigured?[]:caseloadDemo);
+
+    const heights=[60,80,45,90,70,55,85,40,75,65];
+    const days=['M','T','W','T','F','M','T','W','T','F'];
+    const bars=heights.map((h,i)=>({h:h+'%',day:days[i],color:i>=8?'#cdd8d3':(i%2?'#6366f1':'#16b8a6')}));
+
+    // ===== REAL ACTION HANDLERS (replacing former "coming soon" stubs) =====
+    // Start a real telehealth call: spin up a fresh, unguessable Jitsi Meet room
+    // (no account/server needed), open it and copy the link to share with the
+    // client. Not fake — this is a working video room.
+    const startTelehealth=()=>{
+      const rand=Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);
+      const room='CiaraLink-'+rand;
+      const url='https://meet.jit.si/'+room;
+      try{ window.open(url,'_blank','noopener,noreferrer'); }catch(e){}
+      try{ if(navigator.clipboard) navigator.clipboard.writeText(url); }catch(e){}
+      this.showToast('Telehealth room opened — link copied to share with your client');
+    };
+
+    // Upload / create an assessment = upload a real file stored as a document of
+    // type 'assessment', linked to the selected participant where possible.
+    const doUploadAssessment=()=>{
+      if(demoMode || !window.uploadDocument){ this.showToast('Connect Supabase to upload assessments'); return; }
+      if(this.state.docUploading){ return; }
+      const pid=this.state.noteParticipantId||(sbParts[0]&&sbParts[0].id)||null;
+      const input=document.createElement('input');
+      input.type='file';
+      input.onchange=()=>{
+        const file=input.files && input.files[0];
+        if(!file) return;
+        this.setState({docUploading:true});
+        this.showToast('Uploading assessment '+file.name+'…');
+        Promise.resolve(window.uploadDocument({file,participant_id:pid||undefined,doc_type:'assessment',title:file.name})).then(res=>{
+          this.setState({docUploading:false});
+          if(res && res.error){ this.showToast('Upload failed — '+(res.error.message||res.error)); return; }
+          this.showToast('Assessment uploaded'+(pid?' and linked to participant':''));
+          if(window.loadDocumentsForCurrentUser){
+            Promise.resolve(window.loadDocumentsForCurrentUser()).then(r=>{
+              this.setState({realDocs:(r&&r.documents)||[]});
+            }).catch(()=>{});
+          }
+        }).catch(err=>{
+          this.setState({docUploading:false});
+          this.showToast('Upload failed — '+(err&&err.message||'network error'));
+        });
+      };
+      input.click();
+    };
+
+    // Send evidence pack to the participant's support coordinator. Real: opens a
+    // message thread (or reuses messaging) and posts a summary of the filed
+    // evidence. COMPLIANCE: plan-review evidence — needs human review of content.
+    const doSendEvidencePack=()=>{
+      if(demoMode || !window.createMessageThread || !window.sendMessage){ this.showToast('Connect Supabase to send an evidence pack'); return; }
+      const pid=this.state.noteParticipantId||(sbParts[0]&&sbParts[0].id)||null;
+      if(!pid){ this.showToast('Select a participant first (open a caseload client)'); return; }
+      if(this.state.evidenceSending) return;
+      this.setState({evidenceSending:true});
+      this.showToast('Preparing evidence pack…');
+      const pName=(()=>{ const p=sbParts.find(x=>x.id===pid); return p?(p.full_name||p.preferred_name||'participant'):'participant'; })();
+      const myDocs=(this.state.realDocs||[]).filter(d=>!d.participant_id||d.participant_id===pid);
+      const lines=myDocs.slice(0,20).map(d=>'• '+(d.title||'Document')+' ('+(d.type||'document')+')');
+      const body='Plan-review evidence pack for '+pName+'.\n\nDocuments on file ('+myDocs.length+'):\n'+(lines.join('\n')||'(no documents attached yet)')+'\n\nPlease review ahead of the plan review meeting.\n\n— Sent from CiaraLink (Allied Health). Please verify contents for compliance.';
+      const finishMembers=(coordIds)=>{
+        Promise.resolve(window.createMessageThread({ participant_id:pid, org_id:this.state.orgId||undefined, subject:'Plan review evidence pack — '+pName, type:'plan_review', memberUserIds:coordIds })).then(tRes=>{
+          if(!tRes || !tRes.thread || tRes.error){ this.setState({evidenceSending:false}); this.showToast('Could not start evidence pack — '+((tRes&&tRes.error&&(tRes.error.message||tRes.error))||'unknown error')); return; }
+          Promise.resolve(window.sendMessage(tRes.thread.id, body)).then(mRes=>{
+            this.setState({evidenceSending:false});
+            if(mRes && mRes.error){ this.showToast('Pack started but message failed — '+(mRes.error.message||mRes.error)); return; }
+            this.showToast('Evidence pack sent to coordinator — please verify contents for compliance');
+          }).catch(err=>{ this.setState({evidenceSending:false}); this.showToast('Send failed — '+(err&&err.message||'network error')); });
+        }).catch(err=>{ this.setState({evidenceSending:false}); this.showToast('Send failed — '+(err&&err.message||'network error')); });
+      };
+      // Try to address the participant's support coordinator(s) directly.
+      if(window.loadParticipantCareTeam){
+        Promise.resolve(window.loadParticipantCareTeam(pid)).then(ctRes=>{
+          const team=(ctRes&&ctRes.careTeam)||[];
+          const coordIds=team.filter(m=>/coordinat/i.test(String(m.role||''))).map(m=>m.user_id).filter(Boolean);
+          finishMembers(coordIds);
+        }).catch(()=>finishMembers([]));
+      } else { finishMembers([]); }
+    };
+
+    const actions=[
+      {label:'Write session note',iconEl:ic('note','#16b8a6',17),tintBg:'#e7f4f1',onClick:()=>this.setState({noteFormOpen:true,noteText:'',view:'notes'})},
+      {label:'Start telehealth call',iconEl:ic('video','#6366f1',17),tintBg:'#eef0fd',onClick:startTelehealth},
+      {label:'New assessment',iconEl:ic('clipboard','#d98b22',17),tintBg:'#fbf0df',onClick:()=>{ this.setState({view:'assessments'}); doUploadAssessment(); }},
+      {label:'Send report to coordinator',iconEl:ic('send','#1e9e6a',17),tintBg:'#e9f6ef',onClick:()=>{ this.setState({view:'planreview'}); doSendEvidencePack(); }}
+    ];
+
+    // ===== CARE NETWORK =====
+    const selNodeKey=this.state.selectedNode;
+    const setSelNode=(key)=>this.setState(s=>({selectedNode:s.selectedNode===key?null:key}));
+    const netNodes=[
+      {key:'sc',label:'Support Coordinator',name:'Sarah Kelly',angle:-90,color:'#6366f1',bg:'#eef0fd',fg:'#4f46e5',init:'SK',active:true,reports:6,tasks:2,docs:4,recs:3,consent:true,anchor:'middle',ldx:0,ldy1:-57,ldy2:-71},
+      {key:'prov',label:'Provider',name:'Brightside Care',angle:-30,color:'#16b8a6',bg:'#e7f4f1',fg:'#0b6b60',init:'BC',active:true,reports:3,tasks:1,docs:8,recs:0,consent:true,anchor:'start',ldx:50,ldy1:-7,ldy2:9},
+      {key:'sw',label:'Support Worker',name:'James Liu',angle:30,color:'#0891b2',bg:'#e0f2f5',fg:'#0e7490',init:'JL',active:true,reports:0,tasks:3,docs:2,recs:0,consent:true,anchor:'start',ldx:50,ldy1:-7,ldy2:9},
+      {key:'fam',label:'Family / Guardian',name:'Mariam T.',angle:90,color:'#d98b22',bg:'#fbf0df',fg:'#b4561f',init:'MT',active:true,reports:0,tasks:0,docs:1,recs:0,consent:true,anchor:'middle',ldx:0,ldy1:57,ldy2:71},
+      {key:'lac',label:'Other Services',name:'NDIS LAC',angle:150,color:'#9aa8a3',bg:'#f1f4f2',fg:'#6c7f79',init:'LC',active:false,reports:1,tasks:0,docs:3,recs:0,consent:false,anchor:'end',ldx:-50,ldy1:-7,ldy2:9},
+      {key:'ah2',label:'Allied Health (OT)',name:'Inner West OT',angle:210,color:'#9333ea',bg:'#f4e8fe',fg:'#7c3aed',init:'IW',active:true,reports:4,tasks:1,docs:5,recs:2,consent:true,anchor:'end',ldx:-50,ldy1:-7,ldy2:9},
+    ];
+    const NCX=445,NCY=300,NR=205,toRad=a=>a*Math.PI/180;
+    const networkSvgEl=React.createElement('svg',{viewBox:'0 0 890 600',width:'100%',style:{display:'block'}},
+      React.createElement('defs',{},React.createElement('radialGradient',{id:'ncg',cx:'35%',cy:'25%',r:'75%'},React.createElement('stop',{offset:'0%',stopColor:'#27d4c1'}),React.createElement('stop',{offset:'100%',stopColor:'#0a5c52'}))),
+      React.createElement('circle',{cx:NCX,cy:NCY,r:NR+32,fill:'none',stroke:'#eef2f0',strokeWidth:1,strokeDasharray:'4 14'}),
+      React.createElement('circle',{cx:NCX,cy:NCY,r:NR-70,fill:'none',stroke:'#eef2f0',strokeWidth:1,strokeDasharray:'4 14'}),
+      ...netNodes.map(n=>{const ang=toRad(n.angle),nx=NCX+NR*Math.cos(ang),ny=NCY+NR*Math.sin(ang),isSel=selNodeKey===n.key;return React.createElement('line',{key:'l'+n.key,x1:NCX+52*Math.cos(ang),y1:NCY+52*Math.sin(ang),x2:nx-38*Math.cos(ang),y2:ny-38*Math.sin(ang),stroke:isSel?n.color:'#dde9e4',strokeWidth:isSel?2.5:1.5,strokeDasharray:n.active?'none':'6 5',strokeLinecap:'round'});}),
+      React.createElement('circle',{cx:NCX,cy:NCY,r:62,fill:'rgba(22,184,166,0.08)'}),
+      React.createElement('circle',{cx:NCX,cy:NCY,r:52,fill:'url(#ncg)',style:{filter:'drop-shadow(0 6px 16px rgba(10,92,82,0.35))'}}),
+      React.createElement('text',{x:NCX,y:NCY-6,textAnchor:'middle',fill:'white',fontSize:14,fontWeight:'700',fontFamily:'Hanken Grotesk,sans-serif'},'Margaret'),
+      React.createElement('text',{x:NCX,y:NCY+11,textAnchor:'middle',fill:'rgba(255,255,255,0.8)',fontSize:12,fontFamily:'Hanken Grotesk,sans-serif'},'Reyes'),
+      React.createElement('text',{x:NCX,y:NCY+28,textAnchor:'middle',fill:'rgba(255,255,255,0.5)',fontSize:9.5,letterSpacing:'0.07em',fontFamily:'Hanken Grotesk,sans-serif'},'PARTICIPANT'),
+      ...netNodes.flatMap(n=>{
+        const ang=toRad(n.angle),nx=NCX+NR*Math.cos(ang),ny=NCY+NR*Math.sin(ang),isSel=selNodeKey===n.key,nr=38;
+        return [
+          React.createElement('circle',{key:'sr'+n.key,cx:nx,cy:ny,r:nr+7,fill:isSel?n.bg:'transparent',stroke:isSel?n.color:'transparent',strokeWidth:2}),
+          React.createElement('circle',{key:'nc'+n.key,cx:nx,cy:ny,r:nr,fill:n.color,style:{cursor:'pointer'},onClick:e=>{e.stopPropagation();setSelNode(n.key);}}),
+          React.createElement('text',{key:'ni'+n.key,x:nx,y:ny+6,textAnchor:'middle',fill:'white',fontSize:15,fontWeight:'700',fontFamily:'Hanken Grotesk,sans-serif',style:{pointerEvents:'none'}},n.init),
+          React.createElement('circle',{key:'ad'+n.key,cx:nx+nr-8,cy:ny-nr+8,r:6,fill:n.active?'#22c55e':'#9aa8a3',stroke:'white',strokeWidth:2}),
+          n.tasks>0&&React.createElement('g',{key:'tb'+n.key},React.createElement('circle',{cx:nx-nr+8,cy:ny-nr+8,r:9,fill:'#f97316',stroke:'white',strokeWidth:1.5}),React.createElement('text',{x:nx-nr+8,y:ny-nr+12,textAnchor:'middle',fill:'white',fontSize:9,fontWeight:'700',fontFamily:'Hanken Grotesk,sans-serif',style:{pointerEvents:'none'}},n.tasks)),
+          React.createElement('text',{key:'rl'+n.key,x:nx+n.ldx,y:ny+n.ldy1,textAnchor:n.anchor,fill:isSel?n.fg:'#3a554e',fontSize:10.5,fontWeight:'700',fontFamily:'Hanken Grotesk,sans-serif',style:{pointerEvents:'none'}},n.label),
+          React.createElement('text',{key:'nl'+n.key,x:nx+n.ldx,y:ny+n.ldy2,textAnchor:n.anchor,fill:'#8a9a94',fontSize:10,fontFamily:'Hanken Grotesk,sans-serif',style:{pointerEvents:'none'}},n.name),
+        ].filter(Boolean);
+      })
+    );
+    const netSelNode=netNodes.find(n=>n.key===selNodeKey);
+    const networkDetailEl=netSelNode
+      ?React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+          React.createElement('div',{style:{background:'#fff',border:'1px solid #e7ece9',borderRadius:16,padding:'16px 18px',boxShadow:'0 1px 2px rgba(20,48,43,.04)'}},
+            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
+              React.createElement('div',{style:{width:44,height:44,borderRadius:12,background:netSelNode.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:'700',color:'white',flex:'0 0 44px'}},netSelNode.init),
+              React.createElement('div',{style:{flex:1}},React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#14302b'}},netSelNode.name),React.createElement('div',{style:{fontSize:12,color:'#6c7f79',marginTop:2}},netSelNode.label)),
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:netSelNode.active?'#1e7a52':'#6c7f79',background:netSelNode.active?'#e9f6ef':'#f1f4f2',padding:'3px 10px',borderRadius:7}},netSelNode.active?'Active':'Inactive')
+            ),
+            React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+              ...[{l:'Reports',v:netSelNode.reports},{l:'Docs shared',v:netSelNode.docs},{l:'Tasks pending',v:netSelNode.tasks},{l:'Recommendations',v:netSelNode.recs}].map(s=>React.createElement('div',{key:s.l,style:{background:'#f7faf9',border:'1px solid #eef2f0',borderRadius:10,padding:'10px 12px'}},React.createElement('div',{style:{fontSize:10,color:'#9aa8a3',marginBottom:4,letterSpacing:'0.04em'}},s.l.toUpperCase()),React.createElement('div',{style:{fontSize:22,fontWeight:800,color:'#14302b'}},s.v)))
+            ),
+            React.createElement('div',{style:{marginTop:10,padding:'9px 12px',background:netSelNode.consent?'#e9f6ef':'#fbe9ed',borderRadius:10,display:'flex',alignItems:'center',gap:8}},
+              React.createElement('div',{style:{width:8,height:8,borderRadius:'50%',background:netSelNode.consent?'#1e7a52':'#c0445c',flex:'0 0 8px'}}),
+              React.createElement('span',{style:{fontSize:12,fontWeight:700,color:netSelNode.consent?'#1e7a52':'#c0445c'}},netSelNode.consent?'Consent given':'Consent not recorded')
+            )
+          )
+        )
+      :React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+          React.createElement('div',{style:{background:'#fff',border:'1px solid #e7ece9',borderRadius:16,padding:'16px 18px',boxShadow:'0 1px 2px rgba(20,48,43,.04)'}},
+            React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#14302b',marginBottom:12}},'Care Team'),
+            ...netNodes.map(n=>React.createElement('div',{key:n.key,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid #f4f7f5',cursor:'pointer'},onClick:()=>setSelNode(n.key)},
+              React.createElement('div',{style:{width:32,height:32,borderRadius:9,background:n.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'white',flex:'0 0 32px'}},n.init),
+              React.createElement('div',{style:{flex:1,minWidth:0}},React.createElement('div',{style:{fontSize:13,fontWeight:700,color:'#14302b'}},n.name),React.createElement('div',{style:{fontSize:11,color:'#8a9a94'}},n.label)),
+              React.createElement('div',{style:{width:8,height:8,borderRadius:'50%',background:n.active?'#22c55e':'#9aa8a3',flex:'0 0 8px'}})
+            ))
+          ),
+          React.createElement('div',{style:{textAlign:'center',padding:'16px',fontSize:12,color:'#9aa8a3'}},'Click any node to view connection details')
+        );
+
+    // ===== SESSION NOTES (real vs demo) =====
+    const initialsOf=(nm)=>((nm||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2)||'P').toUpperCase();
+    const fmtNoteDate=(iso)=>{ if(!iso) return ''; try{ return new Date(iso).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return String(iso); } };
+    const notesParticipant=sbParts.find(p=>p.id===this.state.notesParticipantId)||null;
+    const notesParticipantName=notesParticipant?(notesParticipant.full_name||notesParticipant.preferred_name||'Participant'):(this.state.noteClient||'');
+    const realNotesMapped=(this.state.realNotes||[]).map(n=>{
+      const body=n.body||n.content||'';
+      const author=n.author_name||(n.author&&(n.author.full_name||n.author.name))||(this.state.userContext&&this.state.userContext.profile&&this.state.userContext.profile.full_name)||'You';
+      return { init:initialsOf(notesParticipantName||author), client:notesParticipantName||'Participant', author, date:fmtNoteDate(n.created_at||n.inserted_at||n.updated_at), type:'Session Note', body };
+    });
+    const displayNotes=demoMode?(this.state.savedNotes||[]):realNotesMapped;
+    const notesCount=displayNotes.length;
+    const notesEmptyLabel=this.state.notesLoading
+      ? 'Loading session notes…'
+      : (realMode?'No session notes yet':'No session notes yet — click "New session note" to add one');
+    const notesCountLabel=realMode
+      ? (notesParticipantName?(notesCount+' session note'+(notesCount===1?'':'s')+' for '+notesParticipantName):(notesCount+' session note'+(notesCount===1?'':'s')))
+      : (notesCount+' saved note'+(notesCount===1?'':'s')+' — filed to participant profile');
+    // Participant picker for the note form: real caseload in real mode, demo names otherwise.
+    const noteClientOptions=demoMode
+      ? ['Margaret Reyes','Tom Becker','Priya Sharma','David Lowe','Ruth Kim'].map(c=>{ const a=this.state.noteClient===c; return { label:c, onClick:()=>this.setState({noteClient:c}), bg:a?'#f0faf8':'#fff', fg:a?'#0b6b60':'#6c7f79', bd:a?'#16b8a6':'#dde4e1' }; })
+      : sbParts.map(p=>{ const nm=p.full_name||p.preferred_name||'Participant'; const a=this.state.noteParticipantId===p.id; return { label:nm, onClick:()=>{ this.setState({noteParticipantId:p.id,noteClient:nm,notesParticipantId:p.id}); this.loadNotesFor(p.id); }, bg:a?'#f0faf8':'#fff', fg:a?'#0b6b60':'#6c7f79', bd:a?'#16b8a6':'#dde4e1' }; });
+
+    // ===== REAL-DATA MAPPERS (referrals / documents / notifications) =====
+    // Demo arrays render only in unconfigured preview. In real (configured) mode
+    // we map the rows fetched via window helpers, or fall through to an honest
+    // empty-state. Nothing here invents people, numbers or registration data.
+    const humanize=(s)=>String(s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).trim();
+    const tintCycle=['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea'];
+
+    // -- Referrals --
+    const referralsDemo=[
+      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Sarah Kelly (SC)',need:'Functional Capacity Assessment',stage:'Assessment booked',stageFg:'#4338ca',stageBg:'#eef0fd',when:'2h ago',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed'},
+      {name:'Hassan Ali',init:'HA',tint:'#6366f1',from:'Brightside Care',need:'Physiotherapy — gait assessment',stage:'Referral received',stageFg:'#0b6b60',stageBg:'#e7f4f1',when:'Yesterday',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df'},
+      {name:'Joan Wu',init:'JW',tint:'#d98b22',from:'Self-referred',need:'OT — home modifications',stage:'Participant contacted',stageFg:'#b4561f',stageBg:'#fbf0df',when:'3 days ago',urgency:'Low',urgFg:'#1e7a52',urgBg:'#e9f6ef'}
+    ];
+    const referralsReal=(this.state.realReferrals||[]).map((r,idx)=>{
+      const p=r.participants||{};
+      const nm=p.full_name||p.preferred_name||'Participant';
+      const pr=String(r.priority||'routine').toLowerCase();
+      const urg=pr==='urgent'?{urgency:'Urgent',urgFg:'#c0445c',urgBg:'#fbe9ed'}
+        :(pr==='high'?{urgency:'High',urgFg:'#b4561f',urgBg:'#fbf0df'}
+        :{urgency:humanize(pr)||'Routine',urgFg:'#1e7a52',urgBg:'#e9f6ef'});
+      return Object.assign({name:nm,init:initialsOf(nm),tint:tintCycle[idx%tintCycle.length],need:humanize(r.type)||'Referral',from:'Linked organisation',when:fmtNoteDate(r.created_at),stage:humanize(r.status)||'Received',stageFg:'#0b6b60',stageBg:'#e7f4f1'},urg);
+    });
+    const ahReferrals=demoMode?referralsDemo:referralsReal;
+    const referralsEmpty=!demoMode && referralsReal.length===0;
+    const referralsCountLabel=demoMode?'3 active':(referralsReal.length+' active');
+
+    // -- Documents --
+    const docsDemo=[
+      {name:'David L. - Physiotherapy Assessment',tag:'Assessment',tagFg:'#4338ca',tagBg:'#eef0fd',date:'18 Apr 2026',status:'Shared',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Margaret R. - FCA Report',tag:'Report',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Ruth K. - Speech Assessment',tag:'Assessment',tagFg:'#4338ca',tagBg:'#eef0fd',date:'28 May 2026',status:'Shared',stFg:'#1e7a52',stBg:'#e9f6ef'},
+      {name:'Tom B. - OT Recommendations',tag:'Recommendation',tagFg:'#b4561f',tagBg:'#fbf0df',date:'02 Jun 2026',status:'Pending review',stFg:'#b4561f',stBg:'#fbf0df'},
+      {name:'Margaret R. - NDIS Plan 2026-27',tag:'NDIS Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'01 Jul 2026',status:'Shared with me',stFg:'#0b6b60',stBg:'#e7f4f1'}
+    ];
+    const docsReal=(this.state.realDocs||[]).map(d=>({
+      name:d.title||'Untitled document',
+      tag:humanize(d.type)||'Document',tagFg:'#4338ca',tagBg:'#eef0fd',
+      date:fmtNoteDate(d.created_at),
+      status:humanize(d.status)||'Filed',stFg:'#1e7a52',stBg:'#e9f6ef'
+    }));
+    const ahDocsList=demoMode?docsDemo:docsReal;
+    const docsEmpty=!demoMode && docsReal.length===0;
+
+    // -- Notifications --
+    const notifsDemo=[
+      {text:'Referral received — Eleni Pappas needs FCA',time:'2h ago',bg:'#f7fbf9',tintBg:'#e7f4f1',iconEl:ic('users','#16b8a6',15)},
+      {text:'Progress report overdue — Margaret R. plan review in 11 days',time:'Yesterday',bg:'#fffaf6',tintBg:'#fbf0df',iconEl:ic('file','#d98b22',15)},
+      {text:'New document shared — OT home assessment from Inner West OT',time:'2 days ago',bg:'#f7fbf9',tintBg:'#eef0fd',iconEl:ic('file','#6366f1',15)},
+      {text:'Goal milestone — Tom B. reached 62% on sensory regulation',time:'3 days ago',bg:'#fff',tintBg:'#e9f6ef',iconEl:ic('task','#1e9e6a',15)}
+    ];
+    const notifsReal=(this.state.realNotifs||[]).map(n=>({
+      text:n.title||n.body||'Notification',
+      time:fmtNoteDate(n.created_at),
+      bg:n.read_at?'#fff':'#f7fbf9',
+      tintBg:'#e7f4f1',
+      iconEl:ic('bell','#16b8a6',15)
+    }));
+    const notifsList=demoMode?notifsDemo:notifsReal;
+    const notifsEmpty=!demoMode && notifsReal.length===0;
+    const notifUnread=demoMode?4:(this.state.realNotifs||[]).filter(n=>!n.read_at).length;
+    const notifNewLabel=notifUnread+' new';
+
+    // -- Assessments / Recommendations / Collaboration (no backend yet) --
+    const assessmentsDemo=[
+      {name:'Functional Capacity Assessment',init:'FCA',client:'Margaret R.',tint:'#16b8a6',date:'12 May 2026',status:'Shared',stFg:'#1e7a52',stBg:'#e9f6ef',outcome:'Moderate support needs · hoist recommended'},
+      {name:'OT Home Assessment',init:'OT',client:'David L.',tint:'#6366f1',date:'18 Apr 2026',status:'Draft',stFg:'#b4561f',stBg:'#fbf0df',outcome:'Home modifications pending'},
+      {name:'Physiotherapy Assessment',init:'PA',client:'Tom B.',tint:'#d98b22',date:'02 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',outcome:'Gait improvement 40% over 8 sessions'},
+      {name:'Speech Pathology Assessment',init:'SP',client:'Ruth K.',tint:'#0891b2',date:'28 May 2026',status:'Shared',stFg:'#1e7a52',stBg:'#e9f6ef',outcome:'AAC device recommended'}
+    ];
+    // Real assessments are documents of type 'assessment' (uploaded via the
+    // "Upload / create" action). No fabricated outcomes — outcome shows the
+    // document description if present, otherwise an em-dash.
+    const assessmentsReal=(this.state.realDocs||[])
+      .filter(d=>String(d.type||'').toLowerCase()==='assessment')
+      .map((d,idx)=>{
+        const pName=(d.participants&&(d.participants.full_name||d.participants.preferred_name))||'';
+        const stMap={shared:{stFg:'#1e7a52',stBg:'#e9f6ef'},filed:{stFg:'#1e7a52',stBg:'#e9f6ef'},draft:{stFg:'#b4561f',stBg:'#fbf0df'}};
+        const st=stMap[String(d.status||'filed').toLowerCase()]||{stFg:'#0b6b60',stBg:'#e7f4f1'};
+        return Object.assign({
+          name:d.title||'Untitled assessment',
+          init:'AS',
+          tint:tintCycle[idx%tintCycle.length],
+          client:pName||'—',
+          date:fmtNoteDate(d.created_at),
+          outcome:d.description||'—',
+          status:humanize(d.status)||'Filed'
+        },st);
+      });
+    const assessmentsList=demoMode?assessmentsDemo:assessmentsReal;
+    const assessmentsEmpty=!demoMode && assessmentsReal.length===0;
+
+    const recsDemo=[
+      {client:'Margaret R.',init:'MR',tint:'#16b8a6',type:'Equipment',rec:'Ceiling hoist — bedroom + bathroom',status:'Approved',stFg:'#1e7a52',stBg:'#e9f6ef',date:'12 May 2026'},
+      {client:'David L.',init:'DL',tint:'#6366f1',type:'Intervention',rec:'Progressive gait training — 12-session block',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',date:'18 Apr 2026'},
+      {client:'Ruth K.',init:'RK',tint:'#0891b2',type:'Equipment',rec:'AAC device — Proloquo2Go trial',status:'Pending approval',stFg:'#b4561f',stBg:'#fbf0df',date:'28 May 2026'},
+      {client:'Tom B.',init:'TB',tint:'#9333ea',type:'Capacity Building',rec:'Sensory regulation program — 8 weeks',status:'Approved',stFg:'#1e7a52',stBg:'#e9f6ef',date:'02 Jun 2026'}
+    ];
+    // Real recommendations from the clinical_recommendations table.
+    const recCatLabels={equipment:'Equipment',intervention:'Intervention',capacity_building:'Capacity Building',referral:'Referral',other:'Other'};
+    const recStatusStyle=(s)=>{
+      const k=String(s||'submitted').toLowerCase();
+      if(k==='approved') return {label:'Approved',stFg:'#1e7a52',stBg:'#e9f6ef'};
+      if(k==='in_progress') return {label:'In progress',stFg:'#4338ca',stBg:'#eef0fd'};
+      if(k==='declined') return {label:'Declined',stFg:'#c0445c',stBg:'#fbe9ed'};
+      if(k==='draft') return {label:'Draft',stFg:'#6c7f79',stBg:'#f1f4f2'};
+      return {label:'Submitted',stFg:'#b4561f',stBg:'#fbf0df'};
+    };
+    const recsReal=(this.state.realRecs||[]).map((r,idx)=>{
+      const p=r.participants||{};
+      const nm=p.full_name||p.preferred_name||'Participant';
+      const ss=recStatusStyle(r.status);
+      return {client:nm,init:initialsOf(nm),tint:tintCycle[idx%tintCycle.length],type:recCatLabels[r.category]||humanize(r.category)||'Recommendation',rec:r.recommendation||'',status:ss.label,stFg:ss.stFg,stBg:ss.stBg,date:fmtNoteDate(r.created_at)};
+    });
+    const recsList=demoMode?recsDemo:recsReal;
+    const recsEmpty=!demoMode && recsReal.length===0;
+
+    const collabDemo=[
+      {name:'Sarah Kelly',init:'SK',role:'Support Coordinator',tint:'#6366f1',shared:'Goals + reports',consent:'Given',consentFg:'#1e7a52',consentBg:'#e9f6ef',lastContact:'19 Jun 2026'},
+      {name:'Brightside Care',init:'BC',role:'Service Provider',tint:'#16b8a6',shared:'Recommendations',consent:'Given',consentFg:'#1e7a52',consentBg:'#e9f6ef',lastContact:'15 Jun 2026'},
+      {name:'Mariam T.',init:'MT',role:'Family / Guardian',tint:'#d98b22',shared:'Assessment summary',consent:'Given',consentFg:'#1e7a52',consentBg:'#e9f6ef',lastContact:'10 Jun 2026'},
+      {name:'Inner West OT',init:'IW',role:'Allied Health (OT)',tint:'#9333ea',shared:'FCA + recommendations',consent:'Given',consentFg:'#1e7a52',consentBg:'#e9f6ef',lastContact:'08 Jun 2026'}
+    ];
+    const collabList=demoMode?collabDemo:[];
+    const collabEmpty=!demoMode;
+
+    // -- Profile (honest: real name/role/email/caseload; NO fabricated registration) --
+    const profileCaseload=demoMode?'24':(realModeKpi?String(activeClientCount):'—');
+    const profileCaseloadSub=demoMode?'participants':(realModeKpi?'participants':'Connect Supabase to view');
+
+    return {
+      toast:this.state.toast,
+      clearToast:()=>this.setState({toast:null}),
+      uploadAssessment:doUploadAssessment,
+      sendEvidencePack:doSendEvidencePack,
+      newRecommendation:()=>{
+        if(demoMode || !window.createRecommendation){ this.showToast('Connect Supabase to add recommendations'); return; }
+        if(sbParts.length===0){ this.showToast('No participants linked to your caseload yet'); return; }
+        const pid=this.state.recParticipantId||this.state.noteParticipantId||(sbParts[0]&&sbParts[0].id)||null;
+        this.setState({recFormOpen:true,recText:'',recCategory:'equipment',recParticipantId:pid});
+      },
+      uploadDocAH:()=>{
+        // Demo / unconfigured preview: no backend — honest notice (don't fake success).
+        if(demoMode || !window.uploadDocument){ this.showToast('Connect Supabase to upload documents'); return; }
+        if(this.state.docUploading){ return; }
+        const input=document.createElement('input');
+        input.type='file';
+        input.onchange=()=>{
+          const file=input.files && input.files[0];
+          if(!file) return;
+          this.setState({docUploading:true});
+          this.showToast('Uploading '+file.name+'…');
+          Promise.resolve(window.uploadDocument({file})).then(res=>{
+            this.setState({docUploading:false});
+            if(res && res.error){ this.showToast('Upload failed — '+(res.error.message||res.error)); return; }
+            this.showToast('Document uploaded');
+            if(window.loadDocumentsForCurrentUser){
+              Promise.resolve(window.loadDocumentsForCurrentUser()).then(r=>{
+                const documents=(r&&r.documents)||[];
+                this.setState({realDocs:documents});
+              }).catch(()=>{});
+            }
+          }).catch(err=>{
+            this.setState({docUploading:false});
+            this.showToast('Upload failed — '+(err&&err.message||'network error'));
+          });
+        };
+        input.click();
+      },
+      viewAllReferrals:()=>this.setState({view:'caseload'}),
+      startTelehealth:startTelehealth,
+      // ===== Recommendation form modal bindings =====
+      recFormOpen:this.state.recFormOpen,
+      closeRecForm:()=>this.setState({recFormOpen:false}),
+      onRecTextChange:(e)=>this.setState({recText:e.target.value}),
+      recText:this.state.recText,
+      recCategory:this.state.recCategory,
+      recFormHasParticipants:sbParts.length>0,
+      recParticipantOptions:sbParts.map(p=>{ const nm=p.full_name||p.preferred_name||'Participant'; const a=this.state.recParticipantId===p.id; return { label:nm, onClick:()=>this.setState({recParticipantId:p.id}), bg:a?'#f0faf8':'#fff', fg:a?'#0b6b60':'#6c7f79', bd:a?'#16b8a6':'#dde4e1' }; }),
+      recCategoryOptions:[['equipment','Equipment'],['intervention','Intervention'],['capacity_building','Capacity Building'],['referral','Referral'],['other','Other']].map(([val,label])=>{ const a=this.state.recCategory===val; return { label, onClick:()=>this.setState({recCategory:val}), bg:a?'#eef0fd':'#fff', fg:a?'#4338ca':'#6c7f79', bd:a?'#6366f1':'#dde4e1' }; }),
+      submitRecommendation:()=>{
+        const txt=(this.state.recText||'').trim();
+        if(!txt){ this.showToast('Please describe the recommendation'); return; }
+        const pid=this.state.recParticipantId;
+        if(!pid){ this.showToast('Pick a participant'); return; }
+        if(this.state.recSaving) return;
+        this.setState({recSaving:true});
+        Promise.resolve(window.createRecommendation({ org_id:this.state.orgId, participant_id:pid, category:this.state.recCategory||'intervention', recommendation:txt, author_role:'allied_health' })).then(res=>{
+          if(res && res.error){ this.showToast('Could not save — '+((res.error&&res.error.message)||res.error)); this.setState({recSaving:false}); return; }
+          this.setState({recFormOpen:false,recText:'',recSaving:false});
+          this.showToast('Recommendation saved');
+          this.refreshRecs();
+        }).catch(err=>{ this.showToast('Could not save — '+(err&&err.message||'network error')); this.setState({recSaving:false}); });
+      },
+      logoEl:ic('pulse','#eafaf8',21),logoutEl:React.createElement('button',{onClick:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73'}},ic('logout','#5f7a73',17)),searchEl:ic('search','#9aa8a3',17),
+      bellEl:ic('bell','#3a544e',18),plusEl:ic('plus','#06201c',16),chevEl:ic('chev','#b6c4be',15),
+      qrBtnEl:ic('link','#0b6b60',16),qrBigEl:ic('qr','#0c2622',150,1.3),xEl:ic('x','#6c7f79',18),
+      qrOpen:this.state.qrOpen,openQr:()=>this.setState({qrOpen:true}),closeQr:()=>this.setState({qrOpen:false}),
+      navSections,kpis,sessions,reports,caseload,bars,actions,
+      showDemo:demoMode, previewMode:previewMode,
+      noSessions:noSessions, noReports:noReports,
+      userFull: this.state.authName || 'Your account',
+      userFirst: this.state.authName ? this.state.authName.split(/\s+/)[0] : 'there',
+      userInitials: this.state.authInitials || 'CL',
+      userRole: this.state.authRole || 'Allied Health',
+      practiceSub: demoMode
+        ? ('Morning, ' + (this.state.authName ? this.state.authName.split(/\s+/)[0] : 'there') + ' — 5 sessions lined up for you today, all prepped and ready')
+        : 'Welcome to your CiaraLink practice — your sessions and caseload appear here as you go',
+      view:this.state.view,
+      isPractice:this.state.view==='practice'||this.state.view==='caseload',
+      isAssessments:this.state.view==='assessments',
+      isPlanReview:this.state.view==='planreview'||this.state.view==='reports',
+      isSchedule:this.state.view==='schedule',
+      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goBilling:()=>{ window.location.href='billing.html'; },
+      copyLink:()=>{ try{navigator.clipboard.writeText('ciaralink.care/link/JP-4471');}catch(e){}; this.showToast('Link copied to clipboard'); },
+      goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
+      notifOpen:this.state.notifOpen,
+      toggleNotif:()=>this.setState(s=>({notifOpen:!s.notifOpen})),
+      notifs:notifsList,
+      notifsEmpty:notifsEmpty,
+      notifNewLabel:notifNewLabel,
+      markAllRead:()=>{
+        if(demoMode || !window.markAllNotificationsRead){ this.setState({notifOpen:false}); return; }
+        Promise.resolve(window.markAllNotificationsRead()).then(()=>{
+          if(window.loadNotificationsForCurrentUser){
+            Promise.resolve(window.loadNotificationsForCurrentUser()).then(res=>{
+              const notifications=(res&&res.notifications)||[];
+              this.setState({realNotifs:notifications});
+            }).catch(()=>{});
+          }
+          this.showToast('All notifications marked read');
+        }).catch(()=>{});
+        this.setState({notifOpen:false});
+      },
+      isGoalsAH:this.state.view==='goals',
+      isNotesAH:this.state.view==='notes',
+      openNoteForm:()=>this.setState({noteFormOpen:true,noteText:'',view:'notes'}),
+      noteFormOpen:this.state.noteFormOpen,
+      closeNoteForm:()=>this.setState({noteFormOpen:false}),
+      onNoteTextChange:(e)=>this.setState({noteText:e.target.value}),
+      noteClient:this.state.noteClient,
+      noteClients:noteClientOptions,
+      noteFormHasParticipants:demoMode || sbParts.length>0,
+      caseloadEmpty,
+      submitNote:()=>{
+        const txt=(this.state.noteText||'').trim();
+        if(!txt){this.showToast('Please enter a note before saving');return;}
+        // Configured (real) users must never fake-save against the demo store —
+        // require a real participant before going anywhere.
+        if(!demoMode && !this.state.noteParticipantId){ this.showToast('Pick a participant'); return; }
+        // ===== Real mode: persist via Supabase helper =====
+        if(realMode && window.createSessionNote){
+          const pid=this.state.noteParticipantId;
+          if(!pid){ this.showToast('Select a participant first'); return; }
+          if(this.state.noteSaving) return;
+          this.setState({noteSaving:true});
+          Promise.resolve(window.createSessionNote({ org_id:this.state.orgId, participant_id:pid, note_type:'session_note', author_role:'allied_health', body:txt })).then(res=>{
+            if(res && res.error){
+              const msg=(res.error&&res.error.message)||res.error||'Unknown error';
+              this.showToast('Could not save note — '+msg);
+              this.setState({noteSaving:false});
+              return;
+            }
+            this.setState({noteFormOpen:false,noteText:'',noteSaving:false,notesParticipantId:pid});
+            this.showToast('Session note saved');
+            this.loadNotesFor(pid); // refresh the list for this participant
+          }).catch(err=>{
+            console.error('createSessionNote error:',err);
+            this.showToast('Could not save note — '+(err&&err.message||'network error'));
+            this.setState({noteSaving:false});
+          });
+          return;
+        }
+        // ===== Demo / preview mode: local AegisData store =====
+        const AD=window.AegisData;
+        const now=AD?AD.now():new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});
+        const note={_id:AD?AD.uid():'n'+Date.now(),client:this.state.noteClient||'Margaret Reyes',type:'Session Note',date:now,body:txt,init:this.state.authInitials||'JP',author:this.state.authName||'Jordan Pham',role:this.state.authRole||'Physiotherapist'};
+        if(AD) AD.push('ah_notes',note);
+        this.setState(s=>({noteFormOpen:false,noteText:'',savedNotes:[note,...(s.savedNotes||[])]}));
+        this.showToast('Session note saved to participant file');
+      },
+      ahSavedNotes:displayNotes,
+      hasAhNotes:notesCount>0,
+      noAhNotes:notesCount===0,
+      ahNoteCountLabel:notesCountLabel,
+      ahNotesEmptyLabel:notesEmptyLabel,
+      isBillingAH:this.state.view==='billing',
+      isFiledropAH:this.state.view==='filedrop',
+      isProfileAH:this.state.view==='profile_ah',
+      isReferralsAH:this.state.view==='referrals_ah',
+      isRecsAH:this.state.view==='recs_ah',
+      isCollabAH:this.state.view==='collab_ah',
+      isDocsAH:this.state.view==='docs_ah',
+      isNetworkAH:this.state.view==='network_ah',
+      networkSvgEl,networkDetailEl,
+      filedropSrcAH:'AI%20File%20Drop.dc.html',
+      ahReferrals:ahReferrals,
+      referralsEmpty:referralsEmpty,
+      referralsCountLabel:referralsCountLabel,
+      ahRecs:recsList,
+      recsEmpty:recsEmpty,
+      ahCollab:collabList,
+      collabEmpty:collabEmpty,
+      ahDocs:ahDocsList,
+      docsEmpty:docsEmpty,
+      fileSmAH:ic('file','#6366f1',14),
+      assessments:assessmentsList,
+      assessmentsEmpty:assessmentsEmpty,
+      profileEmail:this.state.authEmail||'',
+      profileHasEmail:!!this.state.authEmail,
+      profileCaseload:profileCaseload,
+      profileCaseloadSub:profileCaseloadSub,
+      prEvidence:[
+        {label:'Progress reports',count:3,done:true,notDone:false,iconEl:ic('file','#1e9e6a',17),tintBg:'#e9f6ef'},
+        {label:'Therapy assessments',count:2,done:true,notDone:false,iconEl:ic('clipboard','#16b8a6',17),tintBg:'#e7f4f1'},
+        {label:'Goal progress summary',count:1,done:true,notDone:false,iconEl:ic('target','#6366f1',17),tintBg:'#eef0fd'},
+        {label:'Functional outcomes',count:1,done:true,notDone:false,iconEl:ic('chart','#d98b22',17),tintBg:'#fbf0df'},
+        {label:'Equipment recommendations',count:0,done:false,notDone:true,iconEl:ic('file','#9aa8a3',17),tintBg:'#f1f4f2'},
+        {label:'Capacity building recs',count:0,done:false,notDone:true,iconEl:ic('file','#9aa8a3',17),tintBg:'#f1f4f2'}
+      ],
+      prRecs:[
+        'Continue physiotherapy block (12 sessions) — gait improvement documented',
+        'OT home modifications approved — hoisting rail and shower chair',
+        'Increase Core Supports by ~12% to reflect current service hours',
+        'Add Speech Pathology goal — AAC device trial and training'
+      ],
+      checkGrnEl:ic('check','#1e9e6a',16,2.4),alertAmberEl:ic('alert','#d98b22',15),
+      uploadAssessEl:ic('upload','#0b6b60',15),sendEl:ic('send','#06201c',15)
+    };
+  }
+}
+</script>
+
+</body>
+</html>

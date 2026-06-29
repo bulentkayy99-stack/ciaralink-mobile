@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if (typeof window.ENV === 'undefined') {
+      window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+    }
+  </script>
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./auth-guard.js?v=4"></script>
+  <!-- Hugo assistant (real, shared across CiaraLink). Injects its own floating owl + panel. -->
+  <script src="./hugo.js"></script>
+  <script src="./chat-drawer.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; }
+    .dashboard { display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    .sidebar { width: 260px; background: #1a4d3e; color: white; padding: 24px 16px; overflow-y: auto; }
+    .sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; font-size: 16px; font-weight: 600; }
+    .sidebar-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: transparent; border: none; color: white; font-size: 15px; width: 100%; text-align: left; transition: background 0.2s; }
+    .nav-item:hover { background: rgba(255,255,255,0.1); }
+    .nav-item.active { background: rgba(255,255,255,0.2); }
+    .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 16px 0; }
+    
+    /* Main content */
+    .main-content { flex: 1; padding: 32px 40px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .header h1 { font-size: 32px; font-weight: 700; color: #1a1a1a; }
+    .btn-primary { background: #20c997; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: #1aad82; }
+    
+    /* Profile card */
+    .profile-card { background: white; border-radius: 12px; padding: 32px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .profile-header { display: flex; gap: 24px; margin-bottom: 32px; }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #20c997; color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; flex-shrink: 0; }
+    .profile-info { display: flex; flex-direction: column; justify-content: center; }
+    .profile-name { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .profile-role { font-size: 14px; color: #666; margin-top: 4px; }
+    .profile-status { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #20c997; margin-top: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #20c997; }
+    
+    .profile-field { margin-bottom: 20px; }
+    .profile-label { font-size: 12px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+    .profile-value { font-size: 15px; color: #1a1a1a; }
+    
+    /* Support card grid */
+    .supports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-bottom: 32px; }
+    .support-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .support-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; }
+    .support-type { font-size: 14px; font-weight: 600; color: #20c997; }
+    .support-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-top: 8px; }
+    .support-provider { font-size: 14px; color: #666; margin-top: 4px; }
+    .support-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .btn-secondary { background: #f0f0f0; color: #1a1a1a; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    
+    /* Messages section */
+    .messages-section { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 32px; }
+    .messages-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .messages-header h2 { font-size: 18px; font-weight: 600; }
+    .message-item { padding: 16px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .message-item:last-child { border-bottom: none; }
+    .message-preview { flex: 1; }
+    .message-from { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+    .message-text { font-size: 14px; color: #666; margin-top: 4px; }
+    .message-time { font-size: 12px; color: #999; }
+    
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.open { display: flex; }
+    .modal-content { position: relative; background: white; border-radius: 12px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .modal-header { font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+    .modal-close:hover { color: #1a1a1a; }
+    
+    /* Coming Soon badge */
+    .badge-coming { display: inline-block; background: #ffc107; color: #1a1a1a; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+    
+    /* Demo warning */
+    .demo-warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; color: #856404; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a4d3e; color: white; padding: 14px 22px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 2000; display: flex; align-items: center; gap: 14px; font-size: 14px; max-width: 90vw; }
+    .toast button { background: rgba(255,255,255,0.18); border: none; color: white; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 13px; }
+
+    /* Messaging modal */
+    .msg-thread { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 0 16px; }
+    .msg-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+    .msg-bubble.mine { align-self: flex-end; background: #20c997; color: white; border-bottom-right-radius: 2px; }
+    .msg-bubble.theirs { align-self: flex-start; background: #f0f0f0; color: #1a1a1a; border-bottom-left-radius: 2px; }
+    .msg-meta { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+    .msg-compose { display: flex; gap: 10px; margin-top: 16px; }
+    .msg-compose textarea { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 14px; resize: vertical; min-height: 60px; }
+    .inbox-row { padding: 14px 4px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .inbox-row:hover { background: #f7faf9; }
+    .inbox-subject { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+    .inbox-sub { font-size: 12px; color: #999; margin-top: 2px; }
+    .sd-field { margin-bottom: 14px; }
+    .sd-label { font-size: 12px; color: #999; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+    .sd-value { font-size: 15px; color: #1a1a1a; }
+  </style>
+</helmet>
+
+<div class="dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-icon">👤</div>
+      <div>CiaraLink<div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px;">PARTICIPANT</div></div>
+    </div>
+    
+    <button class="nav-item active" onClick="{{ goHome }}">
+      <span style="font-size: 18px;">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMySupports }}">
+      <span style="font-size: 18px;">🤝</span>
+      <span>My supports</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMyFunding }}">
+      <span style="font-size: 18px;">💰</span>
+      <span>My funding</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMyGoals }}">
+      <span style="font-size: 18px;">🎯</span>
+      <span>My goals</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMyTeam }}">
+      <span style="font-size: 18px;">👥</span>
+      <span>My team</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMyDocuments }}">
+      <span style="font-size: 18px;">📄</span>
+      <span>My documents</span>
+    </button>
+    <button class="nav-item" onClick="{{ goMessageCoordinator }}">
+      <span style="font-size: 18px;">💬</span>
+      <span>Message my coordinator</span>
+    </button>
+    
+    <div class="divider"></div>
+    
+    <button class="nav-item" onClick="{{ goBilling }}">
+      <span style="font-size: 18px;">💳</span>
+      <span>Billing &amp; plan</span>
+    </button>
+    <button class="nav-item" onClick="{{ goSettings }}">
+      <span style="font-size: 18px;">⚙️</span>
+      <span>Settings</span>
+    </button>
+    <button class="nav-item" onClick="{{ signOut }}">
+      <span style="font-size: 18px;">🚪</span>
+      <span>Sign out</span>
+    </button>
+  </div>
+  
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="demo-warning">
+      {{ bannerText }}
+    </div>
+    
+    <div class="header">
+      <h1>My profile</h1>
+    </div>
+    
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">{{ avatarInitials }}</div>
+        <div>
+          <div class="profile-name">{{ profileName }}</div>
+          <div class="profile-role">{{ profileRole }}</div>
+          <div class="profile-status">
+            <div class="status-dot"></div>
+            <span>Connected to Supabase</span>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+        <div>
+          <div class="profile-field">
+            <div class="profile-label">Full Name</div>
+            <div class="profile-value">{{ profileName }}</div>
+          </div>
+          <div class="profile-field">
+            <div class="profile-label">Email</div>
+            <div class="profile-value">{{ profileEmail }}</div>
+          </div>
+        </div>
+        <div>
+          <div class="profile-field">
+            <div class="profile-label">Phone</div>
+            <div class="profile-value">{{ profilePhone }}</div>
+          </div>
+          <div class="profile-field">
+            <div class="profile-label">Date of Birth</div>
+            <div class="profile-value">{{ profileDob }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-field" style="margin-top: 24px;">
+        <div class="profile-label">Address</div>
+        <div class="profile-value">{{ profileAddress }}</div>
+      </div>
+    </div>
+
+    <!-- NDIS plan -->
+    <div class="profile-card">
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">NDIS plan</h2>
+      <sc-if value="{{ planHasDetails }}" hint-placeholder-val="">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px;">
+          <div class="profile-field" style="margin-bottom: 0;">
+            <div class="profile-label">NDIS number</div>
+            <div class="profile-value">{{ planNdisNumber }}</div>
+          </div>
+          <div class="profile-field" style="margin-bottom: 0;">
+            <div class="profile-label">How it's managed</div>
+            <div class="profile-value">{{ planFundingType }}</div>
+          </div>
+          <div class="profile-field" style="margin-bottom: 0;">
+            <div class="profile-label">Plan start</div>
+            <div class="profile-value">{{ planStart }}</div>
+          </div>
+          <div class="profile-field" style="margin-bottom: 0;">
+            <div class="profile-label">Plan end</div>
+            <div class="profile-value">{{ planEnd }}</div>
+          </div>
+          <div class="profile-field" style="margin-bottom: 0;">
+            <div class="profile-label">Plan manager</div>
+            <div class="profile-value">{{ planManager }}</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ planEmpty }}" hint-placeholder-val="">
+        <div class="profile-value" style="color: #999;">No plan details yet — you can add them any time.</div>
+      </sc-if>
+    </div>
+
+    <!-- My documents -->
+    <div class="profile-card">
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">My documents</h2>
+      <sc-for list="{{ documents }}" as="doc" hint-placeholder-count="2">
+        <div class="message-item">
+          <div class="message-preview">
+            <div class="message-from">📄 {{ doc.title }}</div>
+            <div class="message-text">{{ doc.meta }}</div>
+          </div>
+          <div class="message-time">{{ doc.date }}</div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ documentsEmpty }}" hint-placeholder-val="">
+        <div class="profile-value" style="color: #999;">No documents yet — upload your NDIS plan from sign-up or your dashboard.</div>
+      </sc-if>
+    </div>
+
+    <!-- My Supports Section -->
+    <div style="margin-bottom: 32px;">
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">My supports</h2>
+      <div class="supports-grid">
+        <sc-for list="{{ supports }}" as="support" hint-placeholder-count="2">
+          <div class="support-card">
+            <div class="support-card-header">
+              <div>
+                <div class="support-type">{{ support.type }}</div>
+                <div class="support-title">{{ support.title }}</div>
+                <div class="support-provider">{{ support.provider }}</div>
+              </div>
+            </div>
+            <div class="support-actions">
+              <button class="btn-secondary" onClick="{{ viewSupportDetails }}" data-support-id="{{ support.id }}">
+                View details
+              </button>
+              <button class="btn-secondary" onClick="{{ messageSupport }}" data-support-id="{{ support.id }}">
+                Message
+              </button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ supportsEmpty }}" hint-placeholder-val="">
+        <div class="profile-value" style="color: #999;">No supports linked yet. When a provider, coordinator or allied health professional is added to your care team, they'll appear here.</div>
+      </sc-if>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="messages-section">
+      <div class="messages-header">
+        <h2>💬 Messages</h2>
+        <button class="btn-secondary" onClick="{{ viewFullInbox }}">Full inbox ↗</button>
+      </div>
+      <sc-for list="{{ recentMessages }}" as="msg" hint-placeholder-count="2">
+        <div class="message-item">
+          <div class="message-preview">
+            <div class="message-from">{{ msg.from }}</div>
+            <div class="message-text">{{ msg.preview }}</div>
+          </div>
+          <div class="message-time">{{ msg.time }}</div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ recentMessagesEmpty }}" hint-placeholder-val="">
+        <div class="profile-value" style="color: #999;">No messages yet. Start a conversation with your coordinator or a support using the buttons above.</div>
+      </sc-if>
+    </div>
+
+    <!-- Hugo assistant is injected by hugo.js (floating owl, bottom-right). -->
+  </div>
+</div>
+
+<!-- Toast -->
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div class="toast">
+    <span>{{ toast }}</span>
+    <button onClick="{{ clearToast }}">Dismiss</button>
+  </div>
+</sc-if>
+
+<!-- Modals -->
+<div class="modal" id="supportDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>{{ sdTitle }}</span>
+      <button class="modal-close" onClick="{{ closeModal }}">×</button>
+    </div>
+    <div class="sd-field">
+      <div class="sd-label">Support type</div>
+      <div class="sd-value">{{ sdType }}</div>
+    </div>
+    <div class="sd-field">
+      <div class="sd-label">Provider / care team member</div>
+      <div class="sd-value">{{ sdProvider }}</div>
+    </div>
+    <div class="sd-field">
+      <div class="sd-label">Organisation</div>
+      <div class="sd-value">{{ sdOrg }}</div>
+    </div>
+    <div class="sd-field">
+      <div class="sd-label">Consent status</div>
+      <div class="sd-value">{{ sdConsent }}</div>
+    </div>
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+      <button class="btn-primary" onClick="{{ sdMessage }}">Message</button>
+      <button class="btn-secondary" onClick="{{ closeModal }}">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="messageModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>{{ msgRecipientLabel }}</span>
+      <button class="modal-close" onClick="{{ closeModal }}">×</button>
+    </div>
+    <sc-if value="{{ msgUnavailable }}" hint-placeholder-val="">
+      <p style="color:#856404; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:12px 14px; font-size:14px;">{{ msgUnavailableText }}</p>
+    </sc-if>
+    <sc-if value="{{ msgAvailable }}" hint-placeholder-val="">
+      <div class="msg-thread">
+        <sc-for list="{{ msgMessages }}" as="m" hint-placeholder-count="2">
+          <div class="msg-bubble {{ m.cls }}">
+            <div>{{ m.body }}</div>
+            <div class="msg-meta">{{ m.time }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ msgMessagesEmpty }}" hint-placeholder-val="">
+          <div style="color:#999; font-size:14px; text-align:center; padding:16px;">No messages yet — start the conversation below.</div>
+        </sc-if>
+      </div>
+      <div class="msg-compose">
+        <textarea id="msgDraftInput" placeholder="Write a message…" onChange="{{ onMsgDraftChange }}"></textarea>
+        <button class="btn-primary" onClick="{{ sendMsg }}">{{ msgSendLabel }}</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+<div class="modal" id="inboxModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>My messages</span>
+      <button class="modal-close" onClick="{{ closeModal }}">×</button>
+    </div>
+    <sc-if value="{{ inboxLoading }}" hint-placeholder-val="">
+      <p style="color:#999; font-size:14px;">Loading your conversations…</p>
+    </sc-if>
+    <sc-for list="{{ inboxThreads }}" as="t" hint-placeholder-count="2">
+      <div class="inbox-row" onClick="{{ t.onClick }}">
+        <div>
+          <div class="inbox-subject">{{ t.subject }}</div>
+          <div class="inbox-sub">{{ t.sub }}</div>
+        </div>
+        <div class="message-time">{{ t.time }}</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ inboxEmpty }}" hint-placeholder-val="">
+      <p style="color:#999; font-size:14px;">No conversations yet. Use “Message” on a support, or “Message my coordinator”, to start one.</p>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = {
+    currentView: 'home',
+    activeModal: null,
+    selectedSupportId: null,
+    // Messaging composer state
+    msgMode: null,            // 'support' | 'coordinator' | 'thread'
+    msgRecipientLabel: 'Message',
+    msgRecipientUserId: null,
+    msgRefType: null,
+    msgRefId: null,
+    msgThreadId: null,
+    msgMessages: [],
+    msgDraft: '',
+    msgSending: false,
+    msgConfigured: false,
+    // Inbox
+    inboxThreads: [],
+    inboxLoading: false,
+    // Identity / live data
+    currentUserId: null,
+    organisationId: null,
+    participantId: null,
+    careTeam: [],
+    realSupports: null,       // null until loaded; array when connected
+    realRecentMessages: null,
+    toast: null,
+  };
+
+  componentDidMount() {
+    // Load participant data from Supabase
+    this.loadParticipantData();
+  }
+
+  // Small helpers --------------------------------------------------
+  fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return String(d);
+    return dt.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  fmtTime(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return String(d);
+    return dt.toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+  humanize(s) { return String(s || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+  showToast(msg) {
+    this.setState({ toast: msg });
+    try { clearTimeout(this._toastTimer); } catch (e) {}
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 4000);
+  }
+  clearToast = () => this.setState({ toast: null });
+
+  async loadParticipantData() {
+    try {
+      this.setState({ participantLoading: true, participantError: false });
+
+      const isConfigured = window.isSupabaseConfigured ? window.isSupabaseConfigured() : false;
+
+      // Current user id (for "is this message mine?" rendering + thread membership).
+      let currentUserId = null;
+      try {
+        if (window.getCurrentUser) {
+          const cu = await window.getCurrentUser();
+          if (cu && cu.user) currentUserId = cu.user.id;
+        }
+      } catch (e) {}
+
+      // Org context (needed when starting a new message thread).
+      let organisationId = null;
+      try {
+        if (window.loadCurrentUserContext) {
+          const ctx = await window.loadCurrentUserContext();
+          if (ctx && ctx.organisationId) organisationId = ctx.organisationId;
+        }
+      } catch (e) {}
+
+      // PREFER the full self participant record: loadMyParticipantRecord() does a
+      // select('*'), so it includes plan_manager + all NDIS plan fields. Fall back
+      // to the lighter identity-only queryParticipantProfile() only if needed.
+      let profile = null;
+      if (window.loadMyParticipantRecord) {
+        const res = await window.loadMyParticipantRecord();
+        if (res && res.participant) profile = res.participant;
+      }
+      if (!profile && window.queryParticipantProfile) {
+        profile = await Promise.resolve(window.queryParticipantProfile());
+      }
+      const participantId = (profile && profile.id) ? profile.id : null;
+      if (profile && profile.org_id && !organisationId) organisationId = profile.org_id;
+
+      // Load the participant's own uploaded documents (NDIS plan, etc.).
+      let documents = [];
+      if (window.loadDocumentsForCurrentUser) {
+        const docRes = await window.loadDocumentsForCurrentUser();
+        if (docRes && Array.isArray(docRes.documents)) documents = docRes.documents;
+      }
+
+      // Load the participant's REAL care team → drives "My supports".
+      let careTeam = [];
+      if (isConfigured && participantId && window.loadParticipantCareTeam) {
+        const ctRes = await window.loadParticipantCareTeam(participantId);
+        if (ctRes && Array.isArray(ctRes.careTeam)) careTeam = ctRes.careTeam;
+      }
+      const realSupports = isConfigured ? careTeam.map((m) => {
+        const roleLabel = this.humanize(m.relationship_type || m.role) || 'Care team member';
+        return {
+          id: m.id,
+          userId: m.user_id || null,
+          type: 'CARE TEAM',
+          title: roleLabel,
+          provider: m.org_id ? 'Linked organisation' : 'NDIS care team',
+          org: m.org_id ? 'Linked organisation' : 'Independent / NDIS',
+          consent: (m.consent_given === true || m.consent_given === 'true') ? 'Consent given' : 'Consent pending',
+          role: roleLabel,
+        };
+      }) : null;
+
+      // Load REAL recent messages (latest message of the most recent threads).
+      let realRecentMessages = null;
+      if (isConfigured && window.loadMessageThreadsForCurrentUser) {
+        const thRes = await window.loadMessageThreadsForCurrentUser();
+        const threads = (thRes && Array.isArray(thRes.threads)) ? thRes.threads : [];
+        const top = threads.slice(0, 3);
+        const previews = [];
+        for (const t of top) {
+          let last = null;
+          if (window.loadThreadMessages) {
+            const mRes = await window.loadThreadMessages(t.id);
+            const msgs = (mRes && Array.isArray(mRes.messages)) ? mRes.messages : [];
+            if (msgs.length) last = msgs[msgs.length - 1];
+          }
+          previews.push({
+            from: t.subject || 'Conversation',
+            preview: last ? (last.body || '') : 'No messages yet',
+            time: this.fmtDate(t.updated_at || t.created_at),
+          });
+        }
+        realRecentMessages = previews;
+      }
+
+      this.setState({
+        participantProfile: profile || null,
+        participantDocuments: documents,
+        currentUserId,
+        organisationId,
+        participantId,
+        careTeam,
+        realSupports,
+        realRecentMessages,
+        // Honest banner: only claim a connection when configured AND a profile loaded.
+        supabaseConnected: isConfigured && !!profile,
+        participantLoading: false,
+      });
+    } catch (err) {
+      console.error('Error loading participant data:', err);
+      this.setState({ participantError: true, participantLoading: false, supabaseConnected: false });
+    }
+  }
+
+  // Navigation handlers
+  // Supports / funding / goals / team / documents all live on the
+  // Participant Profile page, which renders these sections from real data.
+  goHome = () => this.setState({ currentView: 'home' });
+  goMySupports = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goMyFunding = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goMyGoals = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goMyTeam = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goMyDocuments = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goSettings = () => { window.location.href = 'Settings.dc.html'; };
+  goBilling = () => { window.location.href = 'billing.html'; };
+
+  // Message my coordinator — real thread to the participant's support coordinator.
+  goMessageCoordinator = () => {
+    const coord = (this.state.careTeam || []).find((m) => /coordinat/i.test(String(m.relationship_type || m.role || '')));
+    this._openMessage({
+      mode: 'coordinator',
+      recipientUserId: coord ? coord.user_id : null,
+      refType: 'coordinator',
+      refId: this.state.participantId || null,
+      label: 'Message my coordinator',
+      subject: 'Message to my coordinator',
+    });
+  };
+
+  signOut = () => {
+    // Mirror the signout used across CiaraLink (see Settings/Participant Profile):
+    // clear the local session and any Supabase auth session, then return to Login.
+    try { localStorage.removeItem('ciaralink_session'); } catch (e) {}
+    try { localStorage.removeItem('ciaralink_preview_session'); } catch (e) {}
+    try {
+      if (window.supabaseClient && window.supabaseClient.auth) {
+        window.supabaseClient.auth.signOut().catch(err => console.warn('Signout warning:', err));
+      }
+    } catch (e) {}
+    window.location.href = 'signin.html';
+  };
+
+  // Look up the support object currently rendered (real or demo) by id.
+  _findSupport(id) {
+    const list = this._renderedSupports || [];
+    return list.find((s) => String(s.id) === String(id)) || null;
+  }
+
+  // Support handlers
+  viewSupportDetails = (e) => {
+    const supportId = e.currentTarget.getAttribute('data-support-id');
+    this.setState({ selectedSupportId: supportId, activeModal: 'supportDetailsModal' });
+    document.getElementById('supportDetailsModal') && document.getElementById('supportDetailsModal').classList.add('open');
+  };
+
+  messageSupport = (e) => {
+    const supportId = e.currentTarget.getAttribute('data-support-id');
+    const s = this._findSupport(supportId);
+    this._openMessage({
+      mode: 'support',
+      recipientUserId: s ? s.userId : null,
+      refType: 'care_team',
+      refId: supportId,
+      label: 'Message ' + (s ? (s.title || 'support') : 'support'),
+      subject: 'Message to ' + (s ? (s.title || 'support') : 'support'),
+    });
+  };
+
+  // From the Support Details modal → switch to the message composer.
+  sdMessage = () => {
+    const s = this._findSupport(this.state.selectedSupportId);
+    this._openMessage({
+      mode: 'support',
+      recipientUserId: s ? s.userId : null,
+      refType: 'care_team',
+      refId: this.state.selectedSupportId,
+      label: 'Message ' + (s ? (s.title || 'support') : 'support'),
+      subject: 'Message to ' + (s ? (s.title || 'support') : 'support'),
+    });
+  };
+
+  // Core: open the messaging modal, locate any existing thread, load its messages.
+  async _openMessage(opts) {
+    const configured = !!(window.getSupabaseClient && window.getSupabaseClient());
+    this.setState({
+      activeModal: 'messageModal',
+      msgMode: opts.mode,
+      msgRecipientLabel: opts.label,
+      msgRecipientUserId: opts.recipientUserId || null,
+      msgRefType: opts.refType || null,
+      msgRefId: opts.refId || null,
+      msgSubject: opts.subject || null,
+      msgThreadId: null,
+      msgMessages: [],
+      msgDraft: '',
+      msgConfigured: configured,
+    });
+    document.getElementById('messageModal') && document.getElementById('messageModal').classList.add('open');
+    if (!configured) return;
+
+    // Try to re-open an existing conversation for this reference.
+    try {
+      if (window.loadMessageThreadsForCurrentUser) {
+        const thRes = await window.loadMessageThreadsForCurrentUser();
+        const threads = (thRes && Array.isArray(thRes.threads)) ? thRes.threads : [];
+        const existing = threads.find((t) =>
+          opts.refType && opts.refId &&
+          t.reference_type === opts.refType && String(t.reference_id) === String(opts.refId)
+        );
+        if (existing) {
+          this.setState({ msgThreadId: existing.id });
+          await this._refreshThreadMessages(existing.id);
+        }
+      }
+    } catch (e) { console.warn('Open message lookup failed:', e); }
+  }
+
+  async _refreshThreadMessages(threadId) {
+    if (!threadId || !window.loadThreadMessages) return;
+    const res = await window.loadThreadMessages(threadId);
+    const msgs = (res && Array.isArray(res.messages)) ? res.messages : [];
+    const mapped = msgs.map((m) => ({
+      id: m.id,
+      body: m.body || '',
+      cls: (m.sender_id && m.sender_id === this.state.currentUserId) ? 'mine' : 'theirs',
+      time: this.fmtTime(m.created_at),
+    }));
+    this.setState({ msgMessages: mapped });
+  }
+
+  onMsgDraftChange = (e) => {
+    const v = (e && e.target) ? e.target.value : '';
+    this.setState({ msgDraft: v });
+  };
+
+  sendMsg = async () => {
+    // Read from state (onChange fires on blur) with a DOM fallback for safety.
+    let body = (this.state.msgDraft || '').trim();
+    if (!body) {
+      const el = document.getElementById('msgDraftInput');
+      if (el && el.value) body = el.value.trim();
+    }
+    if (!body) return;
+    if (this.state.msgSending) return;
+    if (!this.state.msgConfigured) {
+      this.showToast('Messaging needs a live connection. Demo mode is read-only.');
+      return;
+    }
+    this.setState({ msgSending: true });
+    try {
+      let threadId = this.state.msgThreadId;
+      // Create the thread on first message.
+      if (!threadId) {
+        if (!window.createMessageThread) {
+          this.showToast("Messaging isn't available right now.");
+          this.setState({ msgSending: false });
+          return;
+        }
+        const memberUserIds = this.state.msgRecipientUserId ? [this.state.msgRecipientUserId] : [];
+        const res = await window.createMessageThread({
+          subject: this.state.msgSubject || 'Conversation',
+          type: 'care',
+          participant_id: this.state.participantId || undefined,
+          org_id: this.state.organisationId || undefined,
+          reference_type: this.state.msgRefType || undefined,
+          reference_id: this.state.msgRefId || undefined,
+          memberUserIds,
+        });
+        if (!res || !res.thread || res.error) {
+          this.showToast("Couldn't start the conversation: " + ((res && res.error) || 'unknown error'));
+          this.setState({ msgSending: false });
+          return;
+        }
+        threadId = res.thread.id;
+        this.setState({ msgThreadId: threadId });
+      }
+
+      const sent = await window.sendMessage(threadId, body);
+      if (sent && sent.message && !sent.error) {
+        this.setState({ msgDraft: '' });
+        const el = document.getElementById('msgDraftInput');
+        if (el) el.value = '';
+        await this._refreshThreadMessages(threadId);
+        this.showToast('Message sent');
+        // Refresh the home "Messages" widget in the background.
+        this.loadParticipantData();
+      } else {
+        this.showToast("Couldn't send: " + ((sent && sent.error) || 'unknown error'));
+      }
+    } catch (err) {
+      console.error('Send message error:', err);
+      this.showToast("Couldn't send your message. Please try again.");
+    } finally {
+      this.setState({ msgSending: false });
+    }
+  };
+
+  // Inbox — real list of the participant's conversations.
+  viewFullInbox = async () => {
+    this.setState({ activeModal: 'inboxModal', inboxLoading: true, inboxThreads: [] });
+    document.getElementById('inboxModal') && document.getElementById('inboxModal').classList.add('open');
+    const configured = !!(window.getSupabaseClient && window.getSupabaseClient());
+    if (!configured || !window.loadMessageThreadsForCurrentUser) {
+      this.setState({ inboxLoading: false, inboxThreads: [] });
+      return;
+    }
+    try {
+      const res = await window.loadMessageThreadsForCurrentUser();
+      const threads = (res && Array.isArray(res.threads)) ? res.threads : [];
+      const mapped = threads.map((t) => ({
+        id: t.id,
+        subject: t.subject || 'Conversation',
+        sub: this.humanize(t.type || 'general'),
+        time: this.fmtDate(t.updated_at || t.created_at),
+        onClick: () => this._openThreadFromInbox(t),
+      }));
+      this.setState({ inboxThreads: mapped, inboxLoading: false });
+    } catch (e) {
+      console.error('Inbox load error:', e);
+      this.setState({ inboxLoading: false, inboxThreads: [] });
+    }
+  };
+
+  async _openThreadFromInbox(thread) {
+    this.setState({
+      activeModal: 'messageModal',
+      msgMode: 'thread',
+      msgRecipientLabel: thread.subject || 'Conversation',
+      msgRecipientUserId: null,
+      msgRefType: thread.reference_type || null,
+      msgRefId: thread.reference_id || null,
+      msgSubject: thread.subject || 'Conversation',
+      msgThreadId: thread.id,
+      msgMessages: [],
+      msgDraft: '',
+      msgConfigured: true,
+    });
+    document.getElementById('inboxModal') && document.getElementById('inboxModal').classList.remove('open');
+    document.getElementById('messageModal') && document.getElementById('messageModal').classList.add('open');
+    await this._refreshThreadMessages(thread.id);
+  }
+
+  // Modal management
+  openModal = (modalId) => {
+    this.setState({ activeModal: modalId });
+    document.getElementById(modalId) && document.getElementById(modalId).classList.add('open');
+  };
+
+  closeModal = () => {
+    this.setState({ activeModal: null });
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+  };
+
+  renderVals() {
+    const demoParticipant = {
+      name: 'Alex Demo',
+      role: 'Participant',
+      email: 'alex.demo@ciaralink.care',
+      phone: '0412 345 678',
+      dob: '15 March 1990',
+    };
+
+    const demoSupports = [
+      { id: 'demo-1', userId: null, type: 'THERAPY', title: 'Speech Pathology', provider: 'Sarah Johnson', org: 'Sample provider', consent: 'Sample data', role: 'Speech Pathology' },
+      { id: 'demo-2', userId: null, type: 'SUPPORT', title: 'Community Engagement', provider: 'Michael Chen', org: 'Sample provider', consent: 'Sample data', role: 'Community Engagement' },
+    ];
+
+    const demoRecentMessages = [
+      { from: 'Sarah Johnson', preview: 'Looking forward to our session tomorrow...', time: '2 hours ago' },
+      { from: 'Support Coordinator', preview: 'Your funding plan has been updated...', time: '1 day ago' },
+    ];
+
+    // Real (RLS-scoped) data when connected; honest sample only when not.
+    const connectedData = this.state.realSupports !== null;
+    const supports = connectedData ? (this.state.realSupports || []) : demoSupports;
+    const recentMessages = (this.state.realRecentMessages !== null)
+      ? (this.state.realRecentMessages || [])
+      : demoRecentMessages;
+    // Keep a reference so modal handlers can look supports up by id.
+    this._renderedSupports = supports;
+
+    // Prefer the RLS-scoped profile loaded from Supabase; fall back to demo.
+    const p = this.state.participantProfile || {};
+    const profileName = p.full_name || p.preferred_name || demoParticipant.name;
+    const initials = profileName.split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+
+    // NDIS plan fields — only populated once the participant record (and the
+    // self-signup migration) exist. Render the card regardless, with honest empties.
+    const fmtDate = (d) => {
+      if (!d) return '';
+      const dt = new Date(d);
+      return isNaN(dt.getTime())
+        ? String(d)
+        : dt.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+    const planNdis = p.ndis_number || '';
+    const planFunding = p.funding_type || '';
+    const planStartRaw = p.plan_start || '';
+    const planEndRaw = p.plan_end || '';
+    const planMgr = p.plan_manager || '';
+    const planHasDetails = !!(planNdis || planFunding || planStartRaw || planEndRaw || planMgr);
+
+    // The participant's own uploaded documents (from loadDocumentsForCurrentUser()).
+    const rawDocs = Array.isArray(this.state.participantDocuments) ? this.state.participantDocuments : [];
+    const documents = rawDocs.map((d, i) => ({
+      id: d.id || String(i),
+      title: d.title || 'Untitled document',
+      meta: [d.type, d.mime_type].filter(Boolean).join(' · ') || 'Document',
+      date: fmtDate(d.created_at),
+    }));
+
+    // Honest banner: only claim a Supabase connection when one actually exists.
+    const connected = !!this.state.supabaseConnected;
+    const bannerText = connected
+      ? '✓ Connected to Supabase — your profile, supports, documents and messages are loaded from live data.'
+      : 'ℹ️ Demo mode — not connected to Supabase. All data shown is sample only.';
+
+    // ---- Support Details modal (real fields of the selected support) ----
+    const selSupport = this._renderedSupports
+      ? this._renderedSupports.find((s) => String(s.id) === String(this.state.selectedSupportId))
+      : null;
+
+    // ---- Message composer modal ----
+    const msgConfigured = !!this.state.msgConfigured;
+    const msgMessages = Array.isArray(this.state.msgMessages) ? this.state.msgMessages : [];
+
+    return {
+      bannerText: bannerText,
+      profileName: profileName,
+      profileRole: demoParticipant.role,
+      profileEmail: p.email || demoParticipant.email,
+      profilePhone: p.phone || demoParticipant.phone,
+      profileDob: p.dob || demoParticipant.dob,
+      profileAddress: p.address || '—',
+      avatarInitials: initials,
+      // NDIS plan card
+      planHasDetails: planHasDetails,
+      planEmpty: !planHasDetails,
+      planNdisNumber: planNdis || '—',
+      planFundingType: planFunding || '—',
+      planStart: fmtDate(planStartRaw) || '—',
+      planEnd: fmtDate(planEndRaw) || '—',
+      planManager: planMgr || '—',
+      // My documents list
+      documents: documents,
+      documentsEmpty: documents.length === 0,
+      // My supports
+      supports,
+      supportsEmpty: connectedData && supports.length === 0,
+      // Recent messages widget
+      recentMessages,
+      recentMessagesEmpty: (this.state.realRecentMessages !== null) && recentMessages.length === 0,
+      // Support Details modal
+      sdTitle: selSupport ? (selSupport.title || 'Support details') : 'Support details',
+      sdType: selSupport ? (selSupport.type || '—') : '—',
+      sdProvider: selSupport ? (selSupport.provider || '—') : '—',
+      sdOrg: selSupport ? (selSupport.org || '—') : '—',
+      sdConsent: selSupport ? (selSupport.consent || '—') : '—',
+      sdMessage: this.sdMessage,
+      // Message modal
+      msgRecipientLabel: this.state.msgRecipientLabel || 'Message',
+      msgAvailable: msgConfigured,
+      msgUnavailable: !msgConfigured,
+      msgUnavailableText: 'Messaging needs a live connection. You are in demo mode, so this conversation is read-only.',
+      msgMessages: msgMessages,
+      msgMessagesEmpty: msgMessages.length === 0,
+      msgDraft: this.state.msgDraft || '',
+      onMsgDraftChange: this.onMsgDraftChange,
+      sendMsg: this.sendMsg,
+      msgSendLabel: this.state.msgSending ? 'Sending…' : 'Send',
+      // Inbox modal
+      inboxThreads: Array.isArray(this.state.inboxThreads) ? this.state.inboxThreads : [],
+      inboxLoading: !!this.state.inboxLoading,
+      inboxEmpty: !this.state.inboxLoading && (!this.state.inboxThreads || this.state.inboxThreads.length === 0),
+      // Nav + actions
+      goHome: this.goHome,
+      goMySupports: this.goMySupports,
+      goMyFunding: this.goMyFunding,
+      goMyGoals: this.goMyGoals,
+      goMyTeam: this.goMyTeam,
+      goMyDocuments: this.goMyDocuments,
+      goMessageCoordinator: this.goMessageCoordinator,
+      goSettings: this.goSettings,
+      goBilling: this.goBilling,
+      signOut: this.signOut,
+      viewSupportDetails: this.viewSupportDetails,
+      messageSupport: this.messageSupport,
+      viewFullInbox: this.viewFullInbox,
+      closeModal: this.closeModal,
+      // Toast
+      toast: this.state.toast,
+      clearToast: this.clearToast,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
