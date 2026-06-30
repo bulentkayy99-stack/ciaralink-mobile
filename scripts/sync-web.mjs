@@ -284,6 +284,18 @@ async function run() {
   }
   console.log(`[sync-web] supabase-js CDN -> ${SUPABASE_LOCAL} on ${rewired} pages`);
 
+  // 4b. Mobile QA uses @ciaralink.example demo accounts (live Supabase). The web
+  //     repo still lists .com.au in workflow1-auth-test — rewrite after copy.
+  const wfTest = path.join(DEST, 'workflow1-auth-test.html');
+  if (existsSync(wfTest)) {
+    let wf = await fs.readFile(wfTest, 'utf8');
+    const patched = wf.replace(/@ciaralink\.com\.au/g, '@ciaralink.example');
+    if (patched !== wf) {
+      await fs.writeFile(wfTest, patched);
+      console.log('  patched workflow1-auth-test.html demo emails -> @ciaralink.example');
+    }
+  }
+
   // 5. Secret guard: env.local.js must be anon-only, and no service_role anywhere.
   const envPath = path.join(DEST, 'env.local.js');
   if (existsSync(envPath)) {

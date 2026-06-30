@@ -178,7 +178,23 @@
     
     <div class="header">
       <h1>My profile</h1>
+      <button onClick="{{ goNotifications }}" style="position:relative;padding:10px 16px;border-radius:10px;border:1px solid #e0e0e0;background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:#333">Notifications<sc-if value="{{ notifUnread }}" hint-placeholder-val=""><span style="margin-left:8px;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#e0556e;color:#fff;font-size:11px;font-weight:700">{{ notifUnread }}</span></sc-if></button>
     </div>
+
+    <sc-if value="{{ hasNotifications }}" hint-placeholder-val="">
+    <div class="profile-card" style="margin-bottom: 24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin:0;">Recent alerts</h2>
+        <button onClick="{{ goNotifications }}" style="background:none;border:none;color:#16b8a6;font-weight:600;cursor:pointer;font-size:13px;">View all</button>
+      </div>
+      <sc-for list="{{ notificationPreview }}" as="n" hint-placeholder-count="3">
+        <div style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
+          <div style="font-size:14px;font-weight:600;color:#1a1a1a;">{{ n.title }}</div>
+          <div style="font-size:13px;color:#666;margin-top:4px;">{{ n.body }}</div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
     
     <div class="profile-card">
       <div class="profile-header">
@@ -443,13 +459,39 @@ class Component extends DCLogic {
     careTeam: [],
     realSupports: null,       // null until loaded; array when connected
     realRecentMessages: null,
+    liveNotifications: [],
+    notifUnread: 0,
     toast: null,
   };
 
   componentDidMount() {
     // Load participant data from Supabase
     this.loadParticipantData();
+    this.loadNotifications();
+    if (window.startNotificationPolling) {
+      this._stopNotifPoll = window.startNotificationPolling((c) => {
+        this.setState({ notifUnread: c || 0 });
+        this.loadNotifications();
+      }, 45000);
+    }
   }
+
+  componentWillUnmount() {
+    try { if (this._stopNotifPoll) this._stopNotifPoll(); } catch (e) {}
+  }
+
+  loadNotifications() {
+    try {
+      if (!(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadNotificationsForCurrentUser)) return;
+      Promise.resolve(window.loadNotificationsForCurrentUser()).then((res) => {
+        const rows = (res && !res.error) ? (res.notifications || []) : [];
+        const unread = rows.filter((n) => !n.read_at).length;
+        this.setState({ liveNotifications: rows, notifUnread: unread });
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  goNotifications = () => { window.location.href = 'Notification Centre.dc.html'; };
 
   // Small helpers --------------------------------------------------
   fmtDate(d) {
@@ -584,11 +626,22 @@ class Component extends DCLogic {
   // Supports / funding / goals / team / documents all live on the
   // Participant Profile page, which renders these sections from real data.
   goHome = () => this.setState({ currentView: 'home' });
-  goMySupports = () => { window.location.href = 'Participant Profile.dc.html'; };
-  goMyFunding = () => { window.location.href = 'Participant Profile.dc.html'; };
-  goMyGoals = () => { window.location.href = 'Participant Profile.dc.html'; };
-  goMyTeam = () => { window.location.href = 'Participant Profile.dc.html'; };
-  goMyDocuments = () => { window.location.href = 'Participant Profile.dc.html'; };
+  goProfileTab = (view) => {
+    const pid = this.state.participantId || null;
+    if (window.navigateToParticipantProfile) {
+      window.navigateToParticipantProfile(pid, view);
+      return;
+    }
+    const url = window.participantProfileUrl
+      ? window.participantProfileUrl(pid, view)
+      : ('Participant Profile.dc.html' + (view ? ('?view=' + view) : ''));
+    window.location.href = url;
+  };
+  goMySupports = () => this.goProfileTab('team');
+  goMyFunding = () => this.goProfileTab('plan');
+  goMyGoals = () => this.goProfileTab('goals');
+  goMyTeam = () => this.goProfileTab('team');
+  goMyDocuments = () => this.goProfileTab('docs');
   goSettings = () => { window.location.href = 'Settings.dc.html'; };
   goBilling = () => { window.location.href = 'billing.html'; };
 
@@ -848,19 +901,17 @@ class Component extends DCLogic {
       { from: 'Support Coordinator', preview: 'Your funding plan has been updated...', time: '1 day ago' },
     ];
 
-    // Real (RLS-scoped) data when connected; honest sample only when not.
-    const connectedData = this.state.realSupports !== null;
-    const supports = connectedData ? (this.state.realSupports || []) : demoSupports;
-    const recentMessages = (this.state.realRecentMessages !== null)
-      ? (this.state.realRecentMessages || [])
-      : demoRecentMessages;
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const connected = !!this.state.supabaseConnected;
+    const supports = demoMode ? demoSupports : (this.state.realSupports || []);
+    const recentMessages = demoMode ? demoRecentMessages : (this.state.realRecentMessages || []);
     // Keep a reference so modal handlers can look supports up by id.
     this._renderedSupports = supports;
 
     // Prefer the RLS-scoped profile loaded from Supabase; fall back to demo.
     const p = this.state.participantProfile || {};
-    const profileName = p.full_name || p.preferred_name || demoParticipant.name;
-    const initials = profileName.split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+    const profileName = p.full_name || p.preferred_name || (demoMode ? demoParticipant.name : 'Your profile');
+    const initials = profileName.split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase() || (demoMode ? 'AD' : '?');
 
     // NDIS plan fields — only populated once the participant record (and the
     // self-signup migration) exist. Render the card regardless, with honest empties.
@@ -891,7 +942,9 @@ class Component extends DCLogic {
     const connected = !!this.state.supabaseConnected;
     const bannerText = connected
       ? '✓ Connected to Supabase — your profile, supports, documents and messages are loaded from live data.'
-      : 'ℹ️ Demo mode — not connected to Supabase. All data shown is sample only.';
+      : (demoMode
+        ? 'ℹ️ Demo mode — not connected to Supabase. All data shown is sample only.'
+        : 'ℹ️ Signed in — load your participant profile to see live data here.');
 
     // ---- Support Details modal (real fields of the selected support) ----
     const selSupport = this._renderedSupports
@@ -901,14 +954,23 @@ class Component extends DCLogic {
     // ---- Message composer modal ----
     const msgConfigured = !!this.state.msgConfigured;
     const msgMessages = Array.isArray(this.state.msgMessages) ? this.state.msgMessages : [];
+    const notificationPreview = (this.state.liveNotifications || []).slice(0, 5).map((n) => ({
+      title: n.title || 'Notification',
+      body: n.body || '',
+    }));
+    const hasNotifications = notificationPreview.length > 0;
 
     return {
       bannerText: bannerText,
+      notifUnread: this.state.notifUnread || 0,
+      hasNotifications,
+      notificationPreview,
+      goNotifications: this.goNotifications,
       profileName: profileName,
-      profileRole: demoParticipant.role,
-      profileEmail: p.email || demoParticipant.email,
-      profilePhone: p.phone || demoParticipant.phone,
-      profileDob: p.dob || demoParticipant.dob,
+      profileRole: demoMode ? demoParticipant.role : 'Participant',
+      profileEmail: p.email || (demoMode ? demoParticipant.email : '—'),
+      profilePhone: p.phone || (demoMode ? demoParticipant.phone : '—'),
+      profileDob: p.dob || (demoMode ? demoParticipant.dob : '—'),
       profileAddress: p.address || '—',
       avatarInitials: initials,
       // NDIS plan card
@@ -924,10 +986,10 @@ class Component extends DCLogic {
       documentsEmpty: documents.length === 0,
       // My supports
       supports,
-      supportsEmpty: connectedData && supports.length === 0,
+      supportsEmpty: connected && supports.length === 0,
       // Recent messages widget
       recentMessages,
-      recentMessagesEmpty: (this.state.realRecentMessages !== null) && recentMessages.length === 0,
+      recentMessagesEmpty: connected && recentMessages.length === 0,
       // Support Details modal
       sdTitle: selSupport ? (selSupport.title || 'Support details') : 'Support details',
       sdType: selSupport ? (selSupport.type || '—') : '—',

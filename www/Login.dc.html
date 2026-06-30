@@ -284,6 +284,7 @@ class Component extends DCLogic {
       worker: 'Support Worker.dc.html',
       coordinator: 'Support Coordination.dc.html',
       allied: 'Allied Health.dc.html',
+      guardian: 'Participant Dashboard.dc.html',
     };
     return map[role] || 'Index.dc.html';
   }
@@ -408,7 +409,7 @@ class Component extends DCLogic {
         } else {
           const fullName = this.fullNameRef.current ? this.fullNameRef.current.value.trim() : '';
           const phone = this.phoneRef.current ? this.phoneRef.current.value.trim() : '';
-          const ROLE_MAP = { provider: 'provider_owner', worker: 'support_worker', coordinator: 'support_coordinator', allied: 'allied_health', participant: 'participant' };
+          const ROLE_MAP = { provider: 'provider_owner', worker: 'support_worker', coordinator: 'support_coordinator', allied: 'allied_health', participant: 'participant', guardian: 'guardian_nominee' };
           const roleEnum = ROLE_MAP[this.state.role] || this.state.role;
           const signUpArgs = { email, password, options: { data: { full_name: fullName, phone: phone, role: roleEnum } } };
           const { data, error } = await window.supabaseClient.auth.signUp(signUpArgs);
@@ -462,6 +463,7 @@ class Component extends DCLogic {
       { key: 'coordinator', label: 'Coordinator',    icon: 'star',     ac: '#b4561f', aib: '#fbeedd', abd: '#d98b22', abg: '#fdf5e8' },
       { key: 'allied',      label: 'Allied Health',  icon: 'heart',    ac: '#7c3aed', aib: '#ecdffe', abd: '#9333ea', abg: '#f6eefe' },
       { key: 'participant', label: 'Participant',    icon: 'user',     ac: '#0e7490', aib: '#cfeef3', abd: '#0891b2', abg: '#eef9fb' },
+      { key: 'guardian',    label: 'Guardian',       icon: 'user',     ac: '#b45309', aib: '#fef3c7', abd: '#d97706', abg: '#fffbeb' },
     ];
     const roles = roleOptions.map(r => {
       const active = role === r.key;

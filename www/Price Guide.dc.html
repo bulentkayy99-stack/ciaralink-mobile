@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="capacitor-bridge.js"></script>
+  <script src="native-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script>
+  if (typeof window.ENV === 'undefined') window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+</script>
+<script src="./env.local.js?v=20260630"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260630"></script>
+<script src="./auth-guard.js?v=4"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box}html,body{margin:0;font-family:'Hanken Grotesk',system-ui,sans-serif;background:#eaeeec;color:#14302b}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column">
+  <header style="display:flex;align-items:center;gap:14px;padding:14px 24px;background:#fff;border-bottom:1px solid #e7ece9">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;color:#eafaf8;font-weight:800">$</div>
+    <div style="flex:1"><div style="font-size:17px;font-weight:800">NDIS Price Guide</div><div style="font-size:12.5px;color:#8a9a94;margin-top:2px">{{ guideSub }}</div></div>
+    <select value="{{ region }}" onChange="{{ setRegion }}" style="height:40px;border-radius:10px;border:1px solid #dde4e1;padding:0 12px;font-family:inherit;font-size:13px;font-weight:600;color:#41635c;background:#fff">
+      <option value="national">National (MMM 1–5)</option>
+      <option value="act_nsw_qld_vic">ACT / NSW / QLD / VIC</option>
+      <option value="wa_nt_sa_tas">WA / NT / SA / TAS</option>
+      <option value="remote">Remote (MMM 6)</option>
+      <option value="very_remote">Very remote (MMM 7)</option>
+    </select>
+    <button onClick="{{ goBack }}" style="padding:10px 14px;border-radius:11px;border:1px solid #dde4e1;background:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">← Back</button>
+    <button onClick="{{ goBilling }}" style="padding:10px 14px;border-radius:11px;border:none;background:#0c2622;color:#7ce0d2;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">CiaraLink plan →</button>
+  </header>
+  <div style="flex:1;padding:22px 24px 40px;max-width:1200px;margin:0 auto;width:100%">
+    <div style="background:#eef8f6;border:1px solid #cce8e2;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#41635c;line-height:1.55"><b>NDIS caps vs CiaraLink subscription.</b> These are official NDIA claim limits for participant supports. Your CiaraLink platform subscription is billed separately via Stripe — manage it under <a href="./billing.html" style="color:#0b6b60;font-weight:700">Billing &amp; plan</a>.</div>
+    <sc-if value="{{ showPlaceholderWarn }}" hint-placeholder-val="">
+      <div style="background:#fbf0df;border:1px solid #f0d9b5;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#8a5a1e;line-height:1.55"><b>Placeholder price guide.</b> Import the current NDIS Support Catalogue before using these caps for real claims.</div>
+    </sc-if>
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <input value="{{ search }}" onInput="{{ setSearch }}" placeholder="Search item number or name…" style="flex:1;min-width:220px;height:44px;border-radius:11px;border:1px solid #dde4e1;padding:0 14px;font-family:inherit;font-size:14px" />
+      <button onClick="{{ reload }}" style="height:44px;padding:0 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Refresh</button>
+      <button onClick="{{ goClaims }}" style="height:44px;padding:0 18px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Open Claims →</button>
+    </div>
+    <sc-if value="{{ loading }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:28px;text-align:center;color:#8a9a94">Loading price guide…</div>
+    </sc-if>
+    <sc-if value="{{ loadError }}" hint-placeholder-val="">
+      <div style="background:#fbe9ed;border:1px solid #f3d6dc;border-radius:16px;padding:28px;text-align:center;color:#c0445c">{{ loadError }}</div>
+    </sc-if>
+    <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+        <div style="display:grid;grid-template-columns:1.2fr 2fr .7fr .8fr .8fr;gap:8px;padding:11px 18px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>ITEM</span><span>NAME</span><span>UNIT</span><span>CATEGORY</span><span>PRICE CAP</span></div>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:1.2fr 2fr .7fr .8fr .8fr;gap:8px;padding:12px 18px;border-bottom:1px solid #f4f7f5;align-items:center">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#0b6b60;font-weight:600">{{ r.number }}</span>
+            <span style="font-size:13px;font-weight:600;color:#14302b;line-height:1.4">{{ r.name }}</span>
+            <span style="font-size:12px;color:#6c7f79">{{ r.unit }}</span>
+            <span style="font-size:11.5px;color:#6c7f79">{{ r.category }}</span>
+            <span style="font-size:13px;font-weight:800;color:#14302b">{{ r.price }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;color:#8a9a94;margin-top:12px;line-height:1.55">{{ itemCount }} items · Prices are maximum NDIS claim limits for {{ regionLabel }}. Providers may charge less. Verify on <a href="https://www.ndis.gov.au/participants/using-your-funding/using-portal-and-app/what-are-ndis-pricing-arrangements-and-price-limits" target="_blank" rel="noopener" style="color:#0b6b60;font-weight:700">ndis.gov.au</a> before submitting claims.</div>
+    </sc-if>
+    <sc-if value="{{ emptyItems }}" hint-placeholder-val="">
+      <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:28px;text-align:center;color:#8a9a94">No support items match your search.</div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { region:'national', search:'', loading:true, loadError:null, version:null, items:[], _timer:null };
+  componentDidMount(){ this.load(); }
+  componentWillUnmount(){ if(this.state._timer) clearTimeout(this.state._timer); }
+  load(){
+    if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured())||!window.loadNdisSupportItems){
+      this.setState({loading:false,loadError:'Connect Supabase to browse the price guide',items:[]});
+      return;
+    }
+    this.setState({loading:true,loadError:null});
+    Promise.resolve(window.loadNdisSupportItems({search:this.state.search,limit:400})).then(res=>{
+      if(res.error) this.setState({loading:false,loadError:res.error,items:[],version:res.version||null});
+      else this.setState({loading:false,items:res.items||[],version:res.version||null,loadError:null});
+    }).catch(e=>this.setState({loading:false,loadError:e.message,items:[]}));
+  }
+  renderVals(){
+    const region=this.state.region||'national';
+    const regionLabels={national:'National (MMM 1–5)',act_nsw_qld_vic:'ACT / NSW / QLD / VIC',wa_nt_sa_tas:'WA / NT / SA / TAS',remote:'Remote (MMM 6)',very_remote:'Very remote (MMM 7)'};
+    const capFor=(item)=>window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,region):item.price_cap_national;
+    const fmt=(n)=>window.formatAudAmount?window.formatAudAmount(n):('$'+n);
+    const unitLabel=(u)=>{ const k=String(u||'H').toUpperCase(); if(k==='H'||k==='HR') return 'Hour'; if(k==='EA') return 'Each'; if(k==='D') return 'Day'; return k; };
+    const rows=(this.state.items||[]).map(i=>({
+      number:i.support_item_number,
+      name:i.name,
+      unit:unitLabel(i.unit),
+      category:i.support_category_number?('Cat '+i.support_category_number):'—',
+      price:i.quote_required?'Quote required':(fmt(capFor(i))+(String(i.unit||'H').toUpperCase()==='EA'?' /ea':' /hr'))
+    }));
+    const v=this.state.version;
+    const guideSub=v?(v.name+(v.effective_from?(' · from '+String(v.effective_from).slice(0,10)):'')):'No active guide loaded';
+    return {
+      region, regionLabel:regionLabels[region]||region,
+      guideSub, search:this.state.search,
+      setRegion:(e)=>this.setState({region:e.target.value}),
+      setSearch:(e)=>{ const q=e.target.value; this.setState({search:q}); if(this.state._timer) clearTimeout(this.state._timer); this.state._timer=setTimeout(()=>this.load(),300); },
+      reload:()=>this.load(),
+      goBack:()=>{ try{ const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html'}; window.location.href=m[s.role]||'Index.dc.html'; }catch(e){ window.location.href='Index.dc.html'; } },
+      goBilling:()=>{ window.location.href='billing.html'; },
+      goClaims:()=>{ window.location.href='Claims.dc.html'; },
+      loading:this.state.loading,
+      loadError:this.state.loadError,
+      hasItems:!this.state.loading&&!this.state.loadError&&rows.length>0,
+      emptyItems:!this.state.loading&&!this.state.loadError&&rows.length===0,
+      showPlaceholderWarn:!!(v&&v.is_placeholder),
+      rows,
+      itemCount:rows.length
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -14,6 +14,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="./env.local.js?v=20260628"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260630"></script>
+  <script src="./auth-guard.js?v=4"></script>
   <style>
     *{box-sizing:border-box} html,body{margin:0}
     body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;background:#eaeeec;color:#14302b;-webkit-font-smoothing:antialiased}
@@ -61,8 +65,8 @@
 
         <div style="display:flex;align-items:center;gap:14px;background:#0c2622;border-radius:18px;padding:20px 24px;margin-bottom:20px;color:#eafaf8">
           <div style="width:46px;height:46px;border-radius:14px;background:rgba(124,224,210,.18);display:flex;align-items:center;justify-content:center;flex:0 0 46px">{{ shieldBigEl }}</div>
-          <div style="flex:1"><div style="font-size:16px;font-weight:800">Ali Tahan controls who sees what.</div><div style="font-size:13px;color:#a9cfc8;margin-top:3px">Each role below only sees what he (or his nominee Mariam) has consented to. Change a consent toggle and access updates everywhere, instantly.</div></div>
-          <div style="text-align:right"><div style="font-size:11px;color:#7ce0d2">Last reviewed by participant</div><div style="font-size:12.5px;font-weight:700;color:#fff">Today, 14:32</div></div>
+          <div style="flex:1"><div style="font-size:16px;font-weight:800">{{ permsHeadline }}</div><div style="font-size:13px;color:#a9cfc8;margin-top:3px">Each role below only sees what the participant (or their nominee) has consented to. Change a consent toggle and access updates everywhere, instantly.</div></div>
+          <sc-if value="{{ permsLastReview }}" hint-placeholder-val=""><div style="text-align:right"><div style="font-size:11px;color:#7ce0d2">Last consent change</div><div style="font-size:12.5px;font-weight:700;color:#fff">{{ permsLastReview }}</div></div></sc-if>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">
@@ -101,6 +105,71 @@
 
       <!-- ===== PLAN UPDATE ===== -->
       <sc-if value="{{ isPlanUpdate }}" hint-placeholder-val="">
+
+      <!-- Live mode: real plan dates, documents, review shares — no simulated diff -->
+      <sc-if value="{{ planLive }}" hint-placeholder-val="">
+      <div style="max-width:1120px;margin:0 auto">
+        <div style="display:flex;align-items:flex-start;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
+          <span style="display:flex">{{ sparkBlueEl }}</span>
+          <div style="flex:1;font-size:13px;color:#2a4a8a;line-height:1.5">AI plan diff analysis — read a new NDIS plan, compare with the old plan, and apply changes — is <strong>coming soon</strong>. Below is what's on file today from live records.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:18px">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:10px">Current plan on record</div>
+            <div style="font-size:22px;font-weight:800;color:#0b6b60;letter-spacing:-.02em">{{ planPeriodLabel }}</div>
+            <div style="font-size:12.5px;color:#6c7f79;margin-top:6px">{{ planPeriodSub }}</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+            <div style="font-size:13px;font-weight:800;color:#14302b;margin-bottom:10px">Plan documents</div>
+            <div style="font-size:28px;font-weight:800;color:#14302b">{{ planDocCount }}</div>
+            <div style="font-size:12.5px;color:#6c7f79;margin-top:4px">{{ planDocSub }}</div>
+          </div>
+        </div>
+
+        <sc-if value="{{ planDocsEmpty }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px dashed #d5ded9;border-radius:18px;padding:36px 28px;text-align:center;margin-bottom:18px">
+            <div style="width:52px;height:52px;border-radius:15px;background:#eef2f0;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadIdleEl }}</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-top:14px">No NDIS plan document on file</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:6px;line-height:1.55;max-width:420px;margin-left:auto;margin-right:auto">Upload a plan PDF via AI File Drop or the participant profile. Once a plan is filed, it will appear here for review.</div>
+            <button onClick="{{ goFileDrop }}" style="margin-top:16px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Go to AI File Drop</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ planDocsHas }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-bottom:18px">
+            <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">NDIS plan documents</div>
+            <sc-for list="{{ planDocRows }}" as="pd" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #f4f7f5">
+                <div style="width:32px;height:32px;border-radius:9px;background:#eef0fd;display:flex;align-items:center;justify-content:center;flex:0 0 32px">{{ docIconEl }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ pd.title }}</div><div style="font-size:11.5px;color:#8a9a94">Uploaded {{ pd.when }}</div></div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ pd.stFg }};background:{{ pd.stBg }};padding:3px 9px;border-radius:6px">{{ pd.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ planSharesHas }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-bottom:18px">
+            <div style="padding:14px 18px;border-bottom:1px solid #eef2f0;font-size:13.5px;font-weight:800;color:#14302b">Plan review shares</div>
+            <sc-for list="{{ planShareRows }}" as="ps" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #f4f7f5">
+                <div style="width:8px;height:8px;border-radius:99px;flex:0 0 8px;background:{{ ps.dot }}"></div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#14302b">{{ ps.text }}</div><div style="font-size:11.5px;color:#8a9a94">{{ ps.sub }}</div></div>
+                <span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#9aa8a3">{{ ps.when }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onClick="{{ goReviewPrep }}" style="padding:10px 16px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Open Plan Review Prep</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- Demo mode: illustrative plan scan workflow -->
+      <sc-if value="{{ planDemo }}" hint-placeholder-val="{{ true }}">
       <div style="max-width:1120px;margin:0 auto">
 
         <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start">
@@ -193,9 +262,58 @@
         </div>
       </div>
       </sc-if>
+      </sc-if>
 
       <!-- ===== SIGNING WORKFLOWS ===== -->
       <sc-if value="{{ isSigning }}" hint-placeholder-val="">
+
+      <!-- Live mode: real signature_requests log -->
+      <sc-if value="{{ signingLive }}" hint-placeholder-val="">
+      <div style="max-width:1120px;margin:0 auto">
+        <div style="display:flex;align-items:flex-start;gap:11px;background:#fbf6ec;border:1px solid #f0e6d2;border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:12.5px;color:#7a5a1f;line-height:1.5">
+          <span style="display:flex;flex:0 0 auto;margin-top:1px">{{ shieldSmallEl }}</span>
+          <span>This log tracks documents sent for signature. It is a record only — not a legally binding e-signature. Field detection and multi-signer routing are <strong>coming soon</strong>.</span>
+        </div>
+
+        <sc-if value="{{ sigLiveEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px dashed #d5ded9;border-radius:18px;padding:40px 28px;text-align:center">
+            <div style="width:52px;height:52px;border-radius:15px;background:#eef2f0;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ penIdleEl }}</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b;margin-top:14px">No signature requests yet</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:6px;line-height:1.55;max-width:440px;margin-left:auto;margin-right:auto">Send a service agreement or consent form from AI Intake. Requests will appear here with sent / viewed / signed status.</div>
+            <button onClick="{{ goAiIntake }}" style="margin-top:16px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Open AI Intake</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sigLiveHas }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 0.9fr 1.1fr;padding:10px 20px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9aa8a3">
+              <span>DOCUMENT</span><span>RECIPIENT</span><span>SENT</span><span>STATUS</span><span>SIGN LINK</span>
+            </div>
+            <sc-for list="{{ sigRequestRows }}" as="sr" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 0.9fr 1.1fr;padding:13px 20px;border-bottom:1px solid #f4f7f5;align-items:center;gap:8px">
+                <div style="display:flex;align-items:center;gap:9px;min-width:0">
+                  <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#f0faf8;display:flex;align-items:center;justify-content:center">{{ sr.iconEl }}</div>
+                  <div style="font-size:13px;font-weight:700;color:#14302b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sr.title }}</div>
+                </div>
+                <div style="font-size:12.5px;color:#6c7f79">{{ sr.recipient }}</div>
+                <div style="font-size:12px;color:#8a9a94">{{ sr.when }}</div>
+                <span style="font-size:10.5px;font-weight:700;color:{{ sr.stFg }};background:{{ sr.stBg }};padding:3px 9px;border-radius:6px;display:inline-block;width:fit-content">{{ sr.status }}</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <sc-if value="{{ sr.canSign }}" hint-placeholder-val="">
+                    <button onClick="{{ sr.openSignLink }}" style="padding:6px 10px;border-radius:8px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer">Open</button>
+                    <button onClick="{{ sr.copySignLink }}" style="padding:6px 10px;border-radius:8px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">Copy</button>
+                  </sc-if>
+                  <sc-if value="{{ !sr.canSign }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#9aa8a3">—</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- Demo mode: illustrative signing workflow -->
+      <sc-if value="{{ signingDemo }}" hint-placeholder-val="">
       <div style="max-width:1120px;margin:0 auto">
         <div style="display:flex;align-items:center;gap:11px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:14px;padding:13px 16px;margin-bottom:18px">
           <span style="display:flex">{{ sparkBlueEl }}</span>
@@ -245,6 +363,7 @@
         </div>
       </div>
       </sc-if>
+      </sc-if>
 
     </div>
   </main>
@@ -252,7 +371,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
 class Component extends DCLogic {
-  state = { view:'perms', perms:{}, planPhase:'idle', planApplied:false };
+  state = { view:'perms', perms:{}, planPhase:'idle', planApplied:false, participantId:null, participantName:null, participant:null, consentRows:[], auditRows:[], consentLoaded:false, planDocs:[], planShares:[], sigRequests:[], planDataLoaded:false, sigDataLoaded:false };
   componentDidMount(){
     const h=(location.hash||'').replace('#','');
     if(['perms','planUpdate','signing'].includes(h))this.setState({view:h});
@@ -262,6 +381,60 @@ class Component extends DCLogic {
       st.textContent='aside{display:none!important}main>header{display:none!important}';
       document.head.appendChild(st);
     }
+    this.loadLiveData(0);
+  }
+  loadLiveData(attempt){
+    attempt=attempt||0;
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(typeof window.loadParticipantsForCurrentUser!=='function'){
+      if(attempt<25) setTimeout(()=>this.loadLiveData(attempt+1),150);
+      return;
+    }
+    Promise.resolve(window.loadParticipantsForCurrentUser()).then(res=>{
+      const parts=(res&&!res.error)?(res.participants||[]):[];
+      let pid=null;
+      try{ pid=window.getParticipantIdFromUrl?window.getParticipantIdFromUrl():null; }catch(e){}
+      if(!pid && parts.length) pid=parts[0].id;
+      const p=parts.find(x=>x.id===pid)||parts[0]||null;
+      const name=p?(p.full_name||p.preferred_name||'Participant'):null;
+      this.setState({participantId:pid, participantName:name, participant:p});
+      const loads=[];
+      if(pid && window.loadConsentPermissions){
+        loads.push(
+          Promise.all([
+            window.loadConsentPermissions(pid),
+            window.loadConsentAuditLog?window.loadConsentAuditLog(pid):Promise.resolve({entries:[]})
+          ]).then(([permRes,auditRes])=>{
+            this.setState({
+              consentRows:(permRes&&permRes.permissions)||[],
+              auditRows:(auditRes&&auditRes.entries)||[],
+              consentLoaded:true,
+            });
+          })
+        );
+      } else {
+        this.setState({consentLoaded:true});
+      }
+      if(pid){
+        const docP=window.loadDocumentsForCurrentUser?Promise.resolve(window.loadDocumentsForCurrentUser()).then(dRes=>{
+          const all=(dRes&&dRes.documents)||[];
+          const planDocs=all.filter(d=>d.participant_id===pid && (d.type==='ndis_plan' || String(d.title||'').toLowerCase().indexOf('plan')>=0));
+          this.setState({planDocs, planDataLoaded:true});
+        }).catch(()=>this.setState({planDataLoaded:true})):Promise.resolve();
+        const shareP=window.loadPlanReviewShares?Promise.resolve(window.loadPlanReviewShares(pid)).then(sRes=>{
+          this.setState({planShares:(sRes&&sRes.shares)||[]});
+        }).catch(()=>{}):Promise.resolve();
+        const sigP=window.loadSignatureRequests?Promise.resolve(window.loadSignatureRequests()).then(rRes=>{
+          const all=(rRes&&rRes.requests)||[];
+          const sigRequests=all.filter(r=>!r.participant_id || r.participant_id===pid);
+          this.setState({sigRequests, sigDataLoaded:true});
+        }).catch(()=>this.setState({sigDataLoaded:true})):Promise.resolve();
+        loads.push(docP, shareP, sigP);
+      } else {
+        this.setState({planDataLoaded:true, sigDataLoaded:true});
+      }
+      return Promise.all(loads);
+    }).catch(()=>this.setState({consentLoaded:true, planDataLoaded:true, sigDataLoaded:true}));
   }
   ic(n,c,s,sw){
     const stroke=c||'#5f726d',sz=s||18;
@@ -301,6 +474,8 @@ class Component extends DCLogic {
     try{ const AD=window.AegisData; if(AD) AD.set('care_ecosystem_perms',np); }catch(e){}
   }
   isOn(key,def){ const v=this.state.perms[key]; return v===undefined?def:v; }
+  showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),2800); }
+  signLinkFor(id){ try{ return window.location.origin+'/Sign.dc.html?req='+encodeURIComponent(id); }catch(e){ return 'Sign.dc.html?req='+encodeURIComponent(id); } }
   runPlanScan(){
     if(this.state.planPhase==='applied')return;
     this.setState({planPhase:'scanning'});
@@ -311,15 +486,37 @@ class Component extends DCLogic {
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const view=this.state.view;
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const participantName = demoMode ? 'Ali Tahan' : (this.state.participantName || 'Participant');
     const navSections=[
       {title:'DOCUMENTS',items:[['perms','Access & Permissions','shield'],['planUpdate','Plan Updates','refresh'],['signing','Signing Workflows','pen']]},
     ].map(sec=>({title:sec.title,items:sec.items.map(([key,label,icon])=>{const a=view===key;return{label,onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};})}));
-    const pages={perms:{title:'Access & Permissions',sub:'Ali Tahan · consent-gated access per role — participant controls everything'},planUpdate:{title:'Plan Updates',sub:'New NDIS plan received · read, compare, apply changes to all records'},signing:{title:'Signing Workflows',sub:'AI detects signature fields → routes to each signer in order'}};
+    const pages={perms:{title:'Access & Permissions',sub:participantName+' · consent-gated access per role — participant controls everything'},planUpdate:{title:'Plan Updates',sub:demoMode?'New NDIS plan received · read, compare, apply changes to all records':'Upload a plan document to analyse changes against live records'},signing:{title:'Signing Workflows',sub:demoMode?'AI detects signature fields → routes to each signer in order':'Route documents for signature using live participant data'}};
 
     const tog=(key,def)=>this.isOn(key,def);
     const mkPerm=(key,label,def,icon,tintBg)=>({label,iconEl:ic(icon,tog(key,def)?'#16b8a6':'#9aa8a3',16),onClick:()=>this.toggle(key),bg:tog(key,def)?'#16b8a6':'#eef2f0',knobLeft:tog(key,def)?'20px':'2px'});
 
-    const roles=[
+    const _catIcon={plan:'wallet',budget:'wallet',notes:'note',docs:'doc',contact:'phone',photo:'photo',goals:'heart'};
+    const _buildRolesFromConsent=(rows)=>{
+      const bySubject={};
+      (rows||[]).forEach(row=>{
+        const sk=row.subject_key||'unknown';
+        if(!bySubject[sk]) bySubject[sk]={role:row.subject_role||'Care team member',name:row.subject_label||sk,rows:[]};
+        bySubject[sk].rows.push(row);
+      });
+      const palette=[{tintBg:'#eef0fd',icon:'users',color:'#6366f1'},{tintBg:'#e7f4f1',icon:'heart',color:'#16b8a6'},{tintBg:'#fbf0df',icon:'user',color:'#d98b22'},{tintBg:'#fbe9ed',icon:'family',color:'#e0556e'}];
+      return Object.keys(bySubject).map((sk,i)=>{
+        const g=bySubject[sk];
+        const pal=palette[i%palette.length];
+        const perms=g.rows.map(row=>{
+          const on=String(row.access_level||'none')!=='none';
+          return {label:row.category,iconEl:ic(_catIcon[row.category]||'doc',on?'#16b8a6':'#9aa8a3',16),onClick:()=>{},bg:on?'#16b8a6':'#eef2f0',knobLeft:on?'20px':'2px'};
+        });
+        return {role:g.role,name:g.name,tintBg:pal.tintBg,iconEl:ic(pal.icon,pal.color,17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',perms};
+      });
+    };
+
+    const rolesDemo=[
       {role:'Support Coordinator',name:'Sarah Kelly',tintBg:'#eef0fd',iconEl:ic('users','#6366f1',17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',
         perms:[mkPerm('sc_plan','View NDIS plan & budgets',true,'wallet','#eef0fd'),mkPerm('sc_notes','Read shift notes',true,'note','#eef0fd'),mkPerm('sc_contact','See full contact details',true,'phone','#eef0fd'),mkPerm('sc_docs','Access filed documents',true,'doc','#eef0fd')]},
       {role:'Service Provider',name:'Brightside Care',tintBg:'#e7f4f1',iconEl:ic('heart','#16b8a6',17),stLabel:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',
@@ -329,14 +526,50 @@ class Component extends DCLogic {
       {role:'Family / Nominee',name:'Mariam Tahan (sister)',tintBg:'#fbe9ed',iconEl:ic('family','#e0556e',17),stLabel:'Nominee',stFg:'#c0445c',stBg:'#fbe9ed',
         perms:[mkPerm('fn_notes','Receive shift-note summaries',true,'note','#fbe9ed'),mkPerm('fn_docs','View signed agreements',true,'doc','#fbe9ed'),mkPerm('fn_budget','View plan & budget',true,'wallet','#fbe9ed'),mkPerm('fn_photo','Receive photo updates',false,'photo','#fbe9ed')]}
     ];
-    const auditLog=[
+    const rolesReal=_buildRolesFromConsent(this.state.consentRows);
+    const roles = demoMode ? rolesDemo : (rolesReal.length ? rolesReal : [{role:'No permissions yet',name:'Configure consent in Consent Centre',tintBg:'#eef2f0',iconEl:ic('shield','#9aa8a3',17),stLabel:'Empty',stFg:'#8a9a94',stBg:'#f1f4f2',perms:[]}]);
+
+    const auditDemo=[
       {dot:'#16b8a6',text:'Ali gave consent for family to view shift summaries',when:'Today 14:32'},
       {dot:'#e0556e',text:'Provider budget access toggled off by Ali',when:'Today 14:31'},
       {dot:'#6366f1',text:'SC Sarah Kelly access reviewed — no changes',when:'19 Jun 2026'},
       {dot:'#1e9e6a',text:'Consent to share info with care team — signed',when:'01 Jul 2026'}
     ];
+    const auditLog = demoMode ? auditDemo : (this.state.auditRows||[]).map(a=>({
+      dot:'#16b8a6',
+      text: a.summary || a.action || 'Consent change',
+      when: a.created_at ? new Date(a.created_at).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—',
+    }));
+    const fmtDate=(s)=>{ if(!s) return null; try{ return new Date(s).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return String(s).slice(0,10); } };
+    const permsLastReview = demoMode ? 'Today, 14:32' : ((this.state.auditRows&&this.state.auditRows[0]&&this.state.auditRows[0].created_at) ? fmtDate(this.state.auditRows[0].created_at) : null);
 
-    // plan update
+    // plan update — live vs demo
+    const planLive = !demoMode;
+    const planDemo = demoMode;
+    const pRec=this.state.participant||{};
+    const planStart=pRec.plan_start||null;
+    const planEnd=pRec.plan_end||null;
+    const planPeriodLabel=(planStart&&planEnd)?(fmtDate(planStart)+' – '+fmtDate(planEnd)):(planStart||planEnd?fmtDate(planStart||planEnd):'No plan dates on file');
+    const planPeriodSub=(planStart||planEnd)?(participantName+' · from participant profile'):'Add plan start/end dates in the participant profile';
+    const planDocRows=(this.state.planDocs||[]).map(d=>({
+      title:d.title||'NDIS plan',
+      when:fmtDate(d.created_at)||'—',
+      status:(d.status||'filed').charAt(0).toUpperCase()+(d.status||'filed').slice(1),
+      stFg:'#4338ca',stBg:'#eef0fd',
+    }));
+    const planDocCount=String(planDocRows.length);
+    const planDocSub=planDocRows.length?(planDocRows.length===1?'document on file':'documents on file'):'Upload a plan PDF to get started';
+    const planDocsEmpty=planLive && !planDocRows.length;
+    const planDocsHas=planLive && planDocRows.length>0;
+    const planShareRows=(this.state.planShares||[]).map(s=>({
+      dot:s.contained_illustrative_data?'#d98b22':'#16b8a6',
+      text:'Shared with '+(s.recipient_name||s.recipient_email||'recipient')+(s.contained_illustrative_data?' (illustrative data flagged)':''),
+      sub:(s.recipient_role||'planner')+' · '+(s.status||'recorded'),
+      when:fmtDate(s.created_at)||'—',
+    }));
+    const planSharesHas=planLive && planShareRows.length>0;
+
+    // plan update — demo simulated scan
     const phase=this.state.planPhase;
     const planLines=[
       {tag:'PARTICIPANT',w:'68%',hl:'#e7ece9',glow:phase==='scanning'&&false},
@@ -367,7 +600,28 @@ class Component extends DCLogic {
     ];
     const applied=toUpdate.map(u=>({label:u.label,iconEl:ic('check','#1e9e6a',16,2.4)}));
 
-    // signing
+    // signing — live vs demo
+    const signingLive = !demoMode;
+    const signingDemo = demoMode;
+    const agStatusColor=(s)=>{ s=(s||'').toLowerCase(); if(s==='signed') return {fg:'#1e7a52',bg:'#e9f6ef',label:'Signed'}; if(s==='declined'||s==='cancelled') return {fg:'#c0445c',bg:'#fbe9ed',label:s.charAt(0).toUpperCase()+s.slice(1)}; if(s==='viewed') return {fg:'#4338ca',bg:'#eef0fd',label:'Viewed'}; return {fg:'#b4561f',bg:'#fbf0df',label:'Sent'}; };
+    const sigRequestRows=(this.state.sigRequests||[]).map(r=>{ const c=agStatusColor(r.status); const st=(r.status||'').toLowerCase(); const canSign=st!=='signed'&&st!=='declined'&&st!=='cancelled'; const link=r.id?this.signLinkFor(r.id):''; return {
+      title:r.document_title||'Document',
+      recipient:r.recipient||r.participant_name||'—',
+      when:fmtDate(r.created_at)||'—',
+      status:c.label,stFg:c.fg,stBg:c.bg,
+      iconEl:ic('doc','#16b8a6',14),
+      canSign,
+      openSignLink:()=>{ if(link) window.open(link,'_blank'); },
+      copySignLink:async()=>{
+        if(!link){ this.showToast('No signing link for this request'); return; }
+        try{ if(navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(link); this.showToast('Signing link copied'); return; } }catch(e){}
+        window.prompt('Copy this signing link:', link);
+      },
+    };});
+    const sigLiveEmpty=signingLive && !sigRequestRows.length;
+    const sigLiveHas=signingLive && sigRequestRows.length>0;
+
+    // signing — demo simulated workflow
     const sigFields=[
       {label:'Provider representative',page:4,who:'Brightside Care · authorised rep',tintBg:'#e7f4f1',iconEl:ic('pen','#16b8a6',15),status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef'},
       {label:'Support coordinator',page:4,who:'Sarah Kelly',tintBg:'#eef0fd',iconEl:ic('pen','#6366f1',15),status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef'},
@@ -389,11 +643,15 @@ class Component extends DCLogic {
       signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goBack:()=>{ window.location.href='Support Coordination.dc.html'; },
       goReviewPrep:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      goFileDrop:()=>{ window.location.href='AI File Drop.dc.html'; },
+      goAiIntake:()=>{ window.location.href='AI Intake.dc.html'; },
       sendReferral:()=>{ window.location.href='Support Coordination.dc.html'; },
       logoutSmEl:ic('logout','#6c8a83',15),
       logoEl:ic('logo','#eafaf8',21),navSections,pageTitle:pages[view].title,pageSub:pages[view].sub,
       isPerms:view==='perms',isPlanUpdate:view==='planUpdate',isSigning:view==='signing',
-      shieldBigEl:ic('shield','#7ce0d2',22),roles,auditLog,
+      permsHeadline: participantName+' controls who sees what.', permsLastReview,
+      shieldBigEl:ic('shield','#7ce0d2',22),shieldSmallEl:ic('shield','#7a5a1f',15),roles,auditLog,
+      planLive,planDemo,planPeriodLabel,planPeriodSub,planDocCount,planDocSub,planDocsEmpty,planDocsHas,planDocRows,planSharesHas,planShareRows,uploadIdleEl:ic('upload','#9aa8a3',22),
       docIconEl:ic('doc','#6366f1',17),sparkSmEl:ic('spark','#06201c',15),
       scanBtnLabel:phase==='idle'?'Analyse':phase==='scanning'?'Reading…':'Re-scan',
       scanBtnBg:phase==='scanning'?'#0c2622':'#16b8a6',scanBtnFg:phase==='scanning'?'#eafaf8':'#06201c',
@@ -403,6 +661,7 @@ class Component extends DCLogic {
       sparkIdleEl:ic('spark','#16b8a6',22),checkTealEl:ic('check','#7ce0d2',20,2.4),
       checkSmEl:ic('check','#06201c',16,2.4),bigCheckEl:ic('check','#1e9e6a',24,2.6),
       sparkBlueEl:ic('spark','#2a4a8a',17),
+      signingLive,signingDemo,sigLiveEmpty,sigLiveHas,sigRequestRows,penIdleEl:ic('pen','#9aa8a3',22),
       sigFields,sigRoute,sendOpts
     };
   }

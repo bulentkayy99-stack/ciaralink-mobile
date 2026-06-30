@@ -450,7 +450,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
 class Component extends DCLogic {
-  state = { view:'board', sel:0, postOpen:false, postStep:0, postDiscipline:0, postModes:{0:true,2:true}, postFunding:{0:true,1:true}, postLangs:{0:true}, postAge:0, postSubSpecialty:'', postLocation:'', postSlots:'', postWaitlist:'', postSubmitting:false, activeThread:0, msgInput:'', hugoInput:'', messages:{}, threadUnread:{0:true,2:true}, convStatus:{}, toast:null, lastSent:{}, filterState:{discipline:null,location:null,funding:null,age:null}, realBoard:null, realMyPosts:null, realRadars:null, dataLoaded:false };
+  state = { view:'board', sel:0, postOpen:false, postStep:0, postDiscipline:0, postModes:{0:true,2:true}, postFunding:{0:true,1:true}, postLangs:{0:true}, postAge:0, postSubSpecialty:'', postLocation:'', postSlots:'', postWaitlist:'', postSubmitting:false, activeThread:0, msgInput:'', hugoInput:'', messages:{}, threadUnread:{0:true,2:true}, convStatus:{}, toast:null, lastSent:{}, filterState:{discipline:null,location:null,funding:null,age:null}, realBoard:null, realMyPosts:null, realRadars:null, dataLoaded:false, realThreads:[], realReferrals:[], threadMessages:{}, currentUserId:null, msgLoaded:false };
 
   componentDidMount(){
     try{
@@ -464,11 +464,45 @@ class Component extends DCLogic {
   waitForHelpers(tries){
     tries=tries||0;
     if(typeof window.isSupabaseConfigured==='function' && typeof window.loadCapacityBoard==='function'){
-      if(window.isSupabaseConfigured()){ this.loadConnectData(); }
+      if(window.isSupabaseConfigured()){ this.loadConnectData(); this.loadMessagingData(); }
       return;
     }
     if(tries>40) return; // ~10s; stay in preview/demo mode
     setTimeout(()=>this.waitForHelpers(tries+1),250);
+  }
+
+  async loadMessagingData(){
+    if(!(typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured())) return;
+    try{
+      if(window.getCurrentUser){
+        const cu=await window.getCurrentUser();
+        if(cu&&cu.user) this.setState({currentUserId:cu.user.id});
+      }
+      const jobs=[];
+      if(window.loadMessageThreadsForCurrentUser) jobs.push(window.loadMessageThreadsForCurrentUser());
+      if(window.loadReferralsForCurrentUser) jobs.push(window.loadReferralsForCurrentUser());
+      const [tRes,rRes]=await Promise.all(jobs.length?jobs:[Promise.resolve({threads:[]}),Promise.resolve({referrals:[]})]);
+      const threads=(tRes&&!tRes.error)?(tRes.threads||[]):[];
+      const referrals=(rRes&&!rRes.error)?(rRes.referrals||[]):[];
+      this.setState({realThreads:threads, realReferrals:referrals, msgLoaded:true});
+      if(threads.length>0 && window.loadThreadMessages){
+        this.loadThreadMessages(threads[0].id);
+      }
+    }catch(e){ this.setState({msgLoaded:true}); }
+  }
+
+  async loadThreadMessages(threadId){
+    if(!threadId||!(window.loadThreadMessages)) return;
+    try{
+      const uid=this.state.currentUserId;
+      const res=await window.loadThreadMessages(threadId);
+      const mapped=(res.messages||[]).map(m=>{
+        const t=new Date(m.created_at);
+        const time=isNaN(t.getTime())?'':t.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+        return {from:(uid&&m.sender_id===uid)?'me':'other',text:m.body||'',time,id:m.id};
+      });
+      this.setState(s=>({threadMessages:{...(s.threadMessages||{}),[threadId]:mapped}}));
+    }catch(e){}
   }
 
   async loadConnectData(){
@@ -555,13 +589,29 @@ class Component extends DCLogic {
   sendMsg(){
     const {msgInput,activeThread,messages}=this.state;
     if(!msgInput.trim()) return;
+    const configured=typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured();
+    const cur=this._threadList && this._threadList[activeThread||0];
+    if(configured && cur && cur._realId && typeof window.sendMessage==='function'){
+      const body=msgInput.trim();
+      Promise.resolve(window.sendMessage(cur._realId,body)).then(r=>{
+        if(r&&r.message&&!r.error){
+          this.setState({msgInput:''});
+          this.loadThreadMessages(cur._realId);
+          this.showToast('Message sent ✓');
+        } else this.showToast('Could not send message');
+      }).catch(()=>this.showToast('Could not send message'));
+      return;
+    }
+    if(configured && (!cur||!cur._realId)){
+      this.showToast('No conversation selected — start one from a participant profile');
+      return;
+    }
     const thread=messages[activeThread]||[];
     const newMsg={from:'me',text:msgInput.trim(),time:new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),id:Date.now(),status:'delivered'};
     const updated={...messages,[activeThread]:[...thread,newMsg]};
     const AD=window.AegisData;
     if(AD){
       AD.set('ciaralink_messages',updated);
-      // Create notification for recipient
       const threadNames={0:'Sarah Kelly',1:'Jordan Pham',2:'Brightside Care',3:'Margaret Reyes',4:'Mariam T.'};
       const threadRoles={0:'Support Coordinator',1:'Physiotherapist',2:'Provider',3:'Participant',4:'Guardian'};
       AD.push('notifications',{
@@ -575,7 +625,6 @@ class Component extends DCLogic {
         read:false
       });
     }
-    // Update convo status to 'waiting'
     const convStatus={...(this.state.convStatus||{}),[activeThread]:'Waiting for reply'};
     this.setState({messages:updated,msgInput:'',convStatus,lastSent:{[activeThread]:Date.now()}});
   }
@@ -689,6 +738,7 @@ class Component extends DCLogic {
     };
 
     const configured = typeof window.isSupabaseConfigured==='function' && window.isSupabaseConfigured();
+    const demoMode = !configured;
     // Real data once loaded; demo only in Preview Mode. (Empty real board => empty, not fake.)
     const baseOpenings = configured ? ((this.state.realBoard||[]).map(mapPost)) : demoOpenings;
 
@@ -720,16 +770,25 @@ class Component extends DCLogic {
       return {label:shown,onClick:()=>{ if(!f.opts||!f.opts.length){ this.showToast('No '+f.base.toLowerCase()+' options on the board yet'); return;} this.cycleFilter(f.key,f.opts); },bd:active?'#16b8a6':'#e2e9e6',bg:active?'#e7f4f1':'#fff',fg:active?'#0b6b60':'#5f726d',caretEl:ic('caret',active?'#16b8a6':'#9aa8a3',13)};
     });
 
-    // warm handoff
-    const refDefs=[
+    // warm handoff — demo referrals only in preview; real rows from referrals table.
+    const _refTint=['#16b8a6','#6366f1','#0891b2','#9333ea','#d98b22'];
+    const _refStatusMap={accepted:'accepted',seen:'seen',received:'seen',waitlist:'waitlist',declined:'declined',closed:'declined'};
+    const _mapRefStatus=(st)=>_refStatusMap[String(st||'').toLowerCase()]||'seen';
+    const refDefsDemo=[
       {who:'Eleni Pappas',init:'EP',tint:'#16b8a6',discipline:'OT · Geelong Therapy Co',st:'accepted'},
       {who:'Hassan Ali',init:'HA',tint:'#6366f1',discipline:'Speech · Northside Speech',st:'seen'},
       {who:'Joan Wu',init:'JW',tint:'#0891b2',discipline:'Physio · Bayside Physio',st:'waitlist'},
       {who:'Peter Novak',init:'PN',tint:'#9333ea',discipline:'Psychology · Inner West',st:'declined'}
     ];
+    const refDefsReal=(this.state.realReferrals||[]).map((r,i)=>{
+      const who=(r.participants&&(r.participants.preferred_name||r.participants.full_name))||'Participant';
+      const init=(who.split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2)||'PR').toUpperCase();
+      return {who,init,tint:_refTint[i%_refTint.length],discipline:(r.type||'Referral')+' · '+(r.status||'pending'),st:_mapRefStatus(r.status)};
+    });
+    const refDefs = demoMode ? refDefsDemo : refDefsReal;
     const stMap={accepted:{stLabel:'ACCEPTED',stFg:'#1e7a52',stBg:'#e9f6ef'},seen:{stLabel:'SEEN',stFg:'#b4561f',stBg:'#fbf0df'},waitlist:{stLabel:'WAITLIST',stFg:'#4338ca',stBg:'#eef0fd'},declined:{stLabel:'DECLINED',stFg:'#c0445c',stBg:'#fbe9ed'}};
     const referrals=refDefs.map((r,i)=>{const s=stMap[r.st];const a=this.state.sel===i;return{who:r.who,init:r.init,tint:r.tint,discipline:r.discipline,stLabel:s.stLabel,stFg:s.stFg,stBg:s.stBg,onClick:()=>this.setState({sel:i}),rowBg:a?'#f4faf8':'#fff',selBar:a?'#16b8a6':'transparent'};});
-    const cur=refDefs[this.state.sel]||refDefs[0];
+    const cur=refDefs[this.state.sel]||refDefs[0]||{who:'—',init:'—',tint:'#9aa8a3',discipline:'No referrals yet',st:'seen'};
     const cs=stMap[cur.st];
     const stepState=(reached,active)=>({dotBg:reached?'#16b8a6':'#fff',dotBd:reached?'#16b8a6':'#cdd8d3',iconEl:reached?ic('check','#fff',15,2.6):(active?ic('clock','#d98b22',14):React.createElement('span')),fg:reached?'#0b6b60':'#9aa8a3',lineBg:reached?'#16b8a6':'#e7ece9'});
     const reachedTo={seen:1,waitlist:2,accepted:3,declined:2};
@@ -796,17 +855,30 @@ class Component extends DCLogic {
         })
       : demoMyPosts;
 
-    // ---- reliability score ----
-    const scoreItems=[
+    // ---- reliability score (demo showcase only) ----
+    const scoreItems= demoMode ? [
       {label:'Average acknowledgement time',value:'4h 12m',goal:'SLA: 48h',good:true},
       {label:'Referrals responded to',value:'94%',goal:'of 18 received',good:true},
       {label:'Within-SLA responses',value:'89%',goal:'responded in time',good:true},
       {label:'Capacity freshness',value:'Good',goal:'posts refreshed on time',good:true}
+    ] : [
+      {label:'Average acknowledgement time',value:'—',goal:'Tracked from your referrals',good:true},
+      {label:'Referrals responded to',value:String((this.state.realReferrals||[]).length),goal:'visible to you',good:true},
+      {label:'Within-SLA responses',value:'—',goal:'Respond within 48h',good:true},
+      {label:'Capacity freshness',value:(this.state.realMyPosts||[]).length?'Active':'—',goal:'keep posts refreshed',good:true}
     ];
-    const tipItems=['Respond to new referrals within 48h — even a quick "seen" helps.','Keep your capacity posts refreshed so coordinators know you\'re current.','When declining, add a brief reason — it helps coordinators find the right fit faster.'];
+    const tipItems= demoMode ? [
+      'Respond to new referrals within 48h — even a quick "seen" helps.','Keep your capacity posts refreshed so coordinators know you\'re current.','When declining, add a brief reason — it helps coordinators find the right fit faster.'
+    ] : [
+      'Respond to new referrals within 48h — even a quick "seen" helps.',
+      'Keep your capacity posts refreshed so coordinators know you\'re current.',
+      'Your responsiveness score builds from real referral activity over time.',
+    ];
 
     // ---- messaging ----
-    const threadDefs=[
+    const _mtPalette=['#6366f1','#9333ea','#16b8a6','#0891b2','#d98b22'];
+    const _fmtThreadTime=(iso)=>{ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; const m=Math.floor((Date.now()-d.getTime())/60000); if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); };
+    const threadDefsDemo=[
       {id:0,name:'Sarah Kelly',org:'Support Coordination Services',role:'Support Coordinator',init:'SK',tint:'#6366f1',type:'Direct',typeFg:'#4338ca',typeBg:'#eef0fd',participant:'Margaret R.',status:'Review evidence requested',lastActive:'Active 2m ago',lastMsg:'Can you confirm the OT report is uploaded?',lastTime:'2m ago',unread:true,
         context:{kind:'plan-review',title:'Plan Review Prep',detail:'Margaret R. · Review in 11 days',items:[{label:'Review date',value:'21 Jul 2026'},{label:'Missing',value:'OT report, SC summary'},{label:'Evidence',value:'70% complete'}],actions:[{label:'Open review prep',url:'Plan Review Prep.dc.html'},{label:'Upload report',url:'AI File Drop.dc.html'}]},
         suggestedReplies:["I'll upload the OT report today.","I can send it through by Friday.","Can you confirm which report you need?","I've attached the latest OT report."]
@@ -828,9 +900,21 @@ class Component extends DCLogic {
         suggestedReplies:["Of course — I'll send updates before the review.","We'll keep you informed at each stage.","The review is on 21 July — I'll send details soon.","I've added you to the review evidence notification list."]
       },
     ];
+    const threadDefsReal=(this.state.realThreads||[]).map((t,i)=>{
+      const name=t.subject||(t.type?(String(t.type).charAt(0).toUpperCase()+String(t.type).slice(1)+' thread'):'Conversation');
+      const init=(name.split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2)||'??').toUpperCase();
+      const msgs=(this.state.threadMessages||{})[t.id]||[];
+      const last=msgs.length?msgs[msgs.length-1]:null;
+      return {id:i,_realId:t.id,name,org:t.type||'Message',role:t.type||'Conversation',init,tint:_mtPalette[i%_mtPalette.length],
+        type:'Direct',typeFg:'#4338ca',typeBg:'#eef0fd',participant:'',status:t.subject||'Conversation',
+        lastActive:'',lastMsg:last?last.text:(t.subject||'No messages yet'),lastTime:_fmtThreadTime(t.updated_at||t.created_at),unread:false,
+        context:{kind:'general',title:name,detail:'',items:[],actions:[]},suggestedReplies:[]};
+    });
+    const threadDefs = demoMode ? threadDefsDemo : threadDefsReal;
+    this._threadList = threadDefs;
     const activeThread=this.state.activeThread||0;
     const savedMessages=this.state.messages||{};
-    const defaultMsgs={
+    const defaultMsgs= demoMode ? {
       0:[
         {from:'other',text:'Hi, just checking in about Margaret\'s plan review — do you have the OT report yet?',time:'9:14'},
         {from:'me',text:'Still waiting on Jordan to upload. I\'ll follow up today.',time:'9:22'},
@@ -844,26 +928,31 @@ class Component extends DCLogic {
       2:[
         {from:'other',text:'Worker confirmed for tonight\'s shift.',time:'14:32'},
       ],
-    };
+    } : {};
     const convStatus=this.state.convStatus||{};
     const lastSent=this.state.lastSent||{};
     const convStatusDefs={0:'Action required',1:'Waiting for reply',2:'Open',3:'Resolved',4:'Open'};
     const threads=threadDefs.map((t,i)=>{
-      const isActive=activeThread===t.id;
-      const msgs=[...(defaultMsgs[t.id]||[]),...(savedMessages[t.id]||[])];
+      const isActive=activeThread===i;
+      const realMsgs=t._realId?((this.state.threadMessages||{})[t._realId]||[]):[];
+      const msgs=t._realId?realMsgs:[...(defaultMsgs[t.id]||[]),...(savedMessages[t.id]||[])];
       const status=convStatus[t.id]||(lastSent[t.id]?'Waiting for reply':convStatusDefs[t.id]||'Open');
       const statusColor=status==='Action required'?'#e0556e':status==='Waiting for reply'?'#d98b22':status==='Resolved'?'#16b8a6':'#9aa8a3';
       return {...t,isActive,msgs,
         bg:isActive?'rgba(255,255,255,.09)':'transparent',
         fg:isActive?'#f4faf8':'#c8d8d2',
-        select:()=>this.setState({activeThread:t.id,threadUnread:{...this.state.threadUnread,[t.id]:false}}),
+        select:()=>{
+          this.setState({activeThread:i,threadUnread:{...this.state.threadUnread,[t.id]:false}});
+          if(t._realId) this.loadThreadMessages(t._realId);
+        },
         unreadDot:this.state.threadUnread?.[t.id],
         convStatus:status,
         convStatusColor:statusColor,
       };
     });
-    const cur2=threadDefs[activeThread]||threadDefs[0];
-    const curMsgs=[...(defaultMsgs[activeThread]||[]),...(savedMessages[activeThread]||[])].map((m,i,arr)=>({
+    const cur2=threadDefs[activeThread]||threadDefs[0]||{name:'No conversations',init:'—',participant:'',status:'',context:{items:[],actions:[]},suggestedReplies:[]};
+    const curMsgSrc=cur2._realId?((this.state.threadMessages||{})[cur2._realId]||[]):[...(defaultMsgs[activeThread]||[]),...(savedMessages[activeThread]||[])];
+    const curMsgs=curMsgSrc.map((m,i,arr)=>({
       ...m,
       isMe:m.from==='me',
       bubbleBg:m.from==='me'?'#16b8a6':'#fff',
@@ -874,7 +963,7 @@ class Component extends DCLogic {
       showStatus:m.from==='me'&&i===arr.length-1,
     }));
     // Hugo messaging actions
-    const lastReceivedMsg=([...(defaultMsgs[activeThread]||[]),...(savedMessages[activeThread]||[])]).filter(m=>m.from!=='me').slice(-1)[0];
+    const lastReceivedMsg=curMsgSrc.filter(m=>m.from!=='me').slice(-1)[0];
     const lastMsgText=lastReceivedMsg?lastReceivedMsg.text:'';
     const hugoMsgActions=[
       {label:'Summarise this thread',click:()=>this.showToast('Summary: '+cur2.name+' re: '+cur2.participant+' — '+cur2.status+'. Last message: "'+lastMsgText.slice(0,60)+'"')},
@@ -891,7 +980,13 @@ class Component extends DCLogic {
     return {
       signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
-      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goParticipantProfile:()=>{
+        let pid=null;
+        try{ pid=window.getParticipantIdFromUrl?window.getParticipantIdFromUrl():null; }catch(e){}
+        if(!pid){ try{ const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); pid=s.selectedParticipantId||s.participantId||null; }catch(e){} }
+        if(window.navigateToParticipantProfile) window.navigateToParticipantProfile(pid);
+        else window.location.href=window.participantProfileUrl?window.participantProfileUrl(pid):'Participant Profile.dc.html';
+      },
       goSendReferral:()=>{ window.location.href='Support Coordination.dc.html'; },
       logoutSmEl:ic('logout','#6c8a83',15),
       logoEl:ic('logo','#eafaf8',21),nav,navMsgItems,pageTitle:pages[view].title,pageSub:pages[view].sub,

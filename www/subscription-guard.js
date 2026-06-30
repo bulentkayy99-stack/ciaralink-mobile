@@ -15,6 +15,10 @@
  *     "Upgrade to unlock" nudge that routes to pricing.html instead of running
  *     the action. To enable, set BEFORE this script loads:
  *         window.CIARALINK_HARD_GATE = true;
+ *     Or via env.local.js (optional):
+ *         window.ENV = { ..., CIARALINK_HARD_GATE: true };
+ *     The guard reads window.CIARALINK_HARD_GATE first, then window.ENV.CIARALINK_HARD_GATE
+ *     (truthy string "true" or boolean true). Default is soft mode (badge only).
  *     Even in hard mode, ONLY elements you mark are affected — the dashboards
  *     themselves are never gated.
  *
@@ -37,7 +41,11 @@
   var STATE = null;     // resolved { known, active, subscription }
   var INFLIGHT = null;  // de-dupe concurrent resolves
 
-  function hardMode() { return window.CIARALINK_HARD_GATE === true; }
+  function hardMode() {
+    if (window.CIARALINK_HARD_GATE === true) return true;
+    var env = window.ENV && window.ENV.CIARALINK_HARD_GATE;
+    return env === true || env === 'true';
+  }
 
   // Resolve subscription state once. Always resolves (never rejects).
   // known === false means we could not determine state -> treat as allowed.

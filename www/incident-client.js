@@ -305,7 +305,7 @@
     var c = client();
     if (!c) return { incidents: [], error: 'Supabase not configured' };
     try {
-      var q = c.from('incidents').select(INCIDENT_COLS).order('occurred_at', { ascending: false }).limit(opts.limit || 200);
+      var q = c.from('incidents').select(INCIDENT_COLS + ', participants ( full_name, preferred_name )').order('occurred_at', { ascending: false }).limit(opts.limit || 200);
       if (opts.status) q = q.eq('status', opts.status);
       if (opts.sirsOnly) q = q.eq('sirs_reportable', true);
       if (opts.openOnly) q = q.not('status', 'in', '("resolved","closed")');

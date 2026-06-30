@@ -85,6 +85,7 @@
     </div>
 
     <!-- Participant card -->
+    <sc-if value="{{ showProfile }}" hint-placeholder-val="">
     <div style="margin:14px 14px 0;background:rgba(22,184,166,.08);border:1px solid rgba(22,184,166,.15);border-radius:14px;padding:14px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
         <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex:0 0 44px">{{ profileInit }}</div>
@@ -93,7 +94,9 @@
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex:0 0 7px"></span><span style="font-size:12px;font-weight:700;color:#7ce0d2">Active · Plan current</span></div>
       <div style="font-size:11px;color:#5f7a73;line-height:1.5">Plan: 01 Jul 2026 – 30 Jun 2027<br>Review due in <span style="color:#d98b22;font-weight:700">11 days</span></div>
     </div>
+    </sc-if>
 
+    <sc-if value="{{ showProfile }}" hint-placeholder-val="">
     <nav style="flex:1;overflow-y:auto;padding:10px 12px">
       <sc-for list="{{ nav }}" as="it" hint-placeholder-count="7">
         <button onClick="{{ it.onClick }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:2px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:left;background:{{ it.bg }};color:{{ it.color }}">
@@ -103,6 +106,7 @@
         </button>
       </sc-for>
     </nav>
+    </sc-if>
 
     <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)">
       <button onClick="{{ goBack }}" style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:transparent;color:#6c8a83;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:7px" style-hover="background:rgba(255,255,255,.05)">{{ dashEl }}Back to dashboard</button>
@@ -126,6 +130,18 @@
     <div style="flex:1;overflow-y:auto;padding:24px 28px 56px">
     <div style="max-width:1200px;margin:0 auto">
 
+      <sc-if value="{{ profileLoading }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:18px 22px;margin-bottom:16px;font-size:13px;color:#6c7f79">Loading participant profile…</div>
+      </sc-if>
+      <sc-if value="{{ profileError }}" hint-placeholder-val="">
+        <div style="background:#fbe9ed;border:1px solid #f3d6dc;border-radius:16px;padding:22px 24px;margin-bottom:16px;font-size:13px;color:#c0445c;line-height:1.55">
+          <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:8px">Can't open this profile</div>
+          <div>{{ profileError }}</div>
+          <button onClick="{{ goBack }}" style="margin-top:16px;height:42px;padding:0 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">← Back to dashboard</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showProfile }}" hint-placeholder-val="">
       <!-- ===== OVERVIEW ===== -->
       <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
 
@@ -134,8 +150,8 @@
         <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:20px;padding:22px 26px;margin-bottom:20px;color:#eafaf8;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:0 16px 40px -20px rgba(11,80,71,.7)">
           <div style="flex:1;min-width:200px">
             <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:#7ce0d2;margin-bottom:6px">TOTAL NDIS BUDGET</div>
-            <div style="font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1">$89,500</div>
-            <div style="font-size:13px;color:#a9cfc8;margin-top:5px">Plan year 2026–27 · 3 support categories</div>
+            <div style="font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1">{{ totalBudgetLabel }}</div>
+            <div style="font-size:13px;color:#a9cfc8;margin-top:5px">{{ planPeriodLabel }}</div>
           </div>
           <div style="display:flex;gap:20px;flex-wrap:wrap">
             <sc-for list="{{ budgetRings }}" as="r" hint-placeholder-count="3">
@@ -306,6 +322,10 @@
 
       <!-- ===== TEAM ===== -->
       <sc-if value="{{ isTeam }}" hint-placeholder-val="">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="flex:1"><div style="font-size:15.5px;font-weight:800;color:#14302b">Care team</div><div style="font-size:12.5px;color:#6c7f79;margin-top:2px">Invite providers, workers and allied health onto this participant's web</div></div>
+          <sc-if value="{{ canInviteTeam }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openInviteTeam }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ plusEl }}Invite to care team</button></sc-if>
+        </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <sc-for list="{{ team }}" as="t" hint-placeholder-count="5">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:16px 20px;box-shadow:0 1px 2px rgba(20,48,43,.04);display:flex;align-items:center;gap:14px">
@@ -469,6 +489,7 @@
 
     </div>
     </div>
+    </sc-if>
   </main>
 </div>
 
@@ -577,34 +598,126 @@
   </div>
 </sc-if>
 
+<sc-if value="{{ inviteOpen }}" hint-placeholder-val="">
+  <div style="position:fixed;inset:0;z-index:200;background:rgba(12,38,34,.45);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:440px;background:#fff;border-radius:20px;box-shadow:0 24px 48px -16px rgba(20,48,43,.35);overflow:hidden">
+      <div style="padding:20px 22px;border-bottom:1px solid #eef2f0"><div style="font-size:17px;font-weight:800;color:#14302b">Invite to care team</div><div style="font-size:12.5px;color:#8a9a94;margin-top:4px">They'll be linked to {{ profileName }} and can access shared records once consent is given.</div></div>
+      <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px">
+        <div><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:5px">FULL NAME</div><input value="{{ inviteName }}" onInput="{{ onInviteName }}" style="width:100%;height:44px;border-radius:11px;border:1px solid #dde4e1;padding:0 14px;font-family:inherit;font-size:14px" placeholder="Jordan Pham" /></div>
+        <div><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:5px">EMAIL</div><input value="{{ inviteEmail }}" onInput="{{ onInviteEmail }}" style="width:100%;height:44px;border-radius:11px;border:1px solid #dde4e1;padding:0 14px;font-family:inherit;font-size:14px" placeholder="name@practice.com.au" /></div>
+        <div><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:5px">ROLE</div><select value="{{ inviteRole }}" onChange="{{ onInviteRole }}" style="width:100%;height:44px;border-radius:11px;border:1px solid #dde4e1;padding:0 12px;font-family:inherit;font-size:14px"><option value="support_worker">Support Worker</option><option value="abn_worker">ABN Worker</option><option value="allied_health">Allied Health</option><option value="support_coordinator">Support Coordinator</option><option value="provider_staff">Provider Staff</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;padding:16px 22px;border-top:1px solid #eef2f0">
+        <button onClick="{{ closeInviteTeam }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onClick="{{ sendCareTeamInvite }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ inviteBtnLabel }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { view:'overview', toast:null, savedNotes:[], noteFormOpen:false, noteText:'', noteType:'Case Note', participantProfile:null, careTeam:[], realNotes:[], realDocs:[], realGoals:[], supabaseConnected:false,
+  state = { view:'overview', toast:null, savedNotes:[], noteFormOpen:false, noteText:'', noteType:'Case Note', participantProfile:null, careTeam:[], realNotes:[], realShiftNotes:[], realDocs:[], realGoals:[], planBudgets:[], supabaseConnected:false, profileLoading:false, profileError:null,
     goalFormOpen:false, goalTitle:'', goalDesc:'', goalCategory:'core', savingGoal:false,
-    editFormOpen:false, editName:'', editPhone:'', editEmail:'', editAddress:'', savingEdit:false };
+    editFormOpen:false, editName:'', editPhone:'', editEmail:'', editAddress:'', savingEdit:false,
+    inviteOpen:false, inviteName:'', inviteEmail:'', inviteRole:'support_worker', inviteSaving:false, orgId:null };
   componentDidMount(){
     const AD=window.AegisData;
     if(AD){
       const notes=AD.get('pp_notes')||[];
       if(notes.length) this.setState({savedNotes:notes});
     }
+    const urlView=window.getParticipantViewFromUrl?window.getParticipantViewFromUrl():null;
+    const validViews=['overview','plan','goals','team','docs','notes','timeline','review'];
+    if(urlView&&validViews.includes(urlView)) this.setState({view:urlView});
     this.loadProfile();
+    this.loadOrgForInvite();
   }
-  // Load the RLS-scoped participant profile from Supabase (email/phone/address
-  // included). Falls back to demo data via the query helper.
+  loadOrgForInvite(){
+    if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured()&&window.loadCurrentUserContext)) return;
+    Promise.resolve(window.loadCurrentUserContext()).then(ctx=>{
+      if(ctx&&ctx.organisationId) this.setState({orgId:ctx.organisationId});
+    }).catch(()=>{});
+  }
+  sendCareTeamInvite(){
+    if(this.state.inviteSaving) return;
+    const profile=this.state.participantProfile;
+    const pid=profile&&profile.id;
+    const name=(this.state.inviteName||'').trim();
+    const email=(this.state.inviteEmail||'').trim().toLowerCase();
+    const role=this.state.inviteRole||'support_worker';
+    if(!pid){ this.showToast('No participant loaded'); return; }
+    if(!name||!email){ this.showToast('Enter a name and email'); return; }
+    if(!(window.inviteToCareTeam)){ this.showToast('Invite unavailable — not connected'); return; }
+    const orgId=this.state.orgId||(profile&&profile.org_id)||null;
+    const pw=(()=>{ const c='ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; let s=''; for(let i=0;i<12;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; })();
+    this.setState({inviteSaving:true});
+    this.showToast('Sending invitation…');
+    Promise.resolve(window.inviteToCareTeam({ participantId:pid, email, fullName:name, role, orgId, tempPassword:pw })).then(r=>{
+      this.setState({inviteSaving:false});
+      if(r&&r.ok){
+        this.setState({inviteOpen:false,inviteName:'',inviteEmail:''});
+        if(r.created){ try{ window.prompt('Account created. Share this temporary password securely with '+name+':', pw); }catch(e){} }
+        this.showToast((r.created?'Account created and l':'L')+'inked to care team ✓');
+        this.loadCareTeam(pid);
+      } else if(r&&r.code==='needs_password'){
+        this.showToast('User not found — retrying with new account…');
+        Promise.resolve(window.inviteToCareTeam({ participantId:pid, email, fullName:name, role, orgId, tempPassword:pw })).then(r2=>{
+          if(r2&&r2.ok){
+            this.setState({inviteOpen:false,inviteName:'',inviteEmail:''});
+            try{ window.prompt('Account created. Share this temporary password securely with '+name+':', pw); }catch(e){}
+            this.showToast('Account created and linked ✓');
+            this.loadCareTeam(pid);
+          } else this.showToast("Couldn't invite: "+((r2&&r2.error)||'unknown error'));
+        });
+      } else {
+        this.showToast("Couldn't invite: "+((r&&r.error)||'unknown error'));
+      }
+    }).catch(e=>{ this.setState({inviteSaving:false}); this.showToast("Couldn't invite: "+(e.message||'error')); });
+  }
+  // Load the RLS-scoped participant profile from Supabase (?id= from URL when set).
   loadProfile(){
+    const configured=window.isSupabaseConfigured&&window.isSupabaseConfigured();
+    const urlId=window.getParticipantIdFromUrl?window.getParticipantIdFromUrl():null;
+    if(configured&&!urlId){
+      // Participant self-view has no id in URL; provider/SC must pass ?id=
+      try{
+        const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+        const role=String(s.role||'').toLowerCase();
+        const staffRole=/provider|coordinator|allied|worker|admin|staff/.test(role);
+        if(staffRole){
+          this.setState({profileLoading:false,profileError:'Open a participant from your dashboard to view their profile — or add ?id= to the URL.'});
+          return;
+        }
+      }catch(e){}
+    }
+    this.setState({profileLoading:true,profileError:null});
     const apply=()=>{
       if(window.queryParticipantProfile){
-        Promise.resolve(window.queryParticipantProfile()).then(profile=>{
-          if(profile){
-            this.setState({ participantProfile:profile, supabaseConnected: window.isSupabaseConfigured?window.isSupabaseConfigured():false });
-            this.loadCareTeam(profile.id);
-            this.loadNotes(profile.id);
-            this.loadGoals(profile.id);
-            this.loadDocs();
+        const pid=window.resolveParticipantProfileId?window.resolveParticipantProfileId(urlId):urlId;
+        Promise.resolve(window.queryParticipantProfile(pid)).then(profile=>{
+          if(!profile){
+            this.setState({
+              profileLoading:false,
+              profileError:configured?'Could not load this participant — check the link or your access permissions.':null,
+              participantProfile:null
+            });
+            return;
           }
-        }).catch(err=>console.error('loadProfile error:',err));
+          this.setState({ participantProfile:profile, supabaseConnected:configured, profileLoading:false, profileError:null });
+          this.loadCareTeam(profile.id);
+          this.loadNotes(profile.id);
+          this.loadShiftNotes(profile.id);
+          this.loadGoals(profile.id);
+          this.loadDocs(profile.id);
+          this.loadPlanBudgets(profile.id);
+        }).catch(err=>{
+          console.error('loadProfile error:',err);
+          this.setState({profileLoading:false,profileError:'Failed to load profile: '+(err&&err.message||'error')});
+        });
+      } else {
+        this.setState({profileLoading:false});
       }
     };
     try{
@@ -613,10 +726,18 @@ class Component extends DCLogic {
         const script=document.createElement('script');
         script.src='supabase-client.js';
         script.onload=apply;
-        script.onerror=()=>this.setState({supabaseConnected:false});
+        script.onerror=()=>this.setState({supabaseConnected:false,profileLoading:false});
         document.head.appendChild(script);
       }
-    }catch(err){ console.error('loadProfile error:',err); }
+    }catch(err){ console.error('loadProfile error:',err); this.setState({profileLoading:false}); }
+  }
+
+  loadPlanBudgets(participantId){
+    if(!window.listParticipantPlanBudgets||!participantId) return;
+    Promise.resolve(window.listParticipantPlanBudgets(participantId)).then(res=>{
+      const list=(res&&res.budgets)?res.budgets:[];
+      this.setState({planBudgets:list});
+    }).catch(err=>console.error('loadPlanBudgets error:',err));
   }
 
   // Load the RLS-scoped, consent-respecting care team for this participant.
@@ -643,6 +764,17 @@ class Component extends DCLogic {
     }catch(err){ console.error('loadNotes error:',err); }
   }
 
+  // Worker shift notes (shift_notes table) — visible on profile timeline for care team.
+  loadShiftNotes(participantId){
+    if(!window.loadShiftNotes || !participantId) return;
+    try{
+      Promise.resolve(window.loadShiftNotes({participantId,limit:50})).then(res=>{
+        const list=(res&&res.notes)?res.notes:[];
+        this.setState({realShiftNotes:list});
+      }).catch(err=>console.error('loadShiftNotes error:',err));
+    }catch(err){ console.error('loadShiftNotes error:',err); }
+  }
+
   // Real, RLS-scoped goals for this participant (participant_goals table).
   loadGoals(participantId){
     if(!window.listParticipantGoals || !participantId) return;
@@ -654,13 +786,14 @@ class Component extends DCLogic {
     }catch(err){ console.error('loadGoals error:',err); }
   }
 
-  // Real, RLS-scoped documents for the signed-in user (documents table).
-  loadDocs(){
+  // Real, RLS-scoped documents for this participant (filtered from user's visible docs).
+  loadDocs(participantId){
     if(!window.loadDocumentsForCurrentUser) return;
     try{
       Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
         const list=(res&&res.documents)?res.documents:[];
-        this.setState({realDocs:list});
+        const filtered=participantId?list.filter(d=>d.participant_id===participantId):list;
+        this.setState({realDocs:filtered});
       }).catch(err=>console.error('loadDocs error:',err));
     }catch(err){ console.error('loadDocs error:',err); }
   }
@@ -737,6 +870,8 @@ class Component extends DCLogic {
     // placeholder and must NEVER be shown to a real user. In real mode we show the
     // signed-in participant's own record, or an honest '—' where a field is blank.
     const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const profileBlocked = !!(this.state.profileError && !this.state.profileLoading);
+    const showProfile = !profileBlocked && (!!this.state.participantProfile || demoMode);
     const pp=this.state.participantProfile||{};
     const profileName=pp.full_name||pp.preferred_name||(demoMode?'Margaret Reyes':'Your profile');
     const profileNdis=pp.ndis_number?('NDI-'+pp.ndis_number):(demoMode?'NDI-4310 887 226':'—');
@@ -745,64 +880,51 @@ class Component extends DCLogic {
     const profilePhone=pp.phone||(demoMode?'0438 221 770':'—');
     const profileAddress=pp.address||(demoMode?'42 Hartley St, Glenroy VIC 3046':'—');
 
+    const humanize=(s)=>String(s||'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const fmtMoney=(n)=>{
+      if(n==null||n===''||isNaN(Number(n))) return '—';
+      const num=Number(n);
+      if(num>=1000000) return '$'+(num/1000000).toFixed(1).replace(/\.0$/,'')+'M';
+      if(num>=1000) return '$'+Math.round(num).toLocaleString('en-AU');
+      return '$'+num.toFixed(0);
+    };
+    const fmtWhen=(iso)=>{
+      if(!iso) return '—';
+      try{ return new Date(iso).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}); }
+      catch(e){ return String(iso); }
+    };
+    const catColor=(num,name)=>{
+      const nm=String(name||'').toLowerCase();
+      const n=Number(num);
+      if(nm.includes('capital')||n===5||n===6) return '#d98b22';
+      if(nm.includes('capacity')||n>=9) return '#6366f1';
+      return '#16b8a6';
+    };
+    const catLabel=(num,name)=>{
+      const nm=String(name||'').trim();
+      if(nm) return nm;
+      const n=Number(num);
+      if(n===1||n<=4) return 'Core Supports';
+      if(n===5||n===6) return 'Capital Supports';
+      if(n>=9) return 'Capacity Building';
+      return 'Category '+(num||'—');
+    };
+    const planBudgets=this.state.planBudgets||[];
+
     const navDefs=[
       {key:'overview', label:'Overview',  icon:'grid',   badge:null},
       {key:'plan',     label:'NDIS Plan', icon:'wallet', badge:null},
-      {key:'goals',    label:'Goals',     icon:'target', badge:'4'},
-      {key:'team',     label:'Care Team', icon:'users',  badge:'6'},
-      {key:'docs',     label:'Documents', icon:'file',   badge:'2'},
+      {key:'goals',    label:'Goals',     icon:'target', badge:null},
+      {key:'team',     label:'Care Team', icon:'users',  badge:null},
+      {key:'docs',     label:'Documents', icon:'file',   badge:null},
       {key:'notes',    label:'Notes',       icon:'note',   badge:null},
       {key:'timeline', label:'File Timeline',icon:'clock',  badge:null},
-      {key:'review',   label:'Review Evidence',icon:'target',badge:'3 missing'},
+      {key:'review',   label:'Review Evidence',icon:'target',badge:null},
     ];
-    const nav=navDefs.map(it=>{
-      const a=view===it.key;
-      return {...it,onClick:()=>this.setState({view:it.key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,a?'#22d3bf':'#7e948e',18)};
-    });
 
     const titles={overview:'Overview',plan:'NDIS Plan',goals:'Goals & Outcomes',team:'Care Team',docs:'Documents',notes:'Notes & Shift Records',timeline:'File Timeline',review:'Review Evidence Hub'};
-    const subs={overview:profileName+' · complete participant profile',plan:'Budget tracking · support categories · spending',goals:'Therapy and support goals · progress · outcomes',team:'All connected care team members · consent · contact',docs:'All files · categorised by role · permission-controlled',notes:'Shift notes · case notes · clinical records',timeline:'Chronological view of every file, report and update',review:'Evidence collection for '+profileName+' · plan review 21 Jul 2026'};
-
-    const budgetRings=demoMode?[
-      {label:'Core',    spent:'$28k',  ringEl:this.ring('62%','#16b8a6',72)},
-      {label:'Capacity',spent:'$8.4k', ringEl:this.ring('41%','#6366f1',72)},
-      {label:'Capital', spent:'$5.2k', ringEl:this.ring('87%','#d98b22',72)},
-    ]:[];
-
-    const kpis=demoMode?[
-      {value:'62%',label:'Core budget used',delta:'28 wks left',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('wallet','#16b8a6',18),tintBg:'#e7f4f1'},
-      {value:'4/6',label:'Goals on track',delta:'↑ 2 this mo',dFg:'#1e9e6a',dBg:'#e9f6ef',iconEl:ic('target','#1e9e6a',18),tintBg:'#e9f6ef'},
-      {value:'6',label:'Care team members',delta:'All active',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('users','#6366f1',18),tintBg:'#eef0fd'},
-      {value:'11d',label:'Until plan review',delta:'Action needed',dFg:'#b4561f',dBg:'#fbf0df',iconEl:ic('cal','#d98b22',18),tintBg:'#fbf0df'},
-    ]:[];
-
-    const activity=demoMode?[
-      {title:'Shift note submitted',sub:'James Liu · Personal Care · 4h',when:'2h ago',iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1'},
-      {title:'Service agreement signed',sub:'Brightside Care · 2026–27',when:'Yesterday',iconEl:ic('check','#1e9e6a',15),tintBg:'#e9f6ef'},
-      {title:'OT assessment uploaded',sub:'Inner West OT · FCA report',when:'2 days ago',iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe'},
-      {title:'Goal updated — Mobility',sub:'Jordan Pham · 88% complete',when:'3 days ago',iconEl:ic('target','#6366f1',15),tintBg:'#eef0fd'},
-      {title:'Plan review prep started',sub:'Sarah Kelly · 11 days to review',when:'4 days ago',iconEl:ic('cal','#d98b22',15),tintBg:'#fbf0df'},
-      {title:'Document requested',sub:'Missing consent form from family',when:'5 days ago',iconEl:ic('alert','#c0445c',15),tintBg:'#fbe9ed'},
-    ]:[];
-
-    const upcoming=demoMode?[
-      {date:'21 Jul',title:'Plan review meeting',sub:'With Sarah Kelly + NDIS',tag:'Review',fg:'#b4561f',bg:'#fbf0df'},
-      {date:'28 Jun',title:'Physiotherapy — block 12',sub:'Jordan Pham · Glenroy',tag:'Therapy',fg:'#4338ca',bg:'#eef0fd'},
-      {date:'30 Jun',title:'Credential expiry — James Liu',sub:'First Aid renewal due',tag:'Urgent',fg:'#c0445c',bg:'#fbe9ed'},
-    ]:[];
-
-    const quickActions=[
-      {label:'Upload document',action:()=>{window.location.href='AI File Drop.dc.html';},iconEl:ic('up','#16b8a6',15),tintBg:'#e7f4f1'},
-      {label:'Send service agreement',action:()=>{window.location.href='Service Agreement.dc.html';},iconEl:ic('send','#6366f1',15),tintBg:'#eef0fd'},
-      {label:'Add shift note',action:()=>this.setState({view:'notes',noteFormOpen:true,noteText:'',noteType:'Shift Note'}),iconEl:ic('note','#d98b22',15),tintBg:'#fbf0df'},
-      {label:'Message care team',action:()=>this.openCareTeamMessage('care team'),iconEl:ic('msg','#1e9e6a',15),tintBg:'#e9f6ef'},
-    ];
-
-    const budgetLines=demoMode?[
-      {category:'Core Supports',total:'$56,000',spent:'$28,400',remaining:'$27,600',pct:'51%',color:'#16b8a6'},
-      {category:'Capacity Building',total:'$20,500',spent:'$8,400',remaining:'$12,100',pct:'41%',color:'#6366f1'},
-      {category:'Capital Supports',total:'$13,000',spent:'$11,310',remaining:'$1,690',pct:'87%',color:'#d98b22'},
-    ]:[];
+    const reviewSub=pp.plan_end?('Evidence collection for '+profileName+' · plan ends '+fmtWhen(pp.plan_end)):('Evidence collection for '+profileName);
+    const subs={overview:profileName+' · complete participant profile',plan:'Budget tracking · support categories · spending',goals:'Therapy and support goals · progress · outcomes',team:'All connected care team members · consent · contact',docs:'All files · categorised by role · permission-controlled',notes:'Shift notes · case notes · clinical records',timeline:'Chronological view of every file, report and update',review:reviewSub};
 
     const goals=demoMode?[
       {title:'Independent mobility & gait',desc:'Increase walking distance to 200m unaided. Currently at 160m — 88% of target.',pct:'88%',color:'#16b8a6',status:'On track',stFg:'#1e7a52',stBg:'#e9f6ef',linked:'Linked to Core Supports'},
@@ -837,7 +959,6 @@ class Component extends DCLogic {
     // Build the Care Team from the real, consent-scoped Supabase rows when loaded;
     // fall back to demo data so the tab never renders blank.
     const teamTints=['#6366f1','#16b8a6','#0891b2','#9333ea','#d98b22','#0e7490'];
-    const humanize=(s)=>String(s||'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
     const careTeamRows=(this.state.careTeam||[]);
     const team=careTeamRows.length?careTeamRows.map((m,i)=>{
       const roleLabel=humanize(m.relationship_type||m.role)||'Care team member';
@@ -866,7 +987,16 @@ class Component extends DCLogic {
       {name:'Consent to Share Information',type:'Consent',tagFg:'#0b6b60',tagBg:'#e7f4f1',date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#16b8a6',14),dl:()=>this.showToast('Downloading…')},
       {name:'Support Plan 2026–27',type:'Support Plan',tagFg:'#b4561f',tagBg:'#fbf0df',date:'15 Jun 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef',fileEl:ic('file','#d98b22',14),dl:()=>this.showToast('Downloading…')},
       {name:'Risk Assessment',type:'Risk',tagFg:'#c0445c',tagBg:'#fbe9ed',date:'Apr 2026',status:'Needs review',stFg:'#c0445c',stBg:'#fbe9ed',fileEl:ic('file','#e0556e',14),dl:()=>this.showToast('Downloading…')},
-    ]:[];
+    ]:realDocRows.map(d=>({
+      name:d.title||'Untitled document',
+      type:humanize(d.type)||'Document',
+      tagFg:'#0b6b60',tagBg:'#e7f4f1',
+      date:fmtWhen(d.created_at),
+      status:humanize(d.status)||'Stored',
+      stFg:'#1e7a52',stBg:'#e9f6ef',
+      fileEl:ic('file','#16b8a6',14),
+      dl:()=>this.openDocument(d)
+    }));
 
     const savedNotesForDisplay=(this.state.savedNotes||[]);
     // Real participant_notes rows mapped to the display shape (no fabricated
@@ -878,11 +1008,158 @@ class Component extends DCLogic {
       const init=(String(nm).split(/\s+/).map(w=>w[0]).filter(Boolean).join('').substring(0,2).toUpperCase())||'CT';
       return {author:nm,init,tint:noteTints[i%noteTints.length],role:roleLabel,type:humanize(n.note_type)||'Note',typeFg:'#4338ca',typeBg:'#eef0fd',when:n.created_at||'',body:n.body||''};
     });
+    const shiftNoteRows=(this.state.realShiftNotes||[]).map((n,i)=>{
+      const init='SW';
+      return {author:'Support Worker',init,tint:noteTints[(realNotes.length+i)%noteTints.length],role:'Support Worker',type:'Shift Note',typeFg:'#0e7490',typeBg:'#e0f2f5',when:n.created_at||'',body:n.body||''};
+    });
     const notes=demoMode?[...savedNotesForDisplay,
       {author:'James Liu',init:'JL',tint:'#0891b2',role:'Support Worker · Brightside Care',type:'Shift Note',typeFg:'#0e7490',typeBg:'#e0f2f5',when:'Today 3:14pm',body:'Completed personal care, meal prep and a 30-minute walk to the park. Margaret was in great spirits. Completed hoist transfer independently with minimal prompting. Noted she mentioned lower back discomfort — flagging for Jordan\'s next session.'},
       {author:'Sarah Kelly',init:'SK',tint:'#6366f1',role:'Support Coordinator · CiaraLink SC',type:'Case Note',typeFg:'#4338ca',typeBg:'#eef0fd',when:'Yesterday 11:20am',body:'Called to discuss plan review prep. Evidence pack at 70% — waiting on physio report and updated OT recommendations. Review meeting confirmed for 21 Jul. Margaret and Mariam both available. Will chase Jordan and Inner West OT this week.'},
       {author:'Jordan Pham',init:'JP',tint:'#9333ea',role:'Physiotherapist · AHPRA',type:'Clinical Note',typeFg:'#7c3aed',typeBg:'#f4e8fe',when:'3 days ago',body:'Block 12 complete. Gait assessment shows 88% improvement from baseline. Recommending continuation — 12 more sessions at current frequency. Formal progress report submitted to coordinator. AAC device trial commenced in parallel with speech pathology.'},
-    ]:[...savedNotesForDisplay,...realNotes];
+    ]:[...savedNotesForDisplay,...realNotes,...shiftNoteRows];
+
+    const realDocRows=this.state.realDocs||[];
+    const budgetLinesReal=planBudgets.map(b=>{
+      const total=Number(b.budget_amount)||0;
+      const spent=Number(b.claimed_amount)||0;
+      const remaining=Number(b.remaining_amount!=null?b.remaining_amount:(total-spent))||0;
+      const pctNum=total>0?Math.min(100,Math.round((spent/total)*100)):0;
+      const color=catColor(b.support_category_number,b.support_category_name);
+      return {category:catLabel(b.support_category_number,b.support_category_name),total:fmtMoney(total),spent:fmtMoney(spent),remaining:fmtMoney(remaining),pct:pctNum+'%',color};
+    });
+    const budgetLines=demoMode?[
+      {category:'Core Supports',total:'$56,000',spent:'$28,400',remaining:'$27,600',pct:'51%',color:'#16b8a6'},
+      {category:'Capacity Building',total:'$20,500',spent:'$8,400',remaining:'$12,100',pct:'41%',color:'#6366f1'},
+      {category:'Capital Supports',total:'$13,000',spent:'$11,310',remaining:'$1,690',pct:'87%',color:'#d98b22'},
+    ]:budgetLinesReal;
+    const groupRing=(label,filterFn,color)=>{
+      const rows=planBudgets.filter(filterFn);
+      if(!rows.length) return null;
+      const total=rows.reduce((s,b)=>s+(Number(b.budget_amount)||0),0);
+      const spent=rows.reduce((s,b)=>s+(Number(b.claimed_amount)||0),0);
+      const pct=total>0?Math.min(100,Math.round((spent/total)*100)):0;
+      return {label,spent:fmtMoney(spent),ringEl:this.ring(String(pct)+'%',color,72)};
+    };
+    const budgetRings=demoMode?[
+      {label:'Core',spent:'$28k',ringEl:this.ring('62%','#16b8a6',72)},
+      {label:'Capacity',spent:'$8.4k',ringEl:this.ring('41%','#6366f1',72)},
+      {label:'Capital',spent:'$5.2k',ringEl:this.ring('87%','#d98b22',72)},
+    ]:[groupRing('Core',b=>{const n=Number(b.support_category_number);const nm=String(b.support_category_name||'').toLowerCase();return nm.includes('core')||(!nm.includes('capital')&&!nm.includes('capacity')&&(n<=4||!n));},'#16b8a6'),groupRing('Capacity',b=>{const n=Number(b.support_category_number);const nm=String(b.support_category_name||'').toLowerCase();return nm.includes('capacity')||n>=9;},'#6366f1'),groupRing('Capital',b=>{const n=Number(b.support_category_number);const nm=String(b.support_category_name||'').toLowerCase();return nm.includes('capital')||n===5||n===6;},'#d98b22')].filter(Boolean);
+    const totalBudgetAmount=planBudgets.reduce((s,b)=>s+(Number(b.budget_amount)||0),0);
+    const totalBudgetLabel=demoMode?'$89,500':(totalBudgetAmount>0?fmtMoney(totalBudgetAmount):'—');
+    const planPeriodLabel=demoMode?'Plan year 2026–27 · 3 support categories':((pp.plan_start||pp.plan_end)?((pp.plan_start?fmtWhen(pp.plan_start):'—')+' – '+(pp.plan_end?fmtWhen(pp.plan_end):'—')+' · '+planBudgets.length+' categor'+(planBudgets.length===1?'y':'ies')):'No plan budget rows loaded yet');
+    let daysToReview='—';
+    let reviewDelta='—';
+    if(pp.plan_end){
+      try{
+        const end=new Date(pp.plan_end);
+        const diff=Math.ceil((end-new Date())/86400000);
+        if(diff>=0){ daysToReview=diff+'d'; reviewDelta=diff<=30?'Action needed':'On schedule'; }
+        else { daysToReview='Overdue'; reviewDelta='Plan ended'; }
+      }catch(e){}
+    }
+    const onTrackGoals=goals.filter(g=>g.status==='On track'||g.status==='Achieved'||g.status==='In progress').length;
+    const coreRow=planBudgets.find(b=>{const nm=String(b.support_category_name||'').toLowerCase();return nm.includes('core')||Number(b.support_category_number)<=4;})||planBudgets[0];
+    const corePct=coreRow&&Number(coreRow.budget_amount)>0?Math.round((Number(coreRow.claimed_amount||0)/Number(coreRow.budget_amount))*100)+'%':'—';
+    const kpis=demoMode?[
+      {value:'62%',label:'Core budget used',delta:'28 wks left',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('wallet','#16b8a6',18),tintBg:'#e7f4f1'},
+      {value:'4/6',label:'Goals on track',delta:'↑ 2 this mo',dFg:'#1e9e6a',dBg:'#e9f6ef',iconEl:ic('target','#1e9e6a',18),tintBg:'#e9f6ef'},
+      {value:'6',label:'Care team members',delta:'All active',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('users','#6366f1',18),tintBg:'#eef0fd'},
+      {value:'11d',label:'Until plan review',delta:'Action needed',dFg:'#b4561f',dBg:'#fbf0df',iconEl:ic('cal','#d98b22',18),tintBg:'#fbf0df'},
+    ]:[
+      {value:corePct,label:'Core budget used',delta:planBudgets.length?'From plan budgets':'No budget data',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('wallet','#16b8a6',18),tintBg:'#e7f4f1'},
+      {value:goals.length?(onTrackGoals+'/'+goals.length):'—',label:'Goals on track',delta:goals.length?onTrackGoals+' progressing':'Add goals',dFg:'#1e9e6a',dBg:'#e9f6ef',iconEl:ic('target','#1e9e6a',18),tintBg:'#e9f6ef'},
+      {value:String(team.length||0),label:'Care team members',delta:team.length?'Linked via consent':'No team yet',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('users','#6366f1',18),tintBg:'#eef0fd'},
+      {value:daysToReview,label:'Until plan review',delta:reviewDelta,dFg:daysToReview==='Overdue'||reviewDelta==='Action needed'?'#b4561f':'#0b6b60',dBg:daysToReview==='Overdue'||reviewDelta==='Action needed'?'#fbf0df':'#e7f4f1',iconEl:ic('cal','#d98b22',18),tintBg:'#fbf0df'},
+    ];
+    const activityReal=[...realNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#0891b2',15),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document uploaded',sub:humanize(d.type)||d.description||'File',when:fmtWhen(d.created_at),iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).slice(0,6).map(({sortKey,...rest})=>rest);
+    const activity=demoMode?[
+      {title:'Shift note submitted',sub:'James Liu · Personal Care · 4h',when:'2h ago',iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1'},
+      {title:'Service agreement signed',sub:'Brightside Care · 2026–27',when:'Yesterday',iconEl:ic('check','#1e9e6a',15),tintBg:'#e9f6ef'},
+      {title:'OT assessment uploaded',sub:'Inner West OT · FCA report',when:'2 days ago',iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe'},
+      {title:'Goal updated — Mobility',sub:'Jordan Pham · 88% complete',when:'3 days ago',iconEl:ic('target','#6366f1',15),tintBg:'#eef0fd'},
+      {title:'Plan review prep started',sub:'Sarah Kelly · 11 days to review',when:'4 days ago',iconEl:ic('cal','#d98b22',15),tintBg:'#fbf0df'},
+      {title:'Document requested',sub:'Missing consent form from family',when:'5 days ago',iconEl:ic('alert','#c0445c',15),tintBg:'#fbe9ed'},
+    ]:activityReal;
+    const upcoming=demoMode?[
+      {date:'21 Jul',title:'Plan review meeting',sub:'With Sarah Kelly + NDIS',tag:'Review',fg:'#b4561f',bg:'#fbf0df'},
+      {date:'28 Jun',title:'Physiotherapy — block 12',sub:'Jordan Pham · Glenroy',tag:'Therapy',fg:'#4338ca',bg:'#eef0fd'},
+      {date:'30 Jun',title:'Credential expiry — James Liu',sub:'First Aid renewal due',tag:'Urgent',fg:'#c0445c',bg:'#fbe9ed'},
+    ]:(pp.plan_end?[{date:fmtWhen(pp.plan_end).replace(/,\s*\d{4}$/,''),title:'Plan end date',sub:profileName+' · review planning recommended',tag:'Review',fg:'#b4561f',bg:'#fbf0df'}]:[]);
+    const quickActions=[
+      {label:'Upload document',action:()=>{window.location.href='AI File Drop.dc.html';},iconEl:ic('up','#16b8a6',15),tintBg:'#e7f4f1'},
+      {label:'Send service agreement',action:()=>{window.location.href='Service Agreement.dc.html';},iconEl:ic('send','#6366f1',15),tintBg:'#eef0fd'},
+      {label:'Add shift note',action:()=>this.setState({view:'notes',noteFormOpen:true,noteText:'',noteType:'Shift Note'}),iconEl:ic('note','#d98b22',15),tintBg:'#fbf0df'},
+      {label:'Message care team',action:()=>this.openCareTeamMessage('care team'),iconEl:ic('msg','#1e9e6a',15),tintBg:'#e9f6ef'},
+    ];
+    const timelineReal=[...realNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:humanize(n.author_role)||'Care team',catFg:'#4338ca',catBg:'#eef0fd',uploader:humanize(n.author_role)||'Care team',uploaderRole:humanize(n.note_type)||'Note',uploaderEl:ic('note','#6366f1',12),date:fmtWhen(n.created_at),status:'Recorded',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:/review|clinical|assessment/i.test(String(n.note_type||'')),expiry:null,iconEl:ic('note','#6366f1',16),tintBg:'#eef0fd',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'Support Worker',uploaderRole:'Shift Note',uploaderEl:ic('user','#0891b2',12),date:fmtWhen(n.created_at),status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document',sub:humanize(d.type)||d.description||'Uploaded file',category:'Document',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Uploaded file',uploaderRole:humanize(d.type)||'Document',uploaderEl:ic('file','#16b8a6',12),date:fmtWhen(d.created_at),status:humanize(d.status)||'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:/plan|assessment|report|review|fca|ot|physio/i.test(String((d.title||'')+' '+(d.type||''))),expiry:null,iconEl:ic('file','#16b8a6',16),tintBg:'#e7f4f1',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).map(({sortKey,...rest})=>rest);
+    const timeline=demoMode?[
+      {title:'Physiotherapy Progress Report — Block 12',sub:'Gait improvement documented · 12-session block complete',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Jordan Pham',uploaderRole:'Physiotherapist',uploaderEl:ic('heart','#9333ea',12),date:'20 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
+      {title:'Service Agreement — Brightside Care 2026–27',sub:'Personal Care + Community Access · Signed by Margaret Reyes',category:'Provider',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Brightside Care',uploaderRole:'Provider',uploaderEl:ic('building','#16b8a6',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:'30 Jun 2027',iconEl:ic('check','#16b8a6',16),tintBg:'#e7f4f1'},
+      {title:'Shift note — Personal Care',sub:'James Liu · 4h · Glenroy',category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'James Liu',uploaderRole:'Support Worker',uploaderEl:ic('user','#0891b2',12),date:'19 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5'},
+      {title:'OT Home Assessment Report',sub:'Functional Capacity Assessment · home modifications recommended',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Inner West OT',uploaderRole:'Occupational Therapist',uploaderEl:ic('heart','#9333ea',12),date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
+      {title:'Plan Review Preparation Summary',sub:'Evidence pack 70% complete · review meeting 21 Jul 2026',category:'Coordinator',catFg:'#4338ca',catBg:'#eef0fd',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'18 Jun 2026',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',reviewRelevant:true,expiry:null,iconEl:ic('target','#6366f1',16),tintBg:'#eef0fd'},
+      {title:'NDIS Plan 2026–27',sub:'Core $56k · Capacity $20.5k · Capital $13k',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'NDIS',uploaderRole:'NDIA',uploaderEl:ic('user','#16b8a6',12),date:'01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:'30 Jun 2027',iconEl:ic('wallet','#16b8a6',16),tintBg:'#e7f4f1'},
+      {title:'Risk Assessment',sub:'Hoist transfer protocol · emergency contacts reviewed',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'28 Apr 2026',status:'Needs review',stFg:'#b4561f',stBg:'#fbf0df',reviewRelevant:false,expiry:null,iconEl:ic('alert','#d98b22',16),tintBg:'#fbf0df'},
+      {title:'Consent to Share Information',sub:'Allows care team to share documents across services',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Margaret Reyes',uploaderRole:'Participant',uploaderEl:ic('user','#0891b2',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:null,iconEl:ic('check','#1e9e6a',16),tintBg:'#e9f6ef'},
+    ]:timelineReal;
+    const G=(ok)=>ok?ic('check','#1e9e6a',15):ic('alert','#c0445c',15);
+    const reviewCategoriesReal=(()=>{
+      const cats=[];
+      if(goals.length){
+        const items=goals.map(g=>({name:g.title,meta:g.desc||g.status,ready:g.status!=='Behind',missing:g.status==='Behind',statusEl:G(g.status!=='Behind')}));
+        const ready=items.filter(i=>i.ready).length;
+        cats.push({title:'Goals & Outcomes',iconEl:ic('target','#1e9e6a',16),iconBg:'#e9f6ef',headerBg:'#f4fbf7',titleFg:'#1e7a52',countLabel:ready+' of '+items.length,countFg:ready===items.length?'#1e7a52':'#b4561f',countBg:ready===items.length?'#e9f6ef':'#fbf0df',items});
+      }
+      if(realDocRows.length){
+        const items=realDocRows.map(d=>({name:d.title||'Document',meta:humanize(d.type)||fmtWhen(d.created_at),ready:!!d.storage_path,missing:!d.storage_path,statusEl:G(!!d.storage_path)}));
+        const ready=items.filter(i=>i.ready).length;
+        cats.push({title:'Documents',iconEl:ic('file','#16b8a6',16),iconBg:'#e7f4f1',headerBg:'#f0faf8',titleFg:'#0b6b60',countLabel:ready+' of '+items.length,countFg:ready===items.length?'#1e7a52':'#b4561f',countBg:ready===items.length?'#e9f6ef':'#fbf0df',items});
+      }
+      if(planBudgets.length){
+        const items=planBudgets.map(b=>({name:catLabel(b.support_category_number,b.support_category_name),meta:'Budget '+fmtMoney(b.budget_amount)+' · claimed '+fmtMoney(b.claimed_amount||0),ready:true,missing:false,statusEl:G(true)}));
+        cats.push({title:'Funding & Hours',iconEl:ic('wallet','#d98b22',16),iconBg:'#fbf0df',headerBg:'#fdf8f2',titleFg:'#b4561f',countLabel:items.length+' categor'+(items.length===1?'y':'ies'),countFg:'#1e7a52',countBg:'#e9f6ef',items});
+      }
+      if(realNotes.length){
+        const items=realNotes.slice(0,8).map(n=>({name:humanize(n.note_type)+' note',meta:fmtWhen(n.created_at),ready:true,missing:false,statusEl:G(true)}));
+        cats.push({title:'Notes & Records',iconEl:ic('note','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:items.length+' note'+(items.length===1?'':'s'),countFg:'#1e7a52',countBg:'#e9f6ef',items});
+      }
+      return cats;
+    })();
+    const reviewCategories=demoMode?[
+          {title:'Allied Health — OT',iconEl:ic('heart','#9333ea',16),iconBg:'#f4e8fe',headerBg:'#fdf9ff',titleFg:'#7c3aed',countLabel:'2 of 3',countFg:'#b4561f',countBg:'#fbf0df',
+            items:[{name:'Functional Capacity Assessment',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Home modifications report',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Updated recommendations',meta:'Not yet received',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Allied Health — Physiotherapy',iconEl:ic('heart','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Progress report — Block 12',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Outcome measures',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Allied Health — Speech',iconEl:ic('heart','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'0 of 1',countFg:'#c0445c',countBg:'#fbe9ed',
+            items:[{name:'Speech pathology report',meta:'Northside Speech — not yet received',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Support Coordinator',iconEl:ic('star','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'SC summary & recommendations',meta:'Sarah Kelly · In progress',ready:true,missing:false,statusEl:G(true)},{name:'Budget utilisation report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Service connection update',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Provider Reports',iconEl:ic('building','#16b8a6',16),iconBg:'#e7f4f1',headerBg:'#f0faf8',titleFg:'#0b6b60',countLabel:'1 of 2',countFg:'#b4561f',countBg:'#fbf0df',
+            items:[{name:'Service delivery summary',meta:'Brightside Care · 15 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Progress notes — last quarter',meta:'Not yet submitted',ready:false,missing:true,statusEl:G(false)}]},
+          {title:'Goals & Outcomes',iconEl:ic('target','#1e9e6a',16),iconBg:'#e9f6ef',headerBg:'#f4fbf7',titleFg:'#1e7a52',countLabel:'4 of 4',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Goal progress summary',meta:'Jordan Pham + Sarah Kelly',ready:true,missing:false,statusEl:G(true)},{name:'Therapy outcomes',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Functional improvements',meta:'OT + Physio',ready:true,missing:false,statusEl:G(true)},{name:'Goal status report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Funding & Hours',iconEl:ic('wallet','#d98b22',16),iconBg:'#fbf0df',headerBg:'#fdf8f2',titleFg:'#b4561f',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Budget utilisation breakdown',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Hours delivered by support type',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Funding remaining by category',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)}]},
+          {title:'Worker Records',iconEl:ic('user','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
+            items:[{name:'Shift notes — last 3 months',meta:'James Liu + Amara Okafor · 48 shifts',ready:true,missing:false,statusEl:G(true)},{name:'Support worker observations',meta:'James Liu · ongoing',ready:true,missing:false,statusEl:G(true)}]},
+        ]:reviewCategoriesReal;
+    const reviewReadyCount=demoMode?13:reviewCategories.reduce((s,c)=>s+c.items.filter(i=>i.ready).length,0);
+    const reviewTotalCount=demoMode?16:reviewCategories.reduce((s,c)=>s+c.items.length,0);
+    const reviewMissingCount=Math.max(0,reviewTotalCount-reviewReadyCount);
+    const navBadgeMap={goals:goals.length||null,team:team.length||null,docs:realDocRows.length||null,review:reviewMissingCount>0?reviewMissingCount+' missing':null};
+    const nav=navDefs.map(it=>{
+      const a=view===it.key;
+      const badge=demoMode?(it.key==='goals'?'4':it.key==='team'?'6':it.key==='docs'?'2':it.key==='review'?'3 missing':null):navBadgeMap[it.key];
+      return {...it,badge,onClick:()=>{
+        this.setState({view:it.key});
+        try{
+          const pid=pp.id||window.getParticipantIdFromUrl&&window.getParticipantIdFromUrl();
+          const url=window.participantProfileUrl?window.participantProfileUrl(pid,it.key):(pid?('Participant Profile.dc.html?id='+encodeURIComponent(pid)+'&view='+it.key):('Participant Profile.dc.html?view='+it.key));
+          window.history.replaceState({},'',url);
+        }catch(e){}
+      },bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(it.icon,a?'#22d3bf':'#7e948e',18)};
+    });
 
     return {
       profileName, profileNdis, profileInit, profileEmail, profilePhone, profileAddress,
@@ -904,50 +1181,38 @@ class Component extends DCLogic {
       isPlan:view==='plan',
       isGoals:view==='goals',
       isTeam:view==='team',
+      canInviteTeam:!demoMode&&!!pp.id,
+      inviteOpen:this.state.inviteOpen,
+      inviteName:this.state.inviteName,
+      inviteEmail:this.state.inviteEmail,
+      inviteRole:this.state.inviteRole,
+      inviteSaving:this.state.inviteSaving,
+      openInviteTeam:()=>this.setState({inviteOpen:true}),
+      closeInviteTeam:()=>this.setState({inviteOpen:false,inviteName:'',inviteEmail:''}),
+      onInviteName:(e)=>this.setState({inviteName:e.target.value}),
+      onInviteEmail:(e)=>this.setState({inviteEmail:e.target.value}),
+      onInviteRole:(e)=>this.setState({inviteRole:e.target.value}),
+      sendCareTeamInvite:()=>this.sendCareTeamInvite(),
+      inviteBtnLabel:this.state.inviteSaving?'Sending…':'Send invitation',
       isDocs:view==='docs',
       isNotes:view==='notes',
       isTimeline:view==='timeline',
       isReview:view==='review',
       sendEl:ic('send','#06201c',15),
-      genEvidencePack:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      genEvidencePack:()=>{
+        const pid=pp.id;
+        if(pid&&window.rememberSelectedParticipantId) window.rememberSelectedParticipantId(pid);
+        window.location.href=pid?('Plan Review Prep.dc.html?id='+encodeURIComponent(pid)):'Plan Review Prep.dc.html';
+      },
       openNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
-      reviewReadyCount:demoMode?13:0,reviewTotalCount:demoMode?16:0,
+      reviewReadyCount,reviewTotalCount,
       timelineFilters:(()=>{
         const active='all';
         const cats=[['all','All files'],['participant','Participant'],['allied','Allied Health'],['sc','Coordinator'],['provider','Provider'],['worker','Worker']];
         return cats.map(([k,l])=>({label:l,onClick:()=>this.showToast('Filter: '+l),bd:k===active?'#16b8a6':'#dde4e1',bg:k===active?'#f0faf8':'#fff',fg:k===active?'#0b6b60':'#6c7f79'}));
       })(),
-      timeline:demoMode?[
-        {title:'Physiotherapy Progress Report — Block 12',sub:'Gait improvement documented · 12-session block complete',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Jordan Pham',uploaderRole:'Physiotherapist',uploaderEl:ic('heart','#9333ea',12),date:'20 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
-        {title:'Service Agreement — Brightside Care 2026–27',sub:'Personal Care + Community Access · Signed by Margaret Reyes',category:'Provider',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Brightside Care',uploaderRole:'Provider',uploaderEl:ic('building','#16b8a6',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:'30 Jun 2027',iconEl:ic('check','#16b8a6',16),tintBg:'#e7f4f1'},
-        {title:'Shift note — Personal Care',sub:'James Liu · 4h · Glenroy',category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'James Liu',uploaderRole:'Support Worker',uploaderEl:ic('user','#0891b2',12),date:'19 Jun 2026',status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5'},
-        {title:'OT Home Assessment Report',sub:'Functional Capacity Assessment · home modifications recommended',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Inner West OT',uploaderRole:'Occupational Therapist',uploaderEl:ic('heart','#9333ea',12),date:'12 May 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
-        {title:'Plan Review Preparation Summary',sub:'Evidence pack 70% complete · review meeting 21 Jul 2026',category:'Coordinator',catFg:'#4338ca',catBg:'#eef0fd',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'18 Jun 2026',status:'In progress',stFg:'#4338ca',stBg:'#eef0fd',reviewRelevant:true,expiry:null,iconEl:ic('target','#6366f1',16),tintBg:'#eef0fd'},
-        {title:'NDIS Plan 2026–27',sub:'Core $56k · Capacity $20.5k · Capital $13k',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'NDIS',uploaderRole:'NDIA',uploaderEl:ic('user','#16b8a6',12),date:'01 Jul 2026',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:'30 Jun 2027',iconEl:ic('wallet','#16b8a6',16),tintBg:'#e7f4f1'},
-        {title:'Risk Assessment',sub:'Hoist transfer protocol · emergency contacts reviewed',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Sarah Kelly',uploaderRole:'Support Coordinator',uploaderEl:ic('star','#6366f1',12),date:'28 Apr 2026',status:'Needs review',stFg:'#b4561f',stBg:'#fbf0df',reviewRelevant:false,expiry:null,iconEl:ic('alert','#d98b22',16),tintBg:'#fbf0df'},
-        {title:'Consent to Share Information',sub:'Allows care team to share documents across services',category:'Participant',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Margaret Reyes',uploaderRole:'Participant',uploaderEl:ic('user','#0891b2',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:null,iconEl:ic('check','#1e9e6a',16),tintBg:'#e9f6ef'},
-      ]:[],
-      reviewCategories:demoMode?(()=>{
-        const G=(ok)=>ok?ic('check','#1e9e6a',15):ic('alert','#c0445c',15);
-        return [
-          {title:'Allied Health — OT',iconEl:ic('heart','#9333ea',16),iconBg:'#f4e8fe',headerBg:'#fdf9ff',titleFg:'#7c3aed',countLabel:'2 of 3',countFg:'#b4561f',countBg:'#fbf0df',
-            items:[{name:'Functional Capacity Assessment',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Home modifications report',meta:'Inner West OT · 12 May 2026',ready:true,missing:false,statusEl:G(true)},{name:'Updated recommendations',meta:'Not yet received',ready:false,missing:true,statusEl:G(false)}]},
-          {title:'Allied Health — Physiotherapy',iconEl:ic('heart','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
-            items:[{name:'Progress report — Block 12',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Outcome measures',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
-          {title:'Allied Health — Speech',iconEl:ic('heart','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'0 of 1',countFg:'#c0445c',countBg:'#fbe9ed',
-            items:[{name:'Speech pathology report',meta:'Northside Speech — not yet received',ready:false,missing:true,statusEl:G(false)}]},
-          {title:'Support Coordinator',iconEl:ic('star','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
-            items:[{name:'SC summary & recommendations',meta:'Sarah Kelly · In progress',ready:true,missing:false,statusEl:G(true)},{name:'Budget utilisation report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Service connection update',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
-          {title:'Provider Reports',iconEl:ic('building','#16b8a6',16),iconBg:'#e7f4f1',headerBg:'#f0faf8',titleFg:'#0b6b60',countLabel:'1 of 2',countFg:'#b4561f',countBg:'#fbf0df',
-            items:[{name:'Service delivery summary',meta:'Brightside Care · 15 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Progress notes — last quarter',meta:'Not yet submitted',ready:false,missing:true,statusEl:G(false)}]},
-          {title:'Goals & Outcomes',iconEl:ic('target','#1e9e6a',16),iconBg:'#e9f6ef',headerBg:'#f4fbf7',titleFg:'#1e7a52',countLabel:'4 of 4',countFg:'#1e7a52',countBg:'#e9f6ef',
-            items:[{name:'Goal progress summary',meta:'Jordan Pham + Sarah Kelly',ready:true,missing:false,statusEl:G(true)},{name:'Therapy outcomes',meta:'Jordan Pham · 20 Jun 2026',ready:true,missing:false,statusEl:G(true)},{name:'Functional improvements',meta:'OT + Physio',ready:true,missing:false,statusEl:G(true)},{name:'Goal status report',meta:'Sarah Kelly · 18 Jun 2026',ready:true,missing:false,statusEl:G(true)}]},
-          {title:'Funding & Hours',iconEl:ic('wallet','#d98b22',16),iconBg:'#fbf0df',headerBg:'#fdf8f2',titleFg:'#b4561f',countLabel:'3 of 3',countFg:'#1e7a52',countBg:'#e9f6ef',
-            items:[{name:'Budget utilisation breakdown',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Hours delivered by support type',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)},{name:'Funding remaining by category',meta:'CiaraLink · Auto-generated',ready:true,missing:false,statusEl:G(true)}]},
-          {title:'Worker Records',iconEl:ic('user','#0891b2',16),iconBg:'#e0f2f5',headerBg:'#f0fbfd',titleFg:'#0e7490',countLabel:'2 of 2',countFg:'#1e7a52',countBg:'#e9f6ef',
-            items:[{name:'Shift notes — last 3 months',meta:'James Liu + Amara Okafor · 48 shifts',ready:true,missing:false,statusEl:G(true)},{name:'Support worker observations',meta:'James Liu · ongoing',ready:true,missing:false,statusEl:G(true)}]},
-        ];
-      })():[],
+      timeline,
+      reviewCategories,
       showEditBtn:true,
       editProfile:()=>{
         if(demoMode){ this.showToast('Connect your account and sign in to edit this profile'); return; }
@@ -993,9 +1258,12 @@ class Component extends DCLogic {
       hasGoals:goals.length>0,
       hasTeam:team.length>0,
       hasNotes:notes.length>0,
-      hasTimeline:demoMode,
-      hasReviewCats:demoMode,
+      hasTimeline:timeline.length>0,
+      hasReviewCats:reviewCategories.length>0,
       hasDocCats:demoMode||((this.state.realDocs||[]).length>0),
+      profileLoading:this.state.profileLoading,
+      profileError:this.state.profileError,
+      showProfile,
       closeNoteEl:React.createElement('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'none',stroke:'#6c7f79',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:'M6 6l12 12 M18 6L6 18'})),
       addGoal:()=>{
         if(demoMode){ this.showToast('Connect your account and sign in to add a goal'); return; }

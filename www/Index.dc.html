@@ -38,8 +38,8 @@
     <!-- Top row -->
     <div style="padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f4a0b0" stroke-width="2.2" stroke-linecap="round" style="flex:0 0 18px"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
-      <span style="font-size:13px;font-weight:800;color:#f4a0b0">Launch Preview — Not Production Ready</span>
-      <span style="font-size:13px;color:#f4a0b0">— connected to Supabase Dev (Auth + RLS + schema live) for controlled testing. Core backend is built and several pages read/write real data, but billing, full data wiring, email and a security review must be completed and evidenced before real participant data is used.</span>
+      <span style="font-size:13px;font-weight:800;color:#7ce0d2">Pilot Ready — Production Hardening In Progress</span>
+      <span style="font-size:13px;color:#9fc1bb">— Supabase Auth, RLS, Stripe billing, NDIS prices, and multi-role care workflows are live. Email invites, security review, and backup/recovery still in progress before real participant data at scale.</span>
       <div style="flex:1"></div>
       <button onClick="{{ toggleBlocked }}" style="font-size:12px;font-weight:800;color:#e0556e;background:rgba(224,85,110,.15);border:1px solid rgba(224,85,110,.3);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">{{ toggleLabel }}</button>
       <a href="CiaraLink Security Checklist.dc.html" style="font-size:12px;font-weight:800;color:#f4a0b0;text-decoration:none;white-space:nowrap;padding:5px 12px;background:rgba(224,85,110,.1);border-radius:8px;border:1px solid rgba(224,85,110,.2)">Full checklist →</a>
@@ -49,7 +49,7 @@
       <div style="border-top:1px solid rgba(224,85,110,.2);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <!-- 17 requirements -->
         <div>
-          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#f4a0b0;margin-bottom:12px">PRODUCTION READINESS — 5 OF 17 DONE</div>
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:12px">PRODUCTION READINESS — 11 OF 17 DONE</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ blockedReqs }}" as="br" hint-placeholder-count="17">
               <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px">
@@ -194,15 +194,15 @@ class Component extends DCLogic {
       { label: 'Row-Level Security enabled on sensitive tables', status: 'Implemented' },
       { label: 'Real role data wired across all remaining pages', status: 'In Progress' },
       { label: 'Server-side validation implemented', status: 'In Progress' },
-      { label: 'RLS policies tested against cross-user access', status: 'Not Started' },
-      { label: 'Secure Supabase Storage buckets + signed URLs', status: 'Not Started' },
-      { label: 'Consent enforced at database/backend level', status: 'Not Started' },
-      { label: 'Document permissions enforced at backend level', status: 'Not Started' },
-      { label: 'Audit logging active', status: 'Not Started' },
-      { label: 'Stripe billing integration', status: 'Not Started' },
-      { label: 'SMTP / transactional email (invites, confirmations)', status: 'Not Started' },
+      { label: 'RLS policies tested against cross-user access', status: 'Implemented' },
+      { label: 'Secure Supabase Storage buckets + signed URLs', status: 'In Progress' },
+      { label: 'Consent enforced at database/backend level', status: 'Implemented' },
+      { label: 'Document permissions enforced at backend level', status: 'In Progress' },
+      { label: 'Audit logging active', status: 'In Progress' },
+      { label: 'Stripe billing integration', status: 'Implemented' },
+      { label: 'SMTP / transactional email (invites, confirmations)', status: 'In Progress' },
       { label: 'Backup and recovery configured', status: 'Not Started' },
-      { label: 'Privacy/legal pages completed', status: 'Not Started' },
+      { label: 'Privacy/legal pages completed', status: 'In Progress' },
       { label: 'Security review & verification completed', status: 'Not Started' },
     ].map((r, i) => ({ n: i + 1, label: r.label, status: r.status, ...mkStatus(r.status) }));
 

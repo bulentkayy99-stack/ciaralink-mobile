@@ -283,7 +283,7 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     <div class="plans-head">
       <h2>Plans &amp; pricing</h2>
       <p>One fair subscription, priced by your size — every feature on every plan, 0% commission on the care you deliver.</p>
-      <span class="free-pill"><span class="sdot" style="position:static;width:7px;height:7px;border-radius:50%;background:var(--teal-d)"></span> 14-day free trial · no card required</span>
+      <span class="free-pill"><span class="sdot" style="position:static;width:7px;height:7px;border-radius:50%;background:var(--teal-d)"></span> 7-day free trial · no card required</span>
     </div>
     <div class="cats" id="cats" role="tablist"></div>
     <p class="cat-sub" id="catSub"></p>
@@ -414,6 +414,19 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     return !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
   }
 
+  // Map Supabase/auth errors to plain-language messages — never blame the user incorrectly.
+  function signInErrorMessage(raw){
+    var m = String(raw || '').toLowerCase();
+    if(!raw) return 'Sign-in failed. Please try again.';
+    if(/invalid login credentials|invalid email or password/.test(m)) return 'Incorrect email or password. Please try again.';
+    if(/email not confirmed/.test(m)) return 'Please confirm your email before signing in — check your inbox for the confirmation link.';
+    if(/too many requests|rate limit/.test(m)) return 'Too many attempts. Please wait a minute and try again.';
+    if(/user banned|user disabled|account disabled/.test(m)) return 'This account has been disabled. Contact support if you need help.';
+    if(/network|fetch|failed to fetch|load failed/.test(m)) return 'Network error — check your connection and try again.';
+    if(/supabase not configured/.test(m)) return 'Sign-in is unavailable — this page is not connected to the live CiaraLink backend.';
+    return raw;
+  }
+
   // Honour ?next= (auth-guard appends it). Only allow safe, same-origin relative paths.
   function nextDest(){
     try{
@@ -458,6 +471,9 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     }catch(e){}
 
     var nxt = nextDest();
+    if (nxt && window.isPathAllowedForRole && role && !window.isPathAllowedForRole(nxt, role)) {
+      nxt = null;
+    }
     window.location.href = nxt || dest;
   }
 
@@ -518,7 +534,7 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     var redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';
     try{
       var r = await client.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
-      if(r.error){ showError(r.error.message); }
+      if(r.error){ showError(signInErrorMessage(r.error.message)); }
       else { showError('Check your email for a password reset link.', 'ok'); }
     }catch(e){ showError(e.message || 'Could not send reset email.'); }
   });
@@ -539,16 +555,14 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
       var out = await window.signInWithEmail(email, password);
       if(out.error){
         setLoading(false);
-        showError(out.error === 'Invalid login credentials'
-          ? 'Incorrect email or password. Please try again.'
-          : out.error);
+        showError(signInErrorMessage(out.error));
         return;
       }
       submitLabel.textContent = 'Taking you to your dashboard…';
       await resolveAndRedirect();
     }catch(e){
       setLoading(false);
-      showError(e.message || 'Sign-in failed. Please check your email and password.');
+      showError(signInErrorMessage(e.message) || 'Sign-in failed. Please check your email and password.');
     }
   });
 

@@ -11,6 +11,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>if(typeof window.ENV==='undefined'){window.ENV={SUPABASE_URL:'',SUPABASE_ANON_KEY:''};}</script>
+<script src="./env.local.js"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260630"></script>
 <style>
 :root{
   --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
@@ -47,6 +51,8 @@ h1{font-size:clamp(26px,4vw,34px);letter-spacing:-.03em;line-height:1.08;font-we
 .sub{font-size:16.5px;color:var(--tx-2);line-height:1.55;margin:16px 0 6px;font-weight:500}
 .pill{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:30px;background:rgba(22,184,166,.12);color:var(--teal-d);font-size:12.5px;font-weight:800;margin-top:20px}
 .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px rgba(22,184,166,.18)}
+.pill.pending{background:rgba(232,167,42,.12);color:#b4561f}
+.pill.pending .dot{background:#e8a72a;box-shadow:0 0 0 4px rgba(232,167,42,.18)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:54px;padding:0 28px;border-radius:14px;font-family:inherit;font-size:15.5px;font-weight:800;cursor:pointer;border:none;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s;white-space:nowrap;margin-top:30px;width:100%}
 .btn:hover{transform:translateY(-2px)}
 .btn:active{transform:translateY(0)}
@@ -58,6 +64,8 @@ h1{font-size:clamp(26px,4vw,34px);letter-spacing:-.03em;line-height:1.08;font-we
 .muted a{color:var(--teal-d);font-weight:800}
 .state{display:none}
 .state.show{display:block}
+.spin{width:22px;height:22px;border-radius:50%;border:3px solid rgba(11,107,96,.2);border-top-color:var(--teal-d);animation:sp .7s linear infinite;margin:18px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -69,17 +77,30 @@ h1{font-size:clamp(26px,4vw,34px);letter-spacing:-.03em;line-height:1.08;font-we
       <span><span class="brand-name">CiaraLink</span><div class="brand-tag">CARE OS</div></span>
     </a>
 
-    <!-- SUCCESS -->
+    <div class="state" id="state-loading">
+      <div class="spin"></div>
+      <h1>Confirming your subscription…</h1>
+      <p class="sub">This usually takes a few seconds while Stripe notifies CiaraLink.</p>
+    </div>
+
     <div class="state" id="state-success">
       <div class="emoji">🎉</div>
       <h1>Payment received — welcome to CiaraLink</h1>
-      <p class="sub">Your 14-day trial is active. We won't bill the card on file until the trial ends — cancel any time before then.</p>
-      <span class="pill"><span class="dot"></span> Subscription active</span>
-      <a class="btn btn-primary" href="./signin.html">Go to your CiaraLink <span class="arrow">→</span></a>
+      <p class="sub" id="success-sub">Your 7-day trial is active. We won't bill the card on file until the trial ends — cancel any time before then.</p>
+      <span class="pill" id="success-pill"><span class="dot"></span> Subscription active</span>
+      <a class="btn btn-primary" href="./billing.html">View your plan &amp; billing <span class="arrow">→</span></a>
       <p class="muted">A receipt has been emailed to you by Stripe.</p>
     </div>
 
-    <!-- CANCELLED -->
+    <div class="state" id="state-pending">
+      <div class="emoji">⏳</div>
+      <h1>Almost there</h1>
+      <p class="sub">Stripe confirmed checkout, but your plan hasn't synced yet. Refresh billing in a moment — if it still doesn't show, contact support.</p>
+      <span class="pill pending"><span class="dot"></span> Sync pending</span>
+      <a class="btn btn-primary" href="./billing.html">Open billing <span class="arrow">→</span></a>
+      <p class="muted"><a href="./signin.html">Sign in</a> with the same account you used at checkout.</p>
+    </div>
+
     <div class="state" id="state-cancelled">
       <div class="emoji">↩️</div>
       <h1>Checkout cancelled</h1>
@@ -87,15 +108,79 @@ h1{font-size:clamp(26px,4vw,34px);letter-spacing:-.03em;line-height:1.08;font-we
       <a class="btn btn-primary" href="./pricing.html">Back to pricing <span class="arrow">→</span></a>
       <p class="muted">Changed your mind? <a href="./signin.html">Sign in</a> instead.</p>
     </div>
+
+    <div class="state" id="state-signedout">
+      <div class="emoji">🔐</div>
+      <h1>Sign in to finish setup</h1>
+      <p class="sub">Checkout succeeded — sign in with the same email you used at Stripe to see your plan.</p>
+      <a class="btn btn-primary" href="./signin.html">Sign in <span class="arrow">→</span></a>
+      <a class="btn btn-primary" href="./billing.html" style="margin-top:12px;background:#fff;color:var(--teal-d);border:1.5px solid var(--line);box-shadow:none">Try billing anyway</a>
+    </div>
+
+    <div class="state" id="state-error">
+      <div class="emoji">⚠️</div>
+      <h1>Checkout status unclear</h1>
+      <p class="sub" id="error-sub">We couldn't confirm what happened with your checkout. Check billing or contact support if you were charged.</p>
+      <a class="btn btn-primary" href="./billing.html">Open billing <span class="arrow">→</span></a>
+      <p class="muted"><a href="./signin.html">Sign in</a> · <a href="./pricing.html">View plans</a></p>
+    </div>
   </main>
 
 <script>
 (function(){
   var params=new URLSearchParams(window.location.search);
   var status=params.get('status');
-  var id=(status==='success')?'state-success':'state-cancelled';
-  var el=document.getElementById(id);
-  if(el)el.classList.add('show');
+  var sessionId=params.get('session_id');
+  function show(id){
+    ['state-loading','state-success','state-pending','state-cancelled','state-signedout','state-error'].forEach(function(s){
+      var el=document.getElementById(s);
+      if(el) el.classList.toggle('show', s===id);
+    });
+  }
+  if(status!=='success'){
+    if(status==='cancelled'){
+      show('state-cancelled');
+    } else {
+      var errSub=document.getElementById('error-sub');
+      if(errSub){
+        if(!status && !sessionId) errSub.textContent='This page needs a checkout status from Stripe. If you just finished paying, open billing or sign in with the email you used at checkout.';
+        else if(status) errSub.textContent='We received an unexpected checkout status ("'+status+'"). No changes were made — check billing or contact support if you were charged.';
+      }
+      show('state-error');
+    }
+    return;
+  }
+  show('state-loading');
+  (async function(){
+    var tries=0;
+    while(!(window.CiaraLinkAuth&&window.CiaraLinkAuth.loadCurrentSubscription)&&tries<30){
+      await new Promise(function(r){setTimeout(r,100);}); tries++;
+    }
+    var A=window.CiaraLinkAuth;
+    if(!A||!A.isSupabaseConfigured||!A.isSupabaseConfigured()){
+      show('state-pending'); return;
+    }
+    var client=A.getSupabaseClient&&A.getSupabaseClient();
+    if(!client){ show('state-error'); return; }
+    var user=null;
+    try{ var r=await client.auth.getUser(); user=r&&r.data&&r.data.user; }catch(e){}
+    if(!user){ show('state-signedout'); return; }
+    for(var i=0;i<12;i++){
+      try{
+        var res=await A.loadCurrentSubscription();
+        if(res&&res.subscription&&(res.active||res.subscription.status==='trialing'||res.subscription.status==='active')){
+          var st=String(res.subscription.status||'').toLowerCase();
+          var pill=document.getElementById('success-pill');
+          var sub=document.getElementById('success-sub');
+          if(st==='trialing'&&sub) sub.textContent='Your 7-day trial is active. We won\'t bill the card on file until the trial ends — cancel any time before then.';
+          if(pill) pill.innerHTML='<span class="dot"></span> '+(st==='trialing'?'Free trial active':'Subscription active');
+          show('state-success'); return;
+        }
+      }catch(e){}
+      await new Promise(function(r){setTimeout(r,1500);});
+    }
+    show('state-pending');
+  })();
 })();
 </script>
 </body>

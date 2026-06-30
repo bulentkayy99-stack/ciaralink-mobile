@@ -6,9 +6,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pricing — CiaraLink</title>
-<meta name="description" content="CiaraLink pricing — one fair subscription, every feature included, 0% commission on the care you deliver. Plans for Providers, Support Workers, Support Coordination and Allied Health. 14-day free trial.">
+<meta name="description" content="CiaraLink pricing — one fair subscription, every feature included, 0% commission on the care you deliver. Plans for Providers, Support Workers, Support Coordination and Allied Health. 7-day free trial.">
 <meta property="og:title" content="CiaraLink Pricing — 0% commission, every feature included">
-<meta property="og:description" content="One fair subscription priced by your size. Every feature on every plan. 0% commission, ever. 14-day free trial.">
+<meta property="og:description" content="One fair subscription priced by your size. Every feature on every plan. 0% commission, ever. 7-day free trial.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -16,6 +16,7 @@
 <script src="./env.local.js"></script>
 <script src="/vendor/supabase.js"></script>
 <script src="./supabase-client.js?v=20260628c"></script>
+<script src="./stripe-pricing.js?v=20260630"></script>
 <style>
 :root{
   --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
@@ -217,11 +218,11 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
   <div class="wrap">
     <div class="eyebrow">Pricing</div>
     <h1>Every feature included.<br><span class="grad">0% commission</span>, ever.</h1>
-    <p class="hero-sub">One fair subscription, priced by your size — not a cut of the care you deliver. Providers, support workers, coordinators and allied health all get every feature. Start free for 14 days.</p>
+    <p class="hero-sub">One fair subscription, priced by your size — not a cut of the care you deliver. Providers, support workers, coordinators and allied health all get every feature. Start free for 7 days.</p>
     <div class="hero-micro">
       <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> No commission on care</span>
       <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Every feature on every plan</span>
-      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 14-day free trial</span>
+      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 7-day free trial</span>
     </div>
 
     <!-- Billing toggle -->
@@ -312,7 +313,7 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
       </div>
       <div>
         <h4>Get started</h4>
-        <a href="./landing.html#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="./pricing.html">Start a trial</a>
+        <a href="./landing.html#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="./signup.html">Start a trial</a>
       </div>
       <div>
         <h4>Company</h4>
@@ -322,7 +323,7 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
     <p class="foot-disc"><b>Important.</b> CiaraLink is a care-coordination software tool — not a registered auditor, legal practice, or compliance authority. We are not lawyers, compliance officers, or audit officers, and nothing on this platform is legal, financial, clinical, or compliance advice. CiaraLink is intended only to help health and disability care teams organise and share their own work; you remain responsible for your own obligations and decisions. Please don’t ask our team for professional advice — speak to a suitably qualified professional instead.</p>
     <div class="foot-bot">
       <span>© 2026 CiaraLink. All rights reserved.</span>
-      <span>Launch preview · prices in AUD ex-GST · annual = 2 months free.</span>
+      <span>Prices in AUD ex-GST · annual = 2 months free · 7-day trial.</span>
     </div>
   </div>
 </footer>
@@ -331,15 +332,16 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
 <div class="toast" id="toast" role="alert" aria-live="polite">
   <span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.3" fill="currentColor"/><path d="M12 3l9 16H3l9-16z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
   <div>
-    <div class="tt" id="toastTitle">Checkout isn’t switched on yet</div>
-    <div class="ts" id="toastBody">This launch preview can’t take payments just yet. <a href="./landing.html#early">Join the early-access list →</a></div>
+    <div class="tt" id="toastTitle">Could not start checkout</div>
+    <div class="ts" id="toastBody">Please sign in and try again, or contact us if this keeps happening.</div>
   </div>
   <button class="tx" id="toastX" aria-label="Dismiss">×</button>
 </div>
 
 <script>
 /* =========================================================
-   TEST price IDs — from stripe-prices.test.json (TEST mode).
+   Fallback price IDs — mirrors stripe-prices.json (same catalogue as
+   stripe-pricing.js and the create-checkout-session allowlist).
    Price IDs are NOT secret and are safe to embed in the frontend.
    ========================================================= */
 var PRICE_IDS = {
@@ -440,7 +442,7 @@ function renderCards(){
       }
       var btnCls = t.pop ? 'btn-primary' : 'btn-outline';
       cta = '<button class="btn ' + btnCls + ' tier-cta-pad" data-key="' + t.key + '">' +
-            '<span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+            '<span class="lbl">Start 7-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
     }
 
     card.innerHTML =
@@ -473,7 +475,7 @@ function renderAddons(){
       '<div class="at-price"><span class="at-amt">' + fmt(amt) + '</span><span class="at-per">/ mo</span></div>' +
       '<div class="at-billed">' + billed + '</div>' +
       '<div class="at-inc">' + a.inc + '</div>' +
-      '<button class="btn btn-primary" data-key="' + a.key + '"><span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+      '<button class="btn btn-primary" data-key="' + a.key + '"><span class="lbl">Start 7-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
     wrap.appendChild(el);
   });
   bindCheckout(wrap);
@@ -486,24 +488,52 @@ function bindCheckout(scope){
   });
 }
 
+async function ensureSignedIn(){
+  var A = window.CiaraLinkAuth;
+  if(!A || !A.isSupabaseConfigured || !A.isSupabaseConfigured()) return true;
+  var client = A.getSupabaseClient && A.getSupabaseClient();
+  if(!client) return true;
+  try {
+    var r = await client.auth.getSession();
+    if(r && r.data && r.data.session) return true;
+  } catch(e){}
+  window.location.href = './signin.html?next=' + encodeURIComponent('pricing.html');
+  return false;
+}
+
+function checkoutErrorMessage(err, data){
+  var code = (data && data.error) || err || '';
+  if(code === 'sign in required') return { title:'Sign in required', body:'Create an account or <a href="./signin.html?next=pricing.html">sign in</a> to start your free trial.' };
+  if(/Stripe not configured|missing STRIPE_SECRET_KEY/i.test(code)) return { title:'Billing not available', body:'Checkout is not configured on this server yet. Try again later or <a href="./landing.html#early">contact us</a>.' };
+  if(code === 'unknown priceId' || code === 'unknown_plan') return { title:'Plan not found', body:'That plan could not be loaded. Refresh the page or pick another tier.' };
+  if(code === 'network') return { title:'Connection problem', body:'Could not reach the checkout server. Check your connection and try again.' };
+  return { title:'Could not start checkout', body:(code ? String(code) + ' — ' : '') + 'Please try again or <a href="./signin.html?next=pricing.html">sign in</a> first.' };
+}
+
 async function startCheckout(btn){
   if(btn.classList.contains('loading')) return;
   var key = btn.getAttribute('data-key');
-  var ids = PRICE_IDS[key];
-  var priceId = ids ? ids[state.interval] : null;
-  if(!priceId){ // fall back to monthly if no annual price exists
-    priceId = ids ? ids.month : null;
-  }
-  if(!priceId){ showToast(); return; }
+  if(!key){ showToast('Pick a plan', 'Choose a tier above to start your trial.'); return; }
+  if(!(await ensureSignedIn())) return;
 
   btn.classList.add('loading');
   btn.disabled = true;
-
   var done = function(){ btn.classList.remove('loading'); btn.disabled = false; };
 
-  // Link the checkout to the signed-in user so the subscription maps to their account.
-  // The server derives the account id from this token (verified) — it does NOT trust a
-  // client-supplied id, so a subscription can't be attached to someone else's account.
+  if(window.CiaraLinkStripe && window.CiaraLinkStripe.startCheckout){
+    var res = await window.CiaraLinkStripe.startCheckout({ slug: key, interval: state.interval });
+    if(res && res.redirecting) return;
+    done();
+    var msg = checkoutErrorMessage(res && res.error, res && res.data);
+    showToast(msg.title, msg.body);
+    return;
+  }
+
+  var ids = PRICE_IDS[key];
+  var priceId = ids ? ids[state.interval] : null;
+  if(!priceId) priceId = ids ? ids.month : null;
+  if(!priceId){ done(); showToast('Plan not found', 'That plan could not be loaded. Refresh and try again.'); return; }
+
   var body = { priceId: priceId, mode:'subscription', quantity:1 };
   var headers = { 'Content-Type':'application/json' };
   try {
@@ -513,7 +543,7 @@ async function startCheckout(btn){
       var token = r && r.data && r.data.session && r.data.session.access_token;
       if(token){ headers['Authorization'] = 'Bearer ' + token; }
     }
-  } catch(e){ /* not signed in — checkout still works, just unlinked */ }
+  } catch(e){}
 
   fetch('./api/create-checkout-session', {
     method:'POST',
@@ -525,19 +555,22 @@ async function startCheckout(btn){
   }).then(function(res){
     if(res.ok && res.data && res.data.url){
       window.location = res.data.url;
-      return; // keep loading state during redirect
+      return;
     }
     done();
-    showToast();
+    var msg = checkoutErrorMessage((res.data && res.data.error) || 'checkout_failed', res.data);
+    showToast(msg.title, msg.body);
   }).catch(function(){
     done();
-    showToast();
+    showToast('Connection problem', 'Could not reach the checkout server. Check your connection and try again.');
   });
 }
 
 /* ---- Toast ---- */
 var toastTimer;
-function showToast(){
+function showToast(title, body){
+  document.getElementById('toastTitle').textContent = title || 'Could not start checkout';
+  document.getElementById('toastBody').innerHTML = body || 'Please try again or <a href="./signin.html?next=pricing.html">sign in</a> first.';
   var t = document.getElementById('toast');
   t.classList.add('show');
   clearTimeout(toastTimer);

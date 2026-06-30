@@ -115,7 +115,8 @@ class Component extends DCLogic {
     if(!configured){ this.loadDemo(); return; } // honest design preview
     if(!window.RosterData || typeof window.loadCurrentUserContext!=='function'){
       if(attempt<30){ setTimeout(()=>this.boot(attempt+1),150); return; }
-      this.loadDemo(); return;
+      this.setState({connected:true, loading:false, workers:[], shifts:[], participants:[]});
+      return;
     }
     this.setState({connected:true});
     this.loadAll();
@@ -130,7 +131,7 @@ class Component extends DCLogic {
       var manage = this.isManager(ctx.role) || this.isManager(this.state.role);
       this.setState({orgId:ctx.orgId, orgName:ctx.orgName, userId:ctx.userId, role:ctx.role||this.state.role, canManage:manage, view:manage?this.state.view:'mine'});
       await this.reload(ctx.orgId, manage);
-    }catch(e){ console.warn('roster loadAll',e&&e.message); this.loadDemo(); }
+    }catch(e){ console.warn('roster loadAll',e&&e.message); this.setState({loading:false, workers:[], shifts:[], participants:[]}); }
   }
 
   async reload(orgId, manage){

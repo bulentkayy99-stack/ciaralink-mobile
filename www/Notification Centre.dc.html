@@ -117,8 +117,8 @@
       <sc-if value="{{ isEmpty }}" hint-placeholder-val="">
         <div style="text-align:center;padding:60px 20px;color:#9aa8a3;font-size:14px;line-height:1.6">
           <div style="font-size:32px;margin-bottom:12px">🔔</div>
-          <div style="font-weight:700;color:#14302b;margin-bottom:6px">All caught up</div>
-          <div>No {{ activeFilter }} notifications — check another filter or role</div>
+          <div style="font-weight:700;color:#14302b;margin-bottom:6px">{{ emptyTitle }}</div>
+          <div>{{ emptyBody }}</div>
         </div>
       </sc-if>
     </div>
@@ -152,6 +152,14 @@ class Component extends DCLogic {
       if(Object.keys(d).length||Object.keys(r).length) this.setState({dismissed:d,read:r});
     }
     this.loadLiveNotifs();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling(()=>this.loadLiveNotifs(),45000);
+    }
+  }
+
+  componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
+    if(window.stopNotificationPolling) window.stopNotificationPolling();
   }
 
   loadLiveNotifs(){
@@ -163,6 +171,30 @@ class Component extends DCLogic {
         }).catch(e=>console.warn('loadLiveNotifs error:',e&&e.message));
       }
     }catch(e){ console.warn('loadLiveNotifs error:',e&&e.message); }
+  }
+
+  resolveNotifHref(n){
+    if(window.resolveNotificationHref) return window.resolveNotificationHref(n, this.state.role);
+    if(!n || !n.reference_type) return null;
+    const id=n.reference_id;
+    const enc=id!=null?encodeURIComponent(String(id)):'';
+    switch(n.reference_type){
+      case 'shift':
+        return id?(this.state.role==='worker'?'Support Worker.dc.html?shift='+enc:'CiaraLink Provider Dashboard.dc.html?nav=roster&shift='+enc):null;
+      case 'referral':
+        return id?'CiaraLink Provider Dashboard.dc.html?nav=referrals&selRef='+enc:null;
+      case 'document':
+        return 'CiaraLink Provider Dashboard.dc.html?nav=docs_hub';
+      case 'participant':
+        if(window.participantProfileUrl) return window.participantProfileUrl(id);
+        return id?'Participant Profile.dc.html?id='+enc:null;
+      case 'incident':
+        return id?'Incident Centre.dc.html?id='+enc:'Incident Centre.dc.html';
+      case 'worker_credential':
+        return 'Worker Passport.dc.html';
+      default:
+        return null;
+    }
   }
 
   ic(n,c,s){
@@ -190,6 +222,8 @@ class Component extends DCLogic {
     const ic=(n,c,s)=>this.ic(n,c,s);
     const {role,priority,dismissed,read}=this.state;
     const AD=window.AegisData;
+    const demoMode=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    const liveMode=!demoMode&&this.state.supabaseConnected;
 
     // Priority system
     const PRI={
@@ -205,20 +239,20 @@ class Component extends DCLogic {
       {id:'p1',roles:['provider'],pri:'urgent',title:'Open shift unfilled — starts in 2 hours',body:'Personal Care shift for Margaret R. tonight (19:00–22:00) has no assigned worker. 6 workers were notified.',participant:'Margaret Reyes',when:'2h ago',status:'Action required',stFg:'#c0445c',stBg:'#fbe9ed',icon:'clock',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Fill shift →',action:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; }},
       {id:'p2',roles:['provider'],pri:'high',title:'New worker application — Amara Okafor',body:'Amara Okafor applied for the Personal Care shift (Sat 21 Jun). 4.9★ · 312 shifts · 2.1km away.',participant:'Margaret Reyes',when:'4h ago',status:'Review needed',stFg:'#b4561f',stBg:'#fbf0df',icon:'user',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'Review applicant →',action:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; }},
       {id:'p3',roles:['provider'],pri:'high',title:'Service agreement awaiting signature — David Lowe',body:'Agreement sent 5 days ago. David Lowe has not yet signed. Services cannot commence until signed.',participant:'David Lowe',when:'Yesterday',status:'Awaiting signature',stFg:'#b4561f',stBg:'#fbf0df',icon:'doc',tint:'#eef0fd',ic:'#6366f1',actionLabel:'Send reminder →',action:()=>{ window.location.href='Service Agreement.dc.html'; }},
-      {id:'p4',roles:['provider'],pri:'medium',title:'Shift note submitted — James Liu',body:'Shift note submitted for Margaret R. Personal Care session (Wed 18 Jun, 4h). Review and approve.',participant:'Margaret Reyes',when:'2 days ago',status:'New',stFg:'#4338ca',stBg:'#eef0fd',icon:'doc',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View shift note →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'p4',roles:['provider'],pri:'medium',title:'Shift note submitted — James Liu',body:'Shift note submitted for Margaret R. Personal Care session (Wed 18 Jun, 4h). Review and approve.',participant:'Margaret Reyes',when:'2 days ago',status:'New',stFg:'#4338ca',stBg:'#eef0fd',icon:'doc',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View shift note →',action:()=>{ window.location.href=window.participantProfileUrl?window.participantProfileUrl(null,'notes'):'Participant Profile.dc.html?view=notes'; }},
       {id:'p5',roles:['provider'],pri:'medium',title:'Worker credential expiring — First Aid (Noah R.)',body:'Noah R\'s First Aid certificate expires in 14 days. He cannot be rostered after that date without renewal.',participant:null,when:'3 days ago',status:'Action required',stFg:'#b4561f',stBg:'#fbf0df',icon:'shield',tint:'#fbf0df',ic:'#d98b22',actionLabel:'View passport →',action:()=>{ window.location.href='Worker Passport.dc.html'; }},
       {id:'p6',roles:['provider'],pri:'low',title:'New referral received — Eleni Pappas',body:'Referral from Sarah Kelly (SC). Personal Care + Community Access. Contact within 48h to maintain referral score.',participant:'Eleni Pappas',when:'4 days ago',status:'New',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'send',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'Open referral →',action:()=>{ window.location.href='Provider Console.dc.html'; }},
       // SC notifications
       {id:'sc1',roles:['coordinator'],pri:'urgent',title:'Plan review in 11 days — Margaret Reyes',body:'Evidence pack 70% complete. Missing: OT recommendations, speech report. Review meeting 21 Jul 2026.',participant:'Margaret Reyes',when:'Just now',status:'Urgent action',stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Prepare review →',action:()=>{ window.location.href='Plan Review Prep.dc.html'; }},
       {id:'sc2',roles:['coordinator'],pri:'high',title:'Funding risk — Liam Wright Core Supports at 92%',body:'Core Supports at 92% with 4 months remaining. Underspend risk. Contact plan manager to review.',participant:'Liam Wright',when:'1h ago',status:'Action required',stFg:'#b4561f',stBg:'#fbf0df',icon:'wallet',tint:'#fbf0df',ic:'#d98b22',actionLabel:'View budgets →',action:()=>{ window.location.href='Support Coordination.dc.html'; }},
-      {id:'sc3',roles:['coordinator'],pri:'high',title:'Allied health report uploaded — OT recommendations',body:'Inner West OT uploaded updated OT recommendations for Margaret Reyes. Review and add to review pack.',participant:'Margaret Reyes',when:'3h ago',status:'New',stFg:'#b4561f',stBg:'#fbf0df',icon:'file',tint:'#f4e8fe',ic:'#9333ea',actionLabel:'View document →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'sc3',roles:['coordinator'],pri:'high',title:'Allied health report uploaded — OT recommendations',body:'Inner West OT uploaded updated OT recommendations for Margaret Reyes. Review and add to review pack.',participant:'Margaret Reyes',when:'3h ago',status:'New',stFg:'#b4561f',stBg:'#fbf0df',icon:'file',tint:'#f4e8fe',ic:'#9333ea',actionLabel:'View document →',action:()=>{ window.location.href=window.participantProfileUrl?window.participantProfileUrl(null,'docs'):'Participant Profile.dc.html?view=docs'; }},
       {id:'sc4',roles:['coordinator'],pri:'medium',title:'Referral accepted — Brightside Care',body:'Brightside Care accepted your referral for Margaret Reyes. Personal Care + Community Access. Services to commence.',participant:'Margaret Reyes',when:'Yesterday',status:'Completed',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'check',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View referral →',action:()=>{ window.location.href='Support Coordination.dc.html'; }},
       {id:'sc5',roles:['coordinator'],pri:'medium',title:'Consent request — share documents with Inner West OT',body:'Jordan Pham (Physio) is requesting access to Margaret Reyes\' OT assessment and support plan.',participant:'Margaret Reyes',when:'2 days ago',status:'Awaiting approval',stFg:'#4338ca',stBg:'#eef0fd',icon:'shield',tint:'#eef0fd',ic:'#6366f1',actionLabel:'Review consent →',action:()=>{ window.location.href='Consent Centre.dc.html'; }},
       // Allied Health notifications
       {id:'ah1',roles:['allied'],pri:'urgent',title:'Review evidence requested — Margaret Reyes',body:'Plan review in 11 days. Support coordinator Sarah Kelly requests your FCA report and updated recommendations.',participant:'Margaret Reyes',when:'1h ago',status:'Urgent',stFg:'#c0445c',stBg:'#fbe9ed',icon:'alert',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Prepare evidence →',action:()=>{ window.location.href='Allied Health.dc.html'; }},
       {id:'ah2',roles:['allied'],pri:'high',title:'New referral — Tom Becker (OT assessment)',body:'Referral from Sarah Kelly (SC). OT assessment requested. Community participation barriers. Urgency: High.',participant:'Tom Becker',when:'3h ago',status:'New referral',stFg:'#b4561f',stBg:'#fbf0df',icon:'send',tint:'#f4e8fe',ic:'#9333ea',actionLabel:'Accept referral →',action:()=>{ window.location.href='Allied Health.dc.html'; }},
-      {id:'ah3',roles:['allied'],pri:'medium',title:'Consent approved — access to Ruth K. documents',body:'Participant Ruth Kim approved your access to clinical notes and support plan. Documents now visible.',participant:'Ruth Kim',when:'Yesterday',status:'Access granted',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'shield',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View documents →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
-      {id:'ah4',roles:['allied'],pri:'low',title:'Therapy goal milestone — Tom Becker',body:'Tom Becker reached 68% on the sensory regulation goal. Progress noted in participant profile.',participant:'Tom Becker',when:'3 days ago',status:'Update noted',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'heart',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View goals →',action:()=>{ window.location.href='Participant Profile.dc.html'; }},
+      {id:'ah3',roles:['allied'],pri:'medium',title:'Consent approved — access to Ruth K. documents',body:'Participant Ruth Kim approved your access to clinical notes and support plan. Documents now visible.',participant:'Ruth Kim',when:'Yesterday',status:'Access granted',stFg:'#1e7a52',stBg:'#e9f6ef',icon:'shield',tint:'#e9f6ef',ic:'#1e9e6a',actionLabel:'View documents →',action:()=>{ window.location.href=window.participantProfileUrl?window.participantProfileUrl(null,'docs'):'Participant Profile.dc.html?view=docs'; }},
+      {id:'ah4',roles:['allied'],pri:'low',title:'Therapy goal milestone — Tom Becker',body:'Tom Becker reached 68% on the sensory regulation goal. Progress noted in participant profile.',participant:'Tom Becker',when:'3 days ago',status:'Update noted',stFg:'#0b6b60',stBg:'#e7f4f1',icon:'heart',tint:'#e7f4f1',ic:'#16b8a6',actionLabel:'View goals →',action:()=>{ window.location.href=window.participantProfileUrl?window.participantProfileUrl(null,'goals'):'Participant Profile.dc.html?view=goals'; }},
       // Worker notifications
       {id:'w1',roles:['worker'],pri:'urgent',title:'New shift invitation — Sat 21 Jun (Personal Care)',body:'Brightside Care invited you to cover a Personal Care shift for David L. Sat 21 Jun · 09:00–13:00 · $46/hr · 1.8km',participant:'David Lowe',when:'30min ago',status:'Action required',stFg:'#c0445c',stBg:'#fbe9ed',icon:'bell',tint:'#fbe9ed',ic:'#e0556e',actionLabel:'Accept shift →',action:()=>{ window.location.href='Support Worker.dc.html'; }},
       {id:'w2',roles:['worker'],pri:'high',title:'Shift note overdue — Margaret R. (Wed 18 Jun)',body:'Your shift note for the Wed 18 Jun Personal Care shift (4h) is overdue. Submit to get paid.',participant:'Margaret Reyes',when:'1h ago',status:'Overdue',stFg:'#c0445c',stBg:'#fbe9ed',icon:'doc',tint:'#fbf0df',ic:'#d98b22',actionLabel:'Write note →',action:()=>{ window.location.href='Support Worker.dc.html'; }},
@@ -240,7 +274,9 @@ class Component extends DCLogic {
     const liveCards=(showLive?liveRaw:[]).map(n=>{
       const p=PRI.medium;
       const isUnread=!n.read_at;
+      const href=this.resolveNotifHref(n);
       const markRead=()=>{ if(window.markNotificationRead){ Promise.resolve(window.markNotificationRead(n.id)).then(r=>{ if(r&&!r.error){ this.showToast('Marked as read'); this.loadLiveNotifs(); } }).catch(()=>{}); } };
+      const openAction=()=>{ if(isUnread) markRead(); if(href) window.location.href=href; };
       return {id:'live-'+n.id,_liveId:n.id,
         priority:'Notification',priFg:p.fg,priBg:p.bg,priDot:p.dot,
         unread:isUnread,
@@ -250,13 +286,13 @@ class Component extends DCLogic {
         title:n.title,body:n.body||'',
         when:(n.created_at||'').slice(0,10),participant:null,
         status:isUnread?'New':'Read',stFg:isUnread?'#0b6b60':'#9aa8a3',stBg:isUnread?'#e7f4f1':'#eef2f0',
-        actionLabel:isUnread?'Mark read':'Read ✓',
-        primaryAction:isUnread?markRead:()=>{},
+        actionLabel:href?'Open →':(isUnread?'Mark read':'Read ✓'),
+        primaryAction:href?openAction:(isUnread?markRead:()=>{}),
         dismiss:markRead};
     });
     const liveUnread=liveRaw.filter(n=>!n.read_at).length;
 
-    const demoNotifications=visible.map(n=>{
+    const demoNotifications=demoMode?visible.map(n=>{
       const p=PRI[n.pri]||PRI.low;
       const isUnread=!read[n.id];
       return {...n,
@@ -279,14 +315,14 @@ class Component extends DCLogic {
         }
       };
     });
-    const notifications=[...liveCards,...demoNotifications];
+    const notifications=liveMode?liveCards:(demoMode?[...liveCards,...demoNotifications]:liveCards);
 
     const roleOpts=[
-      {key:'provider',label:'Provider',iconEl:ic('building','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('provider')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'coordinator',label:'Coordinator',iconEl:ic('star','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('coordinator')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'allied',label:'Allied Health',iconEl:ic('heart','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('allied')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'worker',label:'Support Worker',iconEl:ic('user','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('worker')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'participant',label:'Participant',iconEl:ic('users','#7e948e',14),count:allNotifs.filter(n=>n.roles.includes('participant')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'provider',label:'Provider',iconEl:ic('building','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('provider')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'coordinator',label:'Coordinator',iconEl:ic('star','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('coordinator')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'allied',label:'Allied Health',iconEl:ic('heart','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('allied')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'worker',label:'Support Worker',iconEl:ic('user','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('worker')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'participant',label:'Participant',iconEl:ic('users','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('participant')&&!dismissed[n.id]&&!read[n.id]).length||null},
     ];
     const roleFilters=roleOpts.map(r=>({...r,select:()=>this.setState({role:r.key}),bg:role===r.key?'rgba(255,255,255,.08)':'transparent',fg:role===r.key?'#f4faf8':'#9fb4ae',count:r.count||null}));
 
@@ -301,8 +337,8 @@ class Component extends DCLogic {
     ].map(p=>({...p,select:()=>this.setState({priority:p.key}),bg:priority===p.key?'rgba(255,255,255,.08)':'transparent',fg:priority===p.key?'#f4faf8':'#9bb4ae'}));
 
     const roleLabels={provider:'Provider',coordinator:'Support Coordinator',allied:'Allied Health',worker:'Support Worker',participant:'Participant'};
-    const unreadCount=roleFiltered.filter(n=>!dismissed[n.id]&&!read[n.id]).length+liveUnread;
-    const urgentCount=roleFiltered.filter(n=>!dismissed[n.id]&&n.pri==='urgent').length;
+    const unreadCount=liveMode?liveUnread:(roleFiltered.filter(n=>!dismissed[n.id]&&!read[n.id]).length+liveUnread);
+    const urgentCount=liveMode?liveRaw.filter(n=>!n.read_at&&(String(n.type||'').includes('urgent')||String(n.type||'').includes('sirs'))).length:roleFiltered.filter(n=>!dismissed[n.id]&&n.pri==='urgent').length;
 
     return {
       logoEl:ic('bell','#eafaf8',20),
@@ -313,14 +349,25 @@ class Component extends DCLogic {
       unreadCount,urgentCount,
       notifications,
       isEmpty:notifications.length===0,
-      activeFilter:priority==='all'?'':priority+' ',
+      emptyTitle:liveMode?'All caught up':(demoMode?'Nothing here yet':'All caught up'),
+      emptyBody:liveMode
+        ?(priority==='all'
+          ?'No notifications yet — updates about shifts, referrals, and documents will appear here.'
+          :('No '+priority+' notifications — try another filter or check back later.'))
+        :(demoMode
+          ?(priority==='all'
+            ?'No demo notifications for this role — sign in to see your live updates.'
+            :('No '+priority+' notifications — check another filter or role.'))
+          :(priority==='all'
+            ?'No notifications yet — updates about shifts, referrals, and documents will appear here.'
+            :('No '+priority+' notifications — try another filter or check back later.'))),
       markAllRead:()=>{
         const nr={};
         roleFiltered.forEach(n=>{nr[n.id]=true;});
         const combined={...read,...nr};
         this.setState({read:combined});
         if(AD) AD.set('nc_read',combined);
-        if(this.state.supabaseConnected && window.markAllNotificationsRead){
+        if(liveMode && window.markAllNotificationsRead){
           Promise.resolve(window.markAllNotificationsRead()).then(r=>{ if(r&&!r.error) this.loadLiveNotifs(); }).catch(()=>{});
         }
         this.showToast('All notifications marked as read');

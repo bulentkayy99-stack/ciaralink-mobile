@@ -70,11 +70,69 @@
 
       <!-- ============ INTAKE ============ -->
       <sc-if value="{{ realIntake }}" hint-placeholder-val="">
-      <div style="max-width:680px;margin:40px auto 0;text-align:center;background:#fff;border:1px solid #e7ece9;border-radius:20px;padding:40px 30px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
-        <div style="width:56px;height:56px;border-radius:16px;background:#f1faf8;border:1px solid #d3eae4;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ uploadEl }}</div>
-        <div style="font-size:17px;font-weight:800;color:#14302b;margin-top:14px">Auto-fill your own agreements</div>
-        <div style="font-size:13px;color:#6c7f79;margin-top:7px;line-height:1.55">Upload your own form once, pick a client, and CiaraLink fills it from their profile — then sends it to sign. Nothing retyped.</div>
-        <button onClick="{{ goTemplates }}" style="margin-top:18px;padding:11px 20px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Go to Smart Templates →</button>
+      <div style="max-width:900px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:14px;padding:14px 20px;margin-bottom:18px;color:#eafaf8">
+          <span style="display:flex">{{ sparkWEl }}</span>
+          <div style="flex:1;font-size:13.5px">Drop NDIS plans, consent forms, agreements, or reports — I'll read each file, match it to a participant, and file it. Filed documents feed the Review Evidence Hub and participant profiles.</div>
+        </div>
+        <button id="intake-dropzone" onClick="{{ browseIntake }}" style="width:100%;border:2px dashed {{ dropBd }};border-radius:18px;padding:32px 24px;text-align:center;background:{{ dropBg }};cursor:pointer;font-family:inherit;margin-bottom:16px">
+          <div style="width:54px;height:54px;border-radius:15px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;margin:0 auto;pointer-events:none">{{ uploadEl }}</div>
+          <div style="font-size:16px;font-weight:800;color:#14302b;margin-top:12px;pointer-events:none">Drop documents here</div>
+          <div style="font-size:12.5px;color:#6c7f79;margin-top:4px;pointer-events:none">PDF, Word, or image — up to 50MB each.</div>
+          <div style="margin-top:13px;font-size:13px;font-weight:700;color:#0b6b60;background:#e7f4f1;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;pointer-events:none">{{ sparkDkEl }}Click to browse, or drag files here</div>
+        </button>
+        <sc-if value="{{ hasIntakePending }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:16px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden;margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #eef2f0">
+              <div><div style="font-size:13.5px;font-weight:800;color:#14302b">File under a participant</div><div style="font-size:11px;color:#8a9a94;margin-top:1px">Confirm client and type, then file.</div></div>
+              <button onClick="{{ fileAllIntake }}" style="padding:6px 13px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">File all</button>
+            </div>
+            <sc-if value="{{ scanBanner }}" hint-placeholder-val="">
+              <div style="padding:10px 18px;background:#fbf6ec;border-bottom:1px solid #f0e7d4;font-size:11.5px;color:#8a6d2f">Auto-scan is off (add ANTHROPIC_API_KEY on the server) — choose the participant manually.</div>
+            </sc-if>
+            <sc-for list="{{ intakePending }}" as="p" hint-placeholder-count="2">
+              <div style="padding:14px 18px;border-bottom:1px solid #f4f7f5">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+                  <div style="width:30px;height:30px;border-radius:8px;flex:0 0 30px;background:#e7f4f1;display:flex;align-items:center;justify-content:center">{{ docEl }}</div>
+                  <div style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</div>
+                  <sc-if value="{{ p.scanning }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;font-weight:700;color:#b4561f;background:#fbf0df;padding:2px 8px;border-radius:6px">Scanning…</span></sc-if>
+                </div>
+                <sc-if value="{{ p.scanned }}" hint-placeholder-val="">
+                  <div style="font-size:11px;font-weight:700;color:#7a5cd0;background:#f1ecfd;padding:6px 10px;border-radius:8px;margin-bottom:9px">✨ AI suggested — review &amp; confirm</div>
+                </sc-if>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Participant
+                    <select value="{{ p.clientValue }}" onChange="{{ p.onClientChange }}" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px">
+                      <option value="">Choose participant…</option>
+                      <sc-for list="{{ p.clientOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                      <option value="__new__">+ New participant…</option>
+                    </select>
+                  </label>
+                  <sc-if value="{{ p.isNew }}" hint-placeholder-val="">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <input value="{{ p.newName }}" onChange="{{ p.onNewNameChange }}" placeholder="Full name" style="flex:1;min-width:140px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                      <input value="{{ p.newNdis }}" onChange="{{ p.onNewNdisChange }}" placeholder="NDIS number (optional)" style="flex:1;min-width:140px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                    </div>
+                  </sc-if>
+                  <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Document type
+                    <select value="{{ p.docType }}" onChange="{{ p.onDocTypeChange }}" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px">
+                      <option value="ndis_plan">NDIS Plan</option><option value="service_agreement">Service Agreement</option><option value="consent_form">Consent Form</option><option value="intake_form">Intake Form</option><option value="allied_health_report">Allied Health Report</option><option value="support_plan">Support Plan</option><option value="other">Other</option>
+                    </select>
+                  </label>
+                  <label style="font-size:11px;font-weight:700;color:#6c7f79;display:block">Title
+                    <input value="{{ p.title }}" onChange="{{ p.onTitleChange }}" placeholder="Document title" style="width:100%;margin-top:4px;padding:8px 10px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#14302b;font-family:inherit;font-size:12.5px"/>
+                  </label>
+                  <div style="display:flex;align-items:center;gap:9px;justify-content:flex-end;margin-top:2px">
+                    <sc-if value="{{ p.filing }}" hint-placeholder-val=""><span style="font-size:11px;color:#6c8c83">Filing…</span></sc-if>
+                    <button onClick="{{ p.onRemove }}" style="padding:7px 13px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#8a9a94;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">Discard</button>
+                    <button onClick="{{ p.onFileIt }}" style="padding:7px 15px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">File it →</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="text-align:center;font-size:12.5px;color:#8a9a94;line-height:1.55">Need to auto-fill your own agreement from a client profile? <button onClick="{{ goTemplates }}" style="border:none;background:none;color:#0b6b60;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;padding:0">Smart Templates →</button></div>
       </div>
       </sc-if>
       <sc-if value="{{ demoIntake }}" hint-placeholder-val="{{ true }}">
@@ -416,7 +474,9 @@ class Component extends DCLogic {
     participants:[], participantsLoaded:false,
     selTplId:null, selClientId:null, selClient:null,
     tplBusy:false, fillState:'idle', fillData:null, fillErrorMsg:null,
-    signLink:null, copyLabel:'Copy link' };
+    signLink:null, copyLabel:'Copy link',
+    // real intake file drop
+    pending:[], dragging:false, scanBanner:false };
   _tplTexts = {};   // docId -> extracted template text (cached)
   _tplInfo = {};    // docId -> { detectedType }
   componentDidMount(){ this.boot(0); }
@@ -434,7 +494,113 @@ class Component extends DCLogic {
     this.refreshDocs();
     this.refreshSigs();
     this.refreshParticipants();
+    this.setupIntakeDrop();
   }
+  setupIntakeDrop(){
+    try{
+      if(!this._intakeInput){
+        const input=document.createElement('input');
+        input.type='file'; input.multiple=true;
+        input.accept='.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx';
+        input.style.display='none';
+        input.addEventListener('change',()=>{ const files=input.files; if(files&&files.length) this.handleIntakeFiles(files); input.value=''; });
+        document.body.appendChild(input); this._intakeInput=input;
+      }
+      const inZone=(t)=> t && t.closest && t.closest('#intake-dropzone');
+      this._onIntakeDragOver=(e)=>{ if(inZone(e.target)){ e.preventDefault(); if(!this.state.dragging) this.setState({dragging:true}); } };
+      this._onIntakeDragLeave=(e)=>{ const z=inZone(e.target); if(z && (!e.relatedTarget || !z.contains(e.relatedTarget))) this.setState({dragging:false}); };
+      this._onIntakeDrop=(e)=>{ if(inZone(e.target)){ e.preventDefault(); this.setState({dragging:false}); const files=e.dataTransfer&&e.dataTransfer.files; if(files&&files.length) this.handleIntakeFiles(files); } };
+      document.addEventListener('dragover',this._onIntakeDragOver);
+      document.addEventListener('dragleave',this._onIntakeDragLeave);
+      document.addEventListener('drop',this._onIntakeDrop);
+    }catch(e){}
+  }
+  browseIntake(){ if(this._intakeInput) this._intakeInput.click(); }
+  validateIntakeFile(file){
+    const MAX=50*1024*1024, ALLOWED=['pdf','jpg','jpeg','png','webp','doc','docx'];
+    const ext=(String(file.name||'').split('.').pop()||'').toLowerCase();
+    if(ALLOWED.indexOf(ext)===-1) return 'Unsupported file type';
+    if(file.size>MAX) return 'File is larger than 50MB';
+    return null;
+  }
+  handleIntakeFiles(fileList){
+    const files=Array.prototype.slice.call(fileList||[]); if(!files.length) return;
+    const added=[];
+    for(const file of files){
+      const err=this.validateIntakeFile(file);
+      if(err){ this.showToast("Can't add "+file.name+": "+err); continue; }
+      added.push({id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),file:file,name:file.name||'file',clientChoice:'',newName:'',newNdis:'',docType:'other',title:file.name||'file',filing:false,scanning:true,scanned:false});
+    }
+    if(added.length){ this.setState(s=>({pending:(s.pending||[]).concat(added)})); this.refreshParticipants(); added.forEach(item=>this.intakeScanFile(item)); }
+  }
+  async buildIntakeScanPayload(file){
+    const name=file.name||'file', type=file.type||'', ext=(name.indexOf('.')>=0?name.split('.').pop():'').toLowerCase();
+    try{
+      if(ext==='pdf'||type==='application/pdf'){ const d=await this.fileToBase64(file); return d?{kind:'pdf',filename:name,data:d}:null; }
+      if(['jpg','jpeg','png','webp'].indexOf(ext)>=0||type.indexOf('image/')===0){ const d=await this.fileToBase64(file); return d?{kind:'image',filename:name,mediaType:(type||('image/'+(ext==='jpg'?'jpeg':ext))),data:d}:null; }
+      const text=await this.extractText(file);
+      if(text) return {kind:'text',filename:name,text:text.slice(0,9000)};
+    }catch(e){}
+    return null;
+  }
+  async intakeScanFile(item){
+    const id=item&&item.id, file=item&&item.file; if(!id||!file) return;
+    const token=await this.getToken(); if(!token){ this.updateIntakePending(id,{scanning:false}); return; }
+    const payload=await this.buildIntakeScanPayload(file);
+    if(!payload){ this.updateIntakePending(id,{scanning:false}); return; }
+    try{
+      const r=await fetch('/api/scan-document',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok){ this.updateIntakePending(id,{scanning:false}); return; }
+      const result=await r.json();
+      if(result.configured===false){ this.updateIntakePending(id,{scanning:false}); this.setState({scanBanner:true}); return; }
+      if(result.configured===true){ await this.applyIntakeScan(id,result); return; }
+      this.updateIntakePending(id,{scanning:false});
+    }catch(e){ this.updateIntakePending(id,{scanning:false}); }
+  }
+  async applyIntakeScan(id,result){
+    let participants=this.state.participants||[];
+    if(!participants.length&&typeof window.loadParticipantsForCurrentUser==='function'){
+      try{ const r=await window.loadParticipantsForCurrentUser(); participants=(r&&r.participants)||participants; this.setState({participants,participantsLoaded:true}); }catch(e){}
+    }
+    const VALID=['ndis_plan','service_agreement','worker_agreement','consent_form','intake_form','allied_health_report','functional_capacity_assessment','support_plan','risk_assessment','police_check','wwcc','first_aid','insurance','abn_document','progress_report','invoice','timesheet','other'];
+    const patch={scanning:false,scanned:true};
+    if(result.doc_type&&VALID.indexOf(result.doc_type)!==-1) patch.docType=result.doc_type;
+    if(result.suggested_title) patch.title=String(result.suggested_title);
+    const person=(result.person_name||'').trim();
+    if(person){
+      const lc=person.toLowerCase();
+      const match=participants.find(p=>{ const fn=(p.full_name||'').toLowerCase().trim(), pn=(p.preferred_name||'').toLowerCase().trim(); return (fn&&fn===lc)||(pn&&pn===lc)||(fn&&(fn.indexOf(lc)!==-1||lc.indexOf(fn)!==-1))||(pn&&(pn.indexOf(lc)!==-1||lc.indexOf(pn)!==-1)); });
+      if(match) patch.clientChoice=match.id; else { patch.clientChoice='__new__'; patch.newName=person; }
+    }
+    this.updateIntakePending(id,patch);
+  }
+  updateIntakePending(id,patch){ this.setState(s=>({pending:(s.pending||[]).map(p=>p.id===id?Object.assign({},p,patch):p)})); }
+  removeIntakePending(id){ this.setState(s=>({pending:(s.pending||[]).filter(p=>p.id!==id)})); }
+  async fileIntakeOne(id){
+    const item=(this.state.pending||[]).find(p=>p.id===id); if(!item||item.filing) return;
+    if(typeof window.uploadDocument!=='function'){ this.showToast("Upload isn't ready — please reload"); return; }
+    let participant_id=null, clientName='';
+    if(item.clientChoice==='__new__'){
+      const fullName=(item.newName||'').trim(); if(!fullName){ this.showToast('Enter a name for the new participant'); return; }
+      this.updateIntakePending(id,{filing:true});
+      let org=null; try{ org=await window.loadCurrentUserContext(); }catch(e){}
+      const orgId=org&&org.organisationId; if(!orgId){ this.updateIntakePending(id,{filing:false}); this.showToast("Couldn't find your organisation"); return; }
+      let cres; try{ cres=await window.createParticipant({org_id:orgId,full_name:fullName,ndis_number:(item.newNdis||'').trim()||undefined}); }catch(e){ cres={error:e.message}; }
+      if(!cres||!cres.participant||cres.error){ this.updateIntakePending(id,{filing:false}); this.showToast("Couldn't create participant: "+((cres&&cres.error)||'unknown')); return; }
+      participant_id=cres.participant.id; clientName=cres.participant.full_name||fullName;
+      this.setState(s=>({participants:[cres.participant].concat(s.participants||[])}));
+    }else{
+      participant_id=item.clientChoice; if(!participant_id){ this.showToast('Choose a participant first'); return; }
+      const match=(this.state.participants||[]).find(p=>p.id===participant_id);
+      clientName=(match&&(match.full_name||match.preferred_name))||'participant';
+      this.updateIntakePending(id,{filing:true});
+    }
+    let res; try{ res=await window.uploadDocument({file:item.file,participant_id,doc_type:item.docType,title:((item.title&&String(item.title).trim())||item.name)}); }catch(e){ res={error:e.message}; }
+    if(res&&res.document&&!res.error){
+      this.removeIntakePending(id); this.showToast('Filed '+item.name+' under '+clientName); this.refreshDocs();
+    }else{ this.updateIntakePending(id,{filing:false}); this.showToast("Couldn't file: "+((res&&res.error)||'unknown')); }
+  }
+  async fileAllIntake(){ for(const p of (this.state.pending||[])) await this.fileIntakeOne(p.id); }
   async refreshParticipants(){
     if(typeof window.loadParticipantsForCurrentUser!=='function'){ this.setState({participantsLoaded:true}); return; }
     try{ const r=await window.loadParticipantsForCurrentUser(); this.setState({participants:(r&&r.participants)||[],participantsLoaded:true}); }
@@ -666,7 +832,7 @@ class Component extends DCLogic {
     this.setState({phase:'reading'});
     clearTimeout(this._t); this._t=setTimeout(()=>this.setState({phase:'done'}),2600);
   }
-  componentWillUnmount(){ clearTimeout(this._t); clearTimeout(this._boot); try{ if(this._formInput&&this._formInput.parentNode) this._formInput.parentNode.removeChild(this._formInput); }catch(e){} }
+  componentWillUnmount(){ clearTimeout(this._t); clearTimeout(this._boot); try{ if(this._formInput&&this._formInput.parentNode) this._formInput.parentNode.removeChild(this._formInput); }catch(e){} try{ if(this._intakeInput&&this._intakeInput.parentNode) this._intakeInput.parentNode.removeChild(this._intakeInput); if(this._onIntakeDragOver) document.removeEventListener('dragover',this._onIntakeDragOver); if(this._onIntakeDragLeave) document.removeEventListener('dragleave',this._onIntakeDragLeave); if(this._onIntakeDrop) document.removeEventListener('drop',this._onIntakeDrop); }catch(e){} }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
@@ -841,6 +1007,24 @@ class Component extends DCLogic {
     const hasListItems=listItems.length>0;
     const listCount=hasListItems?(listItems.length+(listItems.length===1?' item':' items')):'';
 
+    // real intake file drop
+    const drag=!!this.state.dragging;
+    const dropBd=drag?'#16b8a6':'#b6d8d0', dropBg=drag?'#e0f5f1':'#f1faf8';
+    const intakeParticipants=this.state.participants||[];
+    const intakeClientOpts=intakeParticipants.map(p=>({value:p.id,label:(p.full_name||p.preferred_name||'Unnamed')}));
+    const intakePending=(this.state.pending||[]).map(p=>({
+      name:p.name, scanning:!!p.scanning, scanned:!!p.scanned, filing:!!p.filing,
+      clientValue:p.clientChoice||'', clientOptions:intakeClientOpts, isNew:p.clientChoice==='__new__',
+      newName:p.newName||'', newNdis:p.newNdis||'', docType:p.docType||'other', title:p.title||p.name||'',
+      onClientChange:(e)=>this.updateIntakePending(p.id,{clientChoice:e&&e.target?e.target.value:''}),
+      onNewNameChange:(e)=>this.updateIntakePending(p.id,{newName:e&&e.target?e.target.value:''}),
+      onNewNdisChange:(e)=>this.updateIntakePending(p.id,{newNdis:e&&e.target?e.target.value:''}),
+      onDocTypeChange:(e)=>this.updateIntakePending(p.id,{docType:e&&e.target?e.target.value:'other'}),
+      onTitleChange:(e)=>this.updateIntakePending(p.id,{title:e&&e.target?e.target.value:''}),
+      onFileIt:()=>this.fileIntakeOne(p.id), onRemove:()=>this.removeIntakePending(p.id)
+    }));
+    const hasIntakePending=intakePending.length>0;
+
     return {
       toast:this.state.toast,
       clearToast:()=>this.setState({toast:null}),
@@ -857,6 +1041,8 @@ class Component extends DCLogic {
       fillSummary,autofill,hasPreview,filledPreviewEl,
       isListView,previewMode,listTitle,listEmpty,listNote,listItems,hasListItems,noListItems:isListView&&!hasListItems,listCount,
       hasTemplates,noTemplates:!hasTemplates,
+      browseIntake:()=>this.browseIntake(),fileAllIntake:()=>this.fileAllIntake(),
+      intakePending,hasIntakePending,scanBanner:!!this.state.scanBanner,dropBd,dropBg,
       magicDkEl:ic('magic','#06201c',16),
       signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },

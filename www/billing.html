@@ -13,7 +13,8 @@
 <script>if(typeof window.ENV==='undefined'){window.ENV={SUPABASE_URL:'',SUPABASE_ANON_KEY:''};}</script>
 <script src="./env.local.js"></script>
 <script src="/vendor/supabase.js"></script>
-<script src="./supabase-client.js?v=20260628c"></script>
+<script src="./supabase-client.js?v=20260630"></script>
+<script src="./stripe-pricing.js?v=20260630"></script>
 <style>
 :root{--teal:#16b8a6;--teal-2:#11d4be;--teal-d:#0b6b60;--ink-2:#0c2622;--ink-3:#091815;--paper:#f5f8f7;--tx:#14302b;--tx-2:#52716b;--tx-3:#8a9a94;--line:#e2eae7}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -46,6 +47,11 @@ a:hover{text-decoration:underline}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 22px;border-radius:13px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;border:none;width:100%}
 .btn-primary{background:linear-gradient(150deg,var(--teal-2),var(--teal-d));color:#fff;box-shadow:0 14px 30px -12px rgba(14,147,132,.7)}
 .btn-light{background:#fff;color:var(--tx);border:1px solid var(--line);margin-top:10px}
+.btn-light:not(:first-of-type){margin-top:10px}
+.btn.loading{opacity:.75;pointer-events:none}
+.spin{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+.btn-light .spin{border-color:rgba(11,107,96,.25);border-top-color:var(--teal-d)}
+@keyframes sp{to{transform:rotate(360deg)}}
 .note{font-size:12.5px;color:var(--tx-3);margin-top:16px;line-height:1.5;text-align:center}
 .gate{margin-top:18px;padding:14px 16px;border-radius:13px;border:1px dashed #b8d4ce;background:#f4faf8;font-size:13.5px;color:var(--tx-2);font-weight:600;line-height:1.5}
 .gate b{color:var(--tx)}
@@ -94,20 +100,23 @@ function viewNotConfigured(){
 function viewNoPlan(){
   render(
     '<div class="status none"><span class="dot"></span><div><div class="t">No active plan</div>'+
-    '<div class="s">You’re not subscribed yet. Start a 14-day free trial anytime.</div></div></div>'+
+    '<div class="s">You’re not subscribed yet. Start a 7-day free trial anytime.</div></div></div>'+
     '<a class="btn btn-primary" href="./pricing.html">Choose a plan</a>'+
     '<div class="gate">Paid features are <b>locked</b> until you start a plan. Your data stays safe — you just won’t see premium tools until you subscribe.</div>'
   );
 }
-function viewPlan(sub, active){
+function viewPlan(sub, active, planLabel){
   var st = (sub.status||'').toLowerCase();
   var cls = st==='active'||st==='trialing' ? 'ok' : (st==='past_due' ? 'warn' : 'none');
   var label = st==='trialing' ? 'Free trial active' : st==='active' ? 'Active subscription' : st==='past_due' ? 'Payment needs attention' : titleCase(st)||'Subscription';
-  var sub2 = st==='trialing' ? 'No charge until your trial ends.' : st==='past_due' ? 'Update your card to keep access.' : 'Thanks for being a CiaraLink customer.';
-  var plan = sub.plan ? esc(sub.plan) : (sub.price_id ? esc(sub.price_id) : '—');
+  var sub2 = st==='trialing' ? 'No charge until your trial ends.' : st==='past_due' ? 'Update your card to keep access.' : 'Managed securely via Stripe.';
+  var plan = planLabel ? esc(planLabel) : (sub.plan ? esc(sub.plan) : (sub.price_id ? esc(sub.price_id) : '—'));
   var gate = active
     ? '<div class="gate">✅ Paid features are <b>unlocked</b> for your account.</div>'
     : '<div class="gate">Paid features are <b>locked</b> while your plan is '+esc(st||'inactive')+'.</div>';
+  var portalBtn = sub.stripe_customer_id
+    ? '<button class="btn btn-light" id="portalBtn" type="button">Manage billing in Stripe</button>'
+    : '';
   render(
     '<div class="status '+cls+'"><span class="dot"></span><div><div class="t">'+esc(label)+'</div>'+
     '<div class="s">'+esc(sub2)+'</div></div></div>'+
@@ -115,11 +124,30 @@ function viewPlan(sub, active){
       '<div class="row"><span class="k">Plan</span><span class="v">'+plan+'</span></div>'+
       '<div class="row"><span class="k">Status</span><span class="v">'+esc(titleCase(st))+'</span></div>'+
       '<div class="row"><span class="k">Renews / ends</span><span class="v">'+esc(fmtDate(sub.current_period_end))+'</span></div>'+
+      '<div class="row"><span class="k">Billing</span><span class="v">Stripe</span></div>'+
     '</div>'+
+    portalBtn+
     '<a class="btn btn-primary" href="./pricing.html">Change plan</a>'+
     gate+
-    '<div class="note">Need to cancel or update your card? Contact us and we’ll sort it out.</div>'
+    '<div class="note">NDIS claim price caps are separate — see <a href="./Price Guide.dc.html">NDIS Price Guide</a> in your dashboard.</div>'
   );
+  var pb = document.getElementById('portalBtn');
+  if(pb){
+    pb.addEventListener('click', function(){
+      if(pb.classList.contains('loading')) return;
+      pb.classList.add('loading');
+      pb.innerHTML = '<span class="spin"></span>Opening Stripe…';
+      (window.CiaraLinkStripe && window.CiaraLinkStripe.openBillingPortal
+        ? window.CiaraLinkStripe.openBillingPortal()
+        : Promise.resolve({ ok:false })
+      ).then(function(res){
+        if(!res.ok){
+          pb.classList.remove('loading');
+          pb.textContent = res.message || 'Could not open billing portal — try again';
+        }
+      });
+    });
+  }
 }
 
 (async function(){
@@ -135,7 +163,14 @@ function viewPlan(sub, active){
   var res = await A.loadCurrentSubscription();
   if(!res.ok){ return viewNoPlan(); }
   if(!res.subscription){ return viewNoPlan(); }
-  viewPlan(res.subscription, res.active);
+  var planLabel = null;
+  if(A.resolvePlatformPlanLabel && res.subscription.price_id){
+    planLabel = await A.resolvePlatformPlanLabel(res.subscription.price_id);
+  }
+  if(!planLabel && window.CiaraLinkStripe && res.subscription.price_id){
+    planLabel = await window.CiaraLinkStripe.planLabelForPriceId(res.subscription.price_id);
+  }
+  viewPlan(res.subscription, res.active, planLabel);
 })();
 </script>
 </body>
