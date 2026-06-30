@@ -105,12 +105,20 @@ function viewNoPlan(){
     '<div class="gate">Paid features are <b>locked</b> until you start a plan. Your data stays safe — you just won’t see premium tools until you subscribe.</div>'
   );
 }
-function viewPlan(sub, active, planLabel){
+function fmtAud(n){ if(n==null||!Number.isFinite(n)) return '—'; return '$'+Number(n).toLocaleString('en-AU'); }
+function viewPlan(sub, active, planLabel, planDisplay){
   var st = (sub.status||'').toLowerCase();
   var cls = st==='active'||st==='trialing' ? 'ok' : (st==='past_due' ? 'warn' : 'none');
   var label = st==='trialing' ? 'Free trial active' : st==='active' ? 'Active subscription' : st==='past_due' ? 'Payment needs attention' : titleCase(st)||'Subscription';
   var sub2 = st==='trialing' ? 'No charge until your trial ends.' : st==='past_due' ? 'Update your card to keep access.' : 'Managed securely via Stripe.';
   var plan = planLabel ? esc(planLabel) : (sub.plan ? esc(sub.plan) : (sub.price_id ? esc(sub.price_id) : '—'));
+  var amountRow = '';
+  if(planDisplay && planDisplay.amount != null){
+    var amtLabel = planDisplay.interval === 'year'
+      ? fmtAud(planDisplay.amount) + '/yr'
+      : fmtAud(planDisplay.amount) + '/mo';
+    amountRow = '<div class="row"><span class="k">Amount</span><span class="v">'+esc(amtLabel)+'</span></div>';
+  }
   var gate = active
     ? '<div class="gate">✅ Paid features are <b>unlocked</b> for your account.</div>'
     : '<div class="gate">Paid features are <b>locked</b> while your plan is '+esc(st||'inactive')+'.</div>';
@@ -122,6 +130,7 @@ function viewPlan(sub, active, planLabel){
     '<div class="s">'+esc(sub2)+'</div></div></div>'+
     '<div class="rows">'+
       '<div class="row"><span class="k">Plan</span><span class="v">'+plan+'</span></div>'+
+      amountRow+
       '<div class="row"><span class="k">Status</span><span class="v">'+esc(titleCase(st))+'</span></div>'+
       '<div class="row"><span class="k">Renews / ends</span><span class="v">'+esc(fmtDate(sub.current_period_end))+'</span></div>'+
       '<div class="row"><span class="k">Billing</span><span class="v">Stripe</span></div>'+
@@ -164,13 +173,17 @@ function viewPlan(sub, active, planLabel){
   if(!res.ok){ return viewNoPlan(); }
   if(!res.subscription){ return viewNoPlan(); }
   var planLabel = null;
+  var planDisplay = null;
   if(A.resolvePlatformPlanLabel && res.subscription.price_id){
     planLabel = await A.resolvePlatformPlanLabel(res.subscription.price_id);
+  }
+  if(A.resolvePlatformPlanDisplay && res.subscription.price_id){
+    planDisplay = await A.resolvePlatformPlanDisplay(res.subscription.price_id);
   }
   if(!planLabel && window.CiaraLinkStripe && res.subscription.price_id){
     planLabel = await window.CiaraLinkStripe.planLabelForPriceId(res.subscription.price_id);
   }
-  viewPlan(res.subscription, res.active, planLabel);
+  viewPlan(res.subscription, res.active, planLabel, planDisplay);
 })();
 </script>
 </body>

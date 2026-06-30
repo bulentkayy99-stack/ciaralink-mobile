@@ -78,6 +78,13 @@
         <sc-if value="{{ isServices }}" hint-placeholder-val="">
         <div style="padding:18px 20px 26px">
           <div style="font-size:13px;color:#6c7f79;margin-bottom:14px">The supports covered by this agreement and their rates.</div>
+          <sc-if value="{{ noServices }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px dashed #d8e2de;border-radius:14px;padding:24px 18px;text-align:center;margin-bottom:10px">
+              <div style="font-size:14px;font-weight:700;color:#14302b;margin-bottom:4px">No support items loaded</div>
+              <div style="font-size:12.5px;color:#6c7f79;line-height:1.5">Import the NDIS price guide or check your connection — rates come from the active catalogue when Supabase is configured.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasServices }}" hint-placeholder-val="{{ true }}">
           <sc-for list="{{ services }}" as="s" hint-placeholder-count="3">
             <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:13px 14px;margin-bottom:10px">
               <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;background:{{ s.tintBg }}">{{ s.iconEl }}</div>
@@ -85,9 +92,10 @@
               <div style="text-align:right"><div style="font-size:13.5px;font-weight:800;color:#0b6b60">{{ s.rate }}</div><div style="font-size:11px;color:#9aa8a3">{{ s.freq }}</div></div>
             </div>
           </sc-for>
+          </sc-if>
           <div style="display:flex;align-items:center;justify-content:space-between;background:#f7faf9;border:1px solid #e7ece9;border-radius:14px;padding:13px 15px;margin-top:6px">
             <div><div style="font-size:12px;color:#6c7f79">Estimated weekly</div><div style="font-size:11px;color:#9aa8a3">Based on planned hours</div></div>
-            <div style="font-size:20px;font-weight:800;color:#14302b">$1,012</div>
+            <div style="font-size:20px;font-weight:800;color:#14302b">{{ estimatedWeekly }}</div>
           </div>
           <div style="display:flex;align-items:center;gap:9px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:11px 13px;margin-top:14px">
             <span style="display:flex">{{ infoAmberEl }}</span>
@@ -188,7 +196,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { step:0, signed:false, consents:{0:true,1:false}, toast:null, participant:null, filing:false, filedRef:null, filedReal:false, filedDoc:false, filedShared:false };
+  state = { step:0, signed:false, consents:{0:true,1:false}, toast:null, participant:null, filing:false, filedRef:null, filedReal:false, filedDoc:false, filedShared:false, ndisServices:[] };
   ic(name,color,size,sw){
     const stroke=color||'#5f726d',s=size||18;
     const P={
@@ -221,7 +229,46 @@ class Component extends DCLogic {
   }
   go(d){ this.setState(s=>({step:Math.max(0,Math.min(3,s.step+d))})); }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
-  componentDidMount(){ this.loadParticipant(); }
+  componentDidMount(){ this.loadParticipant(); this.loadNdisServices(); }
+  fmtNdisRate(item){
+    if(!item) return '—';
+    if(item.quote_required) return 'Quote required';
+    const cap=window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,'national'):item.price_cap_national;
+    const fmt=window.formatAudAmount?window.formatAudAmount(cap):('$'+Number(cap).toFixed(2));
+    const u=String(item.unit||'H').toUpperCase();
+    const suffix=(u==='EA')?' /ea':(u==='D'?' /day':' /hr');
+    return fmt+suffix;
+  }
+  mapNdisToService(item,idx){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const tints=['#e7f4f1','#fbf0df','#eef0fd'];
+    const icons=[['heart','#16b8a6'],['truck','#d98b22'],['house','#6366f1']];
+    const pick=icons[idx%icons.length];
+    return {
+      name:item.name,
+      code:item.support_item_number,
+      rate:this.fmtNdisRate(item),
+      freq:item.support_category_name||item.unit||'—',
+      tintBg:tints[idx%tints.length],
+      iconEl:ic(pick[0],pick[1],17)
+    };
+  }
+  loadNdisServices(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadNdisSupportItems) return;
+      Promise.resolve(window.loadNdisSupportItems({limit:50})).then(res=>{
+        const items=(res && res.items) || [];
+        this.setState({ndisServices:items.map((item,i)=>this.mapNdisToService(item,i))});
+      }).catch(err=>console.warn('[ServiceAgreement] loadNdisServices:',err));
+    }catch(err){ console.warn('[ServiceAgreement] loadNdisServices:',err); }
+  }
+  liveServices(demoMode){
+    return demoMode?null:(this.state.ndisServices||[]);
+  }
+  calcEstimatedWeekly(demoMode,services){
+    if(demoMode) return '$1,012';
+    return '—';
+  }
   // Prefill the agreement from a real participant record when Supabase is
   // configured. Falls back to the hardcoded Margaret Reyes demo otherwise so
   // the form never renders blank.
@@ -256,7 +303,7 @@ class Component extends DCLogic {
       {name:'Personal Care',code:'Daily activities support',rate:'$46/hr',freq:'weekday'},
       {name:'Community Access',code:'Social & community participation',rate:'$42/hr',freq:'weekly'},
       {name:'Domestic Assistance',code:'Household tasks',rate:'$44/hr',freq:'fortnightly'}
-    ]:[];
+    ]:(this.liveServices(false)||[]);
     const terms=[
       'Either party may end this agreement with 14 days’ notice.',
       'Cancellations under 24 hours may be charged per the price guide.',
@@ -268,7 +315,8 @@ class Component extends DCLogic {
       'I consent to my information being shared with my assigned workers.'
     ];
     const consents=consentLabels.map((label,i)=>({label,agreed:!!this.state.consents[i]}));
-    return {real,participant_id:(p&&p.id)||null,org_id:(p&&p.org_id)||null,signerName,ndis,address,periodStart,periodEnd,provider,services,terms,consents,estimatedWeekly:demoMode?'$1,012/wk':'—'};
+    const estimatedWeekly=this.calcEstimatedWeekly(demoMode,services);
+    return {real,participant_id:(p&&p.id)||null,org_id:(p&&p.org_id)||null,signerName,ndis,address,periodStart,periodEnd,provider,services,terms,consents,estimatedWeekly:estimatedWeekly+(demoMode?'/wk':'')};
   }
   esc(v){ return String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // Build a self-contained, printable HTML rendering of the agreement. Used both
@@ -442,7 +490,8 @@ class Component extends DCLogic {
       {name:'Personal Care',code:'Daily activities support',rate:'$46/hr',freq:'weekday',tintBg:'#e7f4f1',iconEl:ic('heart','#16b8a6',17)},
       {name:'Community Access',code:'Social & community participation',rate:'$42/hr',freq:'weekly',tintBg:'#fbf0df',iconEl:ic('truck','#d98b22',17)},
       {name:'Domestic Assistance',code:'Household tasks',rate:'$44/hr',freq:'fortnightly',tintBg:'#eef0fd',iconEl:ic('house','#6366f1',17)}
-    ]:[];
+    ]:(this.liveServices(false)||[]);
+    const estimatedWeekly=this.calcEstimatedWeekly(demoMode,services);
     const terms=[
       'Either party may end this agreement with 14 days\u2019 notice.',
       'Cancellations under 24 hours may be charged per the price guide.',
@@ -499,7 +548,8 @@ class Component extends DCLogic {
       backEl:ic('back','#14302b',18),arrowEl:ic('arrow','#06201c',17),
       isDetails:step===0,isServices:step===1,isSign:step===2,isDone:step===3,
       fields,sparkBlueEl:ic('spark','#6366f1',17),prefillHint,showDemo:demoMode,realMode:!demoMode,
-      services,infoAmberEl:ic('info','#d98b22',17),noServices:!demoMode&&services.length===0,
+      services,hasServices:services.length>0,estimatedWeekly,
+      infoAmberEl:ic('info','#d98b22',17),noServices:!demoMode&&services.length===0,
       terms,checkTinyEl:ic('check','#16b8a6',15,2.4),consents,
       signerName,signed:this.state.signed,unsigned:!this.state.signed,
       doSign:()=>this.setState({signed:true}),

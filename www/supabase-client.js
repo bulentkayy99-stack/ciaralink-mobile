@@ -1853,12 +1853,13 @@ const NDIS_PRICE_REGIONS = {
   very_remote: 'price_cap_very_remote',
 };
 
-function ndisPriceCapForItem(item, region) {
+function ndisPriceCapForItem(item, region = 'national') {
   if (!item) return null;
   const col = NDIS_PRICE_REGIONS[region] || NDIS_PRICE_REGIONS.national;
-  const v = item[col];
-  if (v != null) return Number(v);
-  return item.price_cap_national != null ? Number(item.price_cap_national) : null;
+  if (item[col] != null) return Number(item[col]);
+  if (item.price_cap_national != null) return Number(item.price_cap_national);
+  if (item.price_caps && item.price_caps[region] != null) return Number(item.price_caps[region]);
+  return null;
 }
 
 function formatAudAmount(n) {
@@ -1909,7 +1910,7 @@ async function loadNdisSupportItems(opts) {
 
     let query = client
       .from('ndis_support_items')
-      .select('id, support_item_number, name, support_category_number, support_category_name, support_purpose, unit, gst_code, quote_required, price_cap_national, price_cap_act_nsw_qld_vic, price_cap_wa_nt_sa_tas, price_cap_remote, price_cap_very_remote')
+      .select('id, support_item_number, name, support_category_number, support_category_name, support_purpose, unit, gst_code, quote_required, price_cap_national, price_cap_act_nsw_qld_vic, price_cap_wa_nt_sa_tas, price_cap_remote, price_cap_very_remote, price_caps')
       .eq('version_id', versionId)
       .eq('active', true)
       .order('support_item_number', { ascending: true })
@@ -2344,8 +2345,20 @@ async function loadCurrentSubscription() {
 // Platform SaaS plans (Stripe-linked). NDIS claim caps are separate (ndis_support_items).
 async function loadPlatformSubscriptionPlans(opts) {
   const client = getSupabaseClient();
-  if (!client) return { ok: false, plans: [], reason: 'not-configured' };
   const category = opts && opts.category;
+  // Public pricing page: use server endpoint when not signed in (RLS requires auth on direct table read).
+  if (!client || !(await getSession())) {
+    try {
+      const r = await fetch('/api/public-subscription-plans');
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok && Array.isArray(data.plans)) {
+        const plans = category ? data.plans.filter((p) => p.category === category) : data.plans;
+        return { ok: true, plans };
+      }
+    } catch { /* fall through */ }
+    if (!client) return { ok: false, plans: [], reason: 'not-configured' };
+  }
+  if (!client) return { ok: false, plans: [], reason: 'not-configured' };
   try {
     let q = client
       .from('platform_subscription_plans')
@@ -2361,6 +2374,92 @@ async function loadPlatformSubscriptionPlans(opts) {
   }
 }
 
+function shortPlanDisplayName(name, slug) {
+  if (name && String(name).includes('·')) {
+    return String(name).split('·').pop().trim();
+  }
+  if (slug) {
+    const parts = String(slug).split('_');
+    const last = parts[parts.length - 1];
+    return last.charAt(0).toUpperCase() + last.slice(1);
+  }
+  return name || slug || '';
+}
+
+function numAud(v) {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Map platform_subscription_plans rows → price overlays + add-on lists for pricing UI. */
+function buildPricingCatalogFromPlans(plans) {
+  const subscriptionCategories = ['providers', 'support_workers', 'coordination', 'allied_health'];
+  const prices = {};
+  const addonPrices = {};
+  const extraAddons = [];
+
+  (plans || []).forEach((p) => {
+    const m = numAud(p.display_monthly_aud);
+    const y = numAud(p.display_annual_aud);
+    const entry = {
+      key: p.slug,
+      name: shortPlanDisplayName(p.name, p.slug),
+      m,
+      y,
+      perUnit: !!p.per_unit,
+      notes: p.notes || null,
+    };
+
+    if (p.category === 'addon_referrals') {
+      addonPrices[p.slug] = entry;
+    } else if (/_addon$/.test(p.category) || p.per_unit) {
+      extraAddons.push({
+        ...entry,
+        group: p.category.replace(/_addon$/, ''),
+        monthlyOnly: y == null,
+      });
+    } else if (subscriptionCategories.includes(p.category)) {
+      prices[p.slug] = entry;
+    }
+  });
+
+  extraAddons.sort((a, b) => (a.key < b.key ? -1 : 1));
+  return { prices, addonPrices, extraAddons };
+}
+
+/** Merge DB plan prices into hardcoded CATS/ADDONS templates (UI metadata stays in HTML). */
+function mergePricingCatalogFromPlans(baseCats, baseAddons, plans) {
+  const built = buildPricingCatalogFromPlans(plans);
+  const cats = {};
+
+  Object.keys(baseCats || {}).forEach((catKey) => {
+    const src = baseCats[catKey];
+    cats[catKey] = {
+      ...src,
+      tiers: (src.tiers || []).map((t) => {
+        if (!t.key || !built.prices[t.key]) return { ...t };
+        const p = built.prices[t.key];
+        const merged = { ...t };
+        if (p.m != null) merged.m = p.m;
+        if (p.y != null) merged.y = p.y;
+        return merged;
+      }),
+    };
+  });
+
+  const addons = (baseAddons || []).map((a) => {
+    const p = built.addonPrices[a.key];
+    if (!p) return { ...a };
+    const merged = { ...a };
+    if (p.m != null) merged.m = p.m;
+    if (p.y != null) merged.y = p.y;
+    return merged;
+  });
+
+  return { cats, addons, extraAddons: built.extraAddons };
+}
+
 async function resolvePlatformPlanLabel(priceId) {
   if (!priceId) return null;
   const res = await loadPlatformSubscriptionPlans();
@@ -2369,6 +2468,23 @@ async function resolvePlatformPlanLabel(priceId) {
     (p) => p.stripe_price_month_id === priceId || p.stripe_price_year_id === priceId
   );
   return match ? match.name : null;
+}
+
+async function resolvePlatformPlanDisplay(priceId) {
+  if (!priceId) return null;
+  const res = await loadPlatformSubscriptionPlans();
+  if (!res.ok) return null;
+  const match = (res.plans || []).find(
+    (p) => p.stripe_price_month_id === priceId || p.stripe_price_year_id === priceId
+  );
+  if (!match) return null;
+  const isAnnual = match.stripe_price_year_id === priceId;
+  const amount = numAud(isAnnual ? match.display_annual_aud : match.display_monthly_aud);
+  return {
+    name: match.name,
+    interval: isAnnual ? 'year' : 'month',
+    amount,
+  };
 }
 
 // Make available globally
@@ -2420,7 +2536,10 @@ window.CiaraLinkAuth = {
   mustChangePassword,
   loadCurrentSubscription,
   loadPlatformSubscriptionPlans,
+  buildPricingCatalogFromPlans,
+  mergePricingCatalogFromPlans,
   resolvePlatformPlanLabel,
+  resolvePlatformPlanDisplay,
 };
 
 // Global query helpers for dashboards
@@ -3398,7 +3517,27 @@ window.createDocumentRecord = createDocumentRecord;
       };
       const { data, error } = await client.from('signature_requests').insert(row).select().single();
       if (error) return { request: null, error: error.message };
-      return { request: data, error: null };
+      let emailSent = false;
+      let emailError = null;
+      if (data && data.status === 'sent' && data.recipient && /@/.test(String(data.recipient))) {
+        try {
+          const sess = await client.auth.getSession();
+          const token = sess && sess.data && sess.data.session && sess.data.session.access_token;
+          if (token) {
+            const er = await fetch('/api/send-signing-invite', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+              body: JSON.stringify({ id: data.id }),
+            });
+            const ej = await er.json().catch(function () { return {}; });
+            emailSent = !!ej.emailSent;
+            emailError = ej.emailError || ej.error || null;
+          }
+        } catch (e) {
+          emailError = e.message || String(e);
+        }
+      }
+      return { request: data, error: null, emailSent: emailSent, emailError: emailError };
     } catch (e) { return { request: null, error: e.message }; }
   }
 

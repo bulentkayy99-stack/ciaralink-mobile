@@ -4,7 +4,9 @@
   "scripts": {
     "ops:ready": "node ops/ciaralink-one-shot.mjs",
     "ops:verify": "node ops/ciaralink-one-shot.mjs --verify-only",
-    "ops:verify-all": "npm run ops:verify && npm run ops:e2e && npm run ops:e2e:billing && npm run ops:e2e:smoke",
+    "ops:verify:ndis": "node ops/verify-ndis-pricing.mjs",
+    "ops:verify:saas": "node ops/verify-saas-pricing.mjs",
+    "ops:verify-all": "npm run ops:verify && npm run ops:verify:ndis && npm run ops:verify:saas && npm run ops:stripe-checklist && npm run ops:e2e:billing",
     "ops:check": "node --check ops/ciaralink-one-shot.mjs",
     "ops:e2e": "node ops/e2e-care-web-flow.mjs",
     "ops:e2e:billing": "node ops/e2e-billing-checkout.mjs",

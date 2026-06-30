@@ -49,7 +49,7 @@
       <div style="border-top:1px solid rgba(224,85,110,.2);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <!-- 17 requirements -->
         <div>
-          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:12px">PRODUCTION READINESS — 11 OF 17 DONE</div>
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:12px">PRODUCTION READINESS — 12 OF 17 DONE</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ blockedReqs }}" as="br" hint-placeholder-count="17">
               <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px">
@@ -200,7 +200,7 @@ class Component extends DCLogic {
       { label: 'Document permissions enforced at backend level', status: 'In Progress' },
       { label: 'Audit logging active', status: 'In Progress' },
       { label: 'Stripe billing integration', status: 'Implemented' },
-      { label: 'SMTP / transactional email (invites, confirmations)', status: 'In Progress' },
+      { label: 'SMTP / transactional email (invites, confirmations)', status: 'Implemented' },
       { label: 'Backup and recovery configured', status: 'Not Started' },
       { label: 'Privacy/legal pages completed', status: 'In Progress' },
       { label: 'Security review & verification completed', status: 'Not Started' },

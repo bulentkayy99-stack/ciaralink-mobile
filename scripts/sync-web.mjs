@@ -57,9 +57,9 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
  * JS, icons and Supabase calls all work offline-first / on-device.
  *
  * Two jobs:
- *  1. Route relative serverless calls (fetch('/api/...')) to the live
- *     Vercel backend, because those /api functions are NOT bundled — they
- *     run on ${API_ORIGIN}. Supabase calls already use absolute URLs.
+ *  1. Route relative serverless calls (fetch('/api/...') and fetch('./api/...'))
+ *     to the live Vercel backend, because those /api functions are NOT bundled —
+ *     they run on ${API_ORIGIN}. Supabase calls already use absolute URLs.
  *  2. Neutralise the PWA service worker inside the native shell (it can serve
  *     stale cached assets after an app update; the WebView already caches).
  *
@@ -77,6 +77,11 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
     var vp = document.querySelector('meta[name="viewport"]');
     if (vp) {
       vp.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    } else {
+      vp = document.createElement('meta');
+      vp.name = 'viewport';
+      vp.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+      document.head.appendChild(vp);
     }
     if (!document.querySelector('link[href*="mobile-native.css"]')) {
       var link = document.createElement('link');
@@ -88,14 +93,22 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
 
   var API_ORIGIN = '${API_ORIGIN}';
 
+  function rewriteApiUrl(url) {
+    if (typeof url !== 'string') return url;
+    if (url.indexOf('/api/') === 0) return API_ORIGIN + url;
+    if (url.indexOf('./api/') === 0) return API_ORIGIN + url.slice(1);
+    return url;
+  }
+
   var origFetch = window.fetch ? window.fetch.bind(window) : null;
   if (origFetch) {
     window.fetch = function (input, init) {
       try {
-        if (typeof input === 'string' && input.indexOf('/api/') === 0) {
-          input = API_ORIGIN + input;
-        } else if (input && typeof input === 'object' && typeof input.url === 'string' && input.url.indexOf('/api/') === 0) {
-          input = new Request(API_ORIGIN + input.url, input);
+        if (typeof input === 'string') {
+          input = rewriteApiUrl(input);
+        } else if (input && typeof input === 'object' && typeof input.url === 'string') {
+          var rewritten = rewriteApiUrl(input.url);
+          if (rewritten !== input.url) input = new Request(rewritten, input);
         }
       } catch (e) {}
       return origFetch(input, init);
@@ -106,9 +119,7 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
     var origOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
       try {
-        if (typeof url === 'string' && url.indexOf('/api/') === 0) {
-          arguments[1] = API_ORIGIN + url;
-        }
+        if (typeof url === 'string') arguments[1] = rewriteApiUrl(url);
       } catch (e) {}
       return origOpen.apply(this, arguments);
     };
@@ -124,7 +135,7 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
       .catch(function () {});
   }
 
-  console.log('[capacitor-bridge] native shell active — /api -> ' + API_ORIGIN + ', SW disabled');
+  console.log('[capacitor-bridge] native shell active — /api + ./api -> ' + API_ORIGIN + ', SW disabled');
 })();
 `;
 
@@ -295,6 +306,190 @@ async function run() {
       console.log('  patched workflow1-auth-test.html demo emails -> @ciaralink.example');
     }
   }
+
+  // 4c. auth-guard.js from the web repo redirects to /signin or signin.html — patch
+  //     for native-aware Login.dc.html redirects so auth survives npm run refresh.
+  const authGuardPath = path.join(DEST, 'auth-guard.js');
+  if (existsSync(authGuardPath)) {
+    let ag = await fs.readFile(authGuardPath, 'utf8');
+    let changed = false;
+
+    if (!ag.includes('function signInPage()')) {
+      ag = ag.replace(
+        '(function () {',
+        `(function () {
+  function signInPage() {
+    try {
+      var native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      return native ? 'Login.dc.html' : 'signin.html';
+    } catch (e) { return 'Login.dc.html'; }
+  }`
+      );
+      changed = true;
+    }
+
+    const redirectRe = /window\.location\.replace\(['"]\/?signin(?:\.html)?\?next=['"]\s*\+\s*next\)/g;
+    if (redirectRe.test(ag)) {
+      ag = ag.replace(redirectRe, "window.location.replace(signInPage() + '?next=' + next)");
+      changed = true;
+    }
+
+    if (ag.includes('if (storedRole)') && ag.includes('routeByRole(storedRole)')) {
+      ag = ag.replace(
+        /function resolveRoleAndRoute\(client, session\) \{[\s\S]*?\n  \}/,
+        `function resolveRoleAndRoute(client, session) {
+    fetchRoleFromSupabase(client, session.user.id).then(function (role) {
+      if (role) persistSessionRole(session.user.id, role);
+      routeByRole(role);
+    });
+  }`
+      );
+      changed = true;
+    }
+
+    if (ag.includes("}).catch(function () {});")) {
+      ag = ag.replace(
+        /if \(!session\) \{[\s\S]*?window\.location\.replace\([^)]+\);[\s\S]*?return;\s*\}/,
+        `if (!session) {
+          redirectToSignIn();
+          return;
+        }`
+      );
+      if (!ag.includes('function redirectToSignIn()')) {
+        ag = ag.replace(
+          /function check\(attempt\)/,
+          `function redirectToSignIn() {
+    try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
+    var next = encodeURIComponent((location.pathname + location.search).replace(/^\\//, ''));
+    window.location.replace(signInPage() + '?next=' + next);
+  }
+
+  function check(attempt)`
+        );
+      }
+      ag = ag.replace(/\}\)\.catch\(function \(\) \{\}\);/, '}).catch(function () { redirectToSignIn(); });');
+      if (ag.includes('getSession().then(function (res) {') && !ag.includes('res && res.error')) {
+        ag = ag.replace(
+          'var session = res && res.data && res.data.session;',
+          'if (res && res.error) { redirectToSignIn(); return; }\n        var session = res && res.data && res.data.session;'
+        );
+      }
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(authGuardPath, ag);
+      console.log('  patched auth-guard.js for native login redirects');
+    }
+  }
+
+  // 4d. Native page transforms. The web pages send users to signin.html and use
+  //     web-only redirects; inside the native bundle the canonical login is
+  //     Login.dc.html. These are re-applied after every copy so `npm run refresh`
+  //     never silently reverts native auth. All idempotent (no-op if already done).
+  let nativePatched = 0;
+  for (const name of await fs.readdir(DEST)) {
+    if (!name.endsWith('.html') || name === 'index.html') continue;
+    const p = path.join(DEST, name);
+    let html = await fs.readFile(p, 'utf8');
+    const before = html;
+
+    // Sign-out / session-reset always lands on the native login page.
+    html = html.split("signin.html?resetSession=1").join("Login.dc.html?resetSession=1");
+
+    if (html !== before) { await fs.writeFile(p, html); nativePatched++; }
+  }
+
+  // 4e. Login.dc.html native hardening (one page, exact anchors from the web repo).
+  //     Each step is guarded so re-running is a no-op once applied.
+  const loginPath = path.join(DEST, 'Login.dc.html');
+  if (existsSync(loginPath)) {
+    let lg = await fs.readFile(loginPath, 'utf8');
+    let changed = false;
+
+    // (1) Inject native helper methods (nextDest + native-aware reset URL) just
+    //     before fetchRoleAndRedirect.
+    if (!lg.includes('passwordResetRedirectTo()') && lg.includes('  async fetchRoleAndRedirect(userId) {')) {
+      lg = lg.replace(
+        '  async fetchRoleAndRedirect(userId) {',
+        `  nextDest() {
+    try {
+      const raw = new URLSearchParams(window.location.search).get('next');
+      if (!raw) return null;
+      const dec = decodeURIComponent(raw);
+      if (dec.charAt(0) === '/' && dec.charAt(1) === '/') return null;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(dec)) return null;
+      return dec;
+    } catch (e) { return null; }
+  }
+
+  passwordResetRedirectTo() {
+    const page = 'Set%20Password.dc.html';
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    if (isNative) return 'capacitor://localhost/' + page;
+    return window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + page;
+  }
+
+  async fetchRoleAndRedirect(userId) {`
+      );
+      changed = true;
+    }
+
+    // (2) Org-membership role lookup: .single() throws for users with no active
+    //     membership and dumps them to Index; .maybeSingle() returns null cleanly.
+    if (lg.includes('.limit(1)\n        .single();')) {
+      lg = lg.replace('.limit(1)\n        .single();', '.limit(1)\n        .maybeSingle();');
+      changed = true;
+    }
+
+    // (3) After login, honour a safe ?next= deep link (set by auth-guard) instead
+    //     of always bouncing to the role's default dashboard.
+    if (lg.includes("      window.location.href = this.getRoleDest(role);\n    } catch (e) {")) {
+      lg = lg.replace(
+        "      window.location.href = this.getRoleDest(role);\n    } catch (e) {",
+        `      const nxt = this.nextDest();
+      if (nxt && window.isPathAllowedForRole && role && !window.isPathAllowedForRole(nxt, role)) {
+        window.location.href = this.getRoleDest(role);
+        return;
+      }
+      window.location.href = nxt || this.getRoleDest(role);
+    } catch (e) {`
+      );
+      changed = true;
+    }
+
+    // (4) Supabase-ready detection via the shared helper (robust to load order),
+    //     in both the submit handler and the render badge.
+    if (lg.includes("    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());")) {
+      lg = lg.replace(
+        "    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());",
+        "    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());\n    let sbReady = sbConfigured && !!(this.ensureSupabaseClient() || this.state.supabaseReady);"
+      );
+      changed = true;
+    }
+    if (lg.includes("    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    const sbReady = sbConfigured || supabaseReady;")) {
+      lg = lg.replace(
+        "    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    const sbReady = sbConfigured || supabaseReady;",
+        "    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());\n    const sbReady = sbConfigured && (supabaseReady || this.ensureSupabaseClient());"
+      );
+      changed = true;
+    }
+
+    // (5) Password-reset return URL is native-aware (deep link in the app shell).
+    if (lg.includes("const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';")) {
+      lg = lg.replace(
+        "const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';",
+        "const redirectTo = this.passwordResetRedirectTo();"
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(loginPath, lg);
+      console.log('  patched Login.dc.html for native auth (helpers + maybeSingle + next + supabase-ready + reset)');
+    }
+  }
+  if (nativePatched) console.log(`  rewrote native sign-out redirect on ${nativePatched} page(s)`);
 
   // 5. Secret guard: env.local.js must be anon-only, and no service_role anywhere.
   const envPath = path.join(DEST, 'env.local.js');

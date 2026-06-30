@@ -2878,7 +2878,7 @@ class Component extends DCLogic {
         filtered.forEach(i=>{if(!groups[i.type])groups[i.type]=[];groups[i.type].push(i);});
         return Object.entries(groups).map(([group,items])=>({group,items}));
       })(),
-      logoutEl: React.createElement('button',{onClick:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73',title:'Sign out'}},ic('logout','#5f7a73',17)),
+      logoutEl: React.createElement('button',{onClick:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='Login.dc.html?resetSession=1';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73',title:'Sign out'}},ic('logout','#5f7a73',17)),
       searchEl: ic('search','#9aa8a3',17),
       connectEl: ic('connect','#0b6b60',16),
       qrEl: ic('qr','#2c4a44',16),

@@ -5,9 +5,9 @@
  * JS, icons and Supabase calls all work offline-first / on-device.
  *
  * Two jobs:
- *  1. Route relative serverless calls (fetch('/api/...')) to the live
- *     Vercel backend, because those /api functions are NOT bundled — they
- *     run on https://ciaralink.vercel.app. Supabase calls already use absolute URLs.
+ *  1. Route relative serverless calls (fetch('/api/...') and fetch('./api/...'))
+ *     to the live Vercel backend, because those /api functions are NOT bundled —
+ *     they run on https://ciaralink.vercel.app. Supabase calls already use absolute URLs.
  *  2. Neutralise the PWA service worker inside the native shell (it can serve
  *     stale cached assets after an app update; the WebView already caches).
  *
@@ -25,6 +25,11 @@
     var vp = document.querySelector('meta[name="viewport"]');
     if (vp) {
       vp.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    } else {
+      vp = document.createElement('meta');
+      vp.name = 'viewport';
+      vp.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+      document.head.appendChild(vp);
     }
     if (!document.querySelector('link[href*="mobile-native.css"]')) {
       var link = document.createElement('link');
@@ -36,14 +41,22 @@
 
   var API_ORIGIN = 'https://ciaralink.vercel.app';
 
+  function rewriteApiUrl(url) {
+    if (typeof url !== 'string') return url;
+    if (url.indexOf('/api/') === 0) return API_ORIGIN + url;
+    if (url.indexOf('./api/') === 0) return API_ORIGIN + url.slice(1);
+    return url;
+  }
+
   var origFetch = window.fetch ? window.fetch.bind(window) : null;
   if (origFetch) {
     window.fetch = function (input, init) {
       try {
-        if (typeof input === 'string' && input.indexOf('/api/') === 0) {
-          input = API_ORIGIN + input;
-        } else if (input && typeof input === 'object' && typeof input.url === 'string' && input.url.indexOf('/api/') === 0) {
-          input = new Request(API_ORIGIN + input.url, input);
+        if (typeof input === 'string') {
+          input = rewriteApiUrl(input);
+        } else if (input && typeof input === 'object' && typeof input.url === 'string') {
+          var rewritten = rewriteApiUrl(input.url);
+          if (rewritten !== input.url) input = new Request(rewritten, input);
         }
       } catch (e) {}
       return origFetch(input, init);
@@ -54,9 +67,7 @@
     var origOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
       try {
-        if (typeof url === 'string' && url.indexOf('/api/') === 0) {
-          arguments[1] = API_ORIGIN + url;
-        }
+        if (typeof url === 'string') arguments[1] = rewriteApiUrl(url);
       } catch (e) {}
       return origOpen.apply(this, arguments);
     };
@@ -72,5 +83,5 @@
       .catch(function () {});
   }
 
-  console.log('[capacitor-bridge] native shell active — /api -> ' + API_ORIGIN + ', SW disabled');
+  console.log('[capacitor-bridge] native shell active — /api + ./api -> ' + API_ORIGIN + ', SW disabled');
 })();

@@ -341,6 +341,24 @@ class Component extends DCLogic {
     this.setState({ error: null });
   }
 
+  nextDest() {
+    try {
+      const raw = new URLSearchParams(window.location.search).get('next');
+      if (!raw) return null;
+      const dec = decodeURIComponent(raw);
+      if (dec.charAt(0) === '/' && dec.charAt(1) === '/') return null;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(dec)) return null;
+      return dec;
+    } catch (e) { return null; }
+  }
+
+  passwordResetRedirectTo() {
+    const page = 'Set%20Password.dc.html';
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    if (isNative) return 'capacitor://localhost/' + page;
+    return window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + page;
+  }
+
   async fetchRoleAndRedirect(userId) {
     try {
       // Force a password change for accounts created by an admin with a temp password.
@@ -358,10 +376,15 @@ class Component extends DCLogic {
         .eq('user_id', userId)
         .eq('status', 'active')
         .limit(1)
-        .single();
+        .maybeSingle();
       const role = data?.role || 'provider_owner';
       localStorage.setItem('ciaralink_session', JSON.stringify({ loggedIn: true, supabase: true, userId, role, ts: Date.now() }));
-      window.location.href = this.getRoleDest(role);
+      const nxt = this.nextDest();
+      if (nxt && window.isPathAllowedForRole && role && !window.isPathAllowedForRole(nxt, role)) {
+        window.location.href = this.getRoleDest(role);
+        return;
+      }
+      window.location.href = nxt || this.getRoleDest(role);
     } catch (e) {
       // Role fetch failed — go to index
       window.location.href = 'Index.dc.html';
@@ -393,8 +416,8 @@ class Component extends DCLogic {
     if (!email) { this.setState({ loading: false, error: 'Please enter your email address.' }); return; }
     if (!password) { this.setState({ loading: false, error: 'Please enter your password.' }); return; }
 
-    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
-    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());
+    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    let sbReady = sbConfigured && !!(this.ensureSupabaseClient() || this.state.supabaseReady);
     if (sbConfigured && !sbReady) {
       sbReady = await this.waitForSupabaseClient();
     }
@@ -441,8 +464,8 @@ class Component extends DCLogic {
     const isSignIn = mode === 'signin';
     const isSignUp = mode === 'signup';
     // Check if Supabase is configured by looking at ENV directly
-    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
-    const sbReady = sbConfigured || supabaseReady;
+    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const sbReady = sbConfigured && (supabaseReady || this.ensureSupabaseClient());
 
     // Connection status badge — neutral in production; dev/preview notice only when Supabase is unconfigured
     const modeLabel = sbReady ? 'Secure sign-in' : '🟡 Preview mode — design preview, sign-in not connected';
@@ -524,7 +547,7 @@ class Component extends DCLogic {
         if (!email) { this.setState({ error: 'Enter your email address above, then tap "Forgot password?".' }); return; }
         const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);
         if (!sbConfigured || !this.ensureSupabaseClient()) { this.showToast('Password reset needs Supabase — not available in preview mode.'); return; }
-        const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';
+        const redirectTo = this.passwordResetRedirectTo();
         window.supabaseClient.auth.resetPasswordForEmail(email, { redirectTo })
           .then(({ error }) => {
             if (error) { this.setState({ error: error.message }); }

@@ -166,6 +166,7 @@
             </div>
 
             <!-- ABN / rates -->
+            <sc-if value="{{ showRatesSection }}" hint-placeholder-val="{{ true }}">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 20px">
               <div style="font-size:14px;font-weight:800;color:#14302b;margin-bottom:13px">ABN & rates</div>
               <sc-for list="{{ rates }}" as="r" hint-placeholder-count="4">
@@ -175,6 +176,7 @@
                 </div>
               </sc-for>
             </div>
+            </sc-if>
 
             <!-- availability -->
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);padding:16px 20px">
@@ -266,7 +268,7 @@
                   <span style="font-size:10.5px;font-weight:700;color:{{ j.stFg }};background:{{ j.stBg }};padding:3px 9px;border-radius:7px">{{ j.type }}</span>
                 </div>
                 <div style="display:flex;gap:8px;margin-bottom:12px">
-                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">PAY</div><div style="font-size:13px;font-weight:800;color:#0b6b60">{{ j.pay }}</div></div>
+                  <sc-if value="{{ j.showPayRate }}" hint-placeholder-val="{{ true }}"><div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">PAY</div><div style="font-size:13px;font-weight:800;color:#0b6b60">{{ j.pay }}</div></div></sc-if>
                   <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">MATCH</div><div style="font-size:13px;font-weight:800;color:#16b8a6">{{ j.score }}</div></div>
                   <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">AREA</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ j.area }}</div></div>
                 </div>
@@ -314,7 +316,7 @@
                 <div style="display:flex;gap:8px;margin-bottom:12px">
                   <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">VERIFIED</div><div style="font-size:12px;font-weight:700;color:#1e7a52">{{ w.verCount }} checks ✓</div></div>
                   <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">SHIFTS</div><div style="font-size:12px;font-weight:700;color:#14302b">{{ w.shifts }}</div></div>
-                  <div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">RATE</div><div style="font-size:12px;font-weight:700;color:#0b6b60">{{ w.rate }}</div></div>
+                  <sc-if value="{{ w.showPayRate }}" hint-placeholder-val="{{ true }}"><div style="flex:1;background:#f7faf9;border-radius:10px;padding:8px 10px"><div style="font-size:10px;color:#9aa8a3">RATE</div><div style="font-size:12px;font-weight:700;color:#0b6b60">{{ w.rate }}</div></div></sc-if>
                 </div>
                 <div style="display:flex;gap:8px">
                   <button onClick="{{ viewOwnPassport }}" style="flex:1;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View passport</button>
@@ -341,8 +343,8 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
 class Component extends DCLogic {
-  state = { view:'passport', matchSide:'worker', toast:null, docs:[], wQuery:'', pQuery:'', wFilter:null, pFilter:null, applied:{} };
-  componentDidMount(){ this.loadDocs(); this.loadApplications(); }
+  state = { view:'passport', matchSide:'worker', toast:null, docs:[], wQuery:'', pQuery:'', wFilter:null, pFilter:null, applied:{}, passportRates:null };
+  componentDidMount(){ this.loadDocs(); this.loadApplications(); this.loadPassportRates(); }
   // Load the worker's real, previously-submitted Workforce Match applications
   // so already-applied roles render as "Applied ✓" (RLS-scoped, own rows only).
   loadApplications(){
@@ -404,6 +406,31 @@ class Component extends DCLogic {
         document.head.appendChild(script);
       }
     }catch(err){ console.error('loadDocs error:',err); }
+  }
+  fmtNdisRate(item){
+    if(!item) return '—';
+    if(item.quote_required) return 'Quote required';
+    const cap=window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,'national'):item.price_cap_national;
+    const fmt=window.formatAudAmount?window.formatAudAmount(cap):('$'+Number(cap).toFixed(2));
+    const u=String(item.unit||'H').toUpperCase();
+    const suffix=(u==='EA')?' /ea':(u==='D'?' /day':' /hr');
+    return fmt+suffix;
+  }
+  loadPassportRates(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+      const fallback=[{label:'NDIS pricing',value:'Rates from NDIS price guide'}];
+      if(!window.loadNdisSupportItems){ this.setState({passportRates:fallback}); return; }
+      Promise.resolve(window.loadNdisSupportItems({search:'01_011_0107_1_1',limit:10})).then(res=>{
+        const items=(res && res.items) || [];
+        if(!items.length){ this.setState({passportRates:fallback}); return; }
+        const rates=items.slice(0,4).map(item=>({
+          label:(item.support_item_number||'Item')+' · '+(item.name||'Support'),
+          value:this.fmtNdisRate(item)
+        }));
+        this.setState({passportRates:rates});
+      }).catch(()=>this.setState({passportRates:fallback}));
+    }catch(err){ console.warn('[WorkerPassport] loadPassportRates:',err); }
   }
   // Map a real document record onto the existing cred-item shape so the
   // "Credentials & checks" list renders identically with live data.
@@ -484,7 +511,16 @@ class Component extends DCLogic {
       {title:'PRACTICAL',skills:[{label:'Driver · own car',fg:'#b4561f',bg:'#fbf0df'},{label:'Meal prep',fg:'#b4561f',bg:'#fbf0df'},{label:'Female worker',fg:'#b4561f',bg:'#fbf0df'}]}
     ];
     const providers=[{init:'BC',name:'Brightside Care',since:'Since Jan 25'},{init:'CC',name:'Coburg Community',since:'Since Mar 25'},{init:'NA',name:'Northern Allied',since:'Since Jun 25'},{init:'SS',name:'Southern Support',since:'Since Aug 25'}];
-    const rates=[{label:'ABN hourly rate',value:'$46/hr'},{label:'Weekend loading',value:'$55/hr'},{label:'Cancellation notice',value:'24h'},{label:'Travel allowance',value:'$0.96/km'}];
+    const demoMode=!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const demoRates=[{label:'ABN hourly rate',value:'$46/hr'},{label:'Weekend loading',value:'$55/hr'},{label:'Cancellation notice',value:'24h'},{label:'Travel allowance',value:'$0.96/km'}];
+    const rates=demoMode?demoRates:(this.state.passportRates||[{label:'NDIS pricing',value:'Rates from NDIS price guide'}]);
+    const showRatesSection=demoMode||!!(rates&&rates.length);
+    const ndisMarketRate=(rates&&rates[0]&&rates[0].value)||null;
+    const withMarketPay=(item,payKey)=>{
+      if(demoMode) return Object.assign({},item,{showPayRate:true});
+      if(!ndisMarketRate) return Object.assign({},item,{showPayRate:false});
+      return Object.assign({},item,{showPayRate:true,[payKey]:ndisMarketRate});
+    };
     const dayDefs=[['Mon',true],['Tue',true],['Wed',true],['Thu',true],['Fri',true],['Sat',true],['Sun',false]];
     const avail=dayDefs.map(([day,on])=>({day,label:on?'✓':'✕',bg:on?'#e7f4f1':'#fbe9ed',bd:on?'#cce9d8':'#f3d6dc',fg:on?'#1e7a52':'#c0445c'}));
 
@@ -511,13 +547,13 @@ class Component extends DCLogic {
       return true;
     }).map(j=>{
       const isApplied=!!applied[(j.org||'')+'|'+(j.role||'')];
-      return Object.assign({},j,{
+      return withMarketPay(Object.assign({},j,{
         applied:isApplied,
         applyLabel:isApplied?'Applied ✓':'Apply with passport',
         applyBg:isApplied?'#e9f6ef':'#16b8a6',
         applyFg:isApplied?'#1e7a52':'#06201c',
         onClick:()=>this.applyToJob(j)
-      });
+      }),'pay');
     });
 
     const allProviderWorkers=[
@@ -533,7 +569,7 @@ class Component extends DCLogic {
       if(pFilterVal && !(w.tags||[]).some(t=>t.toLowerCase()===pFilterVal.toLowerCase())) return false;
       if(pQuery){ const hay=(w.name+' '+w.role+' '+w.area+' '+(w.tags||[]).join(' ')).toLowerCase(); if(hay.indexOf(pQuery)===-1) return false; }
       return true;
-    });
+    }).map(w=>withMarketPay(w,'rate'));
 
     return {
       toast:this.state.toast,
@@ -561,7 +597,7 @@ class Component extends DCLogic {
         {name:'Privacy Policy Acknowledgement',provider:'Brightside Care',date:'15 Jan 2026',status:'Signed ✓',stFg:'#1e7a52',stBg:'#e9f6ef',iconEl:ic('check','#1e9e6a',14),tintBg:'#e9f6ef',download:()=>this.showToast('Downloading document…')},
       ],
       sparkBlueEl:ic('spark','#2a4a8a',17),starEl:ic('star','#d98b22',14),pinEl:ic('pin','#6c7f79',14),globeEl:ic('globe','#6c7f79',14),
-      creds,skillGroups,providers,rates,avail,
+      creds,skillGroups,providers,rates,showRatesSection,avail,
       isWorkerSide:ms==='worker',isProviderSide:ms==='provider',
       workerTabBd:ms==='worker'?'#16b8a6':'#e7ece9',providerTabBd:ms==='provider'?'#6366f1':'#e7ece9',
       goWorkerSide:()=>this.setState({matchSide:'worker'}),goProviderSide:()=>this.setState({matchSide:'provider'}),

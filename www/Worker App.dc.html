@@ -405,7 +405,7 @@ class Component extends DCLogic {
       {client:'Ruth Kim',init:'RK',service:'Community Access',tint:'#0891b2',tintDark:'#073f4a',score:'90',pay:'$42/hr',payNote:'standard rate',dist:'3.4km',travel:'12 min drive',when:'Sun 22 Jun · 10:00–13:00',where:'Coburg VIC',tags:['Driver','Social support','First Aid']},
       {client:'Sam Wills',init:'SW',service:'Personal Care · NDIS',tint:'#9333ea',tintDark:'#4c1d75',score:'87',pay:'$44/hr',payNote:'incl. travel',dist:'2.6km',travel:'10 min drive',when:'Mon 23 Jun · 14:00–19:00',where:'Pascoe Vale VIC',tags:['Manual handling','Meal prep','Evening']}
     ];
-    const card=cards[this.state.shiftIdx % cards.length];
+    const card=demoMode?cards[this.state.shiftIdx % cards.length]:null;
 
     // shift (optional) carries the real Supabase row so the saved note can be
     // linked to its shift/participant/org under RLS. Demo rows pass no shift.
@@ -471,7 +471,7 @@ class Component extends DCLogic {
             meta:[_datePart(sh.start_time),sh.support_type||sh.title].filter(Boolean).join(' · '),
             pay:_timeRange(sh.start_time,sh.end_time),dist:sh.location||'',score:''};
         })
-      : (noShifts ? [] : matchShiftsDemo);
+      : (demoMode ? matchShiftsDemo : []);
 
     // Schedule tab grouped by day from real assigned shifts.
     let schedule;
@@ -487,9 +487,9 @@ class Component extends DCLogic {
       });
       schedule=groups;
     } else {
-      schedule = noShifts ? [] : scheduleDemo;
+      schedule = demoMode ? scheduleDemo : [];
     }
-    const scheduleSubtitle = noShifts
+    const scheduleSubtitle = (noShifts || (!demoMode && realShifts.length===0))
       ? 'No scheduled shifts yet'
       : (realShifts.length>0
           ? ('Assigned · '+realShifts.length+' shift'+(realShifts.length===1?'':'s'))
@@ -604,7 +604,7 @@ class Component extends DCLogic {
         }
         this.setState(s=>({waaNoteOpen:false,waaNoteText:'',waaNoteShift:null,waaSavedNotes:[note,...(s.waaSavedNotes||[])]}));
       },
-      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},
+      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='Login.dc.html?resetSession=1';},
       goBilling:()=>{ window.location.href='billing.html'; },
       goFind:()=>this.setState({tab:'find'}),
       goIncidentReport:()=>{ window.location.href='Incident Report.dc.html'; },

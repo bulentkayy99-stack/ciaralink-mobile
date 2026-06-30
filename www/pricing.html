@@ -15,7 +15,7 @@
 <script>if(typeof window.ENV==='undefined'){window.ENV={SUPABASE_URL:'',SUPABASE_ANON_KEY:''};}</script>
 <script src="./env.local.js"></script>
 <script src="/vendor/supabase.js"></script>
-<script src="./supabase-client.js?v=20260628c"></script>
+<script src="./supabase-client.js?v=20260630"></script>
 <script src="./stripe-pricing.js?v=20260630"></script>
 <style>
 :root{
@@ -161,6 +161,25 @@ h1,h2,h3{letter-spacing:-.03em;line-height:1.04;font-weight:800}
 .addon-note{font-size:12.5px;color:var(--on-dark-3);font-weight:600;margin-top:18px;position:relative;z-index:1;max-width:760px;line-height:1.55}
 @media(max-width:680px){.addon-card{padding:28px 22px}.addon-grid{grid-template-columns:1fr}}
 
+/* ===== Seat / discipline add-ons ===== */
+.seat-addon{padding:0 0 30px}
+.seat-card{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:28px 26px}
+.seat-card h3{font-size:20px;font-weight:900;margin-bottom:6px}
+.seat-card .seat-lead{font-size:14px;color:var(--tx-2);font-weight:500;margin-bottom:22px;line-height:1.55;max-width:720px}
+.seat-group{margin-bottom:22px}
+.seat-group:last-child{margin-bottom:0}
+.seat-group h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);font-weight:800;margin-bottom:12px}
+.seat-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line)}
+.seat-row:first-of-type{border-top:none;padding-top:0}
+.seat-info{flex:1;min-width:180px}
+.seat-info .sn{font-size:15px;font-weight:800;color:var(--tx)}
+.seat-info .sd{font-size:12.5px;color:var(--tx-3);font-weight:600;margin-top:2px}
+.seat-price{font-size:15px;font-weight:800;color:var(--teal-d);min-width:88px}
+.seat-qty{display:inline-flex;align-items:center;gap:8px}
+.seat-qty label{font-size:12px;font-weight:700;color:var(--tx-2)}
+.seat-qty input{width:56px;height:40px;border:1px solid var(--line);border-radius:10px;text-align:center;font-family:inherit;font-size:15px;font-weight:800;color:var(--tx)}
+.seat-row .btn{width:auto;min-width:148px;height:44px;padding:0 16px;font-size:14px}
+
 /* ===== FAQ / commission strip ===== */
 .commit{padding:30px 0 70px}
 .commit-row{display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;text-align:center;background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:30px}
@@ -263,6 +282,17 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
         <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Row-level security</div>
       </div>
       <p style="text-align:center;font-size:12.5px;color:var(--tx-3);margin-top:16px;font-weight:600;line-height:1.55;max-width:720px;margin-left:auto;margin-right:auto">Rostering, credentials, incidents, payroll and claiming modules are tools to help you organise work — your organisation remains responsible for regulatory compliance. Some modules use placeholder rates or prices until verified.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SEAT & DISCIPLINE ADD-ONS ================= -->
+<section class="seat-addon">
+  <div class="wrap">
+    <div class="seat-card">
+      <h3>Extra users &amp; disciplines</h3>
+      <p class="seat-lead">Add seats or allied-health disciplines to an existing plan. Quantity is billed per unit — start checkout when you know how many you need.</p>
+      <div id="extraAddonGroups"></div>
     </div>
   </div>
 </section>
@@ -405,6 +435,28 @@ var ADDONS = [
   { key:'priority_referrals_pro',  name:'Pro',  forWho:'Providers & clinics', m:199, y:1990, inc:'Everything in Lite + referral analytics and maximum priority.', pop:true }
 ];
 
+var EXTRA_ADDONS = [
+  { key:'providers_extra_user_starter', name:'Extra user (Starter)', m:25, y:null, monthlyOnly:true, group:'providers' },
+  { key:'providers_extra_user_team', name:'Extra user (Team)', m:20, y:null, monthlyOnly:true, group:'providers' },
+  { key:'providers_extra_user_provider', name:'Extra user (Provider)', m:15, y:null, monthlyOnly:true, group:'providers' },
+  { key:'coordination_extra_user_starter_standard', name:'Extra user', m:20, y:null, monthlyOnly:true, group:'coordination' },
+  { key:'coordination_extra_user_pro', name:'Extra user (Pro)', m:15, y:null, monthlyOnly:true, group:'coordination' },
+  { key:'allied_health_discipline', name:'Discipline', m:49, y:490, monthlyOnly:false, group:'allied_health' }
+];
+var EXTRA_ADDON_LABELS = {
+  providers_extra_user_starter: 'For Starter plan',
+  providers_extra_user_team: 'For Team plan',
+  providers_extra_user_provider: 'For Provider plan',
+  coordination_extra_user_starter_standard: 'For Starter & Standard plans',
+  coordination_extra_user_pro: 'For Pro plan',
+  allied_health_discipline: 'Speech, OT, Physio, Psychology, Dietetics, EP, Social Work'
+};
+var EXTRA_ADDON_GROUPS = [
+  { id:'providers', title:'Providers — extra users' },
+  { id:'coordination', title:'Support Coordination — extra users' },
+  { id:'allied_health', title:'Allied Health — extra disciplines' }
+];
+
 /* ---- State ---- */
 var state = { interval:'month', cat:'providers' };
 var fmt = function(n){ return '$' + n.toLocaleString('en-AU'); };
@@ -481,6 +533,43 @@ function renderAddons(){
   bindCheckout(wrap);
 }
 
+/* ---- Render seat / discipline add-ons ---- */
+function renderExtraAddons(){
+  var host = document.getElementById('extraAddonGroups');
+  if(!host) return;
+  host.innerHTML = '';
+  if(!EXTRA_ADDONS.length){
+    host.innerHTML = '<p style="font-size:13px;color:var(--tx-3);font-weight:600">No add-ons available right now.</p>';
+    return;
+  }
+  var annual = state.interval === 'year';
+  EXTRA_ADDON_GROUPS.forEach(function(g){
+    var items = EXTRA_ADDONS.filter(function(a){ return a.group === g.id; });
+    if(!items.length) return;
+    var section = document.createElement('div');
+    section.className = 'seat-group';
+    section.innerHTML = '<h4>' + g.title + '</h4>';
+    items.forEach(function(a){
+      var useAnnual = annual && !a.monthlyOnly && a.y != null;
+      var unit = useAnnual ? a.y : a.m;
+      var per = useAnnual ? '/ yr each' : '/ mo each';
+      var row = document.createElement('div');
+      row.className = 'seat-row';
+      row.innerHTML =
+        '<div class="seat-info"><div class="sn">' + a.name + '</div>' +
+        '<div class="sd">' + (EXTRA_ADDON_LABELS[a.key] || a.notes || '') + '</div></div>' +
+        '<div class="seat-price">' + fmt(unit) + '<span style="font-size:12px;font-weight:700;color:var(--tx-3)">' + per + '</span></div>' +
+        '<div class="seat-qty"><label for="qty-' + a.key + '">Qty</label>' +
+        '<input type="number" id="qty-' + a.key + '" min="1" max="100" value="1" inputmode="numeric"></div>' +
+        '<button class="btn btn-outline" data-key="' + a.key + '" data-addon="1" data-qty-input="qty-' + a.key + '" data-interval="' + (useAnnual ? 'year' : 'month') + '">' +
+        '<span class="lbl">Add to plan</span><span class="arrow">→</span><span class="spin"></span></button>';
+      section.appendChild(row);
+    });
+    host.appendChild(section);
+  });
+  bindCheckout(host);
+}
+
 /* ---- Checkout (honest fallback) ---- */
 function bindCheckout(scope){
   scope.querySelectorAll('button[data-key]').forEach(function(btn){
@@ -516,12 +605,21 @@ async function startCheckout(btn){
   if(!key){ showToast('Pick a plan', 'Choose a tier above to start your trial.'); return; }
   if(!(await ensureSignedIn())) return;
 
+  var qty = 1;
+  var qtyInputId = btn.getAttribute('data-qty-input');
+  if(qtyInputId){
+    var inp = document.getElementById(qtyInputId);
+    qty = Math.min(Math.max(parseInt(inp && inp.value, 10) || 1, 1), 100);
+    if(inp) inp.value = String(qty);
+  }
+  var interval = btn.getAttribute('data-interval') || state.interval;
+
   btn.classList.add('loading');
   btn.disabled = true;
   var done = function(){ btn.classList.remove('loading'); btn.disabled = false; };
 
   if(window.CiaraLinkStripe && window.CiaraLinkStripe.startCheckout){
-    var res = await window.CiaraLinkStripe.startCheckout({ slug: key, interval: state.interval });
+    var res = await window.CiaraLinkStripe.startCheckout({ slug: key, interval: interval, quantity: qty });
     if(res && res.redirecting) return;
     done();
     var msg = checkoutErrorMessage(res && res.error, res && res.data);
@@ -534,7 +632,7 @@ async function startCheckout(btn){
   if(!priceId) priceId = ids ? ids.month : null;
   if(!priceId){ done(); showToast('Plan not found', 'That plan could not be loaded. Refresh and try again.'); return; }
 
-  var body = { priceId: priceId, mode:'subscription', quantity:1 };
+  var body = { priceId: priceId, mode:'subscription', quantity: qty };
   var headers = { 'Content-Type':'application/json' };
   try {
     var client = window.CiaraLinkAuth && window.CiaraLinkAuth.getSupabaseClient && window.CiaraLinkAuth.getSupabaseClient();
@@ -586,7 +684,7 @@ document.getElementById('billSeg').addEventListener('click', function(e){
   var b = e.target.closest('button'); if(!b) return;
   state.interval = b.getAttribute('data-int');
   this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
-  renderCards(); renderAddons();
+  renderCards(); renderAddons(); renderExtraAddons();
 });
 
 document.getElementById('cats').addEventListener('click', function(e){
@@ -596,9 +694,29 @@ document.getElementById('cats').addEventListener('click', function(e){
   renderCards();
 });
 
-/* ---- Init ---- */
-renderCards();
-renderAddons();
+/* ---- Init: render fallback, then merge live plan prices ---- */
+function renderAll(){
+  renderCards();
+  renderAddons();
+  renderExtraAddons();
+}
+
+async function loadLivePricing(){
+  var A = window.CiaraLinkAuth;
+  if(!A || !A.loadPlatformSubscriptionPlans || !A.mergePricingCatalogFromPlans) return;
+  try {
+    var res = await A.loadPlatformSubscriptionPlans();
+    if(!res.ok || !(res.plans && res.plans.length)) return;
+    var merged = A.mergePricingCatalogFromPlans(CATS, ADDONS, res.plans);
+    CATS = merged.cats;
+    ADDONS = merged.addons;
+    EXTRA_ADDONS = merged.extraAddons || [];
+    renderAll();
+  } catch(e){ /* keep hardcoded fallback */ }
+}
+
+renderAll();
+loadLivePricing();
 </script>
 </body>
 </html>

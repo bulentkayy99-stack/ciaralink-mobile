@@ -9,6 +9,12 @@
       enum role ('provider_owner'), so they never fired.
    Does nothing in the unconfigured design preview. */
 (function () {
+  function signInPage() {
+    try {
+      var native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      return native ? 'Login.dc.html' : 'signin.html';
+    } catch (e) { return 'Login.dc.html'; }
+  }
   // Normalize both demo short codes and real enum roles to a canonical bucket.
   function normRole(r) {
     var map = {
@@ -87,16 +93,16 @@
   }
 
   function resolveRoleAndRoute(client, session) {
-    var storedRole = null;
-    try { storedRole = (JSON.parse(localStorage.getItem('ciaralink_session') || '{}') || {}).role; } catch (e) {}
-    if (storedRole) {
-      routeByRole(storedRole);
-      return;
-    }
     fetchRoleFromSupabase(client, session.user.id).then(function (role) {
       if (role) persistSessionRole(session.user.id, role);
       routeByRole(role);
     });
+  }
+
+  function redirectToSignIn() {
+    try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
+    var next = encodeURIComponent((location.pathname + location.search).replace(/^\//, ''));
+    window.location.replace(signInPage() + '?next=' + next);
   }
 
   function check(attempt) {
@@ -107,17 +113,18 @@
       var client = window.getSupabaseClient && window.getSupabaseClient();
       if (!client) { if (attempt < 50) setTimeout(function () { check(attempt + 1); }, 100); return; }
       client.auth.getSession().then(function (res) {
+        if (res && res.error) { redirectToSignIn(); return; }
         var session = res && res.data && res.data.session;
         if (!session) {
           // Don't redirect an embedded iframe (e.g. the console inside the
           // provider dashboard) to the sign-in page — the parent handles auth.
           try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
           var next = encodeURIComponent((location.pathname + location.search).replace(/^\//, ''));
-          window.location.replace('/signin?next=' + next);
+          window.location.replace(signInPage() + '?next=' + next);
           return;
         }
         resolveRoleAndRoute(client, session);
-      }).catch(function () {});
+      }).catch(function () { redirectToSignIn(); });
     } catch (e) {}
   }
   check(0);
