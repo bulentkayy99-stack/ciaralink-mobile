@@ -397,6 +397,10 @@ async function run() {
     // Sign-out / session-reset always lands on the native login page.
     html = html.split("signin.html?resetSession=1").join("Login.dc.html?resetSession=1");
 
+    // Broken doc link: DATA_RESIDENCY.md is not a bundled/servable page (404 in
+    // the WebView). Point it at the real privacy page, which covers data handling.
+    html = html.split('href="DATA_RESIDENCY.md"').join('href="privacy.html"');
+
     if (html !== before) { await fs.writeFile(p, html); nativePatched++; }
   }
 
