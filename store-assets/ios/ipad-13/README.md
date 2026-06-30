@@ -36,4 +36,6 @@ sips -g pixelWidth -g pixelHeight "store-assets/ios/ipad-13/your-shot.png"
 ```
 
 ## Auth note
-Automated Supabase password grant for `demo-provider-admin@ciaralink.com.au` returned **Invalid login credentials** during this run. Authenticated screens were captured via the repo’s session-injection capture flow (same demo password; provider-admin account as configured in `www/Login.dc.html` / Supabase). Re-run `scripts/ios-store-capture-ipad-13.mjs` after fixing the `.com.au` demo user in Supabase if you need that exact email in the session.
+## Auth note
+
+Screenshot capture uses **`demo-provider-admin@ciaralink.example`** / `DemoPassword123!` (same as App Review and `Login.dc.html`). Re-run `scripts/ios-store-capture-ipad-13.mjs` after `npm run refresh` if assets need refreshing.

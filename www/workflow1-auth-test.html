@@ -217,37 +217,37 @@
     const TEST_ACCOUNTS = [
       {
         name: 'Provider Admin',
-        email: 'demo-provider-admin@ciaralink.com.au',
+        email: 'demo-provider-admin@ciaralink.example',
         expectedRole: 'provider_admin',
         expectedDashboard: 'Provider Dashboard',
       },
       {
         name: 'Support Coordinator',
-        email: 'demo-sc@ciaralink.com.au',
+        email: 'demo-sc@ciaralink.example',
         expectedRole: 'support_coordinator',
         expectedDashboard: 'Support Coordination Dashboard',
       },
       {
         name: 'Allied Health',
-        email: 'demo-allied@ciaralink.com.au',
+        email: 'demo-allied@ciaralink.example',
         expectedRole: 'allied_health',
         expectedDashboard: 'Allied Health Dashboard',
       },
       {
         name: 'Support Worker',
-        email: 'demo-worker@ciaralink.com.au',
+        email: 'demo-worker@ciaralink.example',
         expectedRole: 'support_worker',
         expectedDashboard: 'Support Worker Dashboard',
       },
       {
         name: 'Participant',
-        email: 'demo-participant@ciaralink.com.au',
+        email: 'demo-participant@ciaralink.example',
         expectedRole: 'participant',
         expectedDashboard: 'Participant Dashboard',
       },
       {
         name: 'Guardian / Nominee',
-        email: 'demo-guardian@ciaralink.com.au',
+        email: 'demo-guardian@ciaralink.example',
         expectedRole: 'guardian_nominee',
         expectedDashboard: 'Guardian / Participant Authorised View',
       },
@@ -463,7 +463,7 @@
       try {
         log(`Testing: Failed login with wrong password`);
         const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
-          email: 'demo-provider-admin@ciaralink.com.au',
+          email: 'demo-provider-admin@ciaralink.example',
           password: 'WrongPassword123!',
         });
 

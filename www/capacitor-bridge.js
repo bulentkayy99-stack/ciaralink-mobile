@@ -19,6 +19,21 @@
   var IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   if (!IS_NATIVE) return;
 
+  /* Native phone layout: mark root + load shared mobile CSS before first paint. */
+  try {
+    document.documentElement.classList.add('cl-native');
+    var vp = document.querySelector('meta[name="viewport"]');
+    if (vp) {
+      vp.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    }
+    if (!document.querySelector('link[href*="mobile-native.css"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/mobile-native.css';
+      document.head.appendChild(link);
+    }
+  } catch (e) {}
+
   var API_ORIGIN = 'https://ciaralink.vercel.app';
 
   var origFetch = window.fetch ? window.fetch.bind(window) : null;

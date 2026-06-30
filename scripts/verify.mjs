@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { verifyDemoAccounts } from './verify-demo-accounts.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT = path.resolve(__dirname, '..');
@@ -56,6 +57,32 @@ async function main() {
   }
   if (!errors.some((e) => e.includes('CDN'))) pass('no CDN supabase-js in HTML pages');
 
+  // native mobile layout bundle
+  const mobileCss = path.join(WWW, 'mobile-native.css');
+  if (!existsSync(mobileCss)) fail('www/mobile-native.css missing — native dashboard layout will break');
+  else {
+    const css = await fs.readFile(mobileCss, 'utf8');
+    if (!css.includes('html.cl-native')) fail('mobile-native.css looks invalid');
+    else pass('mobile-native.css present (all-platform dashboard layout)');
+  }
+  const bridge = path.join(WWW, 'capacitor-bridge.js');
+  if (existsSync(bridge)) {
+    const js = await fs.readFile(bridge, 'utf8');
+    if (!js.includes('mobile-native.css')) fail('capacitor-bridge.js does not load mobile-native.css');
+    else if (!js.includes('cl-native')) fail('capacitor-bridge.js does not set cl-native class');
+    else pass('capacitor-bridge injects mobile layout on iOS + Android');
+  }
+
+  // bridge on every dashboard page
+  const dcPages = (await fs.readdir(WWW)).filter((f) => f.endsWith('.dc.html'));
+  const missingBridge = [];
+  for (const name of dcPages) {
+    const html = await fs.readFile(path.join(WWW, name), 'utf8');
+    if (!html.includes('capacitor-bridge.js')) missingBridge.push(name);
+  }
+  if (missingBridge.length) fail(`dashboard pages missing bridge: ${missingBridge.join(', ')}`);
+  else pass(`capacitor-bridge on all ${dcPages.length} dashboard pages`);
+
   // bridge injected on login
   const login = path.join(WWW, 'Login.dc.html');
   if (existsSync(login)) {
@@ -88,6 +115,10 @@ async function main() {
   // node_modules
   if (!existsSync(path.join(PROJECT, 'node_modules'))) fail('node_modules missing — run npm install');
   else pass('node_modules installed');
+
+  const demo = await verifyDemoAccounts();
+  for (const m of demo.passes) pass(m);
+  for (const m of demo.errors) fail(m);
 
   console.log('');
   for (const m of ok) console.log('  ✓', m);

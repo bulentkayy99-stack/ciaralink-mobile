@@ -24,7 +24,7 @@ const API_ORIGIN = 'https://ciaralink.vercel.app';
 
 // Native-only files we own (never come from the website). These are (re)written
 // every run so the bundle is correct even from a clean www/.
-const NATIVE_FILES = ['capacitor-bridge.js', 'native-init.js', 'index.html'];
+const NATIVE_FILES = ['capacitor-bridge.js', 'native-init.js', 'mobile-native.css', 'index.html'];
 
 // Root files we explicitly DO NOT bundle.
 const SKIP_FILES = new Set([
@@ -70,6 +70,21 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
 
   var IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   if (!IS_NATIVE) return;
+
+  /* Native phone layout: mark root + load shared mobile CSS before first paint. */
+  try {
+    document.documentElement.classList.add('cl-native');
+    var vp = document.querySelector('meta[name="viewport"]');
+    if (vp) {
+      vp.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    }
+    if (!document.querySelector('link[href*="mobile-native.css"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/mobile-native.css';
+      document.head.appendChild(link);
+    }
+  } catch (e) {}
 
   var API_ORIGIN = '${API_ORIGIN}';
 
@@ -238,10 +253,13 @@ async function run() {
     }
   }
 
-  // 3. (Re)write native-only files.
+  // 3. (Re)write native-only files (mobile-native.css is edited in www/ — preserve it).
   await fs.writeFile(path.join(DEST, 'capacitor-bridge.js'), capacitorBridgeJs);
   await fs.writeFile(path.join(DEST, 'native-init.js'), nativeInitJs);
   await fs.writeFile(path.join(DEST, 'index.html'), indexHtml);
+  if (!existsSync(path.join(DEST, 'mobile-native.css'))) {
+    throw new Error('www/mobile-native.css missing — restore before sync');
+  }
 
   // 4. Re-inject the bridge + native-init into every page (fresh copies lost it)
   //    and point the supabase-js <script> at the local vendored copy.

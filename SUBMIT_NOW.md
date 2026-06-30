@@ -63,7 +63,9 @@ Wait until App Store Connect shows build **4** as **Ready to Submit** (Processin
 
 ## Demo account (App Review notes)
 
-- Email: `demo-provider-admin@ciaralink.com.au`
+Copy/paste from **`APP_REVIEW_PASTE.md`** into App Store Connect → App Review Information.
+
+- Email: `demo-provider-admin@ciaralink.example`
 - Password: `DemoPassword123!`
 
 ---
