@@ -49,7 +49,7 @@
       <div style="border-top:1px solid rgba(224,85,110,.2);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <!-- 17 requirements -->
         <div>
-          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:12px">PRODUCTION READINESS — 12 OF 17 DONE</div>
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:12px">PRODUCTION READINESS — {{ doneCount }} OF 17 DONE</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <sc-for list="{{ blockedReqs }}" as="br" hint-placeholder-count="17">
               <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:9px;padding:7px 11px">
@@ -193,12 +193,12 @@ class Component extends DCLogic {
       { label: 'Database schema created (25 tables, Dev)', status: 'Implemented' },
       { label: 'Row-Level Security enabled on sensitive tables', status: 'Implemented' },
       { label: 'Real role data wired across all remaining pages', status: 'In Progress' },
-      { label: 'Server-side validation implemented', status: 'In Progress' },
+      { label: 'Server-side validation implemented', status: 'Implemented' },
       { label: 'RLS policies tested against cross-user access', status: 'Implemented' },
-      { label: 'Secure Supabase Storage buckets + signed URLs', status: 'In Progress' },
+      { label: 'Secure Supabase Storage buckets + signed URLs', status: 'Implemented' },
       { label: 'Consent enforced at database/backend level', status: 'Implemented' },
-      { label: 'Document permissions enforced at backend level', status: 'In Progress' },
-      { label: 'Audit logging active', status: 'In Progress' },
+      { label: 'Document permissions enforced at backend level', status: 'Implemented' },
+      { label: 'Audit logging active', status: 'Implemented' },
       { label: 'Stripe billing integration', status: 'Implemented' },
       { label: 'SMTP / transactional email (invites, confirmations)', status: 'Implemented' },
       { label: 'Backup and recovery configured', status: 'Not Started' },
@@ -309,8 +309,9 @@ class Component extends DCLogic {
     ];
 
     const toggleLabel = blockedOpen ? 'Hide ▲' : 'View readiness checklist ▼';
+    const doneCount = blockedReqs.filter(r => r.status === 'Implemented' || r.status === 'Tested' || r.status === 'Passed').length;
     return {
-      blockedOpen, toggleBlocked, toggleLabel, blockedReqs, supabaseStatus,
+      blockedOpen, toggleBlocked, toggleLabel, blockedReqs, supabaseStatus, doneCount,
       logoEl:ic('pulse','#eafaf8',22),
       arrowEl:ic('arrow','#06201c',15),
       arrowSmEl:ic('chev','#16b8a6',14),

@@ -51,17 +51,20 @@
     <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:14px 28px;background:rgba(234,238,236,.85);backdrop-filter:blur(14px);border-bottom:1px solid #dde4e1">
       <div style="min-width:0"><div style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ pageTitle }}</div><div style="font-size:12.5px;color:#6c7f79">{{ pageSub }}</div></div>
       <div style="flex:1"></div>
+      <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;align-items:center;gap:8px">
-        <button onClick="{{ filterParticipant }}" style="display:flex;align-items:center;gap:7px;background:#f7faf9;border:1px solid #e7ece9;border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#41635c">{{ userSmEl }}Ali Tahan</button>
+        <button onClick="{{ filterParticipant }}" style="display:flex;align-items:center;gap:7px;background:#f7faf9;border:1px solid #e7ece9;border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#41635c">{{ userSmEl }}{{ participantFilterLabel }}</button>
         <span style="font-size:12px;color:#9aa8a3">·</span>
         <button onClick="{{ showAllParticipants }}" style="background:#fff;border:1px solid #e7ece9;border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#41635c">All participants</button>
       </div>
+      </sc-if>
     </header>
 
     <div style="flex:1;overflow-y:auto;padding:24px 28px 48px">
 
       <!-- ========== FUNDING INTELLIGENCE ========== -->
-      <sc-if value="{{ isFunding }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ isFunding }}" hint-placeholder-val="">
+      <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
       <div style="max-width:1200px;margin:0 auto">
 
         <!-- AI hero -->
@@ -167,9 +170,19 @@
 
       </div>
       </sc-if>
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="max-width:720px;margin:48px auto;text-align:center;padding:48px 32px;background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="width:52px;height:52px;border-radius:14px;background:#e7f4f1;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ sparkTealEl }}</div>
+          <div style="font-size:18px;font-weight:800;color:#14302b;margin-top:16px">Connect data</div>
+          <div style="font-size:13px;color:#8a9a94;margin-top:8px;line-height:1.6">Funding intelligence needs participant plans and spend history from Supabase. Add participants with NDIS plans to see budget usage, risk alerts and spend trends.</div>
+          <button onClick="{{ goSCDashboard }}" style="margin-top:20px;padding:11px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Open Support Coordination</button>
+        </div>
+      </sc-if>
+      </sc-if>
 
       <!-- ========== COMMUNICATION LAYER ========== -->
       <sc-if value="{{ isComms }}" hint-placeholder-val="">
+      <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ true }}">
       <div style="max-width:1200px;margin:0 auto">
 
         <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:16px;padding:15px 20px;margin-bottom:18px;color:#eafaf8">
@@ -236,6 +249,15 @@
         </div>
       </div>
       </sc-if>
+      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+        <div style="max-width:720px;margin:48px auto;text-align:center;padding:48px 32px;background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+          <div style="width:52px;height:52px;border-radius:14px;background:#eef0fd;display:flex;align-items:center;justify-content:center;margin:0 auto">{{ folderTealEl }}</div>
+          <div style="font-size:18px;font-weight:800;color:#14302b;margin-top:16px">Connect data</div>
+          <div style="font-size:13px;color:#8a9a94;margin-top:8px;line-height:1.6">The communication layer needs documents, consent records and stakeholder access from Supabase. Upload documents and set sharing rules to see the hub here.</div>
+          <button onClick="{{ goBack }}" style="margin-top:20px;padding:11px 18px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Back to dashboard</button>
+        </div>
+      </sc-if>
+      </sc-if>
 
     </div>
   </main>
@@ -279,10 +301,18 @@ class Component extends DCLogic {
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const view=this.state.view;
+    const demoMode = !(typeof window !== 'undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const realMode = !demoMode;
     const navSections=[
       {title:'FUNDING',items:[['funding','Funding Intelligence','wallet'],['comms','Communication Layer','folder']]},
-    ].map(sec=>({title:sec.title,items:sec.items.map(([key,label,icon])=>{const a=view===key;return{label,alert:key==='funding',onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};}) }));
-    const pages={funding:{title:'Funding Intelligence',sub:'Ali Tahan · plan 01 Jul 2026 – 30 Jun 2027 · plan-managed'},comms:{title:'Communication Layer',sub:'Ali Tahan · 4 stakeholders · 16 documents — everyone sees what they need'}};
+    ].map(sec=>({title:sec.title,items:sec.items.map(([key,label,icon])=>{const a=view===key;return{label,alert:demoMode&&key==='funding',onClick:()=>this.setState({view:key}),bg:a?'rgba(255,255,255,.08)':'transparent',color:a?'#f4faf8':'#9fb4ae',iconEl:ic(icon,a?'#22d3bf':'#7e948e',18)};}) }));
+    const pages=demoMode?{
+      funding:{title:'Funding Intelligence',sub:'Ali Tahan · plan 01 Jul 2026 – 30 Jun 2027 · plan-managed'},
+      comms:{title:'Communication Layer',sub:'Ali Tahan · 4 stakeholders · 16 documents — everyone sees what they need'}
+    }:{
+      funding:{title:'Funding Intelligence',sub:'Connect participant plans to unlock funding insights'},
+      comms:{title:'Communication Layer',sub:'Connect documents and consent to unlock the communication hub'}
+    };
 
     // ---- funding ----
     const fundKpis=[
@@ -346,8 +376,10 @@ class Component extends DCLogic {
     return {
       toast:this.state.toast,
       clearToast:()=>this.setState({toast:null}),
-      filterParticipant:()=>this.showToast('Filtering by Ali Tahan — preview'),
-      showAllParticipants:()=>this.showToast('Showing all participants — preview'),
+      demoMode,realMode,
+      participantFilterLabel:demoMode?'Ali Tahan':'Select participant',
+      filterParticipant:()=>this.showToast(demoMode?'Filtering by Ali Tahan — preview':'Select a participant once plans are connected'),
+      showAllParticipants:()=>this.showToast(demoMode?'Showing all participants — preview':'Participant list unlocks when data is connected'),
       signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goBack:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
       goSCDashboard:()=>{ window.location.href='Support Coordination.dc.html'; },
@@ -357,7 +389,7 @@ class Component extends DCLogic {
       logoEl:ic('logo','#eafaf8',21),navSections,pageTitle:pages[view].title,pageSub:pages[view].sub,
       isFunding:view==='funding',isComms:view==='comms',
       userSmEl:ic('user','#41635c',14),
-      sparkWEl:ic('spark','#eafaf8',15),alertSmEl:ic('alert','#fff',15),
+      sparkWEl:ic('spark','#eafaf8',15),sparkTealEl:ic('spark','#16b8a6',22),folderTealEl:ic('folder','#6366f1',22),alertSmEl:ic('alert','#fff',15),
       fundKpis,cats,alertTinyEl:ic('alert','#c0445c',13),alertRedEl:ic('alert','#c0445c',18),
       infoTealEl:ic('info','#16b8a6',18),riskOptions,underused,spendBars,
       hubDocs,pending:pendingItems,myAccess,commStats

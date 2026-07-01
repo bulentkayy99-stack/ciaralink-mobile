@@ -380,7 +380,10 @@
           <sc-for list="{{ participantRows }}" as="p" hint-placeholder-count="6">
             <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid #f1f4f2">
               <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ p.init }}</div>
-              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:12px;color:#8a9a94;margin-top:2px">Provider: {{ p.provider }} · Plan ends: {{ p.review }}</div></div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</div>
+                <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:#8a9a94;margin-top:2px">Provider: {{ p.provider }} · Plan ends: {{ p.review }}</div></sc-if>
+                <sc-if value="{{ realMode }}" hint-placeholder-val=""><div style="font-size:12px;color:#8a9a94;margin-top:2px">{{ p.planEndsLabel }}</div></sc-if>
+              </div>
               <div style="display:flex;gap:8px;align-items:center">
                 <span style="font-size:11px;font-weight:700;color:{{ p.consentFg }};background:{{ p.consentBg }};padding:3px 9px;border-radius:7px">{{ p.consentLabel }}</span>
                 <span style="font-size:11px;font-weight:700;color:{{ p.riskFg }};background:{{ p.riskBg }};padding:3px 9px;border-radius:7px">{{ p.risk }}</span>
@@ -1300,7 +1303,7 @@ class Component extends DCLogic {
     const view=String(this.state.view||'caseload');
     // First-run gate: rich demo identity/numbers/people only when Supabase is NOT
     // configured (preview). A signed-in coordinator sees real identity + empty-states.
-    const demoMode = !(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
     // Real identity (populated by loadIdentity via loadCurrentUserContext); honest fallbacks, never a fake name.
     const userFull = this.state.authName || 'Your account';
     const userFirst = this.state.authName ? this.state.authName.split(/\s+/)[0] : 'there';
@@ -1378,6 +1381,7 @@ class Component extends DCLogic {
             init:scInitials(nm),
             tint:scTints[i%scTints.length],
             plan:p.ndis_number?('NDIS '+p.ndis_number):'',
+            planEnd:p.plan_end||'',
             usePct:'—',
             review:'—',
             risk:active?'On track':(st?(st.charAt(0).toUpperCase()+st.slice(1)):'—'),
@@ -1466,6 +1470,13 @@ class Component extends DCLogic {
       {name:'Inner West OT',init:'IW',tint:'#9333ea',participant:'Ruth Kim',service:'Occupational Therapy',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'}
     ];
 
+    // providers view (demo fallback)
+    const demoProviderRows=[
+      {name:'Brightside Care',init:'BC',tint:'#16b8a6',type:'Service Provider',participants:['Liam W.','Margaret R.','Tom B.'],hours:'112h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'bulent@brightside.com.au'},
+      {name:'Northern Allied',init:'NA',tint:'#6366f1',type:'Allied Health',participants:['Margaret R.','David L.'],hours:'24h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'admin@northernallied.com.au'},
+      {name:'Coburg Community',init:'CC',tint:'#d98b22',type:'Service Provider',participants:['Priya S.'],hours:'18h/wk',status:'Agreement pending',stFg:'#b4561f',stBg:'#fbf0df',agreement:'Awaiting signature',contact:'info@coburgcommunity.com.au'}
+    ];
+
     const budgetDisplayRows=demoMode?demoBudgetRows:(this.state.scBudgetRows||[]);
     const agreementDisplayRows=demoMode?demoAgreementRows:(this.state.scAgreementRows||[]);
     const providerDisplayRows=demoMode?demoProviderRows:(this.state.scProviderRows||[]);
@@ -1480,19 +1491,13 @@ class Component extends DCLogic {
     const participantRows=caseload.map(p=>({...p,
       provider:demoMode?'Brightside Care':'—',
       coordinator:demoMode?'Sarah Kelly':'—',
+      planEndsLabel:demoMode?p.review:(p.planEnd?'Plan ends '+p.planEnd:'—'),
       goals:demoMode?['Independent living','Community access']:[],
       consentShared:demoMode?p.risk!=='At risk':null,
       consentFg:demoMode?(p.risk!=='At risk'?'#1e7a52':'#c0445c'):'#5f726d',
       consentBg:demoMode?(p.risk!=='At risk'?'#e9f6ef':'#fbe9ed'):'#f1f4f2',
       consentLabel:demoMode?(p.risk!=='At risk'?'Consent given':'Consent needed'):'—'
     }));
-
-    // providers view (demo fallback)
-    const demoProviderRows=[
-      {name:'Brightside Care',init:'BC',tint:'#16b8a6',type:'Service Provider',participants:['Liam W.','Margaret R.','Tom B.'],hours:'112h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'bulent@brightside.com.au'},
-      {name:'Northern Allied',init:'NA',tint:'#6366f1',type:'Allied Health',participants:['Margaret R.','David L.'],hours:'24h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'admin@northernallied.com.au'},
-      {name:'Coburg Community',init:'CC',tint:'#d98b22',type:'Service Provider',participants:['Priya S.'],hours:'18h/wk',status:'Agreement pending',stFg:'#b4561f',stBg:'#fbf0df',agreement:'Awaiting signature',contact:'info@coburgcommunity.com.au'}
-    ];
 
     // case notes
     const noteRows=[
@@ -2014,7 +2019,7 @@ class Component extends DCLogic {
       scProfile: demoMode
         ? {name:'Sarah Kelly',org:'CiaraLink Support Coordination',regions:['Melbourne North','Glenroy','Coburg','Brunswick'],quals:['Cert IV Disability','Diploma Community Services'],caseload:32,email:'sarah.kelly@ciaralinksc.com.au',phone:'0438 221 770'}
         : {name:userFull,org:(this.state.authOrg||'Support Coordination'),regions:[],quals:[],caseload:(navPartCount?navPartCount:'—'),email:(this.state.authEmail||'—'),phone:'—'},
-      scBilling:{
+      scBilling:demoMode?{
         stats:[{label:'Total under management',value:'$303,200',color:'#0b6b60'},{label:'Delivered this month',value:'$28,400',color:'#14302b'},{label:'Remaining this period',value:'$274,800',color:'#1e9e6a'}],
         rows:[
           {name:'Liam Wright',init:'LW',tint:'#0e5147',hoursDelivered:'86h',hoursRemaining:'298h',budgetUsed:'$31,400',budgetRemaining:'$42,800',provider:'Brightside Care',flag:true,flagMsg:'Core budget at risk'},
@@ -2024,7 +2029,7 @@ class Component extends DCLogic {
           {name:'Tom Becker',init:'TB',tint:'#9333ea',hoursDelivered:'112h',hoursRemaining:'168h',budgetUsed:'$27,520',budgetRemaining:'$15,480',provider:'Brightside Care',flag:false,flagMsg:''},
           {name:'Ruth Kim',init:'RK',tint:'#0891b2',hoursDelivered:'58h',hoursRemaining:'202h',budgetUsed:'$14,640',budgetRemaining:'$16,360',provider:'Northern Allied',flag:false,flagMsg:''}
         ]
-      },
+      }:{stats:[],rows:[]},
       budgetDisplayRows,agreementDisplayRows,providerDisplayRows,
       showBudgetEmpty,showBudgetTable,showAgreementEmpty,showAgreementTable,showProviderEmpty,showProviderTable,
       participantRows,noteRows,docsRows,

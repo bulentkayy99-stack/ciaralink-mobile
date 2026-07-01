@@ -752,7 +752,9 @@
                 </div>
               </sc-if>
               <sc-if value="{{ !noClients }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;align-items:center;gap:9px;padding:9px 20px;background:#f4faf8;border-bottom:1px solid #eef2f0;font-size:11px;font-weight:700;color:#6c8c83">{{ lockIconEl }}Showing Core Supports funding relevant to your services only — full plan budget is not visible here</div>
+              </sc-if>
               <sc-for list="{{ displayParticipants }}" as="p" hint-placeholder-count="5">
               <div onClick="{{ p.selectClient }}" style="padding:15px 20px;border-bottom:1px solid #f1f4f2;cursor:pointer" style-hover="background:#fbfdfc">
                 <div style="display:flex;align-items:center;gap:13px;margin-bottom:12px">
@@ -767,6 +769,7 @@
                   </div>
                   <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:4px 10px;border-radius:7px">{{ p.status }}</span>
                 </div>
+                <sc-if value="{{ p.showBudget }}" hint-placeholder-val="{{ true }}">
                 <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:13px;padding:12px 14px">
                   <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
                     <span style="font-size:12px;font-weight:700;color:#5f726d">Core Supports</span>
@@ -785,6 +788,7 @@
                     <div style="display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid #eef2f0;font-size:11.5px;color:#c0445c;font-weight:600">{{ alertTinyEl }}{{ p.alert }}</div>
                   </sc-if>
                 </div>
+                </sc-if>
                 <div style="display:flex;gap:9px;margin-top:10px;flex-wrap:wrap">
                   <span style="font-size:11.5px;color:#9aa8a3;display:flex;align-items:center;gap:5px">{{ workersIconEl }}{{ p.workers }} worker</span>
                   <span style="font-size:11.5px;color:#9aa8a3;display:flex;align-items:center;gap:5px">{{ docsIconEl }}{{ p.docs }} docs</span>
@@ -1971,7 +1975,7 @@ class Component extends DCLogic {
     const isEcosystem = !!ev;
     const ecosystemSrc = ev ? ('Care%20Ecosystem.dc.html?embed=1#'+ev.view) : '';
 
-    const demoMode = !(typeof window !== 'undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
     const pdRefsNav = this.state.pdReferrals || [];
     const orgIdNav = this.state.orgId || null;
     const incomingRefNavCount = orgIdNav
@@ -3007,12 +3011,13 @@ class Component extends DCLogic {
             docs: '—',
             tasks: 0,
             alert: '',
+            showBudget: false,
             openProfile: () => this.navToParticipantProfile(pid),
             selectClient: () => this.loadCareWeb(pid),
           };
           });
         }
-        return partRows;
+        return partRows.map(p=>({...p,showBudget:true}));
       })(),
       workerRows, partRows, webNodes2, workersEmpty, workersHasData, webNodes2Empty, careWebHasData,
       careWebParticipantName: careWebParticipant.name, careWebParticipantInit: careWebParticipant.init,

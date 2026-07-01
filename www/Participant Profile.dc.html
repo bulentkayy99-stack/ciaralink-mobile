@@ -91,8 +91,8 @@
         <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex:0 0 44px">{{ profileInit }}</div>
         <div><div style="font-size:14px;font-weight:800;color:#f4faf8">{{ profileName }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5f7a73;margin-top:2px">{{ profileNdis }}</div></div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex:0 0 7px"></span><span style="font-size:12px;font-weight:700;color:#7ce0d2">Active · Plan current</span></div>
-      <div style="font-size:11px;color:#5f7a73;line-height:1.5">Plan: 01 Jul 2026 – 30 Jun 2027<br>Review due in <span style="color:#d98b22;font-weight:700">11 days</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex:0 0 7px"></span><span style="font-size:12px;font-weight:700;color:#7ce0d2">{{ profileStatusLabel }}</span></div>
+      <div style="font-size:11px;color:#5f7a73;line-height:1.5">{{ profilePlanLine }}<sc-if value="{{ profileReviewLine }}" hint-placeholder-val=""><br><span style="color:{{ profileReviewLineFg }};font-weight:{{ profileReviewLineWeight }}">{{ profileReviewLine }}</span></sc-if></div>
     </div>
     </sc-if>
 
@@ -258,7 +258,7 @@
           <sc-if value="{{ hasBudgetLines }}" hint-placeholder-val="{{ true }}">
           <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 24px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-              <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">NDIS Plan 2026–27</div><div style="font-size:12.5px;color:#6c7f79;margin-top:3px">01 Jul 2026 – 30 Jun 2027 · Review in 11 days</div></div>
+              <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ planTabTitle }}</div><div style="font-size:12.5px;color:#6c7f79;margin-top:3px">{{ planTabSub }}</div></div>
               <span style="font-size:11px;font-weight:700;color:#1e7a52;background:#e9f6ef;padding:4px 12px;border-radius:8px">Active</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:12px">
@@ -452,7 +452,7 @@
           <!-- Banner (demo preview only — real banner shown once review evidence exists) -->
           <sc-if value="{{ hasReviewCats }}" hint-placeholder-val="{{ true }}">
           <div style="background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:18px;padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;color:#eafaf8;box-shadow:0 12px 32px -16px rgba(11,80,71,.7)">
-            <div style="flex:1"><div style="font-size:16px;font-weight:800">Plan review evidence for {{ profileName }}</div><div style="font-size:13px;color:#a9cfc8;margin-top:4px">Review meeting: 21 Jul 2026 · <span style="color:#f97316;font-weight:700">11 days away</span></div></div>
+            <div style="flex:1"><div style="font-size:16px;font-weight:800">Plan review evidence for {{ profileName }}</div><div style="font-size:13px;color:#a9cfc8;margin-top:4px">{{ reviewBannerSub }}</div></div>
             <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 20px">
               <div style="font-size:11px;color:#7ce0d2;letter-spacing:.06em">EVIDENCE READY</div>
               <div style="font-size:28px;font-weight:800;color:#7ce0d2;line-height:1.1">{{ reviewReadyCount }}/{{ reviewTotalCount }}</div>
@@ -910,6 +910,8 @@ class Component extends DCLogic {
       return 'Category '+(num||'—');
     };
     const planBudgets=this.state.planBudgets||[];
+    const realDocRows=this.state.realDocs||[];
+    const rawNotes=this.state.realNotes||[];
 
     const navDefs=[
       {key:'overview', label:'Overview',  icon:'grid',   badge:null},
@@ -957,7 +959,7 @@ class Component extends DCLogic {
       {name:'Mariam T.',init:'MT',tint:'#d98b22',role:'Family / Guardian',org:'Emergency contact',consent:'Consent given',consFg:'#1e7a52',consBg:'#e9f6ef',contact:'0411 555 901',msg:()=>this.showToast('Opening message to Mariam…'),view:()=>this.showToast('Viewing guardian details…')},
     ];
     // Build the Care Team from the real, consent-scoped Supabase rows when loaded;
-    // fall back to demo data so the tab never renders blank.
+    // in demo preview only, fall back to sample team members.
     const teamTints=['#6366f1','#16b8a6','#0891b2','#9333ea','#d98b22','#0e7490'];
     const careTeamRows=(this.state.careTeam||[]);
     const team=careTeamRows.length?careTeamRows.map((m,i)=>{
@@ -1002,7 +1004,7 @@ class Component extends DCLogic {
     // Real participant_notes rows mapped to the display shape (no fabricated
     // authors/dates). Demo narrative notes appear ONLY in unconfigured preview.
     const noteTints=['#6366f1','#16b8a6','#0891b2','#9333ea','#d98b22'];
-    const realNotes=(this.state.realNotes||[]).map((n,i)=>{
+    const realNotes=rawNotes.map((n,i)=>{
       const roleLabel=humanize(n.author_role)||'Care team';
       const nm=roleLabel;
       const init=(String(nm).split(/\s+/).map(w=>w[0]).filter(Boolean).join('').substring(0,2).toUpperCase())||'CT';
@@ -1018,7 +1020,6 @@ class Component extends DCLogic {
       {author:'Jordan Pham',init:'JP',tint:'#9333ea',role:'Physiotherapist · AHPRA',type:'Clinical Note',typeFg:'#7c3aed',typeBg:'#f4e8fe',when:'3 days ago',body:'Block 12 complete. Gait assessment shows 88% improvement from baseline. Recommending continuation — 12 more sessions at current frequency. Formal progress report submitted to coordinator. AAC device trial commenced in parallel with speech pathology.'},
     ]:[...savedNotesForDisplay,...realNotes,...shiftNoteRows];
 
-    const realDocRows=this.state.realDocs||[];
     const budgetLinesReal=planBudgets.map(b=>{
       const total=Number(b.budget_amount)||0;
       const spent=Number(b.claimed_amount)||0;
@@ -1058,6 +1059,14 @@ class Component extends DCLogic {
         else { daysToReview='Overdue'; reviewDelta='Plan ended'; }
       }catch(e){}
     }
+    const profileStatusLabel=demoMode?'Active · Plan current':((pp.plan_start||pp.plan_end)?'Plan on file':'Profile loaded');
+    const profilePlanLine=demoMode?'Plan: 01 Jul 2026 – 30 Jun 2027':((pp.plan_start||pp.plan_end)?('Plan: '+(pp.plan_start?fmtWhen(pp.plan_start):'—')+' – '+(pp.plan_end?fmtWhen(pp.plan_end):'—')):'No plan dates on file yet');
+    const profileReviewLine=demoMode?'Review due in 11 days':(pp.plan_end?(daysToReview==='Overdue'?'Plan review overdue':(daysToReview==='—'?'Review date pending':'Review due in '+daysToReview)):'');
+    const profileReviewLineFg=(demoMode||daysToReview==='Overdue'||reviewDelta==='Action needed')?'#d98b22':'#5f7a73';
+    const profileReviewLineWeight=(demoMode||daysToReview==='Overdue'||reviewDelta==='Action needed')?'700':'400';
+    const planTabTitle=demoMode?'NDIS Plan 2026–27':'NDIS Plan';
+    const planTabSub=demoMode?'01 Jul 2026 – 30 Jun 2027 · Review in 11 days':((pp.plan_start||pp.plan_end)?((pp.plan_start?fmtWhen(pp.plan_start):'—')+' – '+(pp.plan_end?fmtWhen(pp.plan_end):'—')+(daysToReview!=='—'&&daysToReview!=='Overdue'?' · Review in '+daysToReview:(daysToReview==='Overdue'?' · Review overdue':''))):(planBudgets.length?planPeriodLabel:'No plan dates on file yet'));
+    const reviewBannerSub=demoMode?'Review meeting: 21 Jul 2026 · 11 days away':(pp.plan_end?('Plan ends '+fmtWhen(pp.plan_end)+(daysToReview!=='—'?' · '+(daysToReview==='Overdue'?'review overdue':daysToReview+' until review'):'')):'Add plan dates and evidence to prepare for review');
     const onTrackGoals=goals.filter(g=>g.status==='On track'||g.status==='Achieved'||g.status==='In progress').length;
     const coreRow=planBudgets.find(b=>{const nm=String(b.support_category_name||'').toLowerCase();return nm.includes('core')||Number(b.support_category_number)<=4;})||planBudgets[0];
     const corePct=coreRow&&Number(coreRow.budget_amount)>0?Math.round((Number(coreRow.claimed_amount||0)/Number(coreRow.budget_amount))*100)+'%':'—';
@@ -1072,7 +1081,7 @@ class Component extends DCLogic {
       {value:String(team.length||0),label:'Care team members',delta:team.length?'Linked via consent':'No team yet',dFg:'#0b6b60',dBg:'#e7f4f1',iconEl:ic('users','#6366f1',18),tintBg:'#eef0fd'},
       {value:daysToReview,label:'Until plan review',delta:reviewDelta,dFg:daysToReview==='Overdue'||reviewDelta==='Action needed'?'#b4561f':'#0b6b60',dBg:daysToReview==='Overdue'||reviewDelta==='Action needed'?'#fbf0df':'#e7f4f1',iconEl:ic('cal','#d98b22',18),tintBg:'#fbf0df'},
     ];
-    const activityReal=[...realNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#0891b2',15),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document uploaded',sub:humanize(d.type)||d.description||'File',when:fmtWhen(d.created_at),iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).slice(0,6).map(({sortKey,...rest})=>rest);
+    const activityReal=[...rawNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,72)+((n.body||'').length>72?'…':''),when:fmtWhen(n.created_at),iconEl:ic('note','#0891b2',15),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document uploaded',sub:humanize(d.type)||d.description||'File',when:fmtWhen(d.created_at),iconEl:ic('file','#9333ea',15),tintBg:'#f4e8fe',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).slice(0,6).map(({sortKey,...rest})=>rest);
     const activity=demoMode?[
       {title:'Shift note submitted',sub:'James Liu · Personal Care · 4h',when:'2h ago',iconEl:ic('note','#16b8a6',15),tintBg:'#e7f4f1'},
       {title:'Service agreement signed',sub:'Brightside Care · 2026–27',when:'Yesterday',iconEl:ic('check','#1e9e6a',15),tintBg:'#e9f6ef'},
@@ -1092,7 +1101,7 @@ class Component extends DCLogic {
       {label:'Add shift note',action:()=>this.setState({view:'notes',noteFormOpen:true,noteText:'',noteType:'Shift Note'}),iconEl:ic('note','#d98b22',15),tintBg:'#fbf0df'},
       {label:'Message care team',action:()=>this.openCareTeamMessage('care team'),iconEl:ic('msg','#1e9e6a',15),tintBg:'#e9f6ef'},
     ];
-    const timelineReal=[...realNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:humanize(n.author_role)||'Care team',catFg:'#4338ca',catBg:'#eef0fd',uploader:humanize(n.author_role)||'Care team',uploaderRole:humanize(n.note_type)||'Note',uploaderEl:ic('note','#6366f1',12),date:fmtWhen(n.created_at),status:'Recorded',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:/review|clinical|assessment/i.test(String(n.note_type||'')),expiry:null,iconEl:ic('note','#6366f1',16),tintBg:'#eef0fd',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'Support Worker',uploaderRole:'Shift Note',uploaderEl:ic('user','#0891b2',12),date:fmtWhen(n.created_at),status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document',sub:humanize(d.type)||d.description||'Uploaded file',category:'Document',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Uploaded file',uploaderRole:humanize(d.type)||'Document',uploaderEl:ic('file','#16b8a6',12),date:fmtWhen(d.created_at),status:humanize(d.status)||'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:/plan|assessment|report|review|fca|ot|physio/i.test(String((d.title||'')+' '+(d.type||''))),expiry:null,iconEl:ic('file','#16b8a6',16),tintBg:'#e7f4f1',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).map(({sortKey,...rest})=>rest);
+    const timelineReal=[...rawNotes.map(n=>({title:humanize(n.note_type)+' note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:humanize(n.author_role)||'Care team',catFg:'#4338ca',catBg:'#eef0fd',uploader:humanize(n.author_role)||'Care team',uploaderRole:humanize(n.note_type)||'Note',uploaderEl:ic('note','#6366f1',12),date:fmtWhen(n.created_at),status:'Recorded',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:/review|clinical|assessment/i.test(String(n.note_type||'')),expiry:null,iconEl:ic('note','#6366f1',16),tintBg:'#eef0fd',sortKey:n.created_at})),...(this.state.realShiftNotes||[]).map(n=>({title:'Shift note',sub:(n.body||'').slice(0,80)+((n.body||'').length>80?'…':''),category:'Worker',catFg:'#0e7490',catBg:'#e0f2f5',uploader:'Support Worker',uploaderRole:'Shift Note',uploaderEl:ic('user','#0891b2',12),date:fmtWhen(n.created_at),status:'Submitted',stFg:'#0b6b60',stBg:'#e7f4f1',reviewRelevant:false,expiry:null,iconEl:ic('note','#0891b2',16),tintBg:'#e0f2f5',sortKey:n.created_at})),...realDocRows.map(d=>({title:d.title||'Document',sub:humanize(d.type)||d.description||'Uploaded file',category:'Document',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Uploaded file',uploaderRole:humanize(d.type)||'Document',uploaderEl:ic('file','#16b8a6',12),date:fmtWhen(d.created_at),status:humanize(d.status)||'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:/plan|assessment|report|review|fca|ot|physio/i.test(String((d.title||'')+' '+(d.type||''))),expiry:null,iconEl:ic('file','#16b8a6',16),tintBg:'#e7f4f1',sortKey:d.created_at}))].sort((a,b)=>new Date(b.sortKey||0)-new Date(a.sortKey||0)).map(({sortKey,...rest})=>rest);
     const timeline=demoMode?[
       {title:'Physiotherapy Progress Report — Block 12',sub:'Gait improvement documented · 12-session block complete',category:'Allied Health',catFg:'#7c3aed',catBg:'#f4e8fe',uploader:'Jordan Pham',uploaderRole:'Physiotherapist',uploaderEl:ic('heart','#9333ea',12),date:'20 Jun 2026',status:'Filed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:true,expiry:null,iconEl:ic('file','#9333ea',16),tintBg:'#f4e8fe'},
       {title:'Service Agreement — Brightside Care 2026–27',sub:'Personal Care + Community Access · Signed by Margaret Reyes',category:'Provider',catFg:'#0b6b60',catBg:'#e7f4f1',uploader:'Brightside Care',uploaderRole:'Provider',uploaderEl:ic('building','#16b8a6',12),date:'01 Jul 2026',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef',reviewRelevant:false,expiry:'30 Jun 2027',iconEl:ic('check','#16b8a6',16),tintBg:'#e7f4f1'},
@@ -1120,8 +1129,8 @@ class Component extends DCLogic {
         const items=planBudgets.map(b=>({name:catLabel(b.support_category_number,b.support_category_name),meta:'Budget '+fmtMoney(b.budget_amount)+' · claimed '+fmtMoney(b.claimed_amount||0),ready:true,missing:false,statusEl:G(true)}));
         cats.push({title:'Funding & Hours',iconEl:ic('wallet','#d98b22',16),iconBg:'#fbf0df',headerBg:'#fdf8f2',titleFg:'#b4561f',countLabel:items.length+' categor'+(items.length===1?'y':'ies'),countFg:'#1e7a52',countBg:'#e9f6ef',items});
       }
-      if(realNotes.length){
-        const items=realNotes.slice(0,8).map(n=>({name:humanize(n.note_type)+' note',meta:fmtWhen(n.created_at),ready:true,missing:false,statusEl:G(true)}));
+      if(rawNotes.length){
+        const items=rawNotes.slice(0,8).map(n=>({name:humanize(n.note_type)+' note',meta:fmtWhen(n.created_at),ready:true,missing:false,statusEl:G(true)}));
         cats.push({title:'Notes & Records',iconEl:ic('note','#6366f1',16),iconBg:'#eef0fd',headerBg:'#f6f6fe',titleFg:'#4338ca',countLabel:items.length+' note'+(items.length===1?'':'s'),countFg:'#1e7a52',countBg:'#e9f6ef',items});
       }
       return cats;
@@ -1163,6 +1172,8 @@ class Component extends DCLogic {
 
     return {
       profileName, profileNdis, profileInit, profileEmail, profilePhone, profileAddress,
+      profileStatusLabel, profilePlanLine, profileReviewLine, profileReviewLineFg, profileReviewLineWeight,
+      planTabTitle, planTabSub, reviewBannerSub, totalBudgetLabel, planPeriodLabel,
       logoEl:ic('pulse','#eafaf8',21),
       logoutEl:ic('logout','#56716a',15),
       dashEl:ic('dash','#6c8a83',15),
@@ -1251,7 +1262,7 @@ class Component extends DCLogic {
       budgetRings,kpis,activity,upcoming,quickActions,
       budgetLines,goals,team,docs,notes,
       hasFunding:budgetRings.length>0,
-      hasKpis:kpis.length>0,
+      hasKpis:demoMode||planBudgets.length>0||goals.length>0||team.length>0||!!pp.plan_end,
       hasActivity:activity.length>0,
       hasUpcoming:upcoming.length>0,
       hasBudgetLines:budgetLines.length>0,

@@ -1312,6 +1312,7 @@ class Component extends DCLogic {
       recordsSessionOnly:!demoMode&&(_liveShiftRows.length>0||snHas),
       recordsDemoDetail:demoMode,
       notifNewCount:demoMode?5:((this.state.liveNotifications||[]).filter(n=>!n.read_at).length||0),
+      showDemo:demoMode,
       hasShiftNotes:snHas,shiftNotes,snDetail,
       checkSmEl:ic('check','#16b8a6',16,2.4),checkWEl:ic('check','#06201c',16),carEl:ic('car','#6366f1',17),
       flagEl:ic('flag','#c0445c',15),backEl:ic('back','#2c4a44',15),noteAddEl:ic('note','#2c4a44',15),

@@ -54,19 +54,33 @@
         catch (e) { return {}; }
       }
 
-      function reportToken(token) {
-        try { localStorage.setItem('ciaralink_push_token', token); } catch (e) {}
+      function postToken(token, authToken) {
         try {
           var sess = clSession();
           var platform = (C.getPlatform && C.getPlatform()) || 'unknown';
+          var headers = { 'Content-Type': 'application/json' };
+          if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
           // Bridge routes /api/* to the live Vercel backend. Best-effort — a 404
           // (endpoint not deployed yet) is swallowed; the token is kept locally.
           fetch('/api/register-push-token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: headers,
             body: JSON.stringify({ token: token, platform: platform, userId: sess.userId || null, role: sess.role || null })
           }).catch(function () {});
         } catch (e) {}
+      }
+
+      function reportToken(token) {
+        try { localStorage.setItem('ciaralink_push_token', token); } catch (e) {}
+        // Attach the Supabase access token so the backend verifies the user
+        // server-side rather than trusting a spoofable body field.
+        try {
+          var c = window.getSupabaseClient && window.getSupabaseClient();
+          if (c && c.auth && c.auth.getSession) {
+            c.auth.getSession()
+              .then(function (r) { postToken(token, r && r.data && r.data.session && r.data.session.access_token); })
+              .catch(function () { postToken(token, null); });
+          } else { postToken(token, null); }
+        } catch (e) { postToken(token, null); }
       }
 
       PN.addListener('registration', function (t) { if (t && t.value) reportToken(t.value); });

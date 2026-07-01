@@ -314,22 +314,27 @@ class Component extends DCLogic {
           this.showToast('Notification dismissed');
         }
       };
-    });
-    const notifications=liveMode?liveCards:(demoMode?[...liveCards,...demoNotifications]:liveCards);
+    }):[];
+    const notifications=demoMode?[...liveCards,...demoNotifications]:liveCards;
 
+    const demoUnreadForRole=(rKey)=>allNotifs.filter(n=>n.roles.includes(rKey)&&!dismissed[n.id]&&!read[n.id]).length||null;
     const roleOpts=[
-      {key:'provider',label:'Provider',iconEl:ic('building','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('provider')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'coordinator',label:'Coordinator',iconEl:ic('star','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('coordinator')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'allied',label:'Allied Health',iconEl:ic('heart','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('allied')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'worker',label:'Support Worker',iconEl:ic('user','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('worker')&&!dismissed[n.id]&&!read[n.id]).length||null},
-      {key:'participant',label:'Participant',iconEl:ic('users','#7e948e',14),count:liveMode?(liveUnread||null):allNotifs.filter(n=>n.roles.includes('participant')&&!dismissed[n.id]&&!read[n.id]).length||null},
+      {key:'provider',label:'Provider',iconEl:ic('building','#7e948e',14),count:demoMode?demoUnreadForRole('provider'):(liveUnread||null)},
+      {key:'coordinator',label:'Coordinator',iconEl:ic('star','#7e948e',14),count:demoMode?demoUnreadForRole('coordinator'):(liveUnread||null)},
+      {key:'allied',label:'Allied Health',iconEl:ic('heart','#7e948e',14),count:demoMode?demoUnreadForRole('allied'):(liveUnread||null)},
+      {key:'worker',label:'Support Worker',iconEl:ic('user','#7e948e',14),count:demoMode?demoUnreadForRole('worker'):(liveUnread||null)},
+      {key:'participant',label:'Participant',iconEl:ic('users','#7e948e',14),count:demoMode?demoUnreadForRole('participant'):(liveUnread||null)},
     ];
     const roleFilters=roleOpts.map(r=>({...r,select:()=>this.setState({role:r.key}),bg:role===r.key?'rgba(255,255,255,.08)':'transparent',fg:role===r.key?'#f4faf8':'#9fb4ae',count:r.count||null}));
 
     const priCounts={urgent:0,high:0,medium:0,low:0};
-    roleFiltered.filter(n=>!dismissed[n.id]).forEach(n=>{if(priCounts[n.pri]!==undefined)priCounts[n.pri]++;});
+    if(demoMode){
+      roleFiltered.filter(n=>!dismissed[n.id]).forEach(n=>{if(priCounts[n.pri]!==undefined)priCounts[n.pri]++;});
+    }else{
+      priCounts.medium=liveRaw.length;
+    }
     const priorityFilters=[
-      {key:'all',label:'All',dot:'#9aa8a3',count:roleFiltered.filter(n=>!dismissed[n.id]).length},
+      {key:'all',label:'All',dot:'#9aa8a3',count:demoMode?roleFiltered.filter(n=>!dismissed[n.id]).length:liveRaw.length},
       {key:'urgent',label:'Urgent',dot:'#e0556e',count:priCounts.urgent},
       {key:'high',label:'High',dot:'#d98b22',count:priCounts.high},
       {key:'medium',label:'Medium',dot:'#6366f1',count:priCounts.medium},
@@ -337,8 +342,8 @@ class Component extends DCLogic {
     ].map(p=>({...p,select:()=>this.setState({priority:p.key}),bg:priority===p.key?'rgba(255,255,255,.08)':'transparent',fg:priority===p.key?'#f4faf8':'#9bb4ae'}));
 
     const roleLabels={provider:'Provider',coordinator:'Support Coordinator',allied:'Allied Health',worker:'Support Worker',participant:'Participant'};
-    const unreadCount=liveMode?liveUnread:(roleFiltered.filter(n=>!dismissed[n.id]&&!read[n.id]).length+liveUnread);
-    const urgentCount=liveMode?liveRaw.filter(n=>!n.read_at&&(String(n.type||'').includes('urgent')||String(n.type||'').includes('sirs'))).length:roleFiltered.filter(n=>!dismissed[n.id]&&n.pri==='urgent').length;
+    const unreadCount=demoMode?(roleFiltered.filter(n=>!dismissed[n.id]&&!read[n.id]).length+liveUnread):liveUnread;
+    const urgentCount=demoMode?roleFiltered.filter(n=>!dismissed[n.id]&&n.pri==='urgent').length:liveRaw.filter(n=>!n.read_at&&(String(n.type||'').includes('urgent')||String(n.type||'').includes('sirs'))).length;
 
     return {
       logoEl:ic('bell','#eafaf8',20),
@@ -348,19 +353,16 @@ class Component extends DCLogic {
       roleLabel:roleLabels[role]||'All',
       unreadCount,urgentCount,
       notifications,
+      showDemo:demoMode,realMode:!demoMode,
       isEmpty:notifications.length===0,
-      emptyTitle:liveMode?'All caught up':(demoMode?'Nothing here yet':'All caught up'),
-      emptyBody:liveMode
+      emptyTitle:demoMode?'Nothing here yet':'All caught up',
+      emptyBody:demoMode
         ?(priority==='all'
+          ?'No demo notifications for this role — sign in to see your live updates.'
+          :('No '+priority+' notifications — check another filter or role.'))
+        :(priority==='all'
           ?'No notifications yet — updates about shifts, referrals, and documents will appear here.'
-          :('No '+priority+' notifications — try another filter or check back later.'))
-        :(demoMode
-          ?(priority==='all'
-            ?'No demo notifications for this role — sign in to see your live updates.'
-            :('No '+priority+' notifications — check another filter or role.'))
-          :(priority==='all'
-            ?'No notifications yet — updates about shifts, referrals, and documents will appear here.'
-            :('No '+priority+' notifications — try another filter or check back later.'))),
+          :('No '+priority+' notifications — try another filter or check back later.')),
       markAllRead:()=>{
         const nr={};
         roleFiltered.forEach(n=>{nr[n.id]=true;});

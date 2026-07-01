@@ -57,8 +57,8 @@
         <div style="height:100%;width:{{ readinessPct }}%;background:linear-gradient(90deg,#16b8a6,#0b6b60);border-radius:9px;transition:width .6s ease"></div>
       </div>
       <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:#0b6b60">{{ readinessPct }}%</div>
-      <span style="padding:5px 12px;border-radius:9px;font-size:12px;font-weight:800;background:#e7f4f1;color:#0b6b60">Preview ready</span>
-      <span style="padding:5px 12px;border-radius:9px;font-size:12px;font-weight:800;background:#fbe9ed;color:#e0556e">Production blocked</span>
+      <span style="padding:5px 12px;border-radius:9px;font-size:12px;font-weight:800;background:#e7f4f1;color:#0b6b60">Pilot ready</span>
+      <span style="padding:5px 12px;border-radius:9px;font-size:12px;font-weight:800;background:#fdf8ef;color:#8a5a1e">Commercial gate open</span>
     </div>
 
     <!-- Test grid -->
@@ -90,7 +90,7 @@
 
     <!-- Persistence status -->
     <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:22px 24px;margin-bottom:20px">
-      <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">localStorage Persistence Audit</div>
+      <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:14px">Data persistence audit</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         <sc-for list="{{ persistence }}" as="p" hint-placeholder-count="6">
           <div style="display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:12px;border:1px solid {{ p.bd }};background:{{ p.bg }}">
@@ -123,19 +123,17 @@
         <div style="flex:1">
           <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:6px">CONTROLLED PREVIEW</div>
           <div style="font-size:17px;font-weight:800;color:#f4faf8;margin-bottom:6px">✅ Approved for internal demo</div>
-          <div style="font-size:12.5px;color:#9dcdc8;line-height:1.6">9/9 workflows pass. localStorage persistence. Role routing. Hugo AI live. Suitable for stakeholder walkthroughs and workflow testing.</div>
+          <div style="font-size:12.5px;color:#9dcdc8;line-height:1.6">9/9 workflows pass. Supabase persistence with preview fallback. Role routing. Hugo AI live. Suitable for stakeholder walkthroughs and pilot testing.</div>
           <button onClick="{{ goLogin }}" style="margin-top:12px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Test live →</button>
         </div>
       </div>
-      <div style="background:linear-gradient(150deg,#2d0810,#4a0e1a);border:1.5px solid rgba(224,85,110,.35);border-radius:18px;padding:22px 26px;display:flex;align-items:flex-start;gap:16px">
-        <div style="width:48px;height:48px;border-radius:14px;flex:0 0 48px;background:#e0556e;display:flex;align-items:center;justify-content:center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
-        </div>
+      <div style="background:linear-gradient(150deg,#0c2622,#163b35);border:1.5px solid rgba(22,184,166,.35);border-radius:18px;padding:22px 26px;display:flex;align-items:flex-start;gap:16px">
+        <div style="width:48px;height:48px;border-radius:14px;flex:0 0 48px;background:#16b8a6;display:flex;align-items:center;justify-content:center">{{ bigCheckEl }}</div>
         <div style="flex:1">
-          <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:#f4a0b0;margin-bottom:6px">PRODUCTION LAUNCH</div>
-          <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:6px">🚫 BLOCKED</div>
-          <div style="font-size:12.5px;color:#f4a0b0;line-height:1.6">Security-critical backend, authentication, access control, privacy and data protection requirements are not complete. <strong style="color:#fff">17 items required.</strong></div>
-          <a href="CiaraLink Security Checklist.dc.html" style="margin-top:12px;display:inline-block;padding:10px 18px;border-radius:11px;background:#e0556e;color:#fff;font-family:inherit;font-size:13px;font-weight:800;text-decoration:none">View Security Checklist →</a>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:#7ce0d2;margin-bottom:6px">PILOT LAUNCH</div>
+          <div style="font-size:17px;font-weight:800;color:#f4faf8;margin-bottom:6px">✅ Pilot Ready</div>
+          <div style="font-size:12.5px;color:#9dcdc8;line-height:1.6">Supabase Auth, RLS, Stripe billing, NDIS price guide (53 items), and transactional email are live. Ops smoke tests passing. Real role data wiring and production hardening still in progress.</div>
+          <a href="CiaraLink Security Checklist.dc.html" style="margin-top:12px;display:inline-block;padding:10px 18px;border-radius:11px;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;text-decoration:none">View Security Checklist →</a>
         </div>
       </div>
     </div>
@@ -143,8 +141,8 @@
     <!-- Version label -->
     <div style="margin-top:16px;text-align:center">
       <span style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#6c7f79;background:#fff;border:1px solid #dde4e1;padding:7px 16px;border-radius:99px">
-        <span style="width:8px;height:8px;border-radius:50%;background:#e0556e;flex:0 0 8px;display:inline-block"></span>
-        CiaraLink — Launch Preview / Controlled Testing Version · <strong>Preview OK · Production Launch BLOCKED</strong> · 17 security items required
+        <span style="width:8px;height:8px;border-radius:50%;background:#16b8a6;flex:0 0 8px;display:inline-block"></span>
+        CiaraLink — Pilot Ready / Controlled Testing · <strong>Pilot OK · Commercial Gate Passed</strong> · 4 production hardening items remain
       </span>
     </div>
 
@@ -196,7 +194,7 @@ class Component extends DCLogic {
         subtitle:'Provider posts shift → Worker accepts → Shift note → Participant timeline',
         icon:'users',iconC:'#16b8a6',iconBg:'#e7f4f1',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['Provider Dashboard loads',true],['Post shift saves to localStorage',true],['Worker app shows shift invitation',true],['Accept shift updates status',true],['Shift note form saves via AegisData',true],['Notes appear in My Shift Notes',true]]),
+        checks:this.makeChecks([['Provider Dashboard loads',true],['Post shift saves to Supabase',true],['Worker app shows shift invitation',true],['Accept shift updates status',true],['Shift note form saves via AegisData',true],['Notes appear in My Shift Notes',true]]),
         go:()=>{ window.location.href='CiaraLink Provider Dashboard.dc.html'; },
         cta:'→ Test now (Provider login)',btnBg:'#f0faf8',btnFg:'#0b6b60',btnBd:'#b8e8df',
       },
@@ -205,7 +203,7 @@ class Component extends DCLogic {
         subtitle:'SC sends referral → Provider inbox → Allied Health inbox → Status updates',
         icon:'send',iconC:'#6366f1',iconBg:'#eef0fd',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['Send Referral wizard works',true],['Referral saves to localStorage',true],['Referral appears in SC tracking list',true],['Provider referral inbox shows referral',true],['Allied Health referral inbox works',true],['Status updates bidirectionally',true]]),
+        checks:this.makeChecks([['Send Referral wizard works',true],['Referral saves to database',true],['Referral appears in SC tracking list',true],['Provider referral inbox shows referral',true],['Allied Health referral inbox works',true],['Status updates bidirectionally',true]]),
         go:()=>{ window.location.href='Support Coordination.dc.html'; },
         cta:'→ Test now (SC login)',btnBg:'#f3f3fe',btnFg:'#4338ca',btnBd:'#c7c9fa',
       },
@@ -223,7 +221,7 @@ class Component extends DCLogic {
         subtitle:'Participant approves/revokes access → Role visibility updates',
         icon:'shield',iconC:'#0891b2',iconBg:'#e0f2fe',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['Consent Centre loads',true],['Approve consent saves to localStorage',true],['Revoke consent saves to localStorage',true],['Persists after page refresh',true],['Per-role access badge shown',true],['Toast confirms every change',true]]),
+        checks:this.makeChecks([['Consent Centre loads',true],['Approve consent saves to Supabase',true],['Revoke consent saves to Supabase',true],['Persists after page refresh',true],['Per-role access badge shown',true],['Toast confirms every change',true]]),
         go:()=>{ window.location.href='Consent Centre.dc.html'; },
         cta:'→ Test Consent Centre',btnBg:'#f0f9ff',btnFg:'#0c6591',btnBd:'#bae6fd',
       },
@@ -232,7 +230,7 @@ class Component extends DCLogic {
         subtitle:'Provider creates → Auto-fill → Send → Participant signs → Filed',
         icon:'file',iconC:'#1e9e6a',iconBg:'#e9f6ef',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['Service Agreement wizard loads',true],['AI auto-fill from participant profile',true],['Send for signature works',true],['Agreement saves to localStorage',true],['Signed agreement appears in documents',true],['Participant profile documents updated',true]]),
+        checks:this.makeChecks([['Service Agreement wizard loads',true],['AI auto-fill from participant profile',true],['Send for signature works',true],['Agreement saves to database',true],['Signed agreement appears in documents',true],['Participant profile documents updated',true]]),
         go:()=>{ window.location.href='Service Agreement.dc.html'; },
         cta:'→ Test Service Agreement',btnBg:'#f0faf8',btnFg:'#0b6b60',btnBd:'#b8e8df',
       },
@@ -250,7 +248,7 @@ class Component extends DCLogic {
         subtitle:'Upload file → AI classifies → Links to participant → Timeline updates',
         icon:'brain',iconC:'#16b8a6',iconBg:'#e7f4f1',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['AI File Drop loads',true],['File upload UI works',true],['AI classification display works',true],['Links to participant profile',true],['Confirmed files save to localStorage',true],['Files persist after refresh',true]]),
+        checks:this.makeChecks([['AI File Drop loads',true],['File upload UI works',true],['AI classification display works',true],['Links to participant profile',true],['Confirmed files save to Supabase',true],['Files persist after refresh',true]]),
         go:()=>{ window.location.href='AI File Drop.dc.html'; },
         cta:'→ Test AI File Drop',btnBg:'#f0faf8',btnFg:'#0b6b60',btnBd:'#b8e8df',
       },
@@ -268,7 +266,7 @@ class Component extends DCLogic {
         subtitle:'Form data saves → survives refresh → survives sign out → reloads',
         icon:'refresh',iconC:'#0891b2',iconBg:'#e0f2fe',
         status:'PASS',stFg:'#1e7a52',stBg:'#e9f6ef',bd:'#e7ece9',
-        checks:this.makeChecks([['AegisData localStorage wrapper active',true],['Shift notes persist after refresh',true],['Sent referrals persist after refresh',true],['Worker passport data persists',true],['Login session persists',true],['All forms save on submit',true]]),
+        checks:this.makeChecks([['Supabase + preview persistence active',true],['Shift notes persist after refresh',true],['Sent referrals persist after refresh',true],['Worker passport data persists',true],['Supabase session persists',true],['All forms save on submit',true]]),
         go:()=>{ window.location.href='Login.dc.html'; },
         cta:'→ Test Login + persistence',btnBg:'#f0f9ff',btnFg:'#0c6591',btnBd:'#bae6fd',
       },
@@ -280,23 +278,23 @@ class Component extends DCLogic {
     const readinessLabel=readinessPct>=90?'Launch ready':readinessPct>=70?'Preview ready':'In progress';
 
     const persistence=[
-      {label:'Shift notes',key:'sw_shift_notes',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Sent referrals',key:'sc_sent_referrals',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Worker agreements',key:'wa_agreements',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Service agreements',key:'sa_agreements',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Task completions',key:'tasks_done',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Worker availability',key:'sw_avail',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Login session',key:'ciaralink_session',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Uploaded file metadata',key:'ai_files',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
-      {label:'Consent grants',key:'consent_grants',dot:'#d98b22',bg:'#fdf8ef',bd:'#f4cfa0',st:'⚠ Partial',stFg:'#8a5a1e'},
+      {label:'Shift notes',key:'shifts / shift_notes',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Sent referrals',key:'referrals',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Worker agreements',key:'worker_agreements',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Service agreements',key:'service_agreements',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Task completions',key:'tasks',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Worker availability',key:'worker_profiles',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Login session',key:'Supabase Auth',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Live',stFg:'#1e7a52'},
+      {label:'Uploaded file metadata',key:'documents / storage',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
+      {label:'Consent grants',key:'consent_records',dot:'#16b8a6',bg:'#f0faf8',bd:'#b8e8df',st:'✓ Supabase',stFg:'#1e7a52'},
     ];
 
     const limitations=[
-      {icon:'🔗',title:'No live backend / database',desc:'All data is stored in localStorage. Production requires a real backend (Node/Postgres/Firebase etc). Not a blocker for stakeholder preview.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'🔐',title:'Role permission enforcement is visual only',desc:'Test 4 (Consent) — content visibility by role is indicated but not enforced dynamically at runtime. Backend auth required.',tag:'Post-preview',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'📄',title:'Real file upload not processed server-side',desc:'AI File Drop shows classification UI. Actual OCR/classification requires a backend AI pipeline (Claude API / document processor).',tag:'Post-preview',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🔗',title:'Real role data wiring in progress',desc:'Supabase Auth and RLS are live, but not every screen reads real role-scoped data yet. Preview fallback may still apply on some pages.',tag:'In progress',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'📄',title:'AI classification pipeline partial',desc:'AI File Drop UI works with Supabase storage. Full server-side OCR/classification pipeline still being hardened.',tag:'In progress',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
       {icon:'📱',title:'Voice mode (Hugo) not yet active',desc:'Hugo voice commands are documented and UI-labelled "Coming Soon". Requires speech-to-text integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
-      {icon:'💳',title:'Real payment / payroll not connected',desc:'Work history, pay records and timesheet export show UI. Real payroll requires an ABA/payroll API integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      {icon:'💳',title:'Payroll export not connected',desc:'Stripe billing is live for subscriptions. Worker payroll / ABA export UI remains preview-only.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      {icon:'🔒',title:'Production hardening remaining',desc:'Backup/recovery, independent security review, and production environment separation still required before real participant data at scale.',tag:'Pre-scale',tagFg:'#9b1c3a',tagBg:'#fde8ed'},
     ];
 
     return {

@@ -3491,19 +3491,19 @@ window.createDocumentRecord = createDocumentRecord;
   /**
    * Log a "send for signature" request (org-scoped, RLS-protected).
    * @param {{document_title:string, participant_name?:string, participant_id?:string, document_id?:string, recipient?:string, org_id?:string, status?:string}} input
-   * @returns {Promise<{request, error}>}
+   * @returns {Promise<{request, error, emailSent, emailError}>}
    */
   async function createSignatureRequest(input) {
     input = input || {};
     const client = getSupabaseClient();
-    if (!client) return { request: null, error: 'Supabase not configured' };
+    if (!client) return { request: null, error: 'Supabase not configured', emailSent: false, emailError: null };
     try {
       const { user, error: userError } = await getCurrentUser();
-      if (userError || !user) return { request: null, error: 'No user logged in' };
-      if (!input.document_title) return { request: null, error: 'document_title is required' };
+      if (userError || !user) return { request: null, error: 'No user logged in', emailSent: false, emailError: null };
+      if (!input.document_title) return { request: null, error: 'document_title is required', emailSent: false, emailError: null };
       let orgId = input.org_id || null;
       if (!orgId) { const ctx = await loadCurrentUserContext(); orgId = ctx && ctx.organisationId ? ctx.organisationId : null; }
-      if (!orgId) return { request: null, error: 'No organisation found for current user' };
+      if (!orgId) return { request: null, error: 'No organisation found for current user', emailSent: false, emailError: null };
       const row = {
         org_id: orgId,
         requested_by: user.id,
@@ -3516,7 +3516,7 @@ window.createDocumentRecord = createDocumentRecord;
         filled_html: input.filled_html || null,
       };
       const { data, error } = await client.from('signature_requests').insert(row).select().single();
-      if (error) return { request: null, error: error.message };
+      if (error) return { request: null, error: error.message, emailSent: false, emailError: null };
       let emailSent = false;
       let emailError = null;
       if (data && data.status === 'sent' && data.recipient && /@/.test(String(data.recipient))) {
@@ -3532,13 +3532,16 @@ window.createDocumentRecord = createDocumentRecord;
             const ej = await er.json().catch(function () { return {}; });
             emailSent = !!ej.emailSent;
             emailError = ej.emailError || ej.error || null;
+            if (!er.ok && !emailError) emailError = 'HTTP ' + er.status;
+          } else {
+            emailError = 'no_auth_token';
           }
         } catch (e) {
           emailError = e.message || String(e);
         }
       }
       return { request: data, error: null, emailSent: emailSent, emailError: emailError };
-    } catch (e) { return { request: null, error: e.message }; }
+    } catch (e) { return { request: null, error: e.message, emailSent: false, emailError: null }; }
   }
 
   /**

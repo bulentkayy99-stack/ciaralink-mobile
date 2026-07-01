@@ -54,9 +54,11 @@
           <div style="flex:1;height:4px;border-radius:99px;background:{{ p.bg }}"></div>
         </sc-for>
       </div>
+      <sc-if value="{{ showPreviewBanner }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;z-index:35;padding:0 18px 10px;background:{{ barBg }}">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#fbf0df;border:1px solid #f4e6cf;padding:4px 10px;border-radius:999px;color:#b4561f">Preview — simulated visit · not a live verified record</span>
       </div>
+      </sc-if>
 
       <div class="scrl" style="flex:1;overflow-y:auto;background:#f4f7f5">
 
@@ -90,10 +92,10 @@
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
               <div style="display:flex;align-items:center;gap:12px">
                 <div style="width:48px;height:48px;border-radius:14px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">{{ clientInit }}</div>
-                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ clientName }}</div><div style="font-size:12.5px;color:#6c7f79">Personal Care · 11:00–15:00</div></div>
+                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ clientName }}</div><div style="font-size:12.5px;color:#6c7f79">{{ shiftServiceLabel }}</div></div>
               </div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid #f1f4f2"><div style="width:24px;height:24px;border-radius:7px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ assignIconEl }}</div><span style="font-size:11.5px;color:#6c7f79">Assigned by <b style="color:#14302b">Brightside Care</b> · service provider</span></div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid #f1f4f2;font-size:12.5px;color:#41635c">{{ pinDkEl }}12 Rose Street, Glenroy VIC 3046</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid #f1f4f2;font-size:12.5px;color:#41635c">{{ pinDkEl }}{{ shiftAddress }}</div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:12px;background:#e9f6ef;border-radius:12px;padding:11px 13px">
                 <span style="display:flex">{{ checkCircEl }}</span>
                 <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#1e7a52">You're at the location</div><div style="font-size:11.5px;color:#3f8c65">Within 6m of client's home · geofence confirmed</div></div>
@@ -358,7 +360,7 @@
   </div>
   </sc-if>
 
-  <sc-if value="{{ realMode }}" hint-placeholder-val="">
+  <sc-if value="{{ realModeEmpty }}" hint-placeholder-val="">
   <div style="width:min(480px,100%);padding:36px 28px;border-radius:24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#eafaf8;text-align:center">
     <div style="font-size:22px;font-weight:800;letter-spacing:-.02em">Verified visits from your roster</div>
     <div style="font-size:14px;line-height:1.6;color:#9fb8b1;margin-top:12px">Clock in on site from Support Worker when you have an assigned shift. This simulated walkthrough is preview-only and does not record a real visit.</div>
@@ -402,8 +404,25 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:820,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { step:0, role:0, tasks:[true,true,false,false], mood:0, chips:{}, signMode:'sig', skipReason:null, travelPurpose:0, toast:null };
+  state = { step:0, role:0, tasks:[true,true,false,false], mood:0, chips:{}, signMode:'sig', skipReason:null, travelPurpose:0, toast:null, vvShift:null };
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  componentDidMount(){ this.loadShift(); }
+  loadShift(){
+    try{
+      if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured())||!window.queryShiftsForWorker) return;
+      let shiftId=null;
+      try{ shiftId=new URLSearchParams(window.location.search).get('shift'); }catch(e){}
+      Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
+        const real=(shifts||[]).filter(s=>s&&s.id&&!String(s.id).startsWith('demo-'));
+        let shift=shiftId?real.find(s=>String(s.id)===String(shiftId)):null;
+        if(!shift){
+          const upcoming=real.filter(s=>s.status!=='completed');
+          shift=upcoming.find(s=>s.status==='accepted'||s.status==='in_progress')||upcoming[0]||null;
+        }
+        if(shift) this.setState({vvShift:shift});
+      }).catch(err=>console.warn('[VerifiedVisit] loadShift:',err));
+    }catch(err){ console.warn('[VerifiedVisit] loadShift:',err); }
+  }
   ic(name,color,size,sw){
     const stroke=color||'#5f726d',s=size||18;
     const P={
@@ -448,11 +467,21 @@ class Component extends DCLogic {
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const step=this.state.step;
-    const demoMode=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
-    const clientName=demoMode?'Margaret Reyes':'Assigned client';
-    const clientShort=demoMode?'Margaret R.':'Assigned client';
-    const clientInit=demoMode?'MR':'—';
-    const assignedBy=demoMode?'Brightside Care':'Your provider';
+    const configured=!!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    const demoMode=!configured;
+    const sh=this.state.vvShift;
+    const hasShift=!!(sh&&sh.id&&!String(sh.id).startsWith('demo-'));
+    const pName=hasShift&&sh.participants?(sh.participants.preferred_name||sh.participants.full_name):null;
+    const pParts=String(pName||'').trim().split(/\s+/);
+    const clientName=demoMode?'Margaret Reyes':(pName||'Assigned client');
+    const clientShort=demoMode?'Margaret R.':(pParts.length>1?pParts[0]+' '+pParts[pParts.length-1][0]+'.':(pName||'Assigned client'));
+    const clientInit=demoMode?'MR':(pParts.length>1?(pParts[0][0]+pParts[pParts.length-1][0]).toUpperCase():(pName||'—').slice(0,2).toUpperCase());
+    const shiftLocation=hasShift?(sh.location||''):'';
+    const _timePart=(s)=>{ const m=String(s||'').match(/\d{1,2}:\d{2}/); return m?m[0]:''; };
+    const shiftTimeRange=hasShift?_timePart(sh.start_time)+(_timePart(sh.end_time)?('–'+_timePart(sh.end_time)):''):'';
+    const shiftType=hasShift?(sh.support_type||sh.title||'Support'):'';
+    const shiftServiceLabel=demoMode?'Personal Care · 11:00–15:00':(hasShift?(shiftType+(shiftTimeRange?' · '+shiftTimeRange:'')):'—');
+    const shiftAddress=demoMode?'12 Rose Street, Glenroy VIC 3046':(shiftLocation||'—');
 
     // ---- sign-out confirmation modes ----
     const signMode=this.state.signMode;
@@ -480,7 +509,7 @@ class Component extends DCLogic {
       ? {msg:'Skipped with a logged reason — still GPS-verified.',ok:true}
       : {msg:'Pick a reason to log why there\u2019s no signature.',ok:false};
 
-    const visitType='Support Worker \u00b7 Personal Care';
+    const visitType=demoMode?'Support Worker \u00b7 Personal Care':('Support Worker \u00b7 '+(shiftType||'Support'));
     const assignedBy={name:'Brightside Care',type:'Service provider'};
 
     const titles=[
@@ -647,8 +676,8 @@ class Component extends DCLogic {
       sparkWEl:ic('spark','#eafaf8',15),editEl:ic('edit','#0b6b60',15),editSmEl:ic('edit','#9aa8a3',13),
       bigCheckSmEl:ic('checkCirc','#1e9e6a',18),
       routing:[{label:'Sent to '+assignedBy+' (service provider)',iconEl:ic('send','#16b8a6',15)},{label:'Support coordinator notified',iconEl:ic('users','#16b8a6',15)},{label:(demoMode?'Saved to Margaret\u2019s client file':'Saved to client file'),iconEl:ic('folder','#16b8a6',15)}],
-      showDemo:demoMode,realMode:!demoMode,
-      clientName,clientShort,clientInit,assignedBy,
+      showDemo:demoMode||hasShift,realMode:configured,realModeEmpty:configured&&!hasShift,showPreviewBanner:demoMode,
+      clientName,clientShort,clientInit,shiftServiceLabel,shiftAddress,assignedBy,
       homeEl:ic('home','#fff',20),pinDkEl:ic('pin','#16b8a6',16),checkCircEl:ic('checkCirc','#1e9e6a',22),
       shieldEl:ic('shield','#06201c',18),
       qrBigEl:ic('qr','#0c2622',96,1.4),qrSmEl:ic('qr','#06201c',18),
