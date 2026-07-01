@@ -1,14 +1,14 @@
-# CiaraLink — App Store Connect submit (build 4 / 1.0.0)
+# CiaraLink — App Store Connect submit (build 5 / 1.0.0)
 
 Technical prep done on this machine:
 
-- **Build uploaded:** `1.0.0 (4)` via Xcode **26.5 GM** (`DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer`)
+- **Build uploaded:** *(pending)* — target `1.0.0 (5)` via Xcode **26.5 GM** (`DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer`)
 - **Upload:** `xcodebuild -exportArchive` with `ExportOptions.plist` (`app-store-connect`, `upload`) — **Upload succeeded** 2026-06-29
 - **Device family:** iPhone only (`UIDeviceFamily` = `1`)
-- **Archive:** `ios/App/build/App-build4.xcarchive`
+- **Archive:** `ios/App/build/App-build5.xcarchive`
 - **Screenshots:** `store-assets/ios/iphone-6.9/01-sign-in.png`, `02-provider-dashboard.png`, `03-support-worker.png` (1320×2868)
 
-Wait until App Store Connect shows build **4** as **Ready to Submit** (Processing usually 5–30 minutes).
+Wait until App Store Connect shows build **5** as **Ready to Submit** (Processing usually 5–30 minutes).
 
 ### Fixes in build 4 (Invalid Binary mitigation)
 
@@ -16,7 +16,7 @@ Wait until App Store Connect shows build **4** as **Ready to Submit** (Processin
 - **`UIRequiredDeviceCapabilities`:** `armv7` → **`arm64`**
 - Added app **`PrivacyInfo.xcprivacy`** (bundled in target)
 - **`ONLY_ACTIVE_ARCH = NO`** on Release (device archive)
-- **`CURRENT_PROJECT_VERSION` = 4**
+- **`CURRENT_PROJECT_VERSION` = 5** (build 5; Android `versionCode` 5)
 
 ---
 
@@ -28,10 +28,10 @@ Wait until App Store Connect shows build **4** as **Ready to Submit** (Processin
 
 ---
 
-## 2. Attach build 4 to version 1.0
+## 2. Attach build 5 to version 1.0
 
 1. **Distribution** → version **1.0** (Prepare for Submission).
-2. **Build** → **+** → select **`1.0.0 (4)`** (not build 3 or older).
+2. **Build** → **+** → select **`1.0.0 (5)`** (not build 4 or older).
 3. Save the version page.
 
 ---
@@ -46,8 +46,8 @@ Wait until App Store Connect shows build **4** as **Ready to Submit** (Processin
 
 ## 4. TestFlight — internal testing (optional before review)
 
-1. **TestFlight** tab → wait until build **4** finishes processing.
-2. **Internal Testing** → create or open a group → **+** → add build **`1.0.0 (4)`**.
+1. **TestFlight** tab → wait until build **5** finishes processing.
+2. **Internal Testing** → create or open a group → **+** → add build **`1.0.0 (5)`**.
 3. Add internal testers (App Store Connect users on your team). They install via **TestFlight** app.
 4. Smoke-test sign-in and core flows before **Submit to App Review**.
 
@@ -70,7 +70,7 @@ Copy/paste from **`APP_REVIEW_PASTE.md`** into App Store Connect → App Review 
 
 ---
 
-## Re-upload reference (build 4 — already uploaded)
+## Upload reference (build 5)
 
 ```bash
 cd /Users/billy/ciaralink-mobile
@@ -80,13 +80,13 @@ cd ios/App
 DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer \
   xcodebuild -project App.xcodeproj -scheme App -configuration Release \
   -destination 'generic/platform=iOS' \
-  -archivePath build/App-build4.xcarchive \
+  -archivePath build/App-build5.xcarchive \
   -allowProvisioningUpdates DEVELOPMENT_TEAM=38GH68YP88 archive
 
 DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer \
   xcodebuild -exportArchive \
-  -archivePath build/App-build4.xcarchive \
-  -exportPath build/export-build4 \
+  -archivePath build/App-build5.xcarchive \
+  -exportPath build/export-build5 \
   -exportOptionsPlist ExportOptions.plist \
   -allowProvisioningUpdates
 ```
@@ -94,7 +94,7 @@ DEVELOPER_DIR=/Applications/Xcode-26.5.app/Contents/Developer \
 Validate archive before export:
 
 ```bash
-ARCH=build/App-build4.xcarchive/Products/Applications/App.app
+ARCH=build/App-build5.xcarchive/Products/Applications/App.app
 plutil -lint "$ARCH/Info.plist"
 plutil -p "$ARCH/Info.plist" | grep -E 'CFBundleVersion|UIDeviceFamily|UIBackground'
 codesign -dv "$ARCH"
