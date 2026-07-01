@@ -829,6 +829,7 @@ class Component extends DCLogic {
       if(Object.keys(avail).length) upd.avail=avail;
       if(Object.keys(upd).length) this.setState(upd);
     }
+    this.applyUrlNav();
     this.loadWorkerData();
     this.loadIdentity();
     this.loadDocuments();
@@ -852,8 +853,26 @@ class Component extends DCLogic {
       }).catch(()=>{});
     }catch(e){}
   }
-  state = { view:'home', backTo:'home', workFilter:'all', pro:false, showPhoto:true, paid:{}, scan:'idle', swClients:[], swShifts:[], supabaseConnected:(typeof window!=='undefined'&&window.isSupabaseConfigured&&window.isSupabaseConfigured())||false, authName:null, authInitials:null, authRole:null, toast:null, swOrgId:null, swBusy:false, swAddClientOpen:false, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:'', nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:'', swNoteClient:'', swSelectedClient:null, swClientContacts:[], swClientNotes:[], swDocuments:[], swDocUploading:false, swLanguages:null, swSkills:null, swThreads:null, swExpandedNoteId:null, notifUnread:0 };
+  state = { view:'home', backTo:'home', workFilter:'all', pro:false, showPhoto:true, paid:{}, scan:'idle', swClients:[], swShifts:[], supabaseConnected:(typeof window!=='undefined'&&window.isSupabaseConfigured&&window.isSupabaseConfigured())||false, authName:null, authInitials:null, authRole:null, toast:null, swOrgId:null, swBusy:false, swAddClientOpen:false, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:'', nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:'', swNoteClient:'', swSelectedClient:null, swClientContacts:[], swClientNotes:[], swDocuments:[], swDocUploading:false, swLanguages:null, swSkills:null, swThreads:null, swExpandedNoteId:null, notifUnread:0, swDeepShiftId:null, swDeepShiftConsumed:false };
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  applyUrlNav(){
+    try{
+      const shiftId=new URLSearchParams(window.location.search).get('shift');
+      if(shiftId) this.setState({ swDeepShiftId:shiftId, view:'work' });
+    }catch(e){}
+  }
+  consumeDeepShift(){
+    const id=this.state.swDeepShiftId;
+    if(!id||this.state.swDeepShiftConsumed) return;
+    const shifts=this.state.swShifts||[];
+    const sh=shifts.find(s=>String(s.id)===String(id));
+    if(!sh) return;
+    const nm=(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    this.setState({ swDeepShiftConsumed:true, view:'work' });
+    if(sh.participant_id){
+      this.openClientFile(Object.assign({id:sh.participant_id}, sh.participants||{}, {full_name:nm}));
+    } else { this.showToast('No client file is linked to this shift yet'); }
+  }
   // Load the logged-in worker's assigned participants + shifts from Supabase
   // (RLS-scoped). Falls back to demo data via the query helpers.
   loadWorkerData(){
@@ -870,8 +889,9 @@ class Component extends DCLogic {
       if(window.queryShiftsForWorker){
         Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
           const real=(shifts||[]).filter(s=>s&&s.id&&!String(s.id).startsWith('demo-'));
-          if(configured){ this.setState({ swShifts: real }); }
-          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }); }
+          if(configured){ this.setState({ swShifts: real }, ()=>this.consumeDeepShift()); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }, ()=>this.consumeDeepShift()); }
+          else { this.consumeDeepShift(); }
         }).catch(err=>console.error('loadWorkerData shifts error:',err));
       }
     };
@@ -1113,11 +1133,17 @@ class Component extends DCLogic {
       return {label,onClick:()=>this.setView(key),fg:a?'#0b6b60':'#9aa8a3',iconEl:ic(icon,a?'#16b8a6':'#9aa8a3',22,a?2.1:1.7)};
     });
 
-    // home recent notes
+    // home recent notes — demo showcase, or the worker's real notes from loadShiftNotesFromDb.
+    const noteTints=['#16b8a6','#d98b22','#6366f1','#9333ea','#0891b2','#0e5147'];
+    const _mapHomeNote=(n,i)=>{
+      const body=String(n.body||'').trim();
+      const preview=body.length>52?body.slice(0,52)+'…':body;
+      return {client:n.client||'Client',init:n.init||(String(n.client||'C').substring(0,2).toUpperCase()),tint:noteTints[i%noteTints.length],preview,verified:'Saved',time:n.date||''};
+    };
     const recentNotes=demoMode?[
       {client:'Margaret R.',init:'MR',tint:'#16b8a6',preview:'Good spirits, ate well, steady mobility…',verified:'Verified',time:'Wed'},
       {client:'Tom B.',init:'TB',tint:'#d98b22',preview:'Community outing to library, big win…',verified:'Verified',time:'Tue'}
-    ]:[];
+    ]:(this.state.swSavedNotes||[]).slice(0,2).map(_mapHomeNote);
     const _pd=(label,state)=>{
       const m={done:{dotBg:'#16b8a6',dotBd:'#16b8a6',fg:'#0b6b60',iconEl:ic('check','#fff',14,2.6),lineBg:'#16b8a6'},
         now:{dotBg:'#fbf0df',dotBd:'#d98b22',fg:'#b4561f',iconEl:ic('clock','#d98b22',14),lineBg:'#e2e9e6'},
@@ -1196,7 +1222,8 @@ class Component extends DCLogic {
     };
     const mapShift=(sh,i)=>{
       const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
-      return {accent:st.accent,cardBd:st.cardBd,tint:swTints2[i%swTints2.length],
+      const isDeep=!!(this.state.swDeepShiftId&&String(sh.id)===String(this.state.swDeepShiftId));
+      return {accent:isDeep?'#0b6b60':st.accent,cardBd:isDeep?'#16b8a6':st.cardBd,tint:swTints2[i%swTints2.length],
         client:nm,init:nm.substring(0,2).toUpperCase(),
         hasBadge:true,badge:st.badge,badgeBg:st.badgeBg,badgeFg:st.badgeFg,
         bldgEl:ic('pin','#9aa8a3',13),provider:sh.location||'Location TBC',
@@ -1511,7 +1538,7 @@ class Component extends DCLogic {
       walletEl:ic('wallet','#7ce0d2',15),bankEl:ic('bank','#06201c',17),bankSmEl:ic('bank','#86a39b',13),
       goPayments:()=>this.push('payments'),
       goPlans:()=>this.push('plans'),goWork:()=>this.setView('work'),
-      openNote:()=>{ if(!demoMode){ this.showToast('Shift notes appear here after you submit them from a visit'); return; } this.push('note'); },
+      openNote:()=>{ if(demoMode){ this.push('note'); return; } if((this.state.swSavedNotes||[]).length){ this.push('shift_notes'); return; } this.showToast('No shift notes yet — tap "+ Add note" after a visit'); },
       openClient:()=>this.push('client'),
       back:()=>this.setView(this.state.backTo),
       backEl:ic('back','#14302b',18),chevEl:ic('chev','#b6c4be',16),

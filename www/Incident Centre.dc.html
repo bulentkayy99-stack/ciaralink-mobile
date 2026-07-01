@@ -244,6 +244,7 @@ class Component extends DCLogic {
     report: null,
     busy: false,
     toast: null,
+    pendingDeepId: null,
   };
 
   componentDidMount() {
@@ -255,16 +256,32 @@ class Component extends DCLogic {
           if (ctx && !ctx.error) this.setState({ orgId: ctx.organisationId || null, actorLabel: (ctx.profile && ctx.profile.full_name) || (ctx.user && ctx.user.email) || null });
         }).catch(() => {});
       }
+      this.applyUrlNav();
       this.loadAll();
     } catch (e) {}
     this.setState({ loading: false });
   }
 
+  applyUrlNav() {
+    try {
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (id) this.setState({ pendingDeepId: id });
+    } catch (e) {}
+  }
+
+  consumeDeepLink() {
+    const id = this.state.pendingDeepId;
+    if (!id) return;
+    this.setState({ pendingDeepId: null });
+    this.open(id);
+  }
+
   loadAll() {
-    if (!window.loadIncidents) return;
+    if (!window.loadIncidents) { this.consumeDeepLink(); return; }
     Promise.resolve(window.loadIncidents({ limit: 300 })).then((res) => {
-      if (res && !res.error) this.setState({ incidents: res.incidents || [] });
-    }).catch(() => {});
+      if (res && !res.error) this.setState({ incidents: res.incidents || [] }, () => this.consumeDeepLink());
+      else this.setState({}, () => this.consumeDeepLink());
+    }).catch(() => this.consumeDeepLink());
   }
 
   open(id) {

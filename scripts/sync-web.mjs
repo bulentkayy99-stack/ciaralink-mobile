@@ -575,6 +575,147 @@ async function run() {
       console.log('  patched Login.dc.html for native auth (helpers + maybeSingle + next + supabase-ready + reset)');
     }
   }
+
+  // 4f. Deep-link handlers for notification tap targets (?shift= / ?id=).
+  //     Re-applied after every copy from ../ciaralink so npm run refresh never
+  //     drops mobile notification routing. All guarded — no-op once applied.
+  const swPath = path.join(DEST, 'Support Worker.dc.html');
+  if (existsSync(swPath)) {
+    let sw = await fs.readFile(swPath, 'utf8');
+    let changed = false;
+
+    if (!sw.includes('swDeepShiftId')) {
+      sw = sw.replace(
+        'swExpandedNoteId:null, notifUnread:0 };',
+        'swExpandedNoteId:null, notifUnread:0, swDeepShiftId:null, swDeepShiftConsumed:false };'
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('applyUrlNav(){') && sw.includes('showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }')) {
+      sw = sw.replace(
+        'showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }',
+        `showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  applyUrlNav(){
+    try{
+      const shiftId=new URLSearchParams(window.location.search).get('shift');
+      if(shiftId) this.setState({ swDeepShiftId:shiftId, view:'work' });
+    }catch(e){}
+  }
+  consumeDeepShift(){
+    const id=this.state.swDeepShiftId;
+    if(!id||this.state.swDeepShiftConsumed) return;
+    const shifts=this.state.swShifts||[];
+    const sh=shifts.find(s=>String(s.id)===String(id));
+    if(!sh) return;
+    const nm=(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    this.setState({ swDeepShiftConsumed:true, view:'work' });
+    if(sh.participant_id){
+      this.openClientFile(Object.assign({id:sh.participant_id}, sh.participants||{}, {full_name:nm}));
+    } else { this.showToast('No client file is linked to this shift yet'); }
+  }`
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('this.applyUrlNav();') && sw.includes('this.loadWorkerData();')) {
+      sw = sw.replace('this.loadWorkerData();', 'this.applyUrlNav();\n    this.loadWorkerData();');
+      changed = true;
+    }
+
+    if (!sw.includes('consumeDeepShift') && sw.includes('if(configured){ this.setState({ swShifts: real }); }')) {
+      sw = sw.replace(
+        `if(configured){ this.setState({ swShifts: real }); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }); }`,
+        `if(configured){ this.setState({ swShifts: real }, ()=>this.consumeDeepShift()); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }, ()=>this.consumeDeepShift()); }
+          else { this.consumeDeepShift(); }`
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('swDeepShiftId&&String(sh.id)') && sw.includes('const mapShift=(sh,i)=>{')) {
+      sw = sw.replace(
+        `const mapShift=(sh,i)=>{
+      const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
+      return {accent:st.accent,cardBd:st.cardBd,tint:swTints2[i%swTints2.length],`,
+        `const mapShift=(sh,i)=>{
+      const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
+      const isDeep=!!(this.state.swDeepShiftId&&String(sh.id)===String(this.state.swDeepShiftId));
+      return {accent:isDeep?'#0b6b60':st.accent,cardBd:isDeep?'#16b8a6':st.cardBd,tint:swTints2[i%swTints2.length],`
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(swPath, sw);
+      console.log('  patched Support Worker.dc.html for ?shift= deep links');
+    }
+  }
+
+  const icPath = path.join(DEST, 'Incident Centre.dc.html');
+  if (existsSync(icPath)) {
+    let ic = await fs.readFile(icPath, 'utf8');
+    let changed = false;
+
+    if (!ic.includes('pendingDeepId')) {
+      ic = ic.replace(
+        'toast: null,\n  };',
+        'toast: null,\n    pendingDeepId: null,\n  };'
+      );
+      changed = true;
+    }
+
+    if (!ic.includes('applyUrlNav()') && ic.includes('componentDidMount() {')) {
+      ic = ic.replace(
+        `      this.loadAll();
+    } catch (e) {}
+    this.setState({ loading: false });
+  }
+
+  loadAll() {
+    if (!window.loadIncidents) return;
+    Promise.resolve(window.loadIncidents({ limit: 300 })).then((res) => {
+      if (res && !res.error) this.setState({ incidents: res.incidents || [] });
+    }).catch(() => {});
+  }`,
+        `      this.applyUrlNav();
+      this.loadAll();
+    } catch (e) {}
+    this.setState({ loading: false });
+  }
+
+  applyUrlNav() {
+    try {
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (id) this.setState({ pendingDeepId: id });
+    } catch (e) {}
+  }
+
+  consumeDeepLink() {
+    const id = this.state.pendingDeepId;
+    if (!id) return;
+    this.setState({ pendingDeepId: null });
+    this.open(id);
+  }
+
+  loadAll() {
+    if (!window.loadIncidents) { this.consumeDeepLink(); return; }
+    Promise.resolve(window.loadIncidents({ limit: 300 })).then((res) => {
+      if (res && !res.error) this.setState({ incidents: res.incidents || [] }, () => this.consumeDeepLink());
+      else this.setState({}, () => this.consumeDeepLink());
+    }).catch(() => this.consumeDeepLink());
+  }`
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(icPath, ic);
+      console.log('  patched Incident Centre.dc.html for ?id= deep links');
+    }
+  }
+
   if (nativePatched) console.log(`  rewrote native sign-out redirect on ${nativePatched} page(s)`);
 
   // 5. Secret guard: env.local.js must be anon-only, and no service_role anywhere.
