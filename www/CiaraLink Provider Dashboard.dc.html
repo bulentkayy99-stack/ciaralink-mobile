@@ -135,7 +135,7 @@
         <button onClick="{{ connectWorker }}" style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:1px solid #cfeae5;background:#eafaf7;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#dcf4ef;border:1px solid #b4ddd6">{{ connectEl }}<span>Connect worker</span></button>
         <button onClick="{{ scanQr }}" style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ qrEl }}<span>Scan QR</span></button>
         <button onClick="{{ goBilling }}" style="width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px" style-hover="background:#f6f9f7" title="Billing &amp; plan">💳</button>
-        <button onClick="{{ goNotifications }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e" style-hover="background:#f6f9f7" title="Notifications">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></button>
+        <button onClick="{{ goNotifications }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e" style-hover="background:#f6f9f7" title="Notifications">{{ bellEl }}<sc-if value="{{ notifUnread }}" hint-placeholder-val=""><span style="position:absolute;top:9px;right:10px;min-width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></sc-if></button>
       </div>
     </header>
 
@@ -227,7 +227,7 @@
                     <div style="flex:0 0 232px;display:flex;align-items:center;gap:12px;background:#f7faf9;border:1px solid #e7ece9;border-radius:13px;padding:10px 12px">
                       <div style="position:relative">
                         <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:{{ g.matchTint }}">{{ g.matchInit }}</div>
-                        <div style="position:absolute;-bottom:0;bottom:-6px;right:-6px;font-size:10px;font-weight:800;color:#06201c;background:#7ce0d2;border:2px solid #f7faf9;border-radius:7px;padding:1px 4px">{{ g.matchScore }}</div>
+                        <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;-bottom:0;bottom:-6px;right:-6px;font-size:10px;font-weight:800;color:#06201c;background:#7ce0d2;border:2px solid #f7faf9;border-radius:7px;padding:1px 4px">{{ g.matchScore }}</div></sc-if>
                       </div>
                       <div style="flex:1;min-width:0">
                         <div style="font-size:13px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.matchName }}</div>
@@ -313,6 +313,7 @@
 
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px">
               <div style="font-size:15.5px;font-weight:800;letter-spacing:-.01em;color:#14302b;margin-bottom:16px">Compliance & readiness</div>
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;justify-content:space-around;gap:8px">
                 <sc-for list="{{ rings }}" as="r" hint-placeholder-count="3">
                   <div style="text-align:center">
@@ -323,7 +324,8 @@
                   </div>
                 </sc-for>
               </div>
-              <sc-if value="{{ realMode }}" hint-placeholder-val="">
+              </sc-if>
+              <sc-if value="{{ noCompliance }}" hint-placeholder-val="">
                 <div style="padding:14px 4px 2px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">No compliance data yet — it builds as you add clients &amp; documents.</div>
               </sc-if>
             </div>
@@ -355,6 +357,7 @@
                 <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:12px;padding:11px 13px"><div style="font-size:10.5px;color:#9aa8a3;letter-spacing:.03em">BUDGET USED</div><div style="font-size:22px;font-weight:800;color:#14302b;margin-top:3px">$127k</div><div style="font-size:11px;color:#8a9a94">of $303k allocated</div></div>
               </div>
               </sc-if>
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ fundSummary }}" as="f" hint-placeholder-count="3">
                 <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f4f2">
                   <div style="width:28px;height:28px;border-radius:8px;flex:0 0 28px;background:{{ f.tintBg }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:{{ f.tintFg }}">{{ f.init }}</div>
@@ -362,7 +365,8 @@
                   <span style="font-size:12px;font-weight:700;color:{{ f.bar }};flex:0 0 32px;text-align:right">{{ f.pct }}</span>
                 </div>
               </sc-for>
-              <sc-if value="{{ realMode }}" hint-placeholder-val="">
+              </sc-if>
+              <sc-if value="{{ noFunding }}" hint-placeholder-val="">
                 <div style="padding:8px 4px 2px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">No funding data yet — add participants and plans to see budget usage.</div>
               </sc-if>
             </div>
@@ -370,6 +374,7 @@
             <!-- documents status -->
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:20px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);padding:18px 20px">
               <div style="font-size:15.5px;font-weight:800;letter-spacing:-.01em;color:#14302b;margin-bottom:14px">Document status</div>
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ docStatus }}" as="d" hint-placeholder-count="4">
                 <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid #f1f4f2">
                   <div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ d.tintBg }};display:flex;align-items:center;justify-content:center">{{ d.iconEl }}</div>
@@ -377,7 +382,8 @@
                   <span style="font-size:13px;font-weight:800;color:{{ d.valColor }}">{{ d.value }}</span>
                 </div>
               </sc-for>
-              <sc-if value="{{ realMode }}" hint-placeholder-val="">
+              </sc-if>
+              <sc-if value="{{ noDocStatus }}" hint-placeholder-val="">
                 <div style="padding:8px 4px 2px;text-align:center;color:#8a9a94;font-size:13px;line-height:1.6">No documents yet — uploads and signatures will show here.</div>
               </sc-if>
             </div>
@@ -390,7 +396,7 @@
       <!-- ================= SMART MATCH ================= -->
       <sc-if value="{{ isConnect }}" hint-placeholder-val="">
       <div style="max-width:1320px;margin:0 auto">
-      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ smartMatchActive }}" hint-placeholder-val="">
 
         <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px">
           <sc-for list="{{ gapTabs }}" as="t" hint-placeholder-count="3">
@@ -411,6 +417,7 @@
               </div>
             </div>
             <div style="position:relative;height:420px;background:radial-gradient(circle at 50% 48%,#f3faf8,#fff 70%)">
+              <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}">
               <svg style="position:absolute;inset:0;width:100%;height:100%" preserveAspectRatio="none">
                 <line x1="50%" y1="48%" x2="18%" y2="18%" stroke="#16b8a6" stroke-width="1.8" stroke-opacity=".55" stroke-dasharray="4 5"></line>
                 <line x1="50%" y1="48%" x2="82%" y2="20%" stroke="#6366f1" stroke-width="1.8" stroke-opacity=".55" stroke-dasharray="4 5"></line>
@@ -418,6 +425,7 @@
                 <line x1="50%" y1="48%" x2="84%" y2="74%" stroke="#e0556e" stroke-width="1.8" stroke-opacity=".45" stroke-dasharray="5 4"></line>
                 <line x1="50%" y1="48%" x2="50%" y2="88%" stroke="#e0556e" stroke-width="1.8" stroke-opacity=".45" stroke-dasharray="5 4"></line>
               </svg>
+              </sc-if>
               <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center">
                 <div style="width:74px;height:74px;border-radius:20px;background:linear-gradient(150deg,#0e5147,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#eafaf8;animation:aeg-pulse 2.4s infinite;box-shadow:0 12px 28px -12px rgba(11,107,96,.8)">{{ centerInit }}</div>
                 <div style="margin-top:9px;font-size:13px;font-weight:800;color:#14302b">{{ centerName }}</div>
@@ -427,25 +435,32 @@
                 <div style="position:absolute;left:{{ wn.xp }};top:{{ wn.yp }};transform:translate(-50%,-50%);text-align:center;animation:aeg-float {{ wn.dur }} ease-in-out infinite">
                   <div style="position:relative;width:50px;height:50px;margin:0 auto">
                     <div style="width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;background:{{ wn.tint }};box-shadow:0 8px 18px -8px rgba(20,48,43,.5)">{{ wn.init }}</div>
-                    <div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#06201c;background:#fff;border:1px solid #d9e4e0;border-radius:7px;padding:1px 6px;box-shadow:0 2px 6px rgba(20,48,43,.12)">{{ wn.score }}%</div>
+                    <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#06201c;background:#fff;border:1px solid #d9e4e0;border-radius:7px;padding:1px 6px;box-shadow:0 2px 6px rgba(20,48,43,.12)">{{ wn.score }}%</div></sc-if>
                   </div>
                   <div style="margin-top:11px;font-size:11.5px;font-weight:700;color:#2c4a44;white-space:nowrap">{{ wn.name }}</div>
                 </div>
               </sc-for>
+              <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}">
               <div style="position:absolute;left:16px;bottom:14px;display:flex;gap:14px;font-size:11px;color:#6c7f79">
                 <span style="display:flex;align-items:center;gap:6px"><span style="width:18px;height:3px;border-radius:9px;background:#16b8a6"></span>Strong fit</span>
                 <span style="display:flex;align-items:center;gap:6px"><span style="width:18px;height:3px;border-radius:9px;background:#cdd8d3"></span>Possible</span>
               </div>
+              </sc-if>
+              <sc-if value="{{ !matchRanked }}" hint-placeholder-val="">
+              <div style="position:absolute;left:16px;bottom:14px;font-size:11px;color:#8a9a94">Assign from your roster — ranked matching coming soon.</div>
+              </sc-if>
             </div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:16px">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:22px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 18px 40px -26px rgba(20,48,43,.4);overflow:hidden">
               <div style="position:relative;padding:22px;background:linear-gradient(160deg,#0c2622,#0e5147);color:#eafaf8">
+                <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}">
                 <div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:8px 12px">
                   <div style="font-size:24px;font-weight:800;color:#7ce0d2;line-height:1">{{ feat.score }}</div>
                   <div style="font-size:9px;letter-spacing:.1em;color:#a9cfc8">MATCH</div>
                 </div>
+                </sc-if>
                 <div style="display:flex;align-items:center;gap:14px">
                   <div style="width:62px;height:62px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;background:{{ feat.tint }}">{{ feat.init }}</div>
                   <div>
@@ -461,6 +476,7 @@
                 </div>
               </div>
               <div style="padding:16px 20px">
+                <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}">
                 <sc-for list="{{ feat.bars }}" as="b" hint-placeholder-count="4">
                   <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
                     <span style="flex:0 0 96px;font-size:12px;font-weight:600;color:#5f726d">{{ b.label }}</span>
@@ -468,6 +484,7 @@
                     <span style="flex:0 0 30px;text-align:right;font-size:11.5px;font-weight:700;color:#41635c">{{ b.val }}</span>
                   </div>
                 </sc-for>
+                </sc-if>
                 <div style="display:flex;gap:10px;margin-top:16px">
                   <button onClick="{{ skipMatch }}" style="flex:0 0 54px;height:48px;border-radius:14px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8a9a94" style-hover="background:#f6f9f7;color:#e0556e">{{ xEl }}</button>
                   <button onClick="{{ acceptMatch }}" style="flex:1;height:48px;border-radius:14px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2bcbb9">{{ checkEl }}Assign to shift</button>
@@ -482,7 +499,7 @@
                 <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-top:1px solid #f1f4f2">
                   <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ q.tint }}">{{ q.init }}</div>
                   <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#14302b">{{ q.name }}</div><div style="font-size:11.5px;color:#8a9a94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.meta }}</div></div>
-                  <div style="text-align:right"><div style="font-size:14px;font-weight:800;color:#0b6b60">{{ q.score }}</div><div style="font-size:10px;color:#9aa8a3">match</div></div>
+                  <sc-if value="{{ matchRanked }}" hint-placeholder-val="{{ true }}"><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:#0b6b60">{{ q.score }}</div><div style="font-size:10px;color:#9aa8a3">match</div></div></sc-if>
                 </div>
               </sc-for>
             </div>
@@ -608,7 +625,7 @@
         </div>
 
         <!-- Post Shift modal is rendered globally (see bottom of file) so it works from Roster too. -->
-        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ findHasData }}" hint-placeholder-val="">
         <sc-for list="{{ findSections }}" as="sec" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:8px;margin:6px 2px 13px"><span style="width:8px;height:8px;border-radius:99px;background:{{ sec.color }}"></span><span style="font-size:13px;font-weight:800;letter-spacing:.04em;color:{{ sec.color }}">{{ sec.title }}</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px">
@@ -655,7 +672,7 @@
           <button onClick="{{ goInviteWorker }}" style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ inviteEl }}Invite worker</button>
         </div>
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
-          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ workersHasData }}" hint-placeholder-val="{{ true }}">
           <sc-for list="{{ workerRows }}" as="w" hint-placeholder-count="5">
             <div style="padding:16px 22px;border-bottom:1px solid #f1f4f2">
               <div style="display:flex;align-items:flex-start;gap:14px">
@@ -735,9 +752,11 @@
                 </div>
               </sc-if>
               <sc-if value="{{ !noClients }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;align-items:center;gap:9px;padding:9px 20px;background:#f4faf8;border-bottom:1px solid #eef2f0;font-size:11px;font-weight:700;color:#6c8c83">{{ lockIconEl }}Showing Core Supports funding relevant to your services only — full plan budget is not visible here</div>
+              </sc-if>
               <sc-for list="{{ displayParticipants }}" as="p" hint-placeholder-count="5">
-              <div style="padding:15px 20px;border-bottom:1px solid #f1f4f2">
+              <div onClick="{{ p.selectClient }}" style="padding:15px 20px;border-bottom:1px solid #f1f4f2;cursor:pointer" style-hover="background:#fbfdfc">
                 <div style="display:flex;align-items:center;gap:13px;margin-bottom:12px">
                   <div style="width:42px;height:42px;border-radius:12px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ p.tint }}">{{ p.init }}</div>
                   <div style="flex:1;min-width:0">
@@ -750,6 +769,7 @@
                   </div>
                   <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:4px 10px;border-radius:7px">{{ p.status }}</span>
                 </div>
+                <sc-if value="{{ p.showBudget }}" hint-placeholder-val="{{ true }}">
                 <div style="background:#f7faf9;border:1px solid #eef2f0;border-radius:13px;padding:12px 14px">
                   <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
                     <span style="font-size:12px;font-weight:700;color:#5f726d">Core Supports</span>
@@ -768,10 +788,12 @@
                     <div style="display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid #eef2f0;font-size:11.5px;color:#c0445c;font-weight:600">{{ alertTinyEl }}{{ p.alert }}</div>
                   </sc-if>
                 </div>
-                <div style="display:flex;gap:9px;margin-top:10px">
+                </sc-if>
+                <div style="display:flex;gap:9px;margin-top:10px;flex-wrap:wrap">
                   <span style="font-size:11.5px;color:#9aa8a3;display:flex;align-items:center;gap:5px">{{ workersIconEl }}{{ p.workers }} worker</span>
                   <span style="font-size:11.5px;color:#9aa8a3;display:flex;align-items:center;gap:5px">{{ docsIconEl }}{{ p.docs }} docs</span>
                   <sc-if value="{{ p.tasks }}" hint-placeholder-val=""><span style="font-size:11.5px;color:#c0445c;font-weight:700;display:flex;align-items:center;gap:5px">{{ alertTinyEl }}{{ p.tasks }} task</span></sc-if>
+                  <button onClick="{{ p.openProfile }}" style="margin-left:auto;padding:7px 13px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="border-color:#16b8a6;background:#f4faf8">View profile →</button>
                 </div>
               </div>
             </sc-for>
@@ -784,6 +806,36 @@
             <div style="width:54px;height:54px;border-radius:16px;background:#e7f4f1;display:flex;align-items:center;justify-content:center;margin-bottom:14px">{{ hubWEl }}</div>
             <div style="font-size:15px;font-weight:800;color:#14302b;margin-bottom:6px">No care web yet</div>
             <div style="font-size:13px;color:#6c7f79;line-height:1.55;max-width:280px">Once you've added clients and their team, select a participant to see everyone connected to them — workers, coordinators, allied health and family.</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ careWebHasData }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04),0 16px 34px -24px rgba(20,48,43,.3);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid #eef2f0"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center">{{ hubWEl }}</div><div><div style="font-size:15px;font-weight:800;color:#14302b">Care web — {{ careWebParticipantName }}</div><div style="font-size:12px;color:#6c7f79">Everyone connected to this participant</div></div></div>
+            <div style="position:relative;height:340px;background:radial-gradient(circle at 50% 48%,#f3faf8,#fff 70%)">
+              <svg style="position:absolute;inset:0;width:100%;height:100%" preserveAspectRatio="none">
+                <line x1="50%" y1="48%" x2="18%" y2="22%" stroke="#16b8a6" stroke-width="1.6" stroke-opacity=".5" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="80%" y2="20%" stroke="#16b8a6" stroke-width="1.6" stroke-opacity=".5" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="18%" y2="75%" stroke="#16b8a6" stroke-width="1.6" stroke-opacity=".5" stroke-dasharray="4 5"></line>
+                <line x1="50%" y1="48%" x2="82%" y2="74%" stroke="#16b8a6" stroke-width="1.6" stroke-opacity=".5" stroke-dasharray="4 5"></line>
+              </svg>
+              <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center">
+                <div style="width:60px;height:60px;border-radius:17px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#eafaf8;box-shadow:0 10px 24px -10px rgba(14,147,132,.8)">{{ careWebParticipantInit }}</div>
+                <div style="margin-top:7px;font-size:12px;font-weight:800;color:#14302b">{{ careWebParticipantName }}</div>
+              </div>
+              <sc-for list="{{ webNodes2 }}" as="wn" hint-placeholder-count="5">
+                <div style="position:absolute;left:{{ wn.x }};top:{{ wn.y }};transform:translate(-50%,-50%);text-align:center">
+                  <div style="width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto;background:{{ wn.tint }};box-shadow:0 6px 14px -6px rgba(20,48,43,.4);font-size:11px;font-weight:700">{{ wn.initials }}</div>
+                  <div style="margin-top:6px;font-size:10.5px;font-weight:700;color:#2c4a44;white-space:nowrap">{{ wn.label }}</div>
+                  <div style="font-size:9.5px;color:#9aa8a3;white-space:nowrap">{{ wn.type }}</div>
+                </div>
+              </sc-for>
+              <div style="position:absolute;left:14px;bottom:12px;display:flex;gap:13px;font-size:10.5px;color:#6c7f79"><span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:3px;border-radius:9px;background:#16b8a6"></span>Active link</span></div>
+            </div>
+            <div style="padding:14px 20px;border-top:1px solid #eef2f0;background:#fbfdfc;display:flex;gap:9px">
+              <button onClick="{{ goParticipantProfile }}" style="flex:1;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View full profile</button>
+              <button onClick="{{ sendHandoffFromCareWeb }}" style="flex:1;height:40px;border-radius:11px;border:1px solid #6366f1;background:#eef0fd;color:#4338ca;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#e0e4ff">Send to coordinator</button>
+              <button onClick="{{ goCareEcosystem }}" style="flex:1;height:40px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Open care ecosystem</button>
+            </div>
           </div>
           </sc-if>
           <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
@@ -838,7 +890,7 @@
               <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ p.tint }}">{{ p.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ p.name }}</span></div>
               <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:99px;background:{{ p.stageFg }}"></span><span style="font-size:12.5px;font-weight:700;color:{{ p.stageFg }};background:{{ p.stageBg }};padding:3px 10px;border-radius:7px">{{ p.stage }}</span></span>
               <span style="font-size:12px;color:#6c7f79">{{ p.next }}</span>
-              <div style="display:flex;gap:6px;justify-content:flex-end"><button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View</button><button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">Act</button></div>
+              <div style="display:flex;gap:6px;justify-content:flex-end"><button onClick="{{ p.openProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View</button><button onClick="{{ p.advanceReferral }}" style="padding:7px 12px;border-radius:9px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">Act</button></div>
             </div>
           </sc-for>
         </div>
@@ -961,7 +1013,7 @@
               <div style="font-size:13.5px;color:#6c7f79;line-height:1.55">AHPs connected to your participants — physios, OTs, speech pathologists — appear here with their reports and goals once they're linked.</div>
             </div>
           </sc-if>
-          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ alliedHasData }}" hint-placeholder-val="">
           <sc-for list="{{ alliedRows }}" as="a" hint-placeholder-count="4">
             <div style="padding:16px 20px;border-bottom:1px solid #f1f4f2">
               <div style="display:flex;align-items:flex-start;gap:13px">
@@ -1000,7 +1052,7 @@
               <div style="font-size:13.5px;color:#6c7f79;line-height:1.55">Support coordinators linked to your participants appear here with their contact details and shared clients.</div>
             </div>
           </sc-if>
-          <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ coordHasData }}" hint-placeholder-val="">
           <sc-for list="{{ coordRows }}" as="c" hint-placeholder-count="2">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
               <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px">
@@ -1068,6 +1120,13 @@
       <sc-if value="{{ isPerms }}" hint-placeholder-val="">
       <div style="max-width:1100px;margin:0 auto">
         <div style="display:flex;align-items:center;gap:11px;background:#f4faf8;border:1px solid #e0efe9;border-radius:13px;padding:12px 16px;margin-bottom:18px">{{ shieldSmEl2 }}<span style="font-size:13px;color:#41635c">Access is driven by <b style="color:#14302b">participant consent</b>. Workers see shift info only. Coordinators see the full plan. Allied health sees goals and reports. You see your service scope.</span></div>
+        <sc-if value="{{ realMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px dashed #d5ded9;border-radius:18px;padding:40px 28px;text-align:center">
+            <div style="font-size:15px;font-weight:800;color:#14302b">No consent matrix yet</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:6px;line-height:1.55;max-width:440px;margin-left:auto;margin-right:auto">Participant consent settings appear here once clients are linked to your organisation.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
           <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PARTICIPANT</span><span>SUPPORT WORKERS</span><span>COORDINATOR</span><span>ALLIED HEALTH</span><span>PROVIDER</span></div>
           <sc-for list="{{ permRows }}" as="p" hint-placeholder-count="3">
@@ -1077,12 +1136,20 @@
             </div>
           </sc-for>
         </div>
+        </sc-if>
       </div>
       </sc-if>
 
       <!-- ===== PLAN UPDATES ===== -->
       <sc-if value="{{ isPlanUpdate }}" hint-placeholder-val="">
       <div style="max-width:1000px;margin:0 auto">
+        <sc-if value="{{ realMode }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px dashed #d5ded9;border-radius:18px;padding:40px 28px;text-align:center">
+            <div style="font-size:15px;font-weight:800;color:#14302b">No plan updates yet</div>
+            <div style="font-size:13px;color:#6c7f79;margin-top:6px;line-height:1.55;max-width:440px;margin-left:auto;margin-right:auto">Upload a new NDIS plan in AI File Drop to compare and apply changes to live records.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;flex-direction:column;gap:16px">
           <sc-for list="{{ planUpdates }}" as="p" hint-placeholder-count="2">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
@@ -1110,15 +1177,16 @@
             </div>
           </sc-for>
         </div>
+        </sc-if>
       </div>
       </sc-if>
 
       <sc-if value="{{ isReferrals }}" hint-placeholder-val="">
       <div style="max-width:1280px;margin:0 auto">
-      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ referralsHasData }}" hint-placeholder-val="{{ true }}">
         <div style="display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start">
           <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Incoming referrals</span><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:999px">4 total · 2 urgent</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">{{ referralsListTitle }}</span><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:999px">{{ referralsListBadge }}</span></div>
             <sc-for list="{{ referralDetails }}" as="r" hint-placeholder-count="4">
               <button onClick="{{ r.onSelect }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 18px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ r.urgFg }};cursor:pointer;font-family:inherit;text-align:left;background:{{ r._sel?'#f4faf8':'#fff' }}">
                 <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div>
@@ -1144,10 +1212,10 @@
                 <div style="flex:1;background:#e9f6ef;border:1px solid #cce9d8;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:7px">DOCUMENTS RECEIVED</div><sc-for list="{{ selRefData.docs }}" as="d" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:3px 0">{{ checkGrnRefEl }}<span style="font-size:12.5px;color:#1e7a52">{{ d }}</span></div></sc-for></div>
                 <div style="flex:1;background:#fbe9ed;border:1px solid #f3d6dc;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:7px">MISSING</div><sc-for list="{{ selRefData.missing }}" as="m" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:3px 0">{{ alertRefEl }}<span style="font-size:12.5px;color:#c0445c">{{ m }}</span></div></sc-for><sc-if value="{{ selRefData.noMissing }}" hint-placeholder-val=""><span style="font-size:12.5px;color:#1e7a52">Nothing missing ✓</span></sc-if></div>
               </div>
-              <div style="display:flex;gap:9px">
-                <button onClick="{{ requestDocs }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Request docs</button>
-                <button onClick="{{ logContact }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">Log contact</button>
-                <button onClick="{{ newAgreement }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Start agreement →</button>
+              <div style="display:flex;gap:9px;flex-wrap:wrap">
+                <button onClick="{{ sendHandoffFromReferral }}" style="flex:1;min-width:140px;height:46px;border-radius:12px;border:1px solid #6366f1;background:#eef0fd;color:#4338ca;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#e0e4ff">Send to coordinator</button>
+                <button onClick="{{ goParticipantProfile }}" style="flex:1;min-width:120px;height:46px;border-radius:12px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6">View profile</button>
+                <button onClick="{{ newAgreement }}" style="flex:2;min-width:160px;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">Start agreement →</button>
               </div>
             </div>
           </div>
@@ -1337,9 +1405,10 @@ class Component extends DCLogic {
   componentDidMount(){
     try{
       const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
-      if(s.loggedIn && s.role && s.role!=='provider'){
-        const m={worker:'Support Worker.dc.html',coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html'};
-        if(m[s.role]) window.location.href=m[s.role];
+      const norm=window.normRoleBucket||(r=>r);
+      const dash=window.getDashboardForRole||(r=>'Index.dc.html');
+      if(s.loggedIn&&s.role&&norm(s.role)!=='provider'){
+        window.location.replace(dash(s.role));
       }
     }catch(e){}
     const AD=window.AegisData;
@@ -1349,14 +1418,90 @@ class Component extends DCLogic {
     }
     this.loadParticipants();
     this.loadProviderTabs();
+    this.loadOverviewShiftNotes();
+    this.applyUrlNav();
     this.loadIdentity();
     this.loadOrgScheduling();
+    this.loadNotifCount();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling((c)=>this.setState({notifUnread:c>0?c:0}),45000);
+    }
   }
-  state = { nav: 'overview', gap: 0, matchIdx: 0, postOpen:false, postMode:'targeted', postGender:1, postLangs:{1:true}, postSkills:{}, searchOpen:false, searchQuery:'', savedPostedShifts:[], toast:null, authName:null, authInitials:null, authRole:null, addParticipantOpen:false, apName:'', apNdis:'', apPhone:'', apEmail:'', apSubmitting:false,
+
+  componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
+  }
+
+  loadNotifCount(){
+    try{
+      if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured()&&window.countUnreadNotifications)) return;
+      Promise.resolve(window.countUnreadNotifications()).then(res=>{
+        if(res&&!res.error) this.setState({notifUnread:(res.count||0)});
+      }).catch(()=>{});
+    }catch(e){}
+  }
+  state = { nav: 'overview', gap: 0, matchIdx: 0, postOpen:false, postMode:'targeted', postGender:1, postLangs:{1:true}, postSkills:{}, searchOpen:false, searchQuery:'', savedPostedShifts:[], toast:null, authName:null, authInitials:null, authRole:null, addParticipantOpen:false, apName:'', apNdis:'', apPhone:'', apEmail:'', apSubmitting:false, selectedParticipantId:null,
     orgId:null, orgWorkers:[], orgShifts:[], orgShiftsLoading:false, orgShiftsError:false, assignShiftId:null, weekOffset:0,
-    psParticipant:'', psSupport:'', psDate:'', psStart:'', psEnd:'', psLocation:'', psWorker:'', psSubmitting:false };
+    psParticipant:'', psSupport:'', psDate:'', psStart:'', psEnd:'', psLocation:'', psWorker:'', psSubmitting:false,
+    careWebNodes:[], careWebParticipant:null, careWebLoading:false, pdAgreements:[], pdShiftNotes:[], pdCareTeam:[], notifUnread:0 };
 
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  applyUrlNav(){
+    try{
+      const params=new URLSearchParams(window.location.search);
+      const patch={};
+      const nav=params.get('nav');
+      if(nav) patch.nav=nav;
+      const refId=params.get('referral')||params.get('selRef');
+      if(refId){
+        const refs=this.state.pdReferrals||[];
+        const idx=refs.findIndex(r=>String(r.id)===String(refId));
+        if(idx>=0) patch.selRef=idx;
+      }
+      const shiftId=params.get('shift');
+      if(shiftId) patch.assignShiftId=shiftId;
+      if(Object.keys(patch).length) this.setState(patch);
+    }catch(e){}
+  }
+
+  advanceReferral(referralId, currentStatus){
+    if(!referralId){ this.showToast('No referral selected'); return; }
+    const nextMap={
+      received:'participant_contacted',
+      reviewing:'participant_contacted',
+      participant_contacted:'active',
+      contacted:'active',
+      accepted:'active',
+      assessment_booked:'active',
+    };
+    const next=nextMap[String(currentStatus||'received')]||'participant_contacted';
+    if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured()&&window.updateReferralStatus)){
+      this.showToast('Sign in to update referrals');
+      return;
+    }
+    this.showToast('Updating referral…');
+    Promise.resolve(window.updateReferralStatus(referralId, next)).then(res=>{
+      if(res&&!res.error){
+        this.showToast('Referral updated ✓');
+        if(this.loadProviderTabs) this.loadProviderTabs();
+      }else{
+        this.showToast('Could not update: '+((res&&res.error)||'unknown error'));
+      }
+    }).catch(e=>{ this.showToast('Could not update: '+(e&&e.message?e.message:'unknown error')); });
+  }
+
+  navToParticipantProfile(participantId, view){
+    const demo=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    if(!participantId){
+      if(demo){ window.location.href='Participant Profile.dc.html'; return; }
+      this.showToast('Select a participant from your client list first');
+      return;
+    }
+    this.setState({selectedParticipantId:participantId});
+    if(window.navigateToParticipantProfile) window.navigateToParticipantProfile(participantId,view);
+    else window.location.href=window.participantProfileUrl?window.participantProfileUrl(participantId,view):('Participant Profile.dc.html?id='+encodeURIComponent(participantId)+(view?'&view='+view:''));
+  }
 
   // Compose a message to a worker / coordinator.
   // Connected: creates a real, RLS-scoped message_threads + messages record via the
@@ -1496,6 +1641,9 @@ class Component extends DCLogic {
         // Real mode: store the array even when empty so the Clients view can show
         // the honest empty-state rather than falling back to demo data.
         this.setState({ supabaseParticipants: parts, supabaseConnected: true, participantsLoading: false });
+        const pick = this.state.selectedParticipantId || (parts[0] && parts[0].id);
+        if (pick) this.loadCareWeb(pick);
+        if (this.loadAggregatedCareTeam) this.loadAggregatedCareTeam();
       }).catch(err => {
         console.error('loadParticipants error:', err);
         this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: true });
@@ -1534,7 +1682,7 @@ class Component extends DCLogic {
       if (window.loadReferralsForCurrentUser) {
         Promise.resolve(window.loadReferralsForCurrentUser()).then(res => {
           const refs = (res && Array.isArray(res.referrals)) ? res.referrals : [];
-          this.setState({ pdReferrals: refs });
+          this.setState({ pdReferrals: refs }, ()=>this.applyUrlNav());
         }).catch(err => { console.error('loadProviderTabs referrals error:', err); this.setState({ pdReferrals: [] }); });
       } else {
         this.setState({ pdReferrals: [] });
@@ -1546,6 +1694,14 @@ class Component extends DCLogic {
         }).catch(err => { console.error('loadProviderTabs documents error:', err); this.setState({ pdDocuments: [] }); });
       } else {
         this.setState({ pdDocuments: [] });
+      }
+      if (window.loadServiceAgreementsForParticipant) {
+        Promise.resolve(window.loadServiceAgreementsForParticipant()).then(res => {
+          const agreements = (res && Array.isArray(res.agreements)) ? res.agreements : [];
+          this.setState({ pdAgreements: agreements });
+        }).catch(err => { console.error('loadProviderTabs agreements error:', err); this.setState({ pdAgreements: [] }); });
+      } else {
+        this.setState({ pdAgreements: [] });
       }
     };
     try {
@@ -1561,6 +1717,112 @@ class Component extends DCLogic {
     } catch (err) {
       console.error('loadProviderTabs error:', err);
       this.setState({ pdReferrals: [], pdDocuments: [] });
+    }
+  }
+
+  _buildCareWebNodes(team) {
+    const roleMeta = {
+      support_worker: { label: 'Support Worker', type: 'Worker', tint: '#16b8a6' },
+      support_coordinator: { label: 'Coordinator', type: 'Coordinator', tint: '#6366f1' },
+      allied_health: { label: 'Allied Health', type: 'Allied Health', tint: '#d98b22' },
+      guardian: { label: 'Guardian', type: 'Family', tint: '#0891b2' },
+      provider_staff: { label: 'Provider', type: 'Provider', tint: '#9333ea' }
+    };
+    const positions = [
+      { x: '20%', y: '24%' }, { x: '80%', y: '22%' }, { x: '15%', y: '74%' },
+      { x: '82%', y: '76%' }, { x: '50%', y: '86%' }, { x: '35%', y: '50%' }, { x: '65%', y: '50%' }
+    ];
+    const initials = (name, role) => {
+      const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      const fb = { support_worker: 'SW', support_coordinator: 'SC', allied_health: 'AH', guardian: 'GU', provider_staff: 'PR' };
+      return fb[role] || 'CT';
+    };
+    const sorted = [...(team || [])].sort((a, b) => String(a.role || '').localeCompare(String(b.role || '')));
+    return sorted.slice(0, positions.length).map((m, i) => {
+      const meta = roleMeta[m.role] || { label: String(m.role || 'Contact').replace(/_/g, ' '), type: 'Care team', tint: '#16b8a6' };
+      const displayName = m.full_name || meta.label;
+      return {
+        label: displayName,
+        initials: initials(m.full_name, m.role),
+        x: positions[i].x,
+        y: positions[i].y,
+        tint: meta.tint,
+        type: meta.type,
+      };
+    });
+  }
+
+  async sendToCoordinator(participantId, referralId) {
+    if (!participantId) {
+      this.showToast('Select a participant first');
+      return;
+    }
+    if (!window.sendHandoffToCoordinator) {
+      this.showToast('Sign in to send handoffs to coordinators');
+      return;
+    }
+    const raw = typeof window.prompt === 'function'
+      ? window.prompt('Handoff message for the support coordinator (shift summary, next steps):')
+      : null;
+    if (raw == null) return;
+    const message = String(raw).trim();
+    if (!message) { this.showToast('Message was empty'); return; }
+    this.showToast('Sending to coordinator…');
+    try {
+      const res = await Promise.resolve(window.sendHandoffToCoordinator({
+        participant_id: participantId,
+        message,
+        referral_id: referralId || null,
+      }));
+      if (!res || !res.ok) {
+        this.showToast('Could not send: ' + ((res && res.error) || 'unknown error'));
+        return;
+      }
+      this.showToast('Sent to support coordinator ✓');
+      if (this.loadProviderTabs) this.loadProviderTabs();
+    } catch (e) {
+      this.showToast('Could not send: ' + (e && e.message ? e.message : 'unknown error'));
+    }
+  }
+
+  loadCareWeb(participantId) {
+    const configured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    if (!configured || !participantId) {
+      this.setState({ careWebNodes: [], careWebParticipant: null, careWebLoading: false });
+      return;
+    }
+    const run = () => {
+      if (!window.loadParticipantCareTeam) return;
+      this.setState({ careWebLoading: true, selectedParticipantId: participantId });
+      Promise.resolve(window.loadParticipantCareTeam(participantId)).then(res => {
+        const team = (res && res.careTeam) || [];
+        const parts = this.state.supabaseParticipants || [];
+        const part = parts.find(p => p.id === participantId) || null;
+        const name = part ? (part.full_name || part.name || 'Participant') : 'Participant';
+        this.setState({
+          careWebNodes: this._buildCareWebNodes(team),
+          careWebParticipant: { id: participantId, name, init: name.substring(0, 2).toUpperCase() },
+          careWebLoading: false
+        });
+      }).catch(err => {
+        console.error('loadCareWeb error:', err);
+        this.setState({ careWebNodes: [], careWebLoading: false });
+      });
+    };
+    try {
+      if (window.loadParticipantCareTeam) run();
+      else {
+        const script = document.createElement('script');
+        script.src = 'supabase-client.js';
+        script.onload = run;
+        script.onerror = () => this.setState({ careWebNodes: [], careWebLoading: false });
+        document.head.appendChild(script);
+      }
+    } catch (err) {
+      console.error('loadCareWeb error:', err);
+      this.setState({ careWebNodes: [], careWebLoading: false });
     }
   }
 
@@ -1619,12 +1881,60 @@ class Component extends DCLogic {
     } catch (e) { console.error('loadOrgScheduling error:', e); }
   }
 
+  loadOverviewShiftNotes() {
+    const configured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    if (!configured) { this.setState({ pdShiftNotes: [] }); return; }
+    const run = () => {
+      if (!window.loadShiftNotes) return;
+      Promise.resolve(window.loadShiftNotes({ limit: 20 })).then(res => {
+        this.setState({ pdShiftNotes: (res && res.notes) || [] });
+      }).catch(err => { console.error('loadOverviewShiftNotes error:', err); this.setState({ pdShiftNotes: [] }); });
+    };
+    try {
+      if (window.loadShiftNotes) run();
+      else {
+        const sc = document.createElement('script');
+        sc.src = 'supabase-client.js';
+        sc.onload = run;
+        sc.onerror = () => this.setState({ pdShiftNotes: [] });
+        document.head.appendChild(sc);
+      }
+    } catch (err) { console.error('loadOverviewShiftNotes error:', err); }
+  }
+
+  loadAggregatedCareTeam() {
+    const configured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const parts = this.state.supabaseParticipants || [];
+    if (!configured || !parts.length) { this.setState({ pdCareTeam: [] }); return; }
+    const run = () => {
+      if (!window.loadParticipantCareTeam) return;
+      Promise.all(parts.map(p => Promise.resolve(window.loadParticipantCareTeam(p.id)).then(res => ({
+        participantId: p.id,
+        participantName: p.full_name || p.preferred_name || p.name || 'Participant',
+        team: (res && res.careTeam) || []
+      })).catch(() => ({ participantId: p.id, participantName: p.full_name || 'Participant', team: [] }))))
+        .then(rows => this.setState({ pdCareTeam: rows }))
+        .catch(err => { console.error('loadAggregatedCareTeam error:', err); this.setState({ pdCareTeam: [] }); });
+    };
+    try {
+      if (window.loadParticipantCareTeam) run();
+      else {
+        const sc = document.createElement('script');
+        sc.src = 'supabase-client.js';
+        sc.onload = run;
+        sc.onerror = () => this.setState({ pdCareTeam: [] });
+        document.head.appendChild(sc);
+      }
+    } catch (err) { console.error('loadAggregatedCareTeam error:', err); }
+  }
+
   refreshOrgShifts() {
     if (!window.loadOrgShifts) { this.setState({ orgShifts: [], orgShiftsLoading: false }); return; }
     this.setState({ orgShiftsLoading: true });
     Promise.resolve(window.loadOrgShifts({})).then(res => {
       const shifts = (res && Array.isArray(res.shifts)) ? res.shifts : [];
       this.setState({ orgShifts: shifts, orgShiftsLoading: false, orgShiftsError: !!(res && res.error) });
+      if (this.loadOverviewShiftNotes) this.loadOverviewShiftNotes();
     }).catch(e => { console.error('loadOrgShifts error:', e); this.setState({ orgShifts: [], orgShiftsLoading: false, orgShiftsError: true }); });
   }
 
@@ -1665,14 +1975,23 @@ class Component extends DCLogic {
     const isEcosystem = !!ev;
     const ecosystemSrc = ev ? ('Care%20Ecosystem.dc.html?embed=1#'+ev.view) : '';
 
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const pdRefsNav = this.state.pdReferrals || [];
+    const orgIdNav = this.state.orgId || null;
+    const incomingRefNavCount = orgIdNav
+      ? pdRefsNav.filter(r => r.to_org_id && r.to_org_id === orgIdNav).length
+      : pdRefsNav.filter(r => r.to_org_id).length;
+    const refNavBadge = demoMode ? '3' : (incomingRefNavCount > 0 ? String(incomingRefNavCount) : null);
+    const incNavBadge = demoMode ? '2' : null;
+
     const defs = [
       { title:'WORKSPACE', items:[ ['overview','Overview','grid',null], ['find','Posted Shifts','note','NEW'], ['match','Smart Match','spark',null] ] },
-      { title:'PIPELINE', items:[ ['pipeline','Pipeline','route',null], ['referrals','Referrals','inbox','3'], ['agreements','Agreements','doc',null], ['docs_hub','Documents','folder',null], ['filedrop','AI File Drop','spark','AI'] ] },
+      { title:'PIPELINE', items:[ ['pipeline','Pipeline','route',null], ['referrals','Referrals','inbox', refNavBadge], ['agreements','Agreements','doc',null], ['docs_hub','Documents','folder',null], ['filedrop','AI File Drop','spark','AI'] ] },
       { title:'SCHEDULING', items:[ ['roster','Roster','users',null,'Roster.dc.html'], ['calendar','Calendar','cal',null] ] },
       { title:'PEOPLE', items:[ ['clients','Clients','user',null], ['workers','Support Workers','users',null], ['allied','Allied Health','pulse',null], ['coord','Coordinators','hub',null] ] },
-      { title:'FINANCE', items:[ ['payroll','Payroll (SCHADS)','receipt',null,'Payroll.dc.html'], ['claims','Claims & bulk payment','doc',null,'Claims.dc.html'] ] },
+      { title:'FINANCE', items:[ ['payroll','Payroll (SCHADS)','receipt',null,'Payroll.dc.html'], ['claims','Claims & bulk payment','doc',null,'Claims.dc.html'], ['priceguide','NDIS Price Guide','wallet',null,'Price Guide.dc.html'] ] },
       { title:'SETTINGS', items:[ ['perms','Consent Centre','shield',null,'Consent Centre.dc.html'], ['tasks','Task Centre','task',null,'Task Centre.dc.html'], ['wagree','Worker Agreements','file',null,'Worker Agreement.dc.html'], ['integrations','Integrations','link',null,'Integrations.dc.html'], ['settings','Settings','grid',null,'Settings.dc.html'] ] },
-      { title:'RECEIVING · CONSOLE', items:[ ['cn_records','Visit Records','note',null], ['cn_billing','Billing','receipt',null], ['cn_compliance','Compliance Register','shield',null,'Compliance Register.dc.html'], ['cn_incidents','Incident Centre','alert','2','Incident Centre.dc.html'] ] }
+      { title:'RECEIVING · CONSOLE', items:[ ['cn_records','Visit Records','note',null], ['cn_billing','Billing','receipt',null], ['cn_compliance','Compliance Register','shield',null,'Compliance Register.dc.html'], ['cn_incidents','Incident Centre','alert', incNavBadge,'Incident Centre.dc.html'] ] }
     ];
     const navSections = defs.map(sec => ({
       title: sec.title,
@@ -1688,62 +2007,146 @@ class Component extends DCLogic {
       })
     }));
 
-    // ---- KPIs ----
-    // Honest KPIs: only show a real figure when we can source it. "Active clients"
-    // is the live count of participants this provider actually loaded from Supabase
-    // (loadParticipants -> supabaseParticipants, RLS-scoped). The other three aren't
-    // sourced yet, so they show an em-dash + "Preview" badge instead of a fake number.
-    const sbConnected = !!this.state.supabaseConnected;
+    // ---- KPIs + live overview data (Supabase when configured) ----
+    const orgShifts = this.state.orgShifts || [];
+    const orgWorkers = this.state.orgWorkers || [];
     const sbParts = this.state.supabaseParticipants || [];
-    const realParts = sbParts.filter(p => p && p.id && !String(p.id).startsWith('demo-'));
-    const hasRealClients = sbConnected && realParts.length > 0;
-    const activeClientCount = realParts.filter(p => (p.status || 'active') === 'active').length;
+    const activeClientCount = sbParts.filter(p => p && (p.status || 'active') === 'active').length;
+    const unfilledShifts = orgShifts.filter(s => s && !s.worker_id && s.status !== 'cancelled' && s.status !== 'completed');
+    const activeWorkerCount = orgWorkers.filter(m => m && m.status === 'active').length;
+    const hasLiveKpis = !demoMode;
     const liveBadge = { delta:'Live', deltaColor:'#0b6b60', deltaBg:'#e7f4f1', trendEl:null };
     const previewBadge = { delta:'Preview', deltaColor:'#6c7f79', deltaBg:'#eef2f0', trendEl:null };
     const kpiDefs = [
-      hasRealClients
-        ? Object.assign({ label:'Active clients', value:String(activeClientCount), sub:'Synced from Supabase', icon:'user', tintBg:'#e7f4f1', stroke:'#16b8a6', fill:'rgba(22,184,166,.10)' }, liveBadge)
+      hasLiveKpis
+        ? Object.assign({ label:'Active clients', value:String(activeClientCount), sub: sbParts.length ? 'Synced from Supabase' : 'Add your first client', icon:'user', tintBg:'#e7f4f1', stroke:'#16b8a6', fill:'rgba(22,184,166,.10)' }, liveBadge)
         : Object.assign({ label:'Active clients', value:'—', sub:'Connect Supabase to view', icon:'user', tintBg:'#e7f4f1', stroke:'#16b8a6', fill:'rgba(22,184,166,.10)' }, previewBadge),
-      Object.assign({ label:'Support workers', value:'—', sub:'Preview — not yet tracked', icon:'users', tintBg:'#eef0fd', stroke:'#6366f1', fill:'rgba(99,102,241,.10)' }, previewBadge),
-      Object.assign({ label:'Open shifts', value:'—', sub:'Preview — not yet tracked', icon:'bolt', tintBg:'#fbf0df', stroke:'#d98b22', fill:'rgba(217,139,34,.12)' }, previewBadge),
-      Object.assign({ label:'Compliance', value:'—', sub:'Preview — not yet tracked', icon:'shield', tintBg:'#e9f6ef', stroke:'#1e9e6a', fill:'rgba(30,158,106,.10)' }, previewBadge)
+      hasLiveKpis
+        ? Object.assign({ label:'Support workers', value:String(activeWorkerCount), sub: activeWorkerCount ? 'Active in your org' : 'Invite your team', icon:'users', tintBg:'#eef0fd', stroke:'#6366f1', fill:'rgba(99,102,241,.10)' }, liveBadge)
+        : Object.assign({ label:'Support workers', value:'—', sub:'Preview — not yet tracked', icon:'users', tintBg:'#eef0fd', stroke:'#6366f1', fill:'rgba(99,102,241,.10)' }, previewBadge),
+      hasLiveKpis
+        ? Object.assign({ label:'Open shifts', value:String(unfilledShifts.length), sub: unfilledShifts.length ? 'Unassigned shifts' : 'All shifts covered', icon:'bolt', tintBg:'#fbf0df', stroke:'#d98b22', fill:'rgba(217,139,34,.12)' }, liveBadge)
+        : Object.assign({ label:'Open shifts', value:'—', sub:'Preview — not yet tracked', icon:'bolt', tintBg:'#fbf0df', stroke:'#d98b22', fill:'rgba(217,139,34,.12)' }, previewBadge),
+      hasLiveKpis
+        ? Object.assign({ label:'Compliance', value:'—', sub:'Not yet tracked', icon:'shield', tintBg:'#e9f6ef', stroke:'#1e9e6a', fill:'rgba(30,158,106,.10)' }, liveBadge)
+        : Object.assign({ label:'Compliance', value:'—', sub:'Preview — not yet tracked', icon:'shield', tintBg:'#e9f6ef', stroke:'#1e9e6a', fill:'rgba(30,158,106,.10)' }, previewBadge)
     ];
-    const kpis = kpiDefs.map(k => {
-      return {
-        label:k.label, value:k.value, sub:k.sub,
-        iconEl: ic(k.icon, k.stroke, 19),
-        deltaLabel: k.delta,
-        deltaColor: k.deltaColor,
-        deltaBg: k.deltaBg,
-        trendEl: k.trendEl,
-        stroke:k.stroke, fillBg:k.fill, tintBg:k.tintBg
-      };
-    });
+    const kpis = kpiDefs.map(k => ({
+      label:k.label, value:k.value, sub:k.sub,
+      iconEl: ic(k.icon, k.stroke, 19),
+      deltaLabel: k.delta, deltaColor: k.deltaColor, deltaBg: k.deltaBg, trendEl: k.trendEl,
+      stroke:k.stroke, fillBg:k.fill, tintBg:k.tintBg
+    }));
 
-    // First-run gate: only show the rich demo people in unconfigured preview mode.
-    const demoMode = !(typeof window !== 'undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const workerTintsEarly = ['#16b8a6', '#6366f1', '#d98b22', '#0891b2', '#9333ea', '#0e5147'];
+    const _partNameEarly = (s) => (s.participants && (s.participants.full_name || s.participants.preferred_name)) || 'Participant';
+    const _shortNameEarly = (name) => {
+      const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return parts[0] + ' ' + parts[parts.length - 1][0] + '.';
+      return parts[0] || 'Participant';
+    };
+    const _fmtTEarly = (iso) => { try { return new Date(iso).toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit', hour12:false }); } catch(e) { return ''; } };
+    const _fmtShiftWhenEarly = (s) => {
+      try {
+        const d = new Date(s.start_time);
+        return d.toLocaleDateString('en-AU', { weekday:'short' }) + ' ' + _fmtTEarly(s.start_time) + '–' + _fmtTEarly(s.end_time);
+      } catch(e) { return '—'; }
+    };
+    const _shiftUrgencyEarly = (s) => {
+      const hours = (new Date(s.start_time).getTime() - Date.now()) / 3600000;
+      if (hours < 4) return { label:'URGENT', urgFg:'#c0445c', urgBg:'#fbe9ed', dot:'#e0556e', tier:'emergency' };
+      if (hours < 24) return { label:'TODAY', urgFg:'#b4561f', urgBg:'#fbf0df', dot:'#d98b22', tier:'urgent' };
+      return { label:'OPEN', urgFg:'#0b6b60', urgBg:'#e7f4f1', dot:'#16b8a6', tier:'standard' };
+    };
+    const _workerInitialsEarly = (name) => {
+      const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return String(name || 'W').substring(0, 2).toUpperCase();
+    };
+    const _suggestWorkerEarly = (idx) => {
+      if (!orgWorkers.length) return { matchName:'Invite workers', matchMeta:'No workers on roster yet', matchInit:'+', matchTint:'#9aa8a3', matchScore:'—' };
+      const w = orgWorkers[idx % orgWorkers.length];
+      const name = w.full_name || w.email || 'Worker';
+      return { matchName: name, matchMeta:'Suggested — not auto-ranked', matchInit: _workerInitialsEarly(name), matchTint: workerTintsEarly[idx % workerTintsEarly.length], matchScore:'—' };
+    };
+    const _noteTimeAgo = (iso) => {
+      try {
+        const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return mins + 'm ago';
+        const hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+      } catch(e) { return '—'; }
+    };
 
     // ---- gaps (overview teaser) ----
     const gaps = demoMode ? [
       { title:'Margaret R. — Personal Care', urgency:'URGENT', urgFg:'#c0445c', urgBg:'#fbe9ed', when:'Sat 9:00–13:00', where:'Glenroy · 3.2km', skills:['Hoist trained','Female worker','Medication'], matchName:'Amara Okafor', matchMeta:'4.9★ · 2.1km · free Sat', matchInit:'AO', matchTint:'#16b8a6', matchScore:'96', clockEl:ic('clock','#9aa8a3',14), pinEl:ic('pin','#9aa8a3',14) },
       { title:'David L. — Physiotherapy', urgency:'THIS WEEK', urgFg:'#b4561f', urgBg:'#fbf0df', when:'Wed 14:00–15:00', where:'Brunswick · 1.8km', skills:['Physio','NDIS reg','Mobility'], matchName:'Jordan Pham', matchMeta:'4.8★ · 1.1km · Allied Health', matchInit:'JP', matchTint:'#6366f1', matchScore:'93', clockEl:ic('clock','#9aa8a3',14), pinEl:ic('pin','#9aa8a3',14) },
       { title:'Tom B. — Community Access', urgency:'FLEXIBLE', urgFg:'#0b6b60', urgBg:'#e7f4f1', when:'Fri 10:00–13:00', where:'Coburg · 4.0km', skills:['Driver','Social','Manual handling'], matchName:'Lena Sørensen', matchMeta:'4.7★ · 3.4km · loves outings', matchInit:'LS', matchTint:'#d98b22', matchScore:'89', clockEl:ic('clock','#9aa8a3',14), pinEl:ic('pin','#9aa8a3',14) }
-    ] : [];
+    ] : unfilledShifts.slice(0, 3).map((s, idx) => {
+      const u = _shiftUrgencyEarly(s);
+      const pn = _partNameEarly(s);
+      const svc = s.support_type || s.title || 'Support';
+      const sug = _suggestWorkerEarly(idx);
+      return {
+        title: _shortNameEarly(pn) + ' — ' + svc,
+        urgency: u.label, urgFg: u.urgFg, urgBg: u.urgBg,
+        when: _fmtShiftWhenEarly(s), where: s.location || '—',
+        skills: [svc].concat(s.location ? [s.location] : []),
+        matchName: sug.matchName, matchMeta: sug.matchMeta, matchInit: sug.matchInit, matchTint: sug.matchTint, matchScore: sug.matchScore,
+        clockEl: ic('clock', '#9aa8a3', 14), pinEl: ic('pin', '#9aa8a3', 14),
+      };
+    });
 
     // ---- shift notes ----
     const notes = demoMode ? [
       { worker:'Amara Okafor', client:'Margaret R.', init:'AO', tint:'#16b8a6', mood:'Positive', moodFg:'#1e9e6a', moodBg:'#e9f6ef', time:'18m ago', text:'Margaret enjoyed her morning walk and ate a full breakfast. Mobility steady with the new frame. Medication given at 9am as charted.', hasTags:true, tags:['📎 2 photos','Personal Care'] },
       { worker:'Jordan Pham', client:'David L.', init:'JP', tint:'#6366f1', mood:'Flag', moodFg:'#c0445c', moodBg:'#fbe9ed', time:'1h ago', text:'David reported mild knee pain during physio. Reduced load and recommended GP review. Logged in incident register.', hasTags:true, tags:['⚑ Follow-up','Allied Health'] },
       { worker:'Lena Sørensen', client:'Tom B.', init:'LS', tint:'#d98b22', mood:'Positive', moodFg:'#1e9e6a', moodBg:'#e9f6ef', time:'2h ago', text:'Great community outing to the library and café. Tom practised ordering independently — big confidence win today.', hasTags:false, tags:[] }
-    ] : [];
+    ] : (this.state.pdShiftNotes || []).slice(0, 5).map((n, i) => {
+      const p = n.participants || {};
+      const client = _shortNameEarly(p.preferred_name || p.full_name || 'Participant');
+      const body = String(n.body || '').trim();
+      const isFlag = n.note_type === 'incident';
+      const typeLabel = String(n.note_type || 'shift_note').replace(/_/g, ' ');
+      return {
+        worker: 'Team member', client,
+        init: client.substring(0, 2).toUpperCase(),
+        tint: workerTintsEarly[i % workerTintsEarly.length],
+        mood: isFlag ? 'Flag' : 'Note', moodFg: isFlag ? '#c0445c' : '#1e9e6a', moodBg: isFlag ? '#fbe9ed' : '#e9f6ef',
+        time: _noteTimeAgo(n.created_at),
+        text: body.length > 220 ? body.slice(0, 220) + '…' : body,
+        hasTags: !!n.note_type,
+        tags: [typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)],
+      };
+    });
 
     // ---- today roster ----
+    const _todayStart = new Date(); _todayStart.setHours(0, 0, 0, 0);
+    const _todayEnd = new Date(_todayStart); _todayEnd.setDate(_todayEnd.getDate() + 1);
+    const _todayPalette = [['#16b8a6','#f4faf8','#dcefe9','#0b6b60','#e7f4f1'],['#6366f1','#f6f6fe','#e4e5fb','#4f46e5','#eef0fd'],['#d98b22','#fffaf2','#f4e6cf','#b4561f','#fbf0df'],['#0e5147','#f4faf8','#dcefe9','#0b6b60','#e7f4f1']];
     const todayShifts = demoMode ? [
       { time:'08:00', dot:'#16b8a6', cardBg:'#f4faf8', cardBd:'#dcefe9', client:'Margaret R.', service:'Personal Care', tagFg:'#0b6b60', tagBg:'#e7f4f1', filled:true, open:false, worker:'Amara Okafor', wInit:'AO', wTint:'#16b8a6' },
       { time:'09:30', dot:'#6366f1', cardBg:'#f6f6fe', cardBd:'#e4e5fb', client:'David L.', service:'Physio', tagFg:'#4f46e5', tagBg:'#eef0fd', filled:true, open:false, worker:'Jordan Pham', wInit:'JP', wTint:'#6366f1' },
       { time:'11:00', dot:'#d98b22', cardBg:'#fffaf2', cardBd:'#f4e6cf', client:'Tom B.', service:'Community', tagFg:'#b4561f', tagBg:'#fbf0df', filled:false, open:true, worker:'', wInit:'', wTint:'#d98b22', boltSmEl: ic('bolt','#b4561f',13) },
       { time:'14:00', dot:'#16b8a6', cardBg:'#f4faf8', cardBd:'#dcefe9', client:'Priya S.', service:'Personal Care', tagFg:'#0b6b60', tagBg:'#e7f4f1', filled:true, open:false, worker:'Noah Reed', wInit:'NR', wTint:'#0e5147' }
-    ] : [];
+    ] : orgShifts.filter(s => { try { const st = new Date(s.start_time); return st >= _todayStart && st < _todayEnd; } catch(e) { return false; } })
+      .sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).map((s, i) => {
+        const filled = !!s.worker_id;
+        const pn = _partNameEarly(s);
+        const service = s.support_type || s.title || 'Support';
+        const workerName = s.worker_name || '';
+        const c = _todayPalette[i % _todayPalette.length];
+        return {
+          time: _fmtTEarly(s.start_time), dot: c[0], cardBg: c[1], cardBd: c[2],
+          client: _shortNameEarly(pn), service, tagFg: c[3], tagBg: c[4],
+          filled, open: !filled, worker: workerName,
+          wInit: workerName ? _workerInitialsEarly(workerName) : '', wTint: c[0],
+          boltSmEl: ic('bolt', '#b4561f', 13),
+        };
+      });
 
     // ---- compliance rings ----
     const ringOf = (pct, color) => 'conic-gradient(' + color + ' ' + (pct*3.6) + 'deg, #eef2f0 0deg)';
@@ -1761,12 +2164,38 @@ class Component extends DCLogic {
       { dot:'#16b8a6', title:'New referral — intake pending', sub:'Received via web form' }
     ] : [];
 
+    const fundSummaryLive = demoMode ? [
+      {name:'Margaret R.',init:'MR',tintBg:'#e7f4f1',tintFg:'#0b6b60',pct:'42%',bar:'#16b8a6'},
+      {name:'Tom Becker',init:'TB',tintBg:'#fbf0df',tintFg:'#b4561f',pct:'64%',bar:'#d98b22'},
+      {name:'Priya Sharma',init:'PS',tintBg:'#fbe9ed',tintFg:'#c0445c',pct:'18%',bar:'#e0556e'},
+      {name:'Ruth Kim',init:'RK',tintBg:'#e0f2f5',tintFg:'#0891b2',pct:'47%',bar:'#0891b2'},
+      {name:'David Lowe',init:'DL',tintBg:'#eef0fd',tintFg:'#4338ca',pct:'28%',bar:'#6366f1'}
+    ] : [];
+    const docStatusLive = demoMode ? [
+      {label:'Unsigned agreements',sub:'Ruth K., Hassan A.',value:'2',valColor:'#c0445c',tintBg:'#fbe9ed',iconEl:ic('doc','#e0556e',16)},
+      {label:'Missing documents',sub:'Risk assess., consent form',value:'3',valColor:'#b4561f',tintBg:'#fbf0df',iconEl:ic('alert','#d98b22',16)},
+      {label:'New uploads',sub:'Received in last 7 days',value:'5',valColor:'#0b6b60',tintBg:'#e7f4f1',iconEl:ic('upload','#16b8a6',16)},
+      {label:'Awaiting review',sub:'Discharge summary, OT report',value:'2',valColor:'#4338ca',tintBg:'#eef0fd',iconEl:ic('file','#6366f1',16)}
+    ] : [];
+    const noCompliance = !demoMode && rings.length === 0;
+    const noFunding = !demoMode && fundSummaryLive.length === 0;
+    const noDocStatus = !demoMode && docStatusLive.length === 0;
+
     // ---- connect: gap tabs ----
     const gapData = demoMode ? [
       { title:'Margaret R.', when:'Sat 9–1 · Personal Care', dot:'#e0556e', center:'Margaret R.', need:'Personal Care · Hoist · Sat AM' },
       { title:'David L.', when:'Wed 2–3 · Physio', dot:'#d98b22', center:'David L.', need:'Physiotherapy · Wed PM' },
       { title:'Tom B.', when:'Fri 10–1 · Community', dot:'#16b8a6', center:'Tom B.', need:'Community Access · Fri AM' }
-    ] : [];
+    ] : unfilledShifts.slice(0, 5).map(s => {
+      const u = _shiftUrgencyEarly(s);
+      const pn = _partNameEarly(s);
+      return {
+        title: _shortNameEarly(pn),
+        when: _fmtShiftWhenEarly(s) + ' · ' + (s.support_type || s.title || 'Support'),
+        dot: u.dot, center: pn,
+        need: (s.support_type || s.title || 'Support') + (s.location ? (' · ' + s.location) : ''),
+      };
+    });
     const gapTabs = gapData.map((g,i) => {
       const a = this.state.gap === i;
       return { title:g.title, when:g.when, dot:g.dot,
@@ -1803,7 +2232,13 @@ class Component extends DCLogic {
       { name:'Grace Adeyemi', init:'GA', role:'Care Worker · Disability', tint:'#6366f1', score:87, rating:'4.8', shifts:'241', dist:'5.0km away',
         tags:['Medication','Female','First Aid ✓'],
         bars:[ ['Skills match','85%','#16b8a6'], ['Availability','88%','#1e9e6a'], ['Proximity','70%','#6366f1'], ['Client fit','90%','#d98b22'] ] }
-    ] : [];
+    ] : (orgWorkers.length && unfilledShifts.length ? [{
+      name: orgWorkers[0].full_name || orgWorkers[0].email || 'Worker',
+      init: _workerInitialsEarly(orgWorkers[0].full_name || orgWorkers[0].email || 'Worker'),
+      role: 'Suggested team member — not auto-ranked',
+      tint: workerTintsEarly[0], score: '—', rating: '—', shifts: '—', dist: '—',
+      tags: ['Manual assignment only'], bars: [],
+    }] : []);
     const feat0 = candidates.length ? candidates[this.state.matchIdx % candidates.length] : null;
     const feat = feat0 ? {
       name:feat0.name, init:feat0.init, role:feat0.role, tint:feat0.tint,
@@ -1815,7 +2250,15 @@ class Component extends DCLogic {
       { name:'Lena Sørensen', init:'LS', tint:'#d98b22', meta:'Community · 4.7★ · 3.4km', score:'89' },
       { name:'Grace Adeyemi', init:'GA', tint:'#6366f1', meta:'Disability · 4.8★ · 5.0km', score:'87' },
       { name:'Marcus Hill', init:'MH', tint:'#0e5147', meta:'Personal Care · 4.6★ · 6.2km', score:'82' }
-    ] : [];
+    ] : orgWorkers.slice(1, 4).map((w, i) => ({
+      name: w.full_name || w.email || 'Worker',
+      init: _workerInitialsEarly(w.full_name || w.email || 'Worker'),
+      tint: workerTintsEarly[(i + 1) % workerTintsEarly.length],
+      meta: 'Team member — not ranked', score: '—',
+    }));
+    const smartMatchActive = demoMode || unfilledShifts.length > 0;
+    const smartMatchEmpty = !demoMode && unfilledShifts.length === 0;
+    const matchRanked = demoMode;
 
     // ---- roster grid ----
     // Real week navigation: Monday of the current week shifted by weekOffset weeks.
@@ -1865,7 +2308,7 @@ class Component extends DCLogic {
     };
 
     // ---- worker management ----
-    const workerRows= demoMode ? [
+    const workerRowsDemo=[
       {name:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,role:'Senior Support Worker',area:'Glenroy · 2.1km',
        assignedClients:['Margaret R.','Ruth K.','Tom B.'],clientTints:['#16b8a6','#0891b2','#d98b22'],
        hoursWk:'32h',hoursMo:'128h',
@@ -1899,7 +2342,8 @@ class Component extends DCLogic {
     ].map(w=>({...w,proGlow:w.pro,credEl:w.credOk?ic('check','#1e9e6a',15,2.4):ic('alert','#d98b22',15),
       clientDots:w.assignedClients.map((c,i)=>({name:c,tint:w.clientTints[i]||'#16b8a6'})),
       credRows:w.creds.map(c=>({label:c.label,ok:c.ok,exp:c.exp,iconEl:c.ok?ic('check','#1e9e6a',14,2.4):ic('alert','#d98b22',14)}))
-    })) : [];
+    }));
+    let workerRows = demoMode ? workerRowsDemo : [];
 
     // ---- participant pipeline ----
     const partRows=[
@@ -1925,25 +2369,47 @@ class Component extends DCLogic {
        status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',workers:1,docs:4,tasks:0,alert:''}
     ];
     // spider-web nodes for selected participant
-    const webNodes2= demoMode ? [
+    const webNodes2Demo= demoMode ? [
       {label:'Amara O.',initials:'AO',x:'20%',y:'24%',tint:'#16b8a6',type:'Worker'},
       {label:'Sarah K.',initials:'SK',x:'80%',y:'22%',tint:'#6366f1',type:'Coordinator'},
       {label:'Jordan P.',initials:'JP',x:'15%',y:'74%',tint:'#d98b22',type:'Allied Health'},
       {label:'Mariam T.',initials:'MT',x:'82%',y:'76%',tint:'#0891b2',type:'Family'},
       {label:'Service Agmt',initials:'SA',x:'50%',y:'86%',tint:'#9333ea',type:'Document'}
     ] : [];
+    const webNodes2 = demoMode ? webNodes2Demo : (this.state.careWebNodes || []);
+    const careWebParticipant = this.state.careWebParticipant || { name: 'Participant', init: 'P' };
+    const careWebHasData = !demoMode && webNodes2.length > 0;
+    const webNodes2Empty = !demoMode && !careWebHasData && !this.state.careWebLoading;
     const referrals=[
       {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',src:'Web enquiry',service:'Personal Care · 6h/wk',when:'2h ago',st:'new',stFg:'#0b6b60',stBg:'#e7f4f1',stLabel:'NEW'},
       {name:'Hassan Ali',init:'HA',tint:'#6366f1',src:'Coordinator — Sarah K.',service:'Community Access',when:'5h ago',st:'new',stFg:'#0b6b60',stBg:'#e7f4f1',stLabel:'NEW'},
       {name:'Joan Wu',init:'JW',tint:'#d98b22',src:'Hospital discharge',service:'Allied Health',when:'Yesterday',st:'review',stFg:'#b4561f',stBg:'#fbf0df',stLabel:'REVIEWING'},
       {name:'Peter Novak',init:'PN',tint:'#0891b2',src:'Returning client',service:'Domestic Assistance',when:'2 days ago',st:'agreement',stFg:'#4338ca',stBg:'#eef0fd',stLabel:'AGREEMENT SENT'}
     ];
-    const agreements=[
+    const agreementsDemo = [
       {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',period:'01 Jul 26 – 30 Jun 27',st:'signed',stFg:'#1e7a52',stBg:'#e9f6ef',stLabel:'Signed ✓',sub:'SA-20614 · filed to profile'},
       {name:'David Lowe',init:'DL',tint:'#6366f1',period:'15 Jun 26 – 14 Jun 27',st:'await',stFg:'#b4561f',stBg:'#fbf0df',stLabel:'Awaiting signature',sub:'Sent to client 2 days ago'},
       {name:'Tom Becker',init:'TB',tint:'#d98b22',period:'01 Aug 26 – 31 Jul 27',st:'draft',stFg:'#5f726d',stBg:'#f1f4f2',stLabel:'Draft',sub:'Not yet sent'},
       {name:'Priya Sharma',init:'PS',tint:'#9333ea',period:'01 May 26 – 30 Apr 27',st:'signed',stFg:'#1e7a52',stBg:'#e9f6ef',stLabel:'Signed ✓',sub:'SA-20588 · filed to profile'}
     ].map(a=>({...a,iconEl:ic('doc',a.tint,16)}));
+    const agreementsReal = (this.state.pdAgreements || []).map((a, idx) => {
+      const signed = a.status === 'signed' || a.status === 'active';
+      const tint = ['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea'][idx % 5];
+      const pname = a.participant_name || 'Participant';
+      return {
+        name: pname,
+        init: pname.substring(0, 2).toUpperCase(),
+        tint,
+        period: (a.period_start || '—') + ' – ' + (a.period_end || '—'),
+        st: a.status,
+        stFg: signed ? '#1e7a52' : '#b4561f',
+        stBg: signed ? '#e9f6ef' : '#fbf0df',
+        stLabel: signed ? 'Signed ✓' : String(a.status || 'draft').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        sub: (a.reference || 'Agreement') + ' · filed to profile',
+        iconEl: ic('doc', tint, 16)
+      };
+    });
+    const agreements = demoMode ? agreementsDemo : agreementsReal;
 
     // ---- find workers (provider side of the marketplace) ----
     const fT={
@@ -1969,7 +2435,77 @@ class Component extends DCLogic {
         fShift('standard',{client:'Margaret R.',service:'Personal Care',pay:'$46/hr',when:'Sat 9–1',dist:'2.1km',status:'claimed',by:'Amara Okafor',byInit:'AO',byTint:'#16b8a6'}),
         fShift('standard',{client:'Tom B.',service:'Community Access',pay:'$42/hr',when:'Fri 10–1',dist:'4.0km',status:'open',note:'Open · 6 workers notified'})
       ]}
-    ] : [];
+    ] : (() => {
+      const groups = { emergency: [], urgent: [], standard: [] };
+      unfilledShifts.forEach(s => {
+        const u = _shiftUrgencyEarly(s);
+        groups[u.tier].push(fShift(u.tier, {
+          client: _shortNameEarly(_partNameEarly(s)),
+          service: s.support_type || s.title || 'Support',
+          pay: '—', when: _fmtShiftWhenEarly(s), dist: s.location || '—',
+          status: 'open', note: 'Open · awaiting worker',
+        }));
+      });
+      const out = [];
+      if (groups.emergency.length) out.push({ color:'#c0445c', title:'EMERGENCY · NEEDS COVER NOW', shifts: groups.emergency });
+      if (groups.urgent.length) out.push({ color:'#b4561f', title:'URGENT · TODAY', shifts: groups.urgent });
+      if (groups.standard.length) out.push({ color:'#0b6b60', title:'STANDARD · UPCOMING', shifts: groups.standard });
+      return out;
+    })();
+    const findHasData = findSections.length > 0;
+    const findEmpty = !findHasData;
+
+    const pdCareTeam = this.state.pdCareTeam || [];
+    const alliedMap = {};
+    const coordMap = {};
+    pdCareTeam.forEach(({ participantName, team }) => {
+      (team || []).forEach(m => {
+        const key = m.user_id || m.full_name || m.email || String(m.role || 'member');
+        const clientShort = _shortNameEarly(participantName);
+        if (m.role === 'allied_health') {
+          if (!alliedMap[key]) alliedMap[key] = { member: m, clients: [] };
+          if (alliedMap[key].clients.indexOf(clientShort) < 0) alliedMap[key].clients.push(clientShort);
+        }
+        if (m.role === 'support_coordinator') {
+          if (!coordMap[key]) coordMap[key] = { member: m, clients: [] };
+          if (coordMap[key].clients.indexOf(clientShort) < 0) coordMap[key].clients.push(clientShort);
+        }
+      });
+    });
+    const realAlliedRows = Object.keys(alliedMap).map((key, idx) => {
+      const m = alliedMap[key].member;
+      const name = m.full_name || m.email || 'Allied health';
+      return {
+        name, init: _workerInitialsEarly(name), tint: workerTintsEarly[idx % workerTintsEarly.length],
+        disc: 'Allied Health', clients: alliedMap[key].clients,
+        reportStatus: 'Linked', repFg: '#1e7a52', repBg: '#e9f6ef',
+        goal: '—', lastReport: '—', canSee: ['Care team member'],
+      };
+    });
+    const realCoordRows = Object.keys(coordMap).map((key, idx) => {
+      const m = coordMap[key].member;
+      const name = m.full_name || m.email || 'Coordinator';
+      return {
+        name, init: _workerInitialsEarly(name), tint: workerTintsEarly[idx % workerTintsEarly.length],
+        org: 'Support coordinator', clients: coordMap[key].clients,
+        phone: '—', email: m.email || '—', planReviews: 0, agreements: 0, userId: m.user_id || null,
+      };
+    });
+    const alliedRowsFinal = demoMode ? [
+      {name:'Jordan Pham',init:'JP',tint:'#6366f1',disc:'Physiotherapy',clients:['David L.','Margaret R.'],reportStatus:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Gait & mobility',lastReport:'18 Jun 2026',canSee:['Therapy goals','Progress notes','Recommendations']},
+      {name:'Northside Speech',init:'NS',tint:'#0891b2',disc:'Speech Pathology',clients:['Ruth K.'],reportStatus:'Overdue',repFg:'#c0445c',repBg:'#fbe9ed',goal:'Communication aids',lastReport:'—',canSee:['Therapy goals','Progress notes']},
+      {name:'Inner West OT',init:'IW',tint:'#9333ea',disc:'Occupational Therapy',clients:['Margaret R.'],reportStatus:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Independent living',lastReport:'12 May 2026',canSee:['OT recommendations','Home assessment']},
+      {name:'Geelong Therapy',init:'GT',tint:'#d98b22',disc:'OT — Paediatric',clients:['Tom B.'],reportStatus:'Not yet',repFg:'#b4561f',repBg:'#fbf0df',goal:'Sensory processing',lastReport:'—',canSee:['Therapy goals']}
+    ] : realAlliedRows;
+    const coordRowsFinal = (demoMode ? [
+      {name:'Sarah Kelly',init:'SK',tint:'#6366f1',org:'CiaraLink SC',clients:['Margaret R.','David L.','Tom B.','Priya S.','Ruth K.'],phone:'0438 221 770',email:'sarah@ciaralink.com.au',planReviews:3,agreements:5,userId:null},
+      {name:'Michael Torres',init:'MT',tint:'#0891b2',org:'Northern SC Services',clients:['Priya S.'],phone:'0411 882 334',email:'m.torres@nsc.com.au',planReviews:1,agreements:1,userId:null}
+    ] : realCoordRows).map(c => ({
+      ...c,
+      onMessage: () => this.composeMessage({ name: c.name, email: c.email !== '—' ? c.email : null, recipientUserId: c.userId || null, threadType: 'coordination' }),
+    }));
+    const alliedHasData = alliedRowsFinal.length > 0;
+    const coordHasData = coordRowsFinal.length > 0;
 
     // ---- post a shift ----
     const postMode=this.state.postMode||'targeted';
@@ -1984,26 +2520,53 @@ class Component extends DCLogic {
     const psk=this.state.postSkills||{};
     const postSkills=skillList.map((l,i)=>({label:l,onClick:()=>this.setState(s=>{const m={...(s.postSkills||{})};m[i]=!m[i];return{postSkills:m};}),..._chip(!!psk[i])}));
 
+    const tabPalette = ['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea'];
+    const titleCase = (s)=>String(s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const pdRefs = this.state.pdReferrals || [];
+    const providerOrgId = this.state.orgId || null;
+    const incomingRefs = providerOrgId
+      ? pdRefs.filter(r => r.to_org_id && r.to_org_id === providerOrgId)
+      : pdRefs.filter(r => r.to_org_id);
+    const parseRefNotes = (notes, prefix) => {
+      const line = String(notes || '').split('\n').find(l => l.startsWith(prefix));
+      return line ? line.slice(prefix.length).trim() : '';
+    };
+
     const refDetailData= demoMode ? [
       {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Sarah Kelly (SC)',fromType:'Support Coordinator',supports:'Personal Care · 6h/wk',funding:'Core Supports · Plan-managed',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',contact:'Called · awaiting callback',next:'Send service agreement',docs:['NDIS plan'],missing:['Consent form','Risk assessment'],when:'2h ago'},
       {name:'Hassan Ali',init:'HA',tint:'#6366f1',from:'Dr. Chen (GP)',fromType:'GP Referral',supports:'Community Access · Allied Health',funding:'Capacity Building · Agency-managed',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df',contact:'Email sent',next:'Chase documents',docs:['Medical summary'],missing:['NDIS plan','Consent form'],when:'5h ago'},
       {name:'Joan Wu',init:'JW',tint:'#d98b22',from:'Hospital discharge team',fromType:'Hospital',supports:'Allied Health · Home support',funding:'Core · Plan-managed',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',contact:'Contacted',next:'Review service agreement',docs:['Discharge summary','NDIS plan'],missing:[],when:'Yesterday'},
       {name:'Peter Novak',init:'PN',tint:'#0891b2',from:'Self-referred',fromType:'Participant',supports:'Domestic Assistance',funding:'Core · Self-managed',urgency:'Low',urgFg:'#1e7a52',urgBg:'#e9f6ef',contact:'Intake form submitted',next:'Send agreement',docs:['Intake form'],missing:['Police check consent'],when:'2 days ago'}
-    ] : [];
+    ] : incomingRefs.map((r, idx) => {
+      const p = r.participants || {};
+      const name = p.preferred_name || p.full_name || 'Referral';
+      const urg = r.priority === 'urgent' || r.priority === 'emergency' ? 'High' : 'Standard';
+      return {
+        name, init: String(name).substring(0, 2).toUpperCase(), tint: tabPalette[idx % 5],
+        from: 'Support Coordinator', fromType: 'Support Coordinator',
+        supports: parseRefNotes(r.notes, 'Supports required: ') || (r.type ? titleCase(String(r.type).replace(/_/g, ' ')) : 'Service request'),
+        funding: parseRefNotes(r.notes, 'Funding category: ') || '—',
+        urgency: urg,
+        urgFg: urg === 'Standard' ? '#1e7a52' : '#c0445c',
+        urgBg: urg === 'Standard' ? '#e9f6ef' : '#fbe9ed',
+        contact: titleCase(String(r.status || 'received').replace(/_/g, ' ')),
+        next: parseRefNotes(r.notes, 'Notes: ') || 'Review and respond to coordinator',
+        docs: [], missing: [],
+        when: r.created_at ? new Date(r.created_at).toLocaleDateString() : '—',
+        participantId: r.participant_id,
+        referralId: r.id
+      };
+    });
+    const referralsHasData = demoMode || incomingRefs.length > 0;
+    const referralsEmpty = !demoMode && incomingRefs.length === 0;
     // ============================================================
     // REAL-DATA TAB VIEWS (5 tabs). In demoMode (unconfigured preview) the rich
     // demo arrays below render unchanged. In real mode (Supabase configured /
     // signed in) we render only RLS-scoped Supabase rows or a clean, DISTINCT
     // empty-state — a real provider never sees fabricated people/numbers here.
-    //   Pipeline  -> real referrals  (loadReferralsForCurrentUser)
+    //   Pipeline  -> incoming referrals from coordinators (to_org_id = provider)
     //   Documents -> real documents  (loadDocumentsForCurrentUser)
-    //   Roster / Calendar / Agreements -> distinct empty-state (no provider-org
-    //   helper exists yet for org shifts / calendar / service agreements).
     // ============================================================
-    const tabPalette = ['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea'];
-    const titleCase = (s)=>String(s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-    // ---- Pipeline (real referrals) ----
-    const pdRefs = this.state.pdReferrals || [];
     const refStageMeta = {
       received:{label:'Referral received',fg:'#6366f1',bg:'#eef0fd'},
       reviewing:{label:'Reviewing',fg:'#d98b22',bg:'#fbf0df'},
@@ -2012,19 +2575,25 @@ class Component extends DCLogic {
       active:{label:'Active service',fg:'#0b6b60',bg:'#e7f4f1'},
       declined:{label:'Declined',fg:'#c0445c',bg:'#fbe9ed'}
     };
-    const realPipelineClients = pdRefs.map((r,idx)=>{
+    const realPipelineClients = incomingRefs.map((r,idx)=>{
       const p = r.participants || {};
       const name = p.preferred_name || p.full_name || 'Referral';
       const st = r.status || 'received';
       const meta = refStageMeta[st] || {label:titleCase(st),fg:'#5f726d',bg:'#f1f4f2'};
       return { name, init:String(name).substring(0,2).toUpperCase(), tint:tabPalette[idx%5],
+        id: r.participant_id || p.id || null,
         stage:meta.label, stageFg:meta.fg, stageBg:meta.bg,
         next: r.notes ? r.notes : (r.type ? titleCase(r.type) : 'Review referral'),
-        urgent: r.priority==='urgent' };
+        urgent: r.priority==='urgent',
+        referralId: r.id,
+        rawStatus: st,
+        openProfile: () => this.navToParticipantProfile(r.participant_id || p.id || null),
+        advanceReferral: () => this.advanceReferral(r.id, st)
+      };
     });
     const realPipelineStages = Object.keys(refStageMeta).map(key=>{
       const meta = refStageMeta[key];
-      const count = pdRefs.filter(r => (r.status||'received')===key).length;
+      const count = incomingRefs.filter(r => (r.status||'received')===key).length;
       return { key, label:meta.label, count, color:meta.fg, bg:meta.bg };
     }).filter(s => s.count>0);
     const pipelineEmpty = !demoMode && realPipelineClients.length===0;
@@ -2039,10 +2608,68 @@ class Component extends DCLogic {
     }));
     const docsEmpty = !demoMode && realDocs.length===0;
     // ---- Roster / Calendar (real org shifts via loadOrgShifts) ----
-    // Demo (unconfigured preview) shows the rich demo grid/list. Real mode renders
-    // the provider's actual shifts, or a clean empty-state when there are none.
-    const orgShifts = this.state.orgShifts || [];
-    const orgWorkers = this.state.orgWorkers || [];
+    if (!demoMode) {
+      const workerRoles = ['support_worker', 'abn_worker'];
+      const workerTints = ['#16b8a6', '#6366f1', '#d98b22', '#0891b2', '#9333ea', '#0e5147'];
+      const now = new Date();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const shiftHours = (s) => {
+        try {
+          const a = new Date(s.start_time).getTime();
+          const b = new Date(s.end_time).getTime();
+          if (!a || !b || b <= a) return 0;
+          return (b - a) / 3600000;
+        } catch (e) { return 0; }
+      };
+      workerRows = orgWorkers.filter(m => workerRoles.includes(m.role)).map((m, idx) => {
+        const name = m.full_name || m.email || 'Worker';
+        const parts = String(name).trim().split(/\s+/).filter(Boolean);
+        const init = parts.length >= 2
+          ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+          : name.substring(0, 2).toUpperCase();
+        const tint = workerTints[idx % workerTints.length];
+        const myShifts = orgShifts.filter(s => s.worker_id === m.user_id);
+        let hoursWk = 0;
+        let hoursMo = 0;
+        const clientMap = {};
+        myShifts.forEach(s => {
+          const h = shiftHours(s);
+          const st = new Date(s.start_time);
+          if (st >= weekStart) hoursWk += h;
+          if (st >= monthStart) hoursMo += h;
+          const pn = (s.participants && (s.participants.preferred_name || s.participants.full_name)) || 'Client';
+          const short = pn.split(' ').length >= 2
+            ? pn.split(' ')[0] + ' ' + pn.split(' ')[1][0] + '.'
+            : pn.split(' ')[0];
+          if (s.participant_id) {
+            clientMap[s.participant_id] = {
+              name: short,
+              tint: workerTints[Object.keys(clientMap).length % workerTints.length],
+            };
+          }
+        });
+        const clientDots = Object.values(clientMap).slice(0, 4);
+        const active = m.status === 'active';
+        const roleLabel = titleCase(String(m.role || 'support_worker').replace(/_/g, ' '));
+        return {
+          name, init, tint, pro: false, proGlow: false,
+          role: roleLabel, area: m.email || '—',
+          hoursWk: Math.round(hoursWk) + 'h',
+          hoursMo: Math.round(hoursMo) + 'h',
+          clientDots,
+          credRows: [{ label: 'Credentials', ok: true, exp: 'On file', iconEl: ic('check', '#1e9e6a', 14, 2.4) }],
+          credOk: true,
+          status: active ? 'Active' : titleCase(m.status || 'Unknown'),
+          stFg: active ? '#1e7a52' : '#5f726d',
+          stBg: active ? '#e9f6ef' : '#f1f4f2',
+        };
+      });
+    }
+    const workersHasData = workerRows.length > 0;
+    const workersEmpty = !demoMode && workerRows.length === 0;
     const hasOrgShifts = orgShifts.length > 0;
     const rosterHasData = demoMode;                       // demo weekly grid
     const rosterReal = !demoMode && hasOrgShifts;         // real grouped-by-day list
@@ -2050,10 +2677,8 @@ class Component extends DCLogic {
     const calendarHasData = demoMode;                     // demo upcoming list
     const calendarReal = !demoMode && hasOrgShifts;       // real shift events
     const calendarEmpty = !demoMode && !hasOrgShifts;
-    const agreementsHasData = demoMode;
-    const agreementsEmpty = !demoMode;
-
-    // status -> badge/dot meta
+    const agreementsHasData = demoMode || (this.state.pdAgreements || []).length > 0;
+    const agreementsEmpty = !demoMode && !(this.state.pdAgreements || []).length;
     const shiftStatusMeta = (st) => {
       const m = {
         offered:   { label:'Open',        fg:'#b4561f', bg:'#fbf0df', dot:'#d98b22' },
@@ -2152,8 +2777,20 @@ class Component extends DCLogic {
       userInitials: this.state.authInitials || 'CL',
       userRole: this.state.authRole || 'Provider',
       logoEl: ic('shield','#eafaf8',21),
-      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goParticipantProfile:()=>{
+        const parts=this.state.supabaseParticipants||[];
+        const id=this.state.selectedParticipantId||(parts[0]&&parts[0].id)||null;
+        this.navToParticipantProfile(id);
+      },
+      sendHandoffFromReferral:()=>{
+        const d=refDetailData[this.state.selRef||0]||refDetailData[0]||{};
+        this.sendToCoordinator(d.participantId||this.state.selectedParticipantId, d.referralId||null);
+      },
+      sendHandoffFromCareWeb:()=>{
+        this.sendToCoordinator(this.state.selectedParticipantId||(this.state.careWebParticipant&&this.state.careWebParticipant.id), null);
+      },
       goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
+      notifUnread:this.state.notifUnread||0,
       goBilling:()=>{ window.location.href='billing.html'; },
       reviewApplicants:()=>this.setNav('workers'),
       goInviteWorker:()=>{ window.location.href='Service Provider.dc.html'; },
@@ -2218,7 +2855,8 @@ class Component extends DCLogic {
             const name=p.full_name||p.name||'Unnamed participant';
             const ndis=p.ndis_number||p.ndisNumber||'NDIS';
             const status=(p.status||'active').replace(/_/g,' ');
-            return {label:name,sub:ndis+' · '+(status.charAt(0).toUpperCase()+status.slice(1)),type:'Participant',tagFg:'#0b6b60',tagBg:'#e7f4f1',init:String(name).substring(0,2).toUpperCase(),tintBg:'#e7f4f1',tintFg:'#0b6b60',go:()=>{window.location.href='Participant Profile.dc.html';}};
+            const pid=p.id;
+            return {label:name,sub:ndis+' · '+(status.charAt(0).toUpperCase()+status.slice(1)),type:'Participant',tagFg:'#0b6b60',tagBg:'#e7f4f1',init:String(name).substring(0,2).toUpperCase(),tintBg:'#e7f4f1',tintFg:'#0b6b60',go:()=>this.navToParticipantProfile(pid)};
           });
           const realFiltered=q?realAll.filter(i=>i.label.toLowerCase().includes(q)||i.sub.toLowerCase().includes(q)):realAll;
           if(!realFiltered.length) return [];
@@ -2244,7 +2882,7 @@ class Component extends DCLogic {
         filtered.forEach(i=>{if(!groups[i.type])groups[i.type]=[];groups[i.type].push(i);});
         return Object.entries(groups).map(([group,items])=>({group,items}));
       })(),
-      logoutEl: React.createElement('button',{onClick:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73',title:'Sign out'}},ic('logout','#5f7a73',17)),
+      logoutEl: React.createElement('button',{onClick:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='Login.dc.html?resetSession=1';},style:{background:'none',border:'none',cursor:'pointer',padding:'4px',borderRadius:'7px',display:'flex',alignItems:'center',color:'#5f7a73',title:'Sign out'}},ic('logout','#5f7a73',17)),
       searchEl: ic('search','#9aa8a3',17),
       connectEl: ic('connect','#0b6b60',16),
       qrEl: ic('qr','#2c4a44',16),
@@ -2254,7 +2892,7 @@ class Component extends DCLogic {
       isConnect: content === 'connect',
       isRoster: content === 'roster',
       isFind: content === 'find',
-      findSections, findEmpty: !demoMode, plusFEl: ic('plus','#06201c',16), postIconEl: ic('plus','#16b8a6',20),
+      findSections, findEmpty, findHasData, plusFEl: ic('plus','#06201c',16), postIconEl: ic('plus','#16b8a6',20),
       postOpen: this.state.postOpen,
       openPost:()=>this.setState({postOpen:true, psParticipant:'', psSupport:'', psDate:'', psStart:'', psEnd:'', psLocation:'', psWorker:'', psSubmitting:false}),
       closePost:()=>this.setState({postOpen:false}),
@@ -2321,15 +2959,15 @@ class Component extends DCLogic {
       pipelineEmpty, docsEmpty, rosterHasData, rosterEmpty, calendarHasData, calendarEmpty, agreementsHasData, agreementsEmpty,
       filedropSrc:'AI%20File%20Drop.dc.html',
       isPerms: content==='perms', isPlanUpdate: content==='planupdate',
-      permRows:[
+      permRows: demoMode ? [
         {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',roles:[{role:'Support Workers',access:'Shift info only',fg:'#b4561f',bg:'#fbf0df'},{role:'Support Coordinator',access:'Full plan view',fg:'#1e7a52',bg:'#e9f6ef'},{role:'Allied Health',access:'Goals + reports',fg:'#4338ca',bg:'#eef0fd'},{role:'Provider',access:'Service scope only',fg:'#b4561f',bg:'#fbf0df'}]},
         {name:'David Lowe',init:'DL',tint:'#6366f1',roles:[{role:'Support Workers',access:'Shift info only',fg:'#b4561f',bg:'#fbf0df'},{role:'Support Coordinator',access:'Full plan view',fg:'#1e7a52',bg:'#e9f6ef'},{role:'Allied Health',access:'Not connected',fg:'#8a9a94',bg:'#f1f4f2'},{role:'Provider',access:'Service scope only',fg:'#b4561f',bg:'#fbf0df'}]},
         {name:'Priya Sharma',init:'PS',tint:'#9333ea',roles:[{role:'Support Workers',access:'Shift info only',fg:'#b4561f',bg:'#fbf0df'},{role:'Support Coordinator',access:'Full plan view',fg:'#1e7a52',bg:'#e9f6ef'},{role:'Allied Health',access:'Goals + reports',fg:'#4338ca',bg:'#eef0fd'},{role:'Provider',access:'Service scope only',fg:'#b4561f',bg:'#fbf0df'}]}
-      ],
-      planUpdates:[
+      ] : [],
+      planUpdates: demoMode ? [
         {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',oldPlan:'01 Jul 2025 – 30 Jun 2026',newPlan:'01 Jul 2026 – 30 Jun 2027',changes:[{label:'Core budget',old:'$68,200',newVal:'$74,200',up:true,down:false},{label:'Capacity Building',old:'$18,000',newVal:'$22,000',up:true,down:false},{label:'Plan end date',old:'30 Jun 2026',newVal:'30 Jun 2027',up:true,down:false},{label:'New goal added',old:'—',newVal:'Independent transport',up:true,down:false}],status:'New plan uploaded',stFg:'#c0445c',stBg:'#fbe9ed'},
         {name:'Tom Becker',init:'TB',tint:'#d98b22',oldPlan:'01 Aug 2025 – 31 Jul 2026',newPlan:'01 Aug 2026 – 31 Jul 2027',changes:[{label:'Core budget',old:'$62,000',newVal:'$68,000',up:true,down:false},{label:'Capital',old:'$8,000',newVal:'$6,000',up:false,down:true},{label:'Plan end date',old:'31 Jul 2026',newVal:'31 Jul 2027',up:true,down:false}],status:'Review required',stFg:'#b4561f',stBg:'#fbf0df'}
-      ],
+      ] : [],
       upArrowEl:ic('arrowUp','#1e9e6a',13),downArrowEl:ic('arrowDown','#c0445c',13),shieldSmEl2:ic('shield','#16b8a6',14),
       activeDocs: !demoMode ? realDocs : (()=>{const t=this.state.docsTab||'participant';if(t==='worker')return[{name:'NDIS Worker Screening',client:'Amara O.',tag:'Screening',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'Expires 2028',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'First Aid / CPR',client:'Noah R.',tag:'First Aid',tagFg:'#c0445c',tagBg:'#fbe9ed',meta:'Expires in 14 days',status:'Expiring',stFg:'#c0445c',stBg:'#fbe9ed'},{name:'Police Check',client:'Noah R.',tag:'Police',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'Cleared 2027',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'NDIS Screening',client:'Marcus H.',tag:'Screening',tagFg:'#c0445c',tagBg:'#fbe9ed',meta:'Not uploaded',status:'Missing',stFg:'#c0445c',stBg:'#fbe9ed'},{name:'Insurance Certificate',client:'Grace A.',tag:'Insurance',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'$20M PL · 2027',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef'}];if(t==='provider')return[{name:'Service Agreement Template',client:'Brightside Care',tag:'Template',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'14 fields · used 23×',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Privacy Policy',client:'Brightside Care',tag:'Policy',tagFg:'#4338ca',tagBg:'#eef0fd',meta:'Updated Mar 2026',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Incident Report Template',client:'Brightside Care',tag:'Template',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'NDIS-aligned v3',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'NDIS Registration',client:'Brightside Care',tag:'Registration',tagFg:'#b4561f',tagBg:'#fbf0df',meta:'Expires 2027',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef'}];return[{name:'NDIS Plan 2026–27',client:'Margaret R.',tag:'Plan',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'PDF · uploaded 01 Jul',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Service Agreement',client:'Margaret R.',tag:'Agreement',tagFg:'#4338ca',tagBg:'#eef0fd',meta:'Signed 01 Jul',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Consent to Share',client:'David L.',tag:'Consent',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'Signed',status:'Signed',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Support Plan',client:'Tom B.',tag:'Support Plan',tagFg:'#b4561f',tagBg:'#fbf0df',meta:'Updated May',status:'Current',stFg:'#1e7a52',stBg:'#e9f6ef'},{name:'Service Agreement',client:'Ruth K.',tag:'Agreement',tagFg:'#c0445c',tagBg:'#fbe9ed',meta:'Not yet sent',status:'Missing',stFg:'#c0445c',stBg:'#fbe9ed'}];})(),
       uploadSmEl: ic('upload','#06201c',14), fileSmEl: ic('file','#6366f1',15),
@@ -2348,7 +2986,9 @@ class Component extends DCLogic {
           return sbParts.map((p, idx) => {
             const status = (p.status || 'active').replace(/_/g, ' ');
             const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            const pid = p.id;
             return {
+            id: pid,
             name: p.full_name || p.name || 'Unnamed participant',
             preferred: p.preferred_name || p.preferredName || '—',
             ndis: p.ndis_number || p.ndisNumber || 'Demo only',
@@ -2370,13 +3010,17 @@ class Component extends DCLogic {
             workers: '—',
             docs: '—',
             tasks: 0,
-            alert: ''
+            alert: '',
+            showBudget: false,
+            openProfile: () => this.navToParticipantProfile(pid),
+            selectClient: () => this.loadCareWeb(pid),
           };
           });
         }
-        return partRows;
+        return partRows.map(p=>({...p,showBudget:true}));
       })(),
-      workerRows, partRows, webNodes2, workersEmpty: !demoMode, webNodes2Empty: !demoMode,
+      workerRows, partRows, webNodes2, workersEmpty, workersHasData, webNodes2Empty, careWebHasData,
+      careWebParticipantName: careWebParticipant.name, careWebParticipantInit: careWebParticipant.init,
       inviteEl: ic('plus','#06201c',16), viewEl: ic('chev','#b6c4be',16),
       calEvents: demoMode ? [
         {day:21,month:'Jun',type:'plan',label:'Margaret R. — plan review meeting',sub:'Support coordinator: Sarah Kelly',dot:'#6366f1',tagFg:'#4338ca',tagBg:'#eef0fd',tag:'Plan Review'},
@@ -2400,11 +3044,11 @@ class Component extends DCLogic {
         {key:'active',label:'Active service',count:12,color:'#0b6b60',bg:'#e7f4f1'}
       ] : realPipelineStages,
       pipelineClients: demoMode ? [
-        {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',stage:'Referral received',stageFg:'#6366f1',stageBg:'#eef0fd',next:'Contact within 48h',urgent:true},
-        {name:'Hassan Ali',init:'HA',tint:'#6366f1',stage:'Documents requested',stageFg:'#d98b22',stageBg:'#fbf0df',next:'Chase missing consent form',urgent:true},
-        {name:'Joan Wu',init:'JW',tint:'#d98b22',stage:'Agreement sent',stageFg:'#9333ea',stageBg:'#f3e8ff',next:'Follow up signature',urgent:false},
-        {name:'Margaret Reyes',init:'MR',tint:'#0e5147',stage:'Active service',stageFg:'#0b6b60',stageBg:'#e7f4f1',next:'Plan review in 11 days',urgent:false},
-        {name:'Priya Sharma',init:'PS',tint:'#9333ea',stage:'Worker assigned',stageFg:'#16b8a6',stageBg:'#e7f4f1',next:'First shift this week',urgent:false}
+        {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',stage:'Referral received',stageFg:'#6366f1',stageBg:'#eef0fd',next:'Contact within 48h',urgent:true,openProfile:()=>this.navToParticipantProfile(null),advanceReferral:()=>this.showToast('Preview mode')},
+        {name:'Hassan Ali',init:'HA',tint:'#6366f1',stage:'Documents requested',stageFg:'#d98b22',stageBg:'#fbf0df',next:'Chase missing consent form',urgent:true,openProfile:()=>this.navToParticipantProfile(null),advanceReferral:()=>this.showToast('Preview mode')},
+        {name:'Joan Wu',init:'JW',tint:'#d98b22',stage:'Agreement sent',stageFg:'#9333ea',stageBg:'#f3e8ff',next:'Follow up signature',urgent:false,openProfile:()=>this.navToParticipantProfile(null),advanceReferral:()=>this.showToast('Preview mode')},
+        {name:'Margaret Reyes',init:'MR',tint:'#0e5147',stage:'Active service',stageFg:'#0b6b60',stageBg:'#e7f4f1',next:'Plan review in 11 days',urgent:false,openProfile:()=>this.navToParticipantProfile(null),advanceReferral:()=>this.showToast('Preview mode')},
+        {name:'Priya Sharma',init:'PS',tint:'#9333ea',stage:'Worker assigned',stageFg:'#16b8a6',stageBg:'#e7f4f1',next:'First shift this week',urgent:false,openProfile:()=>this.navToParticipantProfile(null),advanceReferral:()=>this.showToast('Preview mode')}
       ] : realPipelineClients,
       selRef:this.state.selRef||0,
       setRef:(i)=>()=>this.setState({selRef:i}),
@@ -2436,24 +3080,19 @@ class Component extends DCLogic {
         {name:'Incident Report Template',client:'Brightside Care',type:'Template',tag:'Template',tagFg:'#0b6b60',tagBg:'#e7f4f1',meta:'NDIS-aligned · v3',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef'},
         {name:'NDIS Registration',client:'Brightside Care',type:'Registration',tag:'Registration',tagFg:'#b4561f',tagBg:'#fbf0df',meta:'Expires 2027',status:'Valid',stFg:'#1e7a52',stBg:'#e9f6ef'}
       ],
-      alliedRows: demoMode ? [
-        {name:'Jordan Pham',init:'JP',tint:'#6366f1',disc:'Physiotherapy',clients:['David L.','Margaret R.'],reportStatus:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Gait & mobility',lastReport:'18 Jun 2026',canSee:['Therapy goals','Progress notes','Recommendations']},
-        {name:'Northside Speech',init:'NS',tint:'#0891b2',disc:'Speech Pathology',clients:['Ruth K.'],reportStatus:'Overdue',repFg:'#c0445c',repBg:'#fbe9ed',goal:'Communication aids',lastReport:'—',canSee:['Therapy goals','Progress notes']},
-        {name:'Inner West OT',init:'IW',tint:'#9333ea',disc:'Occupational Therapy',clients:['Margaret R.'],reportStatus:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Independent living',lastReport:'12 May 2026',canSee:['OT recommendations','Home assessment']},
-        {name:'Geelong Therapy',init:'GT',tint:'#d98b22',disc:'OT — Paediatric',clients:['Tom B.'],reportStatus:'Not yet',repFg:'#b4561f',repBg:'#fbf0df',goal:'Sensory processing',lastReport:'—',canSee:['Therapy goals']}
-      ] : [],
-      coordRows: (demoMode ? [
-        {name:'Sarah Kelly',init:'SK',tint:'#6366f1',org:'CiaraLink SC',clients:['Margaret R.','David L.','Tom B.','Priya S.','Ruth K.'],phone:'0438 221 770',email:'sarah@ciaralink.com.au',planReviews:3,agreements:5},
-        {name:'Michael Torres',init:'MT',tint:'#0891b2',org:'Northern SC Services',clients:['Priya S.'],phone:'0411 882 334',email:'m.torres@nsc.com.au',planReviews:1,agreements:1}
-      ] : []).map(c => ({ ...c, onMessage: () => this.composeMessage({ name:c.name, email:c.email, threadType:'coordination' }) })),
-      alliedEmpty: !demoMode, coordEmpty: !demoMode,
+      alliedRows: alliedRowsFinal,
+      coordRows: coordRowsFinal,
+      alliedEmpty: !alliedHasData, coordEmpty: !coordHasData,
+      alliedHasData, coordHasData,
       userPlusEl: ic('userplus','#0b6b60',16), pulseEl: ic('pulse','#d98b22',16),
       lockIconEl: ic('shield','#16b8a6',13),
       alertTinyEl: ic('alert','#c0445c',13),
       workersIconEl: ic('users','#9aa8a3',13),
       docsIconEl: ic('folder','#9aa8a3',13),
       hubWEl: ic('hub','#eafaf8',17),
-      referrals, referralsEmpty: !demoMode, agreements: demoMode ? agreements : [],
+      referrals, referralsHasData, referralsEmpty, agreements,
+      referralsListTitle: demoMode ? 'Incoming referrals' : 'From support coordinators',
+      referralsListBadge: demoMode ? '4 total · 2 urgent' : (incomingRefs.length + ' request' + (incomingRefs.length === 1 ? '' : 's')),
       newAgreement:()=>{ window.location.href='Service%20Agreement.dc.html'; },
       arrowREl: ic('chev','#0b6b60',16), plusAEl: ic('plus','#06201c',16), docBigEl: ic('doc','#16b8a6',20),
       pageTitle: isConsole ? cv.title : (pages[content]?.title||''),
@@ -2466,34 +3105,36 @@ class Component extends DCLogic {
       userPlusEl: ic('userplus','#0b6b60',20),
       teamPlusEl: ic('teamplus','#6366f1',20),
       chevEl: ic('chev','#0b6b60',15),
-      fundSummary: demoMode ? [
-        {name:'Margaret R.',init:'MR',tintBg:'#e7f4f1',tintFg:'#0b6b60',pct:'42%',bar:'#16b8a6'},
-        {name:'Tom Becker',init:'TB',tintBg:'#fbf0df',tintFg:'#b4561f',pct:'64%',bar:'#d98b22'},
-        {name:'Priya Sharma',init:'PS',tintBg:'#fbe9ed',tintFg:'#c0445c',pct:'18%',bar:'#e0556e'},
-        {name:'Ruth Kim',init:'RK',tintBg:'#e0f2f5',tintFg:'#0891b2',pct:'47%',bar:'#0891b2'},
-        {name:'David Lowe',init:'DL',tintBg:'#eef0fd',tintFg:'#4338ca',pct:'28%',bar:'#6366f1'}
-      ] : [],
-      docStatus: demoMode ? [
-        {label:'Unsigned agreements',sub:'Ruth K., Hassan A.',value:'2',valColor:'#c0445c',tintBg:'#fbe9ed',iconEl:ic('doc','#e0556e',16)},
-        {label:'Missing documents',sub:'Risk assess., consent form',value:'3',valColor:'#b4561f',tintBg:'#fbf0df',iconEl:ic('alert','#d98b22',16)},
-        {label:'New uploads',sub:'Received in last 7 days',value:'5',valColor:'#0b6b60',tintBg:'#e7f4f1',iconEl:ic('upload','#16b8a6',16)},
-        {label:'Awaiting review',sub:'Discharge summary, OT report',value:'2',valColor:'#4338ca',tintBg:'#eef0fd',iconEl:ic('file','#6366f1',16)}
-      ] : [],
+      fundSummary: fundSummaryLive,
+      docStatus: docStatusLive,
       chevLeftEl: ic('chevLeft','#5f726d',16),
       alertEl: ic('alert','#e0556e',18),
       hubWhiteEl: ic('hub','#eafaf8',18),
       connectionStatus: this.state.supabaseConnected ? 'Connected to Supabase Dev' : 'Preview Mode — Supabase not connected',
       supabaseParticipants: this.state.participants,
       kpis, gaps, notes, todayShifts, rings, attention,
-      showDemo:demoMode, realMode:!demoMode,
+      showDemo:demoMode, realMode:!demoMode, matchRanked,
+      noCompliance, noFunding, noDocStatus,
       noGaps:gaps.length===0, noNotes:notes.length===0, noToday:todayShifts.length===0, noAttention:attention.length===0,
-      gapTabs, webNodes, smartMatchEmpty: !demoMode,
+      gapTabs, webNodes, smartMatchEmpty, smartMatchActive,
       centerInit: cur.center ? (cur.center.split(' ')[0][0] + (cur.center.split(' ')[1]||'R')[0]) : '',
       centerName: cur.center, centerNeed: cur.need,
-      webSub: 'Matching 5 workers to ' + cur.center + "'s open shift",
+      webSub: demoMode ? ('Matching 5 workers to ' + cur.center + "'s open shift") : (cur.center ? ('Open shift for ' + cur.center) : 'Unfilled shifts from your roster'),
       feat, queue,
-      skipMatch: () => { if(demoMode) this.setState(s => ({ matchIdx: s.matchIdx + 1 })); },
-      acceptMatch: () => { if(demoMode) this.setState(s => ({ matchIdx: s.matchIdx + 1 })); },
+      skipMatch: () => {
+        if (demoMode) this.setState(s => ({ matchIdx: s.matchIdx + 1 }));
+        else this.showToast('Assign workers manually from Roster');
+      },
+      acceptMatch: () => {
+        if (demoMode) { this.setState(s => ({ matchIdx: s.matchIdx + 1 })); return; }
+        const shift = unfilledShifts[this.state.gap % Math.max(unfilledShifts.length, 1)];
+        const worker = orgWorkers[0];
+        if (shift && worker && worker.user_id) {
+          this.setState({ assignShiftId: shift.id }, () => this.assignWorker(worker.user_id));
+        } else {
+          this.showToast('Add workers, then assign from Roster');
+        }
+      },
       starEl: ic('star','#d98b22',14),
       xEl: ic('x','#8a9a94',20),
       checkEl: ic('check','#06201c',18),

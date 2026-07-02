@@ -199,17 +199,17 @@ Paste into **App Review Information → Notes**, and fill the **Sign-In Required
 demo credential fields.
 
 ### Demo account (REQUIRED — Apple WILL reject a sign-in app without this)
-> You must create a **real, working** demo account on the live app first.
-> Sign up at https://ciaralink.vercel.app, confirm it logs in, seed it with a
-> little sample data (a participant, a shift, a note) so the reviewer sees a
-> populated app, then paste the exact credentials here AND into the
-> "Sign-In required" username/password fields in App Store Connect.
+
+Use the verified working account (tested against live Supabase). Full paste block: **`APP_REVIEW_PASTE.md`**.
 
 ```
-Demo username (email): [[ demo@ciaralink.com.au — create this real account ]]
-Demo password:         [[ set a strong password and paste it here ]]
-Demo role:             Provider  (full-feature view — recommended for review)
+Demo username (email): demo-provider-admin@ciaralink.example
+Demo password:         DemoPassword123!
+Demo role:             Provider Admin (full-feature view — recommended for review)
 ```
+
+> Do **not** use `@ciaralink.com.au` demo addresses — those are not provisioned on Supabase.
+> All role demos use `@ciaralink.example` with the same password (see `Login.dc.html`).
 
 ### Reviewer notes (paste into the Notes box)
 ```
@@ -241,8 +241,6 @@ icon. It uses native device capabilities:
  • Camera + Photo library for capturing/uploading care documents on the go
  • Local filesystem for handling files offline
  • Native splash screen, status bar theming, and app lifecycle handling
- • Push notifications capability (for care/task alerts)  [[ remove this line if
-   push is NOT enabled in the submitted build ]]
 Dynamic data (records, AI document processing, billing) is served live from our
 backend, the same way any native app calls its server API. The app provides an
 offline shell so it opens and remains usable when connectivity drops.

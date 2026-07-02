@@ -288,10 +288,28 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { step:0, orgType:0, pMode:'manual', workerSel:0, docPhase:'idle', elapsed:0, toast:null, activeFilters:[], agModalOpen:false };
+  state = { step:0, orgType:0, pMode:'manual', workerSel:0, docPhase:'idle', elapsed:0, toast:null, activeFilters:[], agModalOpen:false, ndisRate:null };
   tick=null;
-  componentDidMount(){ this.tick=setInterval(()=>this.setState(s=>({elapsed:s.elapsed+1})),1000); }
+  componentDidMount(){ this.tick=setInterval(()=>this.setState(s=>({elapsed:s.elapsed+1})),1000); this.loadAgreementRate(); }
   componentWillUnmount(){ clearInterval(this.tick); }
+  fmtNdisRate(item){
+    if(!item) return '—';
+    if(item.quote_required) return 'Quote required';
+    const cap=window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,'national'):item.price_cap_national;
+    const fmt=window.formatAudAmount?window.formatAudAmount(cap):('$'+Number(cap).toFixed(2));
+    const u=String(item.unit||'H').toUpperCase();
+    const suffix=(u==='EA')?' /ea':(u==='D'?' /day':' /hr');
+    return fmt+suffix;
+  }
+  loadAgreementRate(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadNdisSupportItems) return;
+      Promise.resolve(window.loadNdisSupportItems({search:'01_011_0107_1_1',limit:5})).then(res=>{
+        const item=((res&&res.items)||[])[0];
+        if(item) this.setState({ndisRate:this.fmtNdisRate(item)});
+      }).catch(err=>console.warn('[Onboarding] loadAgreementRate:',err));
+    }catch(err){ console.warn('[Onboarding] loadAgreementRate:',err); }
+  }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
   ic(n,c,s,sw){
     const stroke=c||'#5f726d',sz=s||18;
@@ -344,6 +362,9 @@ class Component extends DCLogic {
     const searchFilters=filterDefs.map(label=>{const on=active.includes(label);return {label,onClick:()=>toggleFilter(label),bd:on?'#16b8a6':'#e2e9e6',bg:on?'#e7f4f1':'#fff',fg:on?'#0b6b60':'#5f726d'};});
     const visibleWorkers=workers.filter(w=>active.every(l=>matchesFilter(w,l)));
 
+    const demoMode=!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const agreementRate=demoMode?'$46/hr':(this.state.ndisRate||'—');
+
     let selWorker=workers[wSel]||workers[0];
     if(visibleWorkers.length && !visibleWorkers.some(w=>w.idx===(selWorker&&selWorker.idx))) selWorker=visibleWorkers[0];
     const inviteLabel='Invite '+((selWorker&&selWorker.name)?selWorker.name.split(' ')[0]:'worker')+' & send agreement →';
@@ -354,7 +375,7 @@ class Component extends DCLogic {
       {k:'Provider',v:'Brightside Care'},
       {k:'Worker',v:'Amara Okafor'},
       {k:'Service',v:'Personal Care'},
-      {k:'Rate',v:'$46/hr'},
+      {k:'Rate',v:agreementRate},
       {k:'Plan period',v:'01 Jul 2026 – 30 Jun 2027'}
     ];
 
@@ -365,7 +386,7 @@ class Component extends DCLogic {
     const agClauses=[
       {h:'1. Parties',body:'This Service Agreement is made between Brightside Care (the Provider) and Ali Tahan (the Participant), NDIS number 4310 887 226.'},
       {h:'2. Purpose',body:'This agreement provides supports under the Participant’s NDIS plan, in line with the NDIS Act 2013 and the NDIS Practice Standards.'},
-      {h:'3. Schedule of supports',body:'Personal Care delivered by Amara Okafor at $46/hr, in accordance with the current NDIS Pricing Arrangements and Price Limits, for the plan period 01 Jul 2026 – 30 Jun 2027.'},
+      {h:'3. Schedule of supports',body:'Personal Care delivered by Amara Okafor at '+agreementRate+', in accordance with the current NDIS Pricing Arrangements and Price Limits, for the plan period 01 Jul 2026 – 30 Jun 2027.'},
       {h:'4. Provider responsibilities',body:'Deliver supports safely and respectfully, communicate openly, protect privacy, give at least 7 days notice of changes, issue regular invoices, and treat the Participant with courtesy and dignity.'},
       {h:'5. Participant responsibilities',body:'Treat workers with respect, raise any concerns with the Provider, give notice when a scheduled support is no longer needed, and tell the Provider if the NDIS plan changes, is suspended or replaced.'},
       {h:'6. Payments',body:'The Participant is plan-managed. The Provider claims payment from the plan manager after supports are delivered. Rates follow the current NDIS price guide.'},

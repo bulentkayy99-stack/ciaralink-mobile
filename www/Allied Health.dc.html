@@ -241,7 +241,7 @@
                 <span style="font-size:10.5px;font-weight:700;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:3px 9px;border-radius:7px">{{ r.urgency }}</span>
                 <span style="font-size:11px;font-weight:700;color:{{ r.stageFg }};background:{{ r.stageBg }};padding:3px 9px;border-radius:7px">{{ r.stage }}</span>
               </div>
-              <button onClick="{{ goParticipantProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
+              <button onClick="{{ r.openProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
             </div>
           </sc-for>
         </div>
@@ -347,7 +347,7 @@
               <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ c.name }}</div><div style="font-size:12px;color:#8a9a94">{{ c.goal }}</div><div style="height:7px;border-radius:99px;background:#eef2f0;overflow:hidden;margin-top:7px;max-width:280px"><div style="height:100%;width:{{ c.pct }};border-radius:99px;background:{{ c.color }}"></div></div></div>
               <div style="text-align:right"><div style="font-size:15px;font-weight:800;color:{{ c.color }}">{{ c.pct }}</div><div style="font-size:11px;color:#9aa8a3">{{ c.sessions }}</div></div>
               <span style="font-size:11px;font-weight:700;color:{{ c.trendFg }};background:{{ c.trendBg }};padding:3px 9px;border-radius:7px">{{ c.trend }}</span>
-              <button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
+              <button onClick="{{ c.openProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
             </div>
           </sc-for>
         </div>
@@ -500,6 +500,7 @@
                 </div>
                 <div style="text-align:right;flex:0 0 80px"><div style="font-size:11px;color:#9aa8a3">Sessions</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ c.sessions }}</div></div>
                 <span style="font-size:11px;font-weight:700;color:{{ c.trendFg }};background:{{ c.trendBg }};padding:3px 9px;border-radius:7px">{{ c.trend }}</span>
+                <button onClick="{{ c.openProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
               </div>
             </sc-for>
           </div>
@@ -527,7 +528,6 @@
               <div style="display:flex;align-items:center;gap:14px;margin-top:6px;padding:18px 0 4px">
                 <div><div style="font-size:22px;font-weight:800;color:#14302b">—</div><div style="font-size:11.5px;color:#8a9a94">billed</div></div>
                 <div><div style="font-size:22px;font-weight:800;color:#9aa8a3">—</div><div style="font-size:11.5px;color:#8a9a94">claimed</div></div>
-                <div style="margin-left:auto;text-align:right"><div style="font-size:11px;font-weight:700;color:#6c7f79;background:#eef2f0;padding:2px 8px;border-radius:999px">Preview</div></div>
               </div>
               <div style="font-size:12px;color:#9aa8a3;margin-top:8px;line-height:1.6">No billable data yet — figures appear as you log sessions.</div>
               </sc-if>
@@ -717,9 +717,10 @@ class Component extends DCLogic {
   componentDidMount(){
     try{
       const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
-      if(s.loggedIn && s.role && s.role!=='allied'){
-        const m={provider:'CiaraLink Provider Dashboard.dc.html',worker:'Support Worker.dc.html',coordinator:'Support Coordination.dc.html'};
-        if(m[s.role]) window.location.href=m[s.role];
+      const norm=window.normRoleBucket||(r=>r);
+      const dash=window.getDashboardForRole||(r=>'Index.dc.html');
+      if(s.loggedIn&&s.role&&norm(s.role)!=='allied'){
+        window.location.replace(dash(s.role));
       }
     }catch(e){}
     const AD=window.AegisData;
@@ -727,6 +728,20 @@ class Component extends DCLogic {
     this.loadRealData();
     this.loadIdentity();
     this.loadAuxData();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling(()=>{
+        if(window.loadNotificationsForCurrentUser){
+          Promise.resolve(window.loadNotificationsForCurrentUser()).then(res=>{
+            const notifications=(res&&res.notifications)||[];
+            this.setState({realNotifs:notifications,notifsLoaded:true});
+          }).catch(()=>{});
+        }
+      },45000);
+    }
+  }
+
+  componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
   }
 
   // Real (Supabase) mode: load referrals, documents and notifications for the
@@ -879,6 +894,18 @@ class Component extends DCLogic {
     return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.grid}));
   }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  navToParticipantProfile(participantId, view){
+    const demo=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    if(!participantId){
+      if(demo){ window.location.href='Participant Profile.dc.html'; return; }
+      this.showToast('Select a participant from your caseload first');
+      return;
+    }
+    this.setState({noteParticipantId:participantId,notesParticipantId:participantId});
+    if(window.navigateToParticipantProfile) window.navigateToParticipantProfile(participantId,view);
+    else window.location.href=window.participantProfileUrl?window.participantProfileUrl(participantId,view):('Participant Profile.dc.html?id='+encodeURIComponent(participantId));
+  }
   renderVals(){
     const ic=(n,c,s)=>this.ic(n,c,s);
     const view=this.state.view;
@@ -903,7 +930,7 @@ class Component extends DCLogic {
     const sbPartsKpi=this.state.supabaseParticipants||[];
     const realModeKpi=this.state.supabaseConnected===true && sbPartsKpi.length>0;
     const activeClientCount=sbPartsKpi.filter(p=>p&&(p.status||'active')==='active').length;
-    const previewBadge={deltaLabel:'Preview',deltaColor:'#6c7f79',deltaBg:'#eef2f0'};
+    const emptyBadge={deltaLabel:'',deltaColor:'#9aa8a3',deltaBg:'#f1f4f2'};
     const liveBadge={deltaLabel:'Live',deltaColor:'#0b6b60',deltaBg:'#e7f4f1'};
     const kpiDefs=demoMode?[
       {label:'Sessions today',value:'5',sub:'1 telehealth',icon:'cal',delta:'Next 9:30',up:true,tintBg:'#e7f4f1',stroke:'#16b8a6'},
@@ -911,10 +938,10 @@ class Component extends DCLogic {
       {label:'Goals on track',value:'81%',sub:'19 of 24 clients',icon:'target',delta:'+6%',up:true,tintBg:'#e9f6ef',stroke:'#1e9e6a'},
       {label:'Reports overdue',value:'2',sub:'2 due this week',icon:'file',delta:'Action',up:false,tintBg:'#fbf0df',stroke:'#d98b22'}
     ]:[
-      Object.assign({label:'Active clients',value:realModeKpi?String(activeClientCount):'—',sub:realModeKpi?'Synced from Supabase':'Connect Supabase to view',icon:'users',tintBg:'#eef0fd',stroke:'#6366f1'},realModeKpi?liveBadge:previewBadge),
-      Object.assign({label:'Sessions today',value:'—',sub:'Preview — not yet tracked',icon:'cal',tintBg:'#e7f4f1',stroke:'#16b8a6'},previewBadge),
-      Object.assign({label:'Goals on track',value:'—',sub:'Preview — not yet tracked',icon:'target',tintBg:'#e9f6ef',stroke:'#1e9e6a'},previewBadge),
-      Object.assign({label:'Reports overdue',value:'—',sub:'Preview — not yet tracked',icon:'file',tintBg:'#fbf0df',stroke:'#d98b22'},previewBadge)
+      Object.assign({label:'Active clients',value:realModeKpi?String(activeClientCount):'—',sub:realModeKpi?'Synced from Supabase':'No clients yet',icon:'users',tintBg:'#eef0fd',stroke:'#6366f1'},realModeKpi?liveBadge:emptyBadge),
+      Object.assign({label:'Sessions today',value:'—',sub:'Not yet tracked',icon:'cal',tintBg:'#e7f4f1',stroke:'#16b8a6'},emptyBadge),
+      Object.assign({label:'Goals on track',value:'—',sub:'Not yet tracked',icon:'target',tintBg:'#e9f6ef',stroke:'#1e9e6a'},emptyBadge),
+      Object.assign({label:'Reports overdue',value:'—',sub:'Not yet tracked',icon:'file',tintBg:'#fbf0df',stroke:'#d98b22'},emptyBadge)
     ];
     const kpis=kpiDefs.map(k=>({label:k.label,value:k.value,sub:k.sub,iconEl:ic(k.icon,k.stroke,19),deltaLabel:k.deltaLabel!=null?k.deltaLabel:k.delta,deltaColor:k.deltaColor!=null?k.deltaColor:(k.up?'#1e9e6a':'#c0445c'),deltaBg:k.deltaBg!=null?k.deltaBg:(k.up?'#e9f6ef':'#fbe9ed')}));
 
@@ -960,6 +987,7 @@ class Component extends DCLogic {
           const isActive=(p.status||'active')==='active';
           const statusLabel=(p.status||'active').replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
           return {
+            id:p.id,
             name:nm,
             init,
             tint:caseTints[idx%caseTints.length],
@@ -975,7 +1003,8 @@ class Component extends DCLogic {
       : [];
     // Real caseload when we have linked participants; empty array when configured
     // but none linked (drives empty-state); demo only in preview/unconfigured.
-    const caseload=realMode?realCaseload:(this.state.isConfigured?[]:caseloadDemo);
+    const caseloadBase=realMode?realCaseload:(this.state.isConfigured?[]:caseloadDemo);
+    const caseload=caseloadBase.map(c=>({...c,openProfile:()=>this.navToParticipantProfile(c.id||null)}));
 
     const heights=[60,80,45,90,70,55,85,40,75,65];
     const days=['M','T','W','T','F','M','T','W','T','F'];
@@ -1162,9 +1191,9 @@ class Component extends DCLogic {
 
     // -- Referrals --
     const referralsDemo=[
-      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Sarah Kelly (SC)',need:'Functional Capacity Assessment',stage:'Assessment booked',stageFg:'#4338ca',stageBg:'#eef0fd',when:'2h ago',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed'},
-      {name:'Hassan Ali',init:'HA',tint:'#6366f1',from:'Brightside Care',need:'Physiotherapy — gait assessment',stage:'Referral received',stageFg:'#0b6b60',stageBg:'#e7f4f1',when:'Yesterday',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df'},
-      {name:'Joan Wu',init:'JW',tint:'#d98b22',from:'Self-referred',need:'OT — home modifications',stage:'Participant contacted',stageFg:'#b4561f',stageBg:'#fbf0df',when:'3 days ago',urgency:'Low',urgFg:'#1e7a52',urgBg:'#e9f6ef'}
+      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Sarah Kelly (SC)',need:'Functional Capacity Assessment',stage:'Assessment booked',stageFg:'#4338ca',stageBg:'#eef0fd',when:'2h ago',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',openProfile:()=>this.navToParticipantProfile(null)},
+      {name:'Hassan Ali',init:'HA',tint:'#6366f1',from:'Brightside Care',need:'Physiotherapy — gait assessment',stage:'Referral received',stageFg:'#0b6b60',stageBg:'#e7f4f1',when:'Yesterday',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df',openProfile:()=>this.navToParticipantProfile(null)},
+      {name:'Joan Wu',init:'JW',tint:'#d98b22',from:'Self-referred',need:'OT — home modifications',stage:'Participant contacted',stageFg:'#b4561f',stageBg:'#fbf0df',when:'3 days ago',urgency:'Low',urgFg:'#1e7a52',urgBg:'#e9f6ef',openProfile:()=>this.navToParticipantProfile(null)}
     ];
     const referralsReal=(this.state.realReferrals||[]).map((r,idx)=>{
       const p=r.participants||{};
@@ -1173,7 +1202,7 @@ class Component extends DCLogic {
       const urg=pr==='urgent'?{urgency:'Urgent',urgFg:'#c0445c',urgBg:'#fbe9ed'}
         :(pr==='high'?{urgency:'High',urgFg:'#b4561f',urgBg:'#fbf0df'}
         :{urgency:humanize(pr)||'Routine',urgFg:'#1e7a52',urgBg:'#e9f6ef'});
-      return Object.assign({name:nm,init:initialsOf(nm),tint:tintCycle[idx%tintCycle.length],need:humanize(r.type)||'Referral',from:'Linked organisation',when:fmtNoteDate(r.created_at),stage:humanize(r.status)||'Received',stageFg:'#0b6b60',stageBg:'#e7f4f1'},urg);
+      return Object.assign({name:nm,init:initialsOf(nm),tint:tintCycle[idx%tintCycle.length],need:humanize(r.type)||'Referral',from:'Linked organisation',when:fmtNoteDate(r.created_at),stage:humanize(r.status)||'Received',stageFg:'#0b6b60',stageBg:'#e7f4f1',participantId:r.participant_id||p.id||null,openProfile:()=>this.navToParticipantProfile(r.participant_id||p.id||null)},urg);
     });
     const ahReferrals=demoMode?referralsDemo:referralsReal;
     const referralsEmpty=!demoMode && referralsReal.length===0;
@@ -1365,7 +1394,11 @@ class Component extends DCLogic {
       isAssessments:this.state.view==='assessments',
       isPlanReview:this.state.view==='planreview'||this.state.view==='reports',
       isSchedule:this.state.view==='schedule',
-      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goParticipantProfile:()=>{
+        const parts=this.state.supabaseParticipants||[];
+        const id=this.state.noteParticipantId||(parts[0]&&parts[0].id)||null;
+        this.navToParticipantProfile(id);
+      },
       goBilling:()=>{ window.location.href='billing.html'; },
       copyLink:()=>{ try{navigator.clipboard.writeText('ciaralink.care/link/JP-4471');}catch(e){}; this.showToast('Link copied to clipboard'); },
       goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },

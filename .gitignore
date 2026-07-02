@@ -6,6 +6,7 @@ npm-debug.log*
 /ios/App/Pods/
 /ios/App/App/public/
 /ios/App/build/
+/ios/build/
 /ios/DerivedData/
 /android/.gradle/
 /android/app/build/
@@ -17,6 +18,12 @@ npm-debug.log*
 
 # OS
 .DS_Store
+
+# Local QA / scratch (not for git)
+/ciaraLink-simulator-test/
+/ciaraLink-simulator.png
+www/package-lock.json
+store-assets/**/.probe.png
 
 # Secrets (public anon key only — still keep out of git; copied on sync)
 www/env.local.js

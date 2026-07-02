@@ -14,6 +14,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="./env.local.js?v=20260629"></script>
+  <script src="/vendor/supabase.js"></script>
+  <script src="./supabase-client.js?v=20260629"></script>
   <style>
     *{box-sizing:border-box} html,body{margin:0}
     body{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
@@ -27,6 +30,7 @@
 </helmet>
 <div style="min-height:100vh;width:100%;display:flex;align-items:flex-start;justify-content:center;gap:34px;flex-wrap:wrap;padding:40px 20px;background:radial-gradient(120% 90% at 50% 0%,#103a34 0%,#0a201c 55%,#071512 100%)">
 
+  <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
   <div style="position:relative;width:392px;height:840px;border-radius:50px;padding:13px;background:linear-gradient(160deg,#1c1c20,#000);box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)">
     <div style="position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#f4f7f5;display:flex;flex-direction:column">
 
@@ -50,9 +54,11 @@
           <div style="flex:1;height:4px;border-radius:99px;background:{{ p.bg }}"></div>
         </sc-for>
       </div>
+      <sc-if value="{{ showPreviewBanner }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;z-index:35;padding:0 18px 10px;background:{{ barBg }}">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#fbf0df;border:1px solid #f4e6cf;padding:4px 10px;border-radius:999px;color:#b4561f">Preview — simulated visit · not a live verified record</span>
       </div>
+      </sc-if>
 
       <div class="scrl" style="flex:1;overflow-y:auto;background:#f4f7f5">
 
@@ -85,11 +91,11 @@
           <div style="padding:18px 20px 26px">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
               <div style="display:flex;align-items:center;gap:12px">
-                <div style="width:48px;height:48px;border-radius:14px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">MR</div>
-                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">Margaret Reyes</div><div style="font-size:12.5px;color:#6c7f79">Personal Care · 11:00–15:00</div></div>
+                <div style="width:48px;height:48px;border-radius:14px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">{{ clientInit }}</div>
+                <div style="flex:1"><div style="font-size:16px;font-weight:800;color:#14302b">{{ clientName }}</div><div style="font-size:12.5px;color:#6c7f79">{{ shiftServiceLabel }}</div></div>
               </div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid #f1f4f2"><div style="width:24px;height:24px;border-radius:7px;background:#eef0fd;display:flex;align-items:center;justify-content:center">{{ assignIconEl }}</div><span style="font-size:11.5px;color:#6c7f79">Assigned by <b style="color:#14302b">Brightside Care</b> · service provider</span></div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid #f1f4f2;font-size:12.5px;color:#41635c">{{ pinDkEl }}12 Rose Street, Glenroy VIC 3046</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;border-top:1px solid #f1f4f2;font-size:12.5px;color:#41635c">{{ pinDkEl }}{{ shiftAddress }}</div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:12px;background:#e9f6ef;border-radius:12px;padding:11px 13px">
                 <span style="display:flex">{{ checkCircEl }}</span>
                 <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#1e7a52">You're at the location</div><div style="font-size:11.5px;color:#3f8c65">Within 6m of client's home · geofence confirmed</div></div>
@@ -108,7 +114,7 @@
           <div style="border-radius:22px;padding:22px;color:#eafaf8;background:linear-gradient(150deg,#0c2622,#0e5147);position:relative;overflow:hidden;box-shadow:0 18px 36px -20px rgba(11,80,71,.9)">
             <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:#7ce0d2"><span style="width:8px;height:8px;border-radius:99px;background:#7ce0d2;box-shadow:0 0 8px #7ce0d2"></span>CLOCKED IN · LIVE</div>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;font-weight:600;letter-spacing:-.01em;margin-top:10px">01:24:08</div>
-            <div style="font-size:13px;color:#a9cfc8">with Margaret R. · started 11:00 AM</div>
+            <div style="font-size:13px;color:#a9cfc8">with {{ clientShort }} · started 11:00 AM</div>
             <div style="display:flex;gap:8px;margin-top:16px">
               <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8;letter-spacing:.04em">CLOCK-IN GPS</div><div style="font-size:12px;font-weight:700;color:#dff5f1">✓ ±6m verified</div></div>
               <div style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 11px"><div style="font-size:10px;color:#a9cfc8;letter-spacing:.04em">ASSIGNED BY</div><div style="font-size:12px;font-weight:700;color:#dff5f1">Brightside Care</div></div>
@@ -232,7 +238,7 @@
               <svg viewBox="0 0 300 120" style="position:absolute;inset:0;width:100%;height:100%">
                 <path d="M28 78 C 44 40, 58 40, 64 70 C 70 96, 84 94, 92 64 C 98 44, 108 50, 112 74 C 124 60, 140 52, 158 70 C 168 80, 180 56, 196 60 C 210 64, 214 84, 232 70 C 246 60, 258 66, 272 56" fill="none" stroke="#0e5147" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="48" style="animation:vv-tick 1.6s ease forwards"></path>
               </svg>
-              <div style="position:absolute;left:16px;bottom:12px;font-size:12px;font-weight:700;color:#14302b">Margaret Reyes</div>
+              <div style="position:absolute;left:16px;bottom:12px;font-size:12px;font-weight:700;color:#14302b">{{ clientName }}</div>
               <div style="position:absolute;right:14px;top:12px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#9aa8a3">14:58 · GPS ✓</div>
             </div>
           </sc-if>
@@ -291,7 +297,7 @@
 
             <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f1f4f2">
               <div style="width:38px;height:38px;border-radius:11px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">MR</div>
-              <div style="flex:1"><div style="font-size:11px;color:#9aa8a3">PARTICIPANT</div><div style="font-size:14px;font-weight:700;color:#14302b">Margaret Reyes</div></div>
+              <div style="flex:1"><div style="font-size:11px;color:#9aa8a3">PARTICIPANT</div><div style="font-size:14px;font-weight:700;color:#14302b">{{ clientName }}</div></div>
               <div style="text-align:right"><div style="font-size:11px;color:#9aa8a3">WORKER</div><div style="font-size:13px;font-weight:700;color:#14302b">A. Okafor</div></div>
             </div>
 
@@ -331,7 +337,7 @@
             <!-- signature row -->
             <div style="padding:12px 16px;display:flex;align-items:center;gap:12px">
               <svg viewBox="0 0 120 40" style="width:90px;height:30px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
-              <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — Margaret Reyes</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · GPS co-located ✓</div></div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — {{ clientName }}</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · GPS co-located ✓</div></div>
             </div>
           </div>
 
@@ -352,6 +358,15 @@
       </div>
     </div>
   </div>
+  </sc-if>
+
+  <sc-if value="{{ realModeEmpty }}" hint-placeholder-val="">
+  <div style="width:min(480px,100%);padding:36px 28px;border-radius:24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#eafaf8;text-align:center">
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.02em">Verified visits from your roster</div>
+    <div style="font-size:14px;line-height:1.6;color:#9fb8b1;margin-top:12px">Clock in on site from Support Worker when you have an assigned shift. This simulated walkthrough is preview-only and does not record a real visit.</div>
+    <button onClick="{{ goBackVV }}" style="margin-top:22px;height:44px;padding:0 20px;border-radius:12px;border:1px solid rgba(22,184,166,.35);background:rgba(22,184,166,.12);color:#16b8a6;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">← My dashboard</button>
+  </div>
+  </sc-if>
 
   <!-- side explainer -->
   <div style="width:320px;max-width:100%;color:#cfe2dc;padding-top:8px">
@@ -389,8 +404,25 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:820,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { step:0, role:0, tasks:[true,true,false,false], mood:0, chips:{}, signMode:'sig', skipReason:null, travelPurpose:0, toast:null };
+  state = { step:0, role:0, tasks:[true,true,false,false], mood:0, chips:{}, signMode:'sig', skipReason:null, travelPurpose:0, toast:null, vvShift:null };
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  componentDidMount(){ this.loadShift(); }
+  loadShift(){
+    try{
+      if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured())||!window.queryShiftsForWorker) return;
+      let shiftId=null;
+      try{ shiftId=new URLSearchParams(window.location.search).get('shift'); }catch(e){}
+      Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
+        const real=(shifts||[]).filter(s=>s&&s.id&&!String(s.id).startsWith('demo-'));
+        let shift=shiftId?real.find(s=>String(s.id)===String(shiftId)):null;
+        if(!shift){
+          const upcoming=real.filter(s=>s.status!=='completed');
+          shift=upcoming.find(s=>s.status==='accepted'||s.status==='in_progress')||upcoming[0]||null;
+        }
+        if(shift) this.setState({vvShift:shift});
+      }).catch(err=>console.warn('[VerifiedVisit] loadShift:',err));
+    }catch(err){ console.warn('[VerifiedVisit] loadShift:',err); }
+  }
   ic(name,color,size,sw){
     const stroke=color||'#5f726d',s=size||18;
     const P={
@@ -435,6 +467,21 @@ class Component extends DCLogic {
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const step=this.state.step;
+    const configured=!!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    const demoMode=!configured;
+    const sh=this.state.vvShift;
+    const hasShift=!!(sh&&sh.id&&!String(sh.id).startsWith('demo-'));
+    const pName=hasShift&&sh.participants?(sh.participants.preferred_name||sh.participants.full_name):null;
+    const pParts=String(pName||'').trim().split(/\s+/);
+    const clientName=demoMode?'Margaret Reyes':(pName||'Assigned client');
+    const clientShort=demoMode?'Margaret R.':(pParts.length>1?pParts[0]+' '+pParts[pParts.length-1][0]+'.':(pName||'Assigned client'));
+    const clientInit=demoMode?'MR':(pParts.length>1?(pParts[0][0]+pParts[pParts.length-1][0]).toUpperCase():(pName||'—').slice(0,2).toUpperCase());
+    const shiftLocation=hasShift?(sh.location||''):'';
+    const _timePart=(s)=>{ const m=String(s||'').match(/\d{1,2}:\d{2}/); return m?m[0]:''; };
+    const shiftTimeRange=hasShift?_timePart(sh.start_time)+(_timePart(sh.end_time)?('–'+_timePart(sh.end_time)):''):'';
+    const shiftType=hasShift?(sh.support_type||sh.title||'Support'):'';
+    const shiftServiceLabel=demoMode?'Personal Care · 11:00–15:00':(hasShift?(shiftType+(shiftTimeRange?' · '+shiftTimeRange:'')):'—');
+    const shiftAddress=demoMode?'12 Rose Street, Glenroy VIC 3046':(shiftLocation||'—');
 
     // ---- sign-out confirmation modes ----
     const signMode=this.state.signMode;
@@ -462,7 +509,7 @@ class Component extends DCLogic {
       ? {msg:'Skipped with a logged reason — still GPS-verified.',ok:true}
       : {msg:'Pick a reason to log why there\u2019s no signature.',ok:false};
 
-    const visitType='Support Worker \u00b7 Personal Care';
+    const visitType=demoMode?'Support Worker \u00b7 Personal Care':('Support Worker \u00b7 '+(shiftType||'Support'));
     const assignedBy={name:'Brightside Care',type:'Service provider'};
 
     const titles=[
@@ -510,7 +557,7 @@ class Component extends DCLogic {
         bd:a?'#16b8a6':'#e2e9e6',bg:a?'#e7f4f1':'#fff',fg:a?'#0b6b60':'#5f726d'};
     });
 
-    const noteDraft='Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. We did a short walk \u2014 mobility steady with the frame. No concerns to report.';
+    const noteDraft=demoMode?'Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. We did a short walk \u2014 mobility steady with the frame. No concerns to report.':'';
 
     const proofs=[
       {label:'GPS clock-in',val:'\u00b16m \u00b7 11:00:04',iconEl:ic('pin','#16b8a6',17)},
@@ -549,7 +596,7 @@ class Component extends DCLogic {
       previewGenerateNote:()=>{
         const moodPhrase=['was in good spirits','was settled and calm','seemed a little unsettled'][this.state.mood]||'was settled';
         const picked=chipLabels.filter((_,i)=>this.state.chips[i]);
-        let txt='Margaret '+moodPhrase+' during the visit. Assisted with the planned care tasks.';
+        let txt=(demoMode?'Margaret ':'The client ')+moodPhrase+' during the visit. Assisted with the planned care tasks.';
         if(picked.length){ txt+=' Observations: '+picked.join(', ').toLowerCase()+'.'; }
         txt+=' No concerns to report.';
         const el=(typeof document!=='undefined')&&document.getElementById('vv-note-editor');
@@ -579,7 +626,7 @@ class Component extends DCLogic {
         const note=(((typeof document!=='undefined')&&document.getElementById('vv-note-editor'))||{}).innerText||'';
         const w=(typeof window!=='undefined')&&window.open('','_blank');
         if(!w){ this.showToast('Allow pop-ups to export the PDF'); return; }
-        const rows=[['Record','#CL-48217 (preview)'],['Participant','Margaret Reyes'],['Worker','A. Okafor'],['Service',visitType],['Assigned by','Brightside Care (service provider)'],['Clock in → out','11:00 → 14:58 (3h 58m)'],['Tasks','4 of 4 completed · medication prompted 9:00'],['Travel','22 km · with participant'],['Shift note',note||'—'],['Incidents','None reported'],['Sign-out',this.state.signMode==='sig'?'Signature captured':this.state.signMode==='verbal'?'Verbal + photo consent':'Skipped with logged reason']];
+        const rows=[['Record','#CL-48217 (preview)'],['Participant',clientName],['Worker','A. Okafor'],['Service',visitType],['Assigned by',assignedBy+' (service provider)'],['Clock in → out','11:00 → 14:58 (3h 58m)'],['Tasks','4 of 4 completed · medication prompted 9:00'],['Travel','22 km · with participant'],['Shift note',note||'—'],['Incidents','None reported'],['Sign-out',this.state.signMode==='sig'?'Signature captured':this.state.signMode==='verbal'?'Verbal + photo consent':'Skipped with logged reason']];
         const esc=(v)=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const body=rows.map(r=>'<tr><td style="padding:8px 12px;color:#6c7f79;border-bottom:1px solid #eee;white-space:nowrap;vertical-align:top">'+esc(r[0])+'</td><td style="padding:8px 12px;color:#14302b;font-weight:600;border-bottom:1px solid #eee">'+esc(r[1])+'</td></tr>').join('');
         w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Verified Visit #CL-48217</title></head><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:640px;margin:32px auto;color:#14302b"><div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #16b8a6;padding-bottom:12px"><div style="font-size:20px;font-weight:800">CiaraLink — Verified Visit Record</div><span style="font-size:11px;font-weight:800;color:#b4561f;background:#fbf0df;border:1px solid #f4e6cf;padding:2px 8px;border-radius:6px">PREVIEW</span></div><p style="color:#6c7f79;font-size:12px">Simulated preview record — not a live verified visit. Final tax/billing figures require provider review.</p><table style="width:100%;border-collapse:collapse;font-size:13px">'+body+'</table><p style="margin-top:24px;color:#9aa8a3;font-size:11px">Generated by CiaraLink Care OS · '+new Date().toLocaleString()+'</p></body></html>');
@@ -590,7 +637,7 @@ class Component extends DCLogic {
       // Real share via Web Share API, with clipboard fallback.
       previewShareCopy:async()=>{
         const note=(((typeof document!=='undefined')&&document.getElementById('vv-note-editor'))||{}).innerText||'';
-        const text='CiaraLink Verified Visit (preview) #CL-48217\nParticipant: Margaret Reyes\nWorker: A. Okafor\nService: '+visitType+'\nAssigned by: Brightside Care\nClock in → out: 11:00 → 14:58 (3h 58m)\nTasks: 4 of 4 completed\nNote: '+(note||'—');
+        const text='CiaraLink Verified Visit (preview) #CL-48217\nParticipant: '+clientName+'\nWorker: A. Okafor\nService: '+visitType+'\nAssigned by: '+assignedBy+'\nClock in → out: 11:00 → 14:58 (3h 58m)\nTasks: 4 of 4 completed\nNote: '+(note||'—');
         try{
           if(typeof navigator!=='undefined'&&navigator.share){ await navigator.share({title:'Verified Visit #CL-48217',text}); this.showToast('Shared'); return; }
         }catch(e){ if(e&&e.name==='AbortError'){ return; } }
@@ -613,8 +660,8 @@ class Component extends DCLogic {
           if(window.AegisData){
             AegisData.set('verified_visits', [{
               _id:'CL-48217', preview:true,
-              participant:'Margaret Reyes', worker:'A. Okafor',
-              service:visitType, assignedBy:'Brightside Care',
+              participant:clientName, worker:'A. Okafor',
+              service:visitType, assignedBy:assignedBy,
               clockIn:'11:00', clockOut:'14:58', duration:'3h 58m',
               signMode:this.state.signMode, savedAt:new Date().toISOString()
             }]);
@@ -628,7 +675,9 @@ class Component extends DCLogic {
       micGreenEl:ic('mic','#16b8a6',18),globeEl:ic('globe','#16b8a6',13),checkSmEl:ic('check','#1e9e6a',13,2.6),
       sparkWEl:ic('spark','#eafaf8',15),editEl:ic('edit','#0b6b60',15),editSmEl:ic('edit','#9aa8a3',13),
       bigCheckSmEl:ic('checkCirc','#1e9e6a',18),
-      routing:[{label:'Sent to Brightside Care (service provider)',iconEl:ic('send','#16b8a6',15)},{label:'Support coordinator notified',iconEl:ic('users','#16b8a6',15)},{label:'Saved to Margaret\u2019s client file',iconEl:ic('folder','#16b8a6',15)}],
+      routing:[{label:'Sent to '+assignedBy+' (service provider)',iconEl:ic('send','#16b8a6',15)},{label:'Support coordinator notified',iconEl:ic('users','#16b8a6',15)},{label:(demoMode?'Saved to Margaret\u2019s client file':'Saved to client file'),iconEl:ic('folder','#16b8a6',15)}],
+      showDemo:demoMode||hasShift,realMode:configured,realModeEmpty:configured&&!hasShift,showPreviewBanner:demoMode,
+      clientName,clientShort,clientInit,shiftServiceLabel,shiftAddress,assignedBy,
       homeEl:ic('home','#fff',20),pinDkEl:ic('pin','#16b8a6',16),checkCircEl:ic('checkCirc','#1e9e6a',22),
       shieldEl:ic('shield','#06201c',18),
       qrBigEl:ic('qr','#0c2622',96,1.4),qrSmEl:ic('qr','#06201c',18),

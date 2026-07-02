@@ -211,6 +211,7 @@ class Component extends DCLogic {
     const ic=(n,c,s)=>this.ic(n,c,s);
     const {role,filter,done,toast}=this.state;
     const AD=window.AegisData;
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
 
     const allTasks=[
       // Provider tasks
@@ -278,21 +279,24 @@ class Component extends DCLogic {
         }
       };
     });
-    const tasks=[...liveCards,...demoTasks];
+    const tasks = demoMode ? [...liveCards, ...demoTasks] : liveCards;
 
     const liveOpen=liveRaw.filter(t=>!t.done).length;
     const liveDone=liveRaw.filter(t=>t.done).length;
     const liveUrgentOpen=liveRaw.filter(t=>!t.done&&t._urgent).length;
-    const urgentCount=roleTasks.filter(t=>!done[t.id]&&(t.priority==='Urgent'||t.priority==='Today')).length+liveUrgentOpen;
-    const totalCount=roleTasks.filter(t=>!done[t.id]).length+liveOpen;
-    const doneCount=roleTasks.filter(t=>done[t.id]).length+liveDone;
+    const demoOpen=roleTasks.filter(t=>!done[t.id]).length;
+    const demoUrgent=roleTasks.filter(t=>!done[t.id]&&(t.priority==='Urgent'||t.priority==='Today')).length;
+    const demoDone=roleTasks.filter(t=>done[t.id]).length;
+    const urgentCount=(demoMode?demoUrgent:0)+liveUrgentOpen;
+    const totalCount=(demoMode?demoOpen:0)+liveOpen;
+    const doneCount=(demoMode?demoDone:0)+liveDone;
 
     const roleOpts=[
-      {key:'all',label:'All roles',count:allTasks.filter(t=>t.roles.includes('all')).length,iconEl:ic('grid','#7e948e',14),iconBg:'rgba(255,255,255,.08)'},
-      {key:'provider',label:'Provider',count:allTasks.filter(t=>t.roles.includes('provider')).length,iconEl:ic('building','#16b8a6',14),iconBg:'#0e3a34'},
-      {key:'coordinator',label:'Coordinator',count:allTasks.filter(t=>t.roles.includes('coordinator')).length,iconEl:ic('star','#6366f1',14),iconBg:'#1e1a40'},
-      {key:'allied',label:'Allied Health',count:allTasks.filter(t=>t.roles.includes('allied')).length,iconEl:ic('heart','#9333ea',14),iconBg:'#1f1030'},
-      {key:'worker',label:'Support Worker',count:allTasks.filter(t=>t.roles.includes('worker')).length,iconEl:ic('user','#0891b2',14),iconBg:'#0e2833'},
+      {key:'all',label:'All roles',count:demoMode?allTasks.filter(t=>t.roles.includes('all')).length:liveRaw.length,iconEl:ic('grid','#7e948e',14),iconBg:'rgba(255,255,255,.08)'},
+      {key:'provider',label:'Provider',count:demoMode?allTasks.filter(t=>t.roles.includes('provider')).length:liveRaw.length,iconEl:ic('building','#16b8a6',14),iconBg:'#0e3a34'},
+      {key:'coordinator',label:'Coordinator',count:demoMode?allTasks.filter(t=>t.roles.includes('coordinator')).length:liveRaw.length,iconEl:ic('star','#6366f1',14),iconBg:'#1e1a40'},
+      {key:'allied',label:'Allied Health',count:demoMode?allTasks.filter(t=>t.roles.includes('allied')).length:liveRaw.length,iconEl:ic('heart','#9333ea',14),iconBg:'#1f1030'},
+      {key:'worker',label:'Support Worker',count:demoMode?allTasks.filter(t=>t.roles.includes('worker')).length:liveRaw.length,iconEl:ic('user','#0891b2',14),iconBg:'#0e2833'},
     ];
     const roleFilters=roleOpts.map(r=>({...r,select:()=>this.setState({role:r.key}),bg:role===r.key?'rgba(255,255,255,.08)':'transparent',fg:role===r.key?'#f4faf8':'#9fb4ae'}));
 
@@ -307,7 +311,7 @@ class Component extends DCLogic {
     const roleLabels={all:'All roles',provider:'Provider',coordinator:'Support Coordinator',allied:'Allied Health',worker:'Support Worker'};
     const summary=[
       {label:'URGENT',value:urgentCount,color:'#c0445c'},
-      {label:'DUE THIS WEEK',value:roleTasks.filter(t=>!done[t.id]).length,color:'#b4561f'},
+      {label:'DUE THIS WEEK',value:demoMode?roleTasks.filter(t=>!done[t.id]).length:liveOpen,color:'#b4561f'},
       {label:'COMPLETED',value:doneCount,color:'#1e9e6a'},
       {label:'TOTAL OPEN',value:totalCount,color:'#14302b'},
     ];

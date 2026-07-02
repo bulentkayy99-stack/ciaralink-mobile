@@ -40,7 +40,7 @@
           <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">28 screens</span>
           <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">5 roles</span>
           <span style="background:rgba(22,184,166,.2);color:#7ce0d2;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">9/9 tests passing</span>
-          <span style="background:rgba(217,139,34,.25);color:#f4c878;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">⚠ Not for public release</span>
+          <span style="background:rgba(217,139,34,.25);color:#f4c878;font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px">⚠ Pilot — demo data only</span>
         </div>
       </div>
       <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px 22px;flex:0 0 auto;min-width:200px">
@@ -198,9 +198,9 @@ class Component extends DCLogic {
       {icon:'✅',label:'All 28 screens accessible',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
       {icon:'✅',label:'data.js / AegisData loads',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
       {icon:'✅',label:'hugo.js + hugo-owl.js loads',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
-      {icon:'✅',label:'localStorage works',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
-      {icon:'✅',label:'Sign out clears session',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
-      {icon:'⚠️',label:'Real backend / database',st:'Not yet',stFg:'#b4561f',bg:'#fdf8ef'},
+      {icon:'✅',label:'Supabase Auth + session',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'✅',label:'Ops smoke tests',st:'PASS',stFg:'#1e7a52',bg:'#f0faf8'},
+      {icon:'⚠️',label:'Production environment separation',st:'In progress',stFg:'#b4561f',bg:'#fdf8ef'},
     ];
 
     const smokeList=[
@@ -232,23 +232,22 @@ class Component extends DCLogic {
     const smokeCount=smokeTests.filter(s=>s.done).length;
 
     const limitations=[
-      {icon:'🗄️',title:'No production backend',desc:'All data stored in localStorage only. Production requires secure backend (Node.js / Supabase / Firebase).',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'🔐',title:'No real authentication',desc:'Login is demo-only. Production requires OAuth / JWT / MFA and server-side session management.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'📂',title:'No secure file storage',desc:'File upload is simulated. Production requires S3 / Azure Blob / secure encrypted document storage.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'🤖',title:'AI classification is simulated',desc:'AI File Drop shows demo classification. Real OCR/AI requires Claude API or equivalent document pipeline.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
-      {icon:'🔒',title:'Role permissions are visual only',desc:'Content visibility by role is shown in UI but not enforced server-side. Backend auth required.',tag:'Pre-launch',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🔗',title:'Real role data wiring in progress',desc:'Supabase Auth and RLS are live. Some screens still use preview fallback until all pages read role-scoped data.',tag:'In progress',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🔐',title:'Production hardening remaining',desc:'Backup/recovery, independent security review, and production environment separation still required before real participant data at scale.',tag:'Pre-scale',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'📂',title:'File scanning pending',desc:'Supabase Storage buckets are live with signed URLs. Malware scanning on upload is not yet complete.',tag:'In progress',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
+      {icon:'🤖',title:'AI classification is simulated',desc:'AI File Drop stores files in Supabase. Full server-side OCR/AI pipeline still being hardened.',tag:'In progress',tagFg:'#8a5a1e',tagBg:'#fdf3e3'},
       {icon:'🎙️',title:'Hugo voice mode',desc:'Voice commands documented and labelled Coming Soon. Requires speech-to-text API integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
-      {icon:'💳',title:'Payroll / payments',desc:'Work history and pay records show UI only. Real payroll requires ABA file / payroll API integration.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
-      {icon:'📱',title:'Privacy & security audit',desc:'Full penetration testing, privacy impact assessment, and NDIS data handling review required before real participant data.',tag:'Required',tagFg:'#9b1c3a',tagBg:'#fde8ed'},
+      {icon:'💳',title:'Payroll export',desc:'Stripe billing is live for subscriptions. Worker payroll / ABA export UI remains preview-only.',tag:'v2',tagFg:'#4338ca',tagBg:'#eef0fd'},
+      {icon:'📱',title:'Privacy & security audit',desc:'Independent penetration testing and privacy impact assessment required before real participant data at scale.',tag:'Required',tagFg:'#9b1c3a',tagBg:'#fde8ed'},
     ];
 
     const roadmap=[
-      {title:'Backend & Database',desc:'Node.js / Express or Next.js API + PostgreSQL or Supabase for real data persistence'},
-      {title:'Authentication',desc:'Auth0 / Cognito / Supabase Auth with role-based JWT tokens and MFA'},
-      {title:'Secure File Storage',desc:'AWS S3 or Azure Blob with encrypted at-rest storage and signed URLs'},
-      {title:'AI Pipeline',desc:'Claude API document classification, OCR extraction, and auto-filing with confidence scoring'},
-      {title:'NDIS Compliance',desc:'Privacy impact assessment, data handling policy, participant consent audit, and NDIS Quality & Safeguards review'},
-      {title:'Deployment',desc:'Vercel / AWS / Azure hosting with CI/CD, monitoring, error tracking, and staging environment'},
+      {title:'Role data wiring',desc:'Complete Supabase reads across all remaining screens · remove preview fallback'},
+      {title:'Production environment',desc:'Separate staging/production Supabase projects · env secrets · demo data isolation'},
+      {title:'Secure File Storage',desc:'Malware scanning on upload · signed URL hardening · document permissions'},
+      {title:'AI Pipeline',desc:'Server-side document classification, OCR extraction, and auto-filing with confidence scoring'},
+      {title:'Backup & recovery',desc:'Automated encrypted backups · tested restore · disaster recovery plan'},
+      {title:'Security review',desc:'Independent penetration test · privacy impact assessment · NDIS compliance sign-off'},
     ];
 
     return {

@@ -13,6 +13,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "verify": "node scripts/verify.mjs",
+    "verify:demo": "node scripts/verify-demo-accounts.mjs",
     "doctor": "npm run verify",
     "sync:web": "node scripts/sync-web.mjs",
     "refresh": "npm run sync:web && npx cap sync",

@@ -15,6 +15,14 @@
 <meta name="apple-mobile-web-app-title" content="CL Worker">
 <script src="/pwa.js" defer></script>
 <script src="./support.js"></script>
+<script>
+  if (typeof window.ENV === 'undefined') {
+    window.ENV = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+  }
+</script>
+<script src="./env.local.js?v=20260628"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="./supabase-client.js?v=20260628c"></script>
 </head>
 <body>
 <x-dc>
@@ -249,6 +257,24 @@ class Component extends DCLogic {
 
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
   go(d){ this.setState(s=>({step:Math.max(0,Math.min(3,s.step+d))})); }
+  componentDidMount(){ this.loadDefaultRate(); }
+  loadDefaultRate(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadNdisSupportItems) return;
+      if(this.state.form.rate) return;
+      const apply=(item)=>{
+        if(!item || this.state.form.rate) return;
+        const cap=window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,'national'):item.price_cap_national;
+        const fmt=window.formatAudAmount?window.formatAudAmount(cap):('$'+Number(cap).toFixed(2));
+        this.setState(st=>({form:{...st.form,rate:fmt+' / hr'}}));
+      };
+      Promise.resolve(window.loadNdisSupportItems({search:'01_011_0107_1_1',limit:10})).then(res=>{
+        const items=(res && res.items) || [];
+        const item=items.find(i=>i.support_item_number==='01_011_0107_1_1') || items[0];
+        if(item) apply(item);
+      }).catch(err=>console.warn('[WorkerAgreement] loadDefaultRate:',err));
+    }catch(err){ console.warn('[WorkerAgreement] loadDefaultRate:',err); }
+  }
 
   renderVals(){
     const ic=(n,c,s)=>this.ic(n,c,s);

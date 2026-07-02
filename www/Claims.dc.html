@@ -298,10 +298,14 @@ class Component extends DCLogic {
     }catch(e){ return 0; }
   }
   capFor(item){
+    if(window.ndisPriceCapForItem) return window.ndisPriceCapForItem(item,this.state.region);
     if(!item) return null;
     const map={national:'price_cap_national',act_nsw_qld_vic:'price_cap_act_nsw_qld_vic',wa_nt_sa_tas:'price_cap_wa_nt_sa_tas',remote:'price_cap_remote',very_remote:'price_cap_very_remote'};
     const col=map[this.state.region]||'price_cap_national';
-    const v=item[col]; return v!=null?Number(v):(item.price_cap_national!=null?Number(item.price_cap_national):null);
+    if(item[col]!=null) return Number(item[col]);
+    if(item.price_cap_national!=null) return Number(item.price_cap_national);
+    if(item.price_caps&&item.price_caps[this.state.region]!=null) return Number(item.price_caps[this.state.region]);
+    return null;
   }
   isHourly(unit){ return ['H','HR','HOUR','HOURS'].indexOf(String(unit||'').toUpperCase())>=0; }
   lineTotalFor(s){
@@ -359,6 +363,7 @@ class Component extends DCLogic {
       this.setState({busy:false});
       if(!r.ok){
         if(data.code==='over_budget'){ this.showToast('Blocked: claim exceeds remaining plan budget'); }
+        else if(data.code==='over_cap'){ this.showToast('Unit price exceeds the NDIS price limit for this support item and region — check the price guide'); }
         else this.showToast('Could not create claim: '+(data.error||('error '+r.status)));
         return;
       }

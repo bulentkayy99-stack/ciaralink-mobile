@@ -256,20 +256,18 @@ class Component extends DCLogic {
 
   loadParticipants(){
     try{
-      if(!window.loadParticipantsForCurrentUser) return;
+      const configured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+      if(!configured) return;
+      if(!window.loadParticipantsForCurrentUser){
+        this.setState({supabaseConnected:true,supabaseParticipants:[]});
+        return;
+      }
       Promise.resolve(window.loadParticipantsForCurrentUser()).then(res=>{
-        if(res && !res.error && res.participants && res.participants.length){
-          const connected = window.isSupabaseConfigured ? window.isSupabaseConfigured() : true;
-          this.setState({
-            supabaseParticipants: res.participants,
-            supabaseConnected: connected
-          });
-          if(connected){
-            const first = res.participants[0];
-            if(first && first.id) this.loadConsentFor(first.id);
-          }
-        }
-      }).catch(e=>console.warn('loadParticipants error:', e && e.message));
+        const parts=(res && !res.error && res.participants) ? res.participants : [];
+        this.setState({supabaseParticipants:parts,supabaseConnected:true});
+        const first=parts[0];
+        if(first && first.id) this.loadConsentFor(first.id);
+      }).catch(e=>{ console.warn('loadParticipants error:', e && e.message); this.setState({supabaseConnected:true,supabaseParticipants:[]}); });
     }catch(e){ console.warn('loadParticipants error:', e && e.message); }
   }
 
@@ -458,7 +456,8 @@ class Component extends DCLogic {
     const ptInitials=(s)=>String(s||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'P';
     const ptTints=['#16b8a6','#6366f1','#d98b22','#0891b2','#9333ea','#e0556e'];
     const {supabaseParticipants,supabaseConnected}=this.state;
-    const connected = supabaseConnected && (supabaseParticipants||[]).length;
+    const demoMode=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    const connected=!demoMode&&!!supabaseConnected;
     const ptList=connected
       ? (supabaseParticipants||[]).map((p,i)=>{
           const nm=p.full_name||p.preferred_name||'Participant';
@@ -471,7 +470,7 @@ class Component extends DCLogic {
             alert:false,
           };
         })
-      : demoPtList;
+      : (demoMode?demoPtList:[]);
 
     const participants=ptList.map((p,i)=>({
       ...p,
@@ -480,7 +479,7 @@ class Component extends DCLogic {
       fg:selectedPt===i?'#f4faf8':'#9fb4ae',
     }));
 
-    const sel=ptList[selectedPt]||ptList[0];
+    const sel=ptList[selectedPt]||ptList[0]||{name:'Participant',init:'—',tint:'#9aa8a3',ndis:'',alert:false};
 
     // Care-ROLE taxonomy (real NDIS roles, not invented individuals). Consent to
     // share is captured per role-category so it works regardless of care-team size.
@@ -555,8 +554,9 @@ class Component extends DCLogic {
           const when=fmt(d.signed_at||d.created_at);
           return {name:d.title,meta:who+(when?(' · '+when):''),status:sm.label,stFg:sm.stFg,stBg:sm.stBg,iconEl:ic(sm.icon,sm.iconC,16),tintBg:sm.tintBg};
         })
-      : demoDocs;
+      : (demoMode?demoDocs:[]);
     const docsEmpty = connected && consentDocs.length===0;
+    const docsPreviewEmpty = !demoMode && !connected;
 
     // ---- Consent change history (real in connected mode) ----
     const demoHistory=[
@@ -569,8 +569,9 @@ class Component extends DCLogic {
     const dotFor=(a)=>{const t=String(a||'').toLowerCase(); if(t.indexOf('revok')!==-1) return '#c0445c'; if(t.indexOf('grant')!==-1) return '#1e9e6a'; return '#16b8a6';};
     const consentHistory=connected
       ? histData.map(h=>({action:h.action,by:h.actor_label||'—',when:fmt(h.created_at),dot:dotFor(h.action)}))
-      : demoHistory;
+      : (demoMode?demoHistory:[]);
     const historyEmpty = connected && consentHistory.length===0;
+    const historyPreviewEmpty = !demoMode && !connected;
 
     // ---- KPIs (computed from real data in connected mode) ----
     const grantedCells=permissionRows.reduce((sum,r)=>sum+r.cells.filter(c=>c.label==='✓'||c.label==='~').length,0);
@@ -584,12 +585,17 @@ class Component extends DCLogic {
           {label:'PERMISSIONS GRANTED',value:String(grantedCells),color:'#14302b',sub:'Across all data categories'},
           {label:'ALERTS',value:String(alertDocs),color:alertDocs?'#c0445c':'#1e9e6a',sub:alertDocs?'Consent expiring / renewal due':'No consents need review'},
         ]
-      : [
+      : (demoMode?[
           {label:'CONSENT FORMS SIGNED',value:'6',color:'#1e9e6a',sub:'All current · last updated Jul 2026'},
           {label:'ROLES WITH ACCESS',value:'5/6',color:'#0b6b60',sub:'Family access pending review'},
           {label:'PERMISSIONS GRANTED',value:'34',color:'#14302b',sub:'Across all data categories'},
           {label:'ALERTS',value:'2',color:'#c0445c',sub:'Consent expiring soon · review needed'},
-        ];
+        ]:[
+          {label:'CONSENT FORMS ON RECORD',value:'—',color:'#9aa8a3',sub:'No consent documents yet'},
+          {label:'ROLES WITH ACCESS',value:'—',color:'#9aa8a3',sub:'Add participants to manage consent'},
+          {label:'PERMISSIONS GRANTED',value:'—',color:'#9aa8a3',sub:'Across all data categories'},
+          {label:'ALERTS',value:'—',color:'#1e9e6a',sub:'No consents need review'},
+        ]);
 
     return {
       logoEl:ic('shield','#eafaf8',20),
@@ -599,7 +605,7 @@ class Component extends DCLogic {
       shieldEl:ic('shield','#c0445c',15),
       checkEl:ic('check','#16b8a6',15),
       participants,
-      selectedName:sel.name,
+      selectedName:sel.name||'Participant',
       sideNav:[
         {label:'All participants',iconEl:ic('users','#7e948e',16),onClick:()=>{window.location.href='Care Ecosystem.dc.html';}},
         {label:'Consent documents',iconEl:ic('file','#7e948e',16),onClick:()=>this.scrollTo('consent-docs-section')},
@@ -610,11 +616,13 @@ class Component extends DCLogic {
       permissionRows,
       consentKpis,
       consentDocs,
-      docsEmpty,
+      docsEmpty,docsPreviewEmpty,
       consentHistory,
-      historyEmpty,
+      historyEmpty,historyPreviewEmpty,
+      noParticipants:connected && !(supabaseParticipants||[]).length,
+      showDemo:demoMode,realMode:!demoMode,
       generateConsentForm:()=>this.openGenerate(),
-      revokeAll:()=>this.doRevokeAll(sel.name),
+      revokeAll:()=>this.doRevokeAll(sel.name||'Participant'),
       // Record-consent modal bindings
       genOpen:this.state.genOpen,
       genStop:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
@@ -625,7 +633,7 @@ class Component extends DCLogic {
       genSignedByChange:(e)=>this.setState({genSignedBy:e.target.value}),
       genSignedAt:this.state.genSignedAt,
       genSignedAtChange:(e)=>this.setState({genSignedAt:e.target.value}),
-      genSubmit:()=>this.submitConsent(sel.name),
+      genSubmit:()=>this.submitConsent(sel.name||'Participant'),
       genSubmitLabel:this.state.genBusy?'Recording…':'Record consent',
       goBack:()=>{try{const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');const m={provider:'CiaraLink Provider Dashboard.dc.html',provider_owner:'CiaraLink Provider Dashboard.dc.html',provider_admin:'CiaraLink Provider Dashboard.dc.html',provider_staff:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',support_coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html',allied_health:'Allied Health.dc.html',allied_health_admin:'Allied Health.dc.html',worker:'Support Worker.dc.html',support_worker:'Support Worker.dc.html',abn_worker:'Support Worker.dc.html',participant:'Participant Dashboard.dc.html',guardian_nominee:'Participant Dashboard.dc.html'};window.location.href=m[s.role]||'Index.dc.html';}catch(e){window.location.href='Index.dc.html';}},
       signOut:()=>{try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},

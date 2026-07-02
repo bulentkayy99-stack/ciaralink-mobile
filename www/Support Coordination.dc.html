@@ -206,7 +206,34 @@
       <!-- ===== ALLIED HEALTH ===== -->
       <sc-if value="{{ isAllied }}" hint-placeholder-val="">
       <sc-if value="{{ realMode }}" hint-placeholder-val="">
-        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No allied health connections yet.<br>Connect an allied health professional or send a referral and they'll appear here.</div>
+        <sc-if value="{{ evidenceLoading }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">Loading allied health evidence…</div>
+        </sc-if>
+        <sc-if value="{{ liveAhEmpty }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No allied health reports on file yet.<br>Connect an allied health professional to add them to a participant's care team.<div style="margin-top:16px"><button onClick="{{ connectAhp }}" style="padding:9px 16px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Connect AHP</button></div></div>
+        </sc-if>
+        <sc-if value="{{ liveAhHas }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:16px;padding:15px 20px;margin-bottom:18px;color:#eafaf8">
+            <span style="display:flex">{{ pulseEl }}</span>
+            <div style="flex:1;font-size:13.5px">Track every allied health connection — reports received, overdue, and what's needed for plan review.</div>
+            <button onClick="{{ connectAhp }}" style="padding:9px 16px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">+ Connect AHP</button>
+          </div>
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 120px;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PROFESSIONAL</span><span>DISCIPLINE</span><span>PARTICIPANT</span><span>REPORT</span><span>GOAL</span><span>STATUS</span></div>
+            <sc-for list="{{ liveAhList }}" as="a" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 120px;gap:8px;padding:14px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:10px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:{{ a.tint }}">{{ a.init }}</div><div style="min-width:0"><div style="font-size:13.5px;font-weight:700;color:#14302b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.name }}</div></div></div>
+                <span style="font-size:12.5px;font-weight:600;color:#5f726d">{{ a.disc }}</span>
+                <span style="font-size:13px;font-weight:700;color:#14302b">{{ a.client }}</span>
+                <span style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;font-weight:700;color:{{ a.repFg }};background:{{ a.repBg }};padding:3px 9px;border-radius:7px">{{ a.report }}</span><sc-if value="{{ a.missing }}" hint-placeholder-val=""><button onClick="{{ chaseReport }}" style="display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer">{{ a.chaseEl }}Chase</button></sc-if></span>
+                <span style="font-size:12px;color:#6c7f79">{{ a.goal }}</span>
+                <span style="font-size:11px;font-weight:700;color:{{ a.stFg }};background:{{ a.stBg }};padding:3px 9px;border-radius:7px">{{ a.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
       </sc-if>
       <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
       <div>
@@ -235,7 +262,38 @@
       <!-- ===== PLAN REVIEWS ===== -->
       <sc-if value="{{ isReviews }}" hint-placeholder-val="">
       <sc-if value="{{ realMode }}" hint-placeholder-val="">
-        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No plan reviews scheduled yet.<br>Reviews show here as participants and plan end dates are added.</div>
+        <sc-if value="{{ evidenceLoading }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">Loading evidence hub…</div>
+        </sc-if>
+        <sc-if value="{{ liveReviewsEmpty }}" hint-placeholder-val="">
+          <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No participants in your caseload yet.<br>Add participants with plan end dates to see review readiness here.</div>
+        </sc-if>
+        <sc-if value="{{ liveReviewsHas }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:center;gap:11px;background:linear-gradient(150deg,#0c2622,#0e5147);border-radius:16px;padding:15px 20px;margin-bottom:18px;color:#eafaf8">
+            <span style="display:flex">{{ hubWhiteEl }}</span>
+            <div style="flex:1;font-size:13.5px">Evidence hub — documents, shift notes, and allied health reports aggregated per participant for plan review prep. Missing items? <b>Upload via AI File Drop</b> — filed documents appear here automatically.</div>
+            <button onClick="{{ goFileDrop }}" style="flex:0 0 auto;padding:9px 15px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap">AI File Drop →</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px"><span style="display:flex">{{ calSmEl }}</span><span style="font-size:16px;font-weight:800;color:#14302b">{{ reviewsDueHeader }}</span></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ liveReviewList }}" as="r" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                  <div style="width:42px;height:42px;border-radius:13px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ r.tint }}">{{ r.init }}</div>
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:#14302b">{{ r.name }}</div><div style="font-size:12px;color:#8a9a94;margin-top:2px">Plan ends {{ r.planEnd }}</div></div>
+                  <span style="font-size:11.5px;font-weight:800;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:5px 12px;border-radius:999px">{{ r.dueLabel }}</span>
+                  <button onClick="{{ r.goReviewPrep }}" style="padding:9px 16px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Prepare review</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div style="background:#e9f6ef;border:1px solid #cce9d8;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:8px">READY</div><sc-for list="{{ r.ready }}" as="x" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:4px 0">{{ checkGrnEl }}<span style="font-size:12.5px;color:#1e7a52">{{ x }}</span></div></sc-for><sc-if value="{{ r.readyEmpty }}" hint-placeholder-val=""><span style="font-size:12.5px;color:#8a9a94">Nothing ready yet</span></sc-if></div>
+                  <div style="background:#fbe9ed;border:1px solid #f3d6dc;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a9a94;margin-bottom:8px">MISSING</div><sc-if value="{{ r.hasMissing }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ r.missing }}" as="m" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;padding:4px 0">{{ alertRedEl }}<span style="font-size:12.5px;color:#c0445c">{{ m }}</span></div></sc-for></sc-if><sc-if value="{{ r.nothingMissing }}" hint-placeholder-val=""><span style="font-size:12.5px;color:#1e7a52">Nothing missing ✓</span></sc-if></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
       </sc-if>
       <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
       <div>
@@ -262,14 +320,14 @@
 
       <!-- ===== BUDGETS ===== -->
       <sc-if value="{{ isBudgets }}" hint-placeholder-val="">
-      <sc-if value="{{ realMode }}" hint-placeholder-val="">
-        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No budget data yet.<br>Add participants and plans to track Core, Capacity &amp; Capital usage.</div>
+      <sc-if value="{{ showBudgetEmpty }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No budget data yet.<br>Add participants and plan budgets to track Core and Capacity usage.</div>
       </sc-if>
-      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showBudgetTable }}" hint-placeholder-val="{{ true }}">
       <div>
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
           <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PARTICIPANT</span><span>CORE SUPPORTS</span><span>CAPACITY BLDG</span><span>PLAN ENDS</span><span>STATUS</span></div>
-          <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="6">
+          <sc-for list="{{ budgetDisplayRows }}" as="b" hint-placeholder-count="6">
             <div style="padding:14px 22px;border-bottom:1px solid #f1f4f2">
               <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:{{ b.risk?'8px':'0' }}">
                 <div style="display:flex;align-items:center;gap:9px"><div style="width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:{{ b.tint }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">{{ b.init }}</div><span style="font-size:13.5px;font-weight:700;color:#14302b">{{ b.name }}</span></div>
@@ -289,14 +347,14 @@
 
       <!-- ===== AGREEMENTS ===== -->
       <sc-if value="{{ isAgreements }}" hint-placeholder-val="">
-      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+      <sc-if value="{{ showAgreementEmpty }}" hint-placeholder-val="">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No service agreements yet.<br>Agreements appear here as providers are engaged for your participants.</div>
       </sc-if>
-      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showAgreementTable }}" hint-placeholder-val="{{ true }}">
       <div>
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
           <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 22px;background:#f7faf9;border-bottom:1px solid #eef2f0;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa8a3"><span>PROVIDER</span><span>PARTICIPANT</span><span>SERVICE</span><span>ENDS</span><span>STATUS</span></div>
-          <sc-for list="{{ agreementRows }}" as="a" hint-placeholder-count="5">
+          <sc-for list="{{ agreementDisplayRows }}" as="a" hint-placeholder-count="5">
             <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;gap:8px;padding:13px 22px;border-bottom:1px solid #f1f4f2;align-items:center">
               <div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;background:{{ a.tint }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">{{ a.init }}</div><span style="font-size:13px;font-weight:700;color:#14302b">{{ a.name }}</span></div>
               <span style="font-size:12.5px;color:#5f726d">{{ a.participant }}</span>
@@ -312,13 +370,20 @@
 
       <!-- ===== PARTICIPANTS ===== -->
       <sc-if value="{{ isParticipants }}" hint-placeholder-val="">
+      <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
+        <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No participants in your caseload yet.<br>Add a participant or accept a referral and they'll appear here.</div>
+      </sc-if>
+      <sc-if value="{{ !caseloadEmpty }}" hint-placeholder-val="{{ true }}">
       <div>
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #eef2f0"><span style="font-size:14px;font-weight:800;color:#14302b">Your caseload</span><span style="font-size:12px;color:#6c7f79">Consent status · plan dates · provider links</span></div>
           <sc-for list="{{ participantRows }}" as="p" hint-placeholder-count="6">
             <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid #f1f4f2">
               <div style="width:40px;height:40px;border-radius:12px;flex:0 0 40px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">{{ p.init }}</div>
-              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</div><div style="font-size:12px;color:#8a9a94;margin-top:2px">Provider: {{ p.provider }} · Plan ends: {{ p.review }}</div></div>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#14302b">{{ p.name }}</div>
+                <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:#8a9a94;margin-top:2px">Provider: {{ p.provider }} · Plan ends: {{ p.review }}</div></sc-if>
+                <sc-if value="{{ realMode }}" hint-placeholder-val=""><div style="font-size:12px;color:#8a9a94;margin-top:2px">{{ p.planEndsLabel }}</div></sc-if>
+              </div>
               <div style="display:flex;gap:8px;align-items:center">
                 <span style="font-size:11px;font-weight:700;color:{{ p.consentFg }};background:{{ p.consentBg }};padding:3px 9px;border-radius:7px">{{ p.consentLabel }}</span>
                 <span style="font-size:11px;font-weight:700;color:{{ p.riskFg }};background:{{ p.riskBg }};padding:3px 9px;border-radius:7px">{{ p.risk }}</span>
@@ -328,16 +393,17 @@
         </div>
       </div>
       </sc-if>
+      </sc-if>
 
       <!-- ===== PROVIDERS ===== -->
       <sc-if value="{{ isProviders }}" hint-placeholder-val="">
-      <sc-if value="{{ realMode }}" hint-placeholder-val="">
+      <sc-if value="{{ showProviderEmpty }}" hint-placeholder-val="">
         <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:30px 22px;text-align:center;font-size:13px;color:#8a9a94;line-height:1.6">No providers linked yet.<br>Providers appear here as you engage them for your participants.</div>
       </sc-if>
-      <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ showProviderTable }}" hint-placeholder-val="{{ true }}">
       <div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <sc-for list="{{ providerRows }}" as="p" hint-placeholder-count="3">
+          <sc-for list="{{ providerDisplayRows }}" as="p" hint-placeholder-count="3">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;padding:18px 22px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
               <div style="display:flex;align-items:center;gap:13px;margin-bottom:13px">
                 <div style="width:44px;height:44px;border-radius:13px;flex:0 0 44px;background:{{ p.tint }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ p.init }}</div>
@@ -448,7 +514,7 @@
                   <span style="font-size:10.5px;font-weight:700;color:{{ r.urgFg }};background:{{ r.urgBg }};padding:3px 9px;border-radius:7px">{{ r.urgency }}</span>
                   <span style="font-size:11.5px;font-weight:700;color:#4338ca;background:#eef0fd;padding:3px 9px;border-radius:7px">{{ r.stage }}</span>
                 </div>
-                <button onClick="{{ goParticipantProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
+                <button onClick="{{ r.openProfile }}" style="padding:8px 13px;border-radius:10px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer">Open</button>
               </div>
             </sc-for>
           </div>
@@ -646,7 +712,7 @@
                 </div>
                 <div style="text-align:right;flex:0 0 92px"><div style="font-size:11px;color:#9aa8a3">Review</div><div style="font-size:12.5px;font-weight:700;color:#14302b">{{ p.review }}</div></div>
                 <span style="font-size:11px;font-weight:700;color:{{ p.riskFg }};background:{{ p.riskBg }};padding:3px 9px;border-radius:7px;flex:0 0 auto">{{ p.risk }}</span>
-                <button onClick="{{ goParticipantProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
+                <button onClick="{{ p.openProfile }}" style="padding:7px 12px;border-radius:9px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto" style-hover="background:#f4f8f6;border-color:#16b8a6">Open →</button>
               </div>
             </sc-for>
             <sc-if value="{{ caseloadEmpty }}" hint-placeholder-val="">
@@ -867,6 +933,40 @@
   </div>
 </div>
 </sc-if>
+
+<!-- ===== CONNECT AHP MODAL ===== -->
+<sc-if value="{{ connectAhpOpen }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:70;background:rgba(12,38,34,.5);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:520px;max-width:100%;max-height:90vh;background:#fff;border-radius:22px;display:flex;flex-direction:column;box-shadow:0 32px 64px -20px rgba(0,0,0,.5);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #eef2f0;flex:0 0 auto">
+      <div style="flex:1"><div style="font-size:17px;font-weight:800;color:#14302b">Connect Allied Health</div><div style="font-size:12px;color:#6c7f79;margin-top:2px">Link a clinician to a participant's care team</div></div>
+      <button onClick="{{ closeConnectAhp }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6c7f79">{{ xSmEl }}</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+      <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">PARTICIPANT</label>
+        <select value="{{ ahpParticipantId }}" onChange="{{ setAhpParticipant }}" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+          <option value="">Select participant…</option>
+          <sc-for list="{{ ahpParticipantOptions }}" as="ap" hint-placeholder-count="4"><option value="{{ ap.value }}">{{ ap.label }}</option></sc-for>
+        </select>
+      </div>
+      <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">FULL NAME</label>
+        <input value="{{ ahpName }}" onInput="{{ setAhpName }}" placeholder="e.g. Jordan Pham" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+      </div>
+      <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">EMAIL</label>
+        <input value="{{ ahpEmail }}" onInput="{{ setAhpEmail }}" placeholder="clinician@practice.com.au" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+      </div>
+      <div><label style="display:block;font-size:11px;font-weight:700;color:#9aa8a3;letter-spacing:.07em;margin-bottom:6px">TEMP PASSWORD <span style="font-weight:600;color:#b6c4be">(only if no account exists)</span></label>
+        <input value="{{ ahpTempPassword }}" onInput="{{ setAhpTempPassword }}" placeholder="8+ characters to create a new account" type="password" style="width:100%;height:46px;border:1.5px solid #dde4e1;border-radius:12px;padding:0 14px;font-family:inherit;font-size:14px;color:#14302b;background:#fff">
+      </div>
+      <div style="background:#f0faf8;border:1px solid #cce9d8;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#41635c;line-height:1.55">If they already have a CiaraLink account, only email is needed. Otherwise provide a temporary password — they'll be prompted to change it on first sign-in.</div>
+    </div>
+    <div style="display:flex;gap:9px;padding:16px 24px;border-top:1px solid #eef2f0;flex:0 0 auto">
+      <button onClick="{{ closeConnectAhp }}" style="flex:1;height:46px;border-radius:12px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+      <button onClick="{{ submitConnectAhp }}" style="flex:2;height:46px;border-radius:12px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Connect to care team</button>
+    </div>
+  </div>
+</div>
+</sc-if>
 <sc-if value="{{ toast }}" hint-placeholder-val="">
   <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:9999;background:#0c2622;color:#eafaf8;padding:12px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-family:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;max-width:90vw">
     <span>{{ toast }}</span>
@@ -876,13 +976,14 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
 class Component extends DCLogic {
-  state = { view:'caseload', notifOpen:false, sendRefOpen:false, sendRefStep:0, sendRefType:'provider', refTab:'incoming', savedReferrals:[], savedNotes:[], noteFormOpen:false, noteText:'', noteParticipant:'Margaret Reyes', validationError:null, supabaseConnected:false, participantsLoading:true, participantsError:false, supabaseParticipants:[], orgId:null, liveReferrals:[], refParticipantId:'', toast:null, liveTasks:[], newTaskTitle:'', newTaskParticipantId:'', newTaskDue:'', liveNotes:[], noteBody:'', noteParticipantId:'', authName:null, authInitials:null, authRole:null, authOrg:null, authEmail:null, refRecipient:'', refSupports:'', refFunding:'Core Supports', refUrgency:'Standard', refNotes:'', refConsent:true, refPlanStart:'', refPlanEnd:'', lastSavedReferral:null, liveNotifications:[], notifLoaded:false, liveDocs:[], docsLoaded:false, refAttachments:[] };
+  state = { view:'caseload', notifOpen:false, sendRefOpen:false, sendRefStep:0, sendRefType:'provider', refTab:'incoming', savedReferrals:[], savedNotes:[], noteFormOpen:false, noteText:'', noteParticipant:'', validationError:null, supabaseConnected:false, participantsLoading:true, participantsError:false, supabaseParticipants:[], orgId:null, liveReferrals:[], refParticipantId:'', toast:null, liveTasks:[], newTaskTitle:'', newTaskParticipantId:'', newTaskDue:'', liveNotes:[], noteBody:'', noteParticipantId:'', selectedParticipantId:null, authName:null, authInitials:null, authRole:null, authOrg:null, authEmail:null, refRecipient:'', refSupports:'', refFunding:'Core Supports', refUrgency:'Standard', refNotes:'', refConsent:true, refPlanStart:'', refPlanEnd:'', lastSavedReferral:null, liveNotifications:[], notifLoaded:false, liveDocs:[], docsLoaded:false, refAttachments:[], liveShiftNotes:[], liveEvidenceNotes:[], liveRecommendations:[], evidenceLoaded:false, scBudgetRows:[], scAgreementRows:[], scProviderRows:[], scFinancialsLoaded:false, connectAhpOpen:false, ahpParticipantId:'', ahpEmail:'', ahpName:'', ahpTempPassword:'' };
   componentDidMount(){
     try{
       const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
-      if(s.loggedIn && s.role && s.role!=='coordinator'){
-        const m={provider:'CiaraLink Provider Dashboard.dc.html',worker:'Support Worker.dc.html',allied:'Allied Health.dc.html'};
-        if(m[s.role]) window.location.href=m[s.role];
+      const norm=window.normRoleBucket||(r=>r);
+      const dash=window.getDashboardForRole||(r=>'Index.dc.html');
+      if(s.loggedIn&&s.role&&norm(s.role)!=='coordinator'){
+        window.location.replace(dash(s.role));
       }
     }catch(e){}
     const AD=window.AegisData;
@@ -897,10 +998,15 @@ class Component extends DCLogic {
     this.loadIdentity();
     this.loadNotifs();
     this.loadDocs();
+    this.loadEvidenceHub();
     this.setupFileInputs();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling(()=>this.loadNotifs(),45000);
+    }
   }
 
   componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
     try{ if(this._docFileInput&&this._docFileInput.parentNode) this._docFileInput.parentNode.removeChild(this._docFileInput); }catch(e){}
     try{ if(this._refFileInput&&this._refFileInput.parentNode) this._refFileInput.parentNode.removeChild(this._refFileInput); }catch(e){}
   }
@@ -934,12 +1040,68 @@ class Component extends DCLogic {
     try{
       if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadDocumentsForCurrentUser){
         Promise.resolve(window.loadDocumentsForCurrentUser()).then(res=>{
-          this.setState({liveDocs:(res && !res.error) ? (res.documents||[]) : [], docsLoaded:true});
+          this.setState({liveDocs:(res && !res.error) ? (res.documents||[]) : [], docsLoaded:true}, ()=>this.loadEvidenceHub());
         }).catch(e=>{ console.warn('loadDocs error:',e&&e.message); this.setState({docsLoaded:true}); });
       } else {
         this.setState({docsLoaded:true});
       }
     }catch(e){ console.warn('loadDocs error:',e&&e.message); }
+  }
+
+  // Aggregate shift notes, coordination notes, and clinical recommendations for the Evidence Hub.
+  loadEvidenceHub(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+      const patch={};
+      const jobs=[];
+      if(window.loadShiftNotes){
+        jobs.push(Promise.resolve(window.loadShiftNotes({limit:300})).then(res=>{
+          patch.liveShiftNotes=(res && !res.error)?(res.notes||[]):[];
+        }).catch(()=>{ patch.liveShiftNotes=[]; }));
+      }
+      if(window.listParticipantNotes){
+        jobs.push(Promise.resolve(window.listParticipantNotes()).then(res=>{
+          patch.liveEvidenceNotes=(res && !res.error)?(res.notes||[]):[];
+        }).catch(()=>{ patch.liveEvidenceNotes=[]; }));
+      }
+      const loadRecs=window.loadClinicalRecommendations||window.loadRecommendationsForCurrentUser;
+      if(loadRecs){
+        jobs.push(Promise.resolve(loadRecs()).then(res=>{
+          patch.liveRecommendations=(res && !res.error)?(res.recommendations||[]):[];
+        }).catch(()=>{ patch.liveRecommendations=[]; }));
+      }
+      if(!jobs.length){ this.setState({evidenceLoaded:true}); return; }
+      this.setState({evidenceLoaded:false});
+      Promise.all(jobs).finally(()=>this.setState(Object.assign(patch,{evidenceLoaded:true}), ()=>this.loadScFinancials()));
+    }catch(e){ console.warn('loadEvidenceHub error:',e&&e.message); this.setState({evidenceLoaded:true}, ()=>this.loadScFinancials()); }
+  }
+
+  loadScFinancials(){
+    try{
+      if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured())||!window.loadScCaseloadFinancials){
+        this.setState({scFinancialsLoaded:true}); return;
+      }
+      const parts=this.state.supabaseParticipants||[];
+      if(!parts.length){ this.setState({scBudgetRows:[],scAgreementRows:[],scProviderRows:[],scFinancialsLoaded:true}); return; }
+      Promise.resolve(window.loadScCaseloadFinancials(parts)).then(res=>{
+        this.setState({
+          scBudgetRows:(res&&res.budgetRows)||[],
+          scAgreementRows:(res&&res.agreementRows)||[],
+          scProviderRows:(res&&res.providerRows)||[],
+          scFinancialsLoaded:true
+        });
+      }).catch(()=>this.setState({scFinancialsLoaded:true}));
+    }catch(e){ this.setState({scFinancialsLoaded:true}); }
+  }
+
+  goReviewPrepFor(participantId){
+    if(!participantId){ window.location.href='Plan Review Prep.dc.html'; return; }
+    try{
+      const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
+      s.selectedParticipantId=participantId;
+      localStorage.setItem('ciaralink_session',JSON.stringify(s));
+    }catch(e){}
+    window.location.href='Plan Review Prep.dc.html?id='+encodeURIComponent(participantId);
   }
 
   // Open a stored document in a new tab via a short-lived signed URL.
@@ -1052,15 +1214,11 @@ class Component extends DCLogic {
       this.setState({ participantsLoading: true, participantsError: false });
       if (window.queryParticipantsByCoordinator) {
         Promise.resolve(window.queryParticipantsByCoordinator()).then(parts => {
-          if (parts && parts.length > 0) {
-            this.setState({ 
-              supabaseParticipants: parts,
-              supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
-              participantsLoading: false 
-            });
-          } else {
-            this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
-          }
+          this.setState({
+            supabaseParticipants: (parts && parts.length > 0) ? parts : [],
+            supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
+            participantsLoading: false
+          }, ()=>this.loadEvidenceHub());
         }).catch(err => {
           console.error('loadParticipants error:', err);
           this.setState({ participantsError: true, participantsLoading: false, supabaseConnected: false });
@@ -1071,21 +1229,17 @@ class Component extends DCLogic {
         script.onload = () => {
           if (window.queryParticipantsByCoordinator) {
             Promise.resolve(window.queryParticipantsByCoordinator()).then(parts => {
-              if (parts && parts.length > 0) {
-                this.setState({ 
-                  supabaseParticipants: parts,
-                  supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
-                  participantsLoading: false 
-                });
-              } else {
-                this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
-              }
+              this.setState({
+                supabaseParticipants: (parts && parts.length > 0) ? parts : [],
+                supabaseConnected: window.isSupabaseConfigured ? window.isSupabaseConfigured() : false,
+                participantsLoading: false
+              }, ()=>this.loadEvidenceHub());
             }).catch(err => {
               console.error('loadParticipants error:', err);
               this.setState({ participantsError: true, participantsLoading: false });
             });
           } else {
-            this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false });
+            this.setState({ supabaseConnected: !!(window.isSupabaseConfigured && window.isSupabaseConfigured()), participantsLoading: false }, ()=>this.loadEvidenceHub());
           }
         };
         script.onerror = () => {
@@ -1132,12 +1286,24 @@ class Component extends DCLogic {
     return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.grid}));
   }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+
+  navToParticipantProfile(participantId, view){
+    const demo=!(window.isSupabaseConfigured&&window.isSupabaseConfigured());
+    if(!participantId){
+      if(demo){ window.location.href='Participant Profile.dc.html'; return; }
+      this.showToast('Select a participant from your caseload first');
+      return;
+    }
+    this.setState({selectedParticipantId:participantId,noteParticipantId:participantId});
+    if(window.navigateToParticipantProfile) window.navigateToParticipantProfile(participantId,view);
+    else window.location.href=window.participantProfileUrl?window.participantProfileUrl(participantId,view):('Participant Profile.dc.html?id='+encodeURIComponent(participantId));
+  }
   renderVals(){
     const ic=(n,c,s)=>{return this.ic(n,c,s);};
     const view=String(this.state.view||'caseload');
     // First-run gate: rich demo identity/numbers/people only when Supabase is NOT
     // configured (preview). A signed-in coordinator sees real identity + empty-states.
-    const demoMode = !(typeof window!=='undefined' && window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
     // Real identity (populated by loadIdentity via loadCurrentUserContext); honest fallbacks, never a fake name.
     const userFull = this.state.authName || 'Your account';
     const userFirst = this.state.authName ? this.state.authName.split(/\s+/)[0] : 'there';
@@ -1147,12 +1313,15 @@ class Component extends DCLogic {
       ? ('Morning, '+userFirst+' — 32 participants in your care, and I’ve lined up what needs you today')
       : ('Welcome'+(this.state.authName?(', '+userFirst):'')+' — your caseload and what needs you appears here as participants are added');
     const navMap={caseload:'caseload',allied:'allied',reviews:'reviews',budgets:'budgets',agreements:'agreements',participants:'participants',providers:'providers',notes:'notes',docs:'docs',planreview:'reviews',billing:'billing_sc',filedrop:'filedrop',goals:'goals',referrals_sc:'referrals_sc',profile_sc:'profile_sc'};
-    const navPartCount=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id).length;
+    const realCaseloadParts=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id);
+    const _planDaysUntil=(dateStr)=>{ if(!dateStr) return null; const d=new Date(dateStr); if(isNaN(d.getTime())) return null; const now=new Date(); now.setHours(0,0,0,0); d.setHours(0,0,0,0); return Math.ceil((d-now)/86400000); };
+    const reviewsDue14Early=realCaseloadParts.filter(p=>{ const d=_planDaysUntil(p.plan_end); return d!==null&&d>=0&&d<=14; }).length;
+    const navPartCount=realCaseloadParts.length;
     const defs=[
       {title:'WORKSPACE',items:[['caseload','My Caseload','user',null],['allied','Allied Health','pulse','NEW'],['goals','Goals','target',null],['referrals_sc','Referrals','inbox',null],['profile_sc','My Profile','user',null]]},
-      {title:'PLANS',items:[['budgets','Budgets','wallet',null],['agreements','Service Agreements','handshake',null],['reviews','Plan Reviews','cal',demoMode?'3':null]]},
+      {title:'PLANS',items:[['budgets','Budgets','wallet',null],['agreements','Service Agreements','handshake',null],['reviews','Plan Reviews','cal',demoMode?'3':(reviewsDue14Early?String(reviewsDue14Early):null)]]},
       {title:'PEOPLE',items:[['participants','Participants','users',demoMode?'32':(navPartCount?String(navPartCount):null)],['providers','Providers','users',null]]},
-      {title:'RECORDS',items:[['notes','Case Notes','file',null],['docs','Documents','file',null],['filedrop','AI File Drop','spark','AI']]},
+      {title:'RECORDS',items:[['notes','Case Notes','file',null],['docs','Documents','file',null],['filedrop','AI File Drop','spark','AI'],['priceguide','NDIS Price Guide','wallet',null,'Price Guide.dc.html']]},
       {title:'SYSTEM',items:[['_consent','Consent Centre','shield',null,'Consent Centre.dc.html'],['_tasks','Task Centre','task',null,'Task Centre.dc.html'],['_settings','Settings','grid',null,'Settings.dc.html']]}
     ];
     const navSections=defs.map((sec)=>({title:sec.title,items:sec.items.map(([key,label,icon,count,href])=>{
@@ -1166,7 +1335,7 @@ class Component extends DCLogic {
     const kpiSbParts=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id);
     const kpiActiveCount=kpiSbParts.filter(p=>(p.status||'active')==='active').length;
     const kpiHasParts=kpiSbParts.length>0;
-    const previewDelta={deltaColor:'#6c7f79',deltaBg:'#eef2f0'};
+    const emptyDelta={deltaColor:'#9aa8a3',deltaBg:'#f1f4f2'};
     const liveDelta={deltaColor:'#0b6b60',deltaBg:'#e7f4f1'};
     const kpiDefs = demoMode ? [
       {label:'Active participants',value:'32',sub:'4 onboarding',icon:'users',delta:'+3',up:true,tintBg:'#e7f4f1',stroke:'#16b8a6'},
@@ -1174,10 +1343,10 @@ class Component extends DCLogic {
       {label:'Reviews due (14d)',value:'3',sub:'1 overdue',icon:'cal',delta:'Action',up:false,tintBg:'#fbf0df',stroke:'#d98b22'},
       {label:'Unspent at risk',value:'$48k',sub:'2 participants',icon:'alert',delta:'Review',up:false,tintBg:'#fbe9ed',stroke:'#e0556e'}
     ] : [
-      Object.assign({label:'Active participants',value:kpiHasParts?String(kpiActiveCount):'—',sub:kpiHasParts?'Synced from Supabase':'No participants yet',icon:'users',delta:kpiHasParts?'Live':'Preview',tintBg:'#e7f4f1',stroke:'#16b8a6'},kpiHasParts?liveDelta:previewDelta),
-      Object.assign({label:'Avg plan utilisation',value:'—',sub:'Preview — not yet tracked',icon:'wallet',delta:'Preview',tintBg:'#eef0fd',stroke:'#6366f1'},previewDelta),
-      Object.assign({label:'Reviews due (14d)',value:'—',sub:'Preview — not yet tracked',icon:'cal',delta:'Preview',tintBg:'#fbf0df',stroke:'#d98b22'},previewDelta),
-      Object.assign({label:'Unspent at risk',value:'—',sub:'Preview — not yet tracked',icon:'alert',delta:'Preview',tintBg:'#fbe9ed',stroke:'#e0556e'},previewDelta)
+      Object.assign({label:'Active participants',value:kpiHasParts?String(kpiActiveCount):'—',sub:kpiHasParts?'Synced from Supabase':'No participants yet',icon:'users',delta:kpiHasParts?'Live':'',tintBg:'#e7f4f1',stroke:'#16b8a6'},kpiHasParts?liveDelta:emptyDelta),
+      Object.assign({label:'Avg plan utilisation',value:'—',sub:'Not yet tracked',icon:'wallet',delta:'',tintBg:'#eef0fd',stroke:'#6366f1'},emptyDelta),
+      Object.assign({label:'Reviews due (14d)',value:reviewsDue14Early?String(reviewsDue14Early):'—',sub:reviewsDue14Early?'From plan end dates on file':'Add plan end dates to track',icon:'cal',delta:reviewsDue14Early?'Live':'',tintBg:'#fbf0df',stroke:'#d98b22'},reviewsDue14Early?liveDelta:emptyDelta),
+      Object.assign({label:'Unspent at risk',value:'—',sub:'Not yet tracked',icon:'alert',delta:'',tintBg:'#fbe9ed',stroke:'#e0556e'},emptyDelta)
     ];
     const kpis=kpiDefs.map(k=>({label:k.label,value:k.value,sub:k.sub,iconEl:ic(k.icon,k.stroke,19),deltaLabel:k.delta,deltaColor:k.deltaColor||(k.up?'#1e9e6a':'#c0445c'),deltaBg:k.deltaBg||(k.up?'#e9f6ef':'#fbe9ed')}));
 
@@ -1201,17 +1370,18 @@ class Component extends DCLogic {
     // RLS-scoped participants this coordinator actually loaded, else render an
     // empty-state (never fall back to demo names for a signed-in user). Budget/
     // review fields have no backend yet, so they show '—' rather than fake numbers.
-    const realCaseloadParts=(this.state.supabaseParticipants||[]).filter(p=>p&&p.id);
     const liveCaseload = demoMode ? demoCaseload
       : realCaseloadParts.map((p,i)=>{
           const nm=p.full_name||p.preferred_name||'Participant';
           const st=(p.status||'').toString();
           const active=st.toLowerCase()==='active';
           return {
+            id:p.id,
             name:nm,
             init:scInitials(nm),
             tint:scTints[i%scTints.length],
             plan:p.ndis_number?('NDIS '+p.ndis_number):'',
+            planEnd:p.plan_end||'',
             usePct:'—',
             review:'—',
             risk:active?'On track':(st?(st.charAt(0).toUpperCase()+st.slice(1)):'—'),
@@ -1219,7 +1389,7 @@ class Component extends DCLogic {
             riskBg:active?'#e9f6ef':'#f1f4f2'
           };
         });
-    const caseload=liveCaseload.map(p=>({...p,useColor:C(parseInt(p.usePct))}));
+    const caseload=liveCaseload.map(p=>({...p,useColor:C(parseInt(p.usePct)),openProfile:()=>this.navToParticipantProfile(p.id)}));
     const caseloadEmpty = !demoMode && caseload.length===0;
     const caseAllLabel = demoMode ? 'All 32' : ('All '+caseload.length);
 
@@ -1260,7 +1430,7 @@ class Component extends DCLogic {
       {name:'Inner West OT',init:'IW',tint:'#9333ea',disc:'OT',client:'Margaret R.',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',report:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'Independent living',missing:false,chaseEl:null},
       {name:'Geelong Therapy',init:'GT',tint:'#d98b22',disc:'OT Paediatric',client:'Tom B.',status:'Waitlist',stFg:'#b4561f',stBg:'#fbf0df',report:'Not yet',repFg:'#b4561f',repBg:'#fbf0df',goal:'Sensory processing',missing:true,chaseEl:null}
     ].map(function(a){a.chaseEl=ic('send','#06201c',13);return a;});
-    // ---- plan reviews ----
+    // ---- plan reviews (demo) ----
     const reviewList=[
       {name:'Margaret R.',init:'MR',tint:'#16b8a6',due:'2d',urgFg:'#c0445c',urgBg:'#fbe9ed',hasMissing:true,missing:['SC summary','Consent form'],ready:['OT report','Physio report'],nothingMissing:false},
       {name:'Liam W.',init:'LW',tint:'#0e5147',due:'8d',urgFg:'#b4561f',urgBg:'#fbf0df',hasMissing:true,missing:['Speech report'],ready:['SC summary'],nothingMissing:false},
@@ -1281,8 +1451,8 @@ class Component extends DCLogic {
     const isBillingSC=view==='billing_sc';
     const isC=!isA&&!isR&&!isB&&!isAg&&!isPart&&!isProv&&!isNotes&&!isDocs&&!isFD&&!isGoals&&!isRefSC&&!isProfileSC&&!isBillingSC;
 
-    // budgets data
-    const budgetRows=[
+    // budgets data (demo fallback)
+    const demoBudgetRows=[
       {name:'Liam Wright',init:'LW',tint:'#0e5147',core:{spent:'$31,400',total:'$74,200',pct:42,color:'#16b8a6'},cap:{spent:'$8,900',total:'$22,000',pct:40,color:'#6366f1'},planEnd:'14 Aug 2026',risk:true,riskMsg:'Core budget may run out by August'},
       {name:'Margaret Reyes',init:'MR',tint:'#16b8a6',core:{spent:'$21,000',total:'$50,000',pct:42,color:'#16b8a6'},cap:{spent:'$2,000',total:'$14,000',pct:14,color:'#e0556e'},planEnd:'30 Nov 2026',risk:true,riskMsg:'Capacity Building only 14% used — underspend risk'},
       {name:'David Lowe',init:'DL',tint:'#6366f1',core:{spent:'$14,560',total:'$52,000',pct:28,color:'#16b8a6'},cap:{spent:'$6,200',total:'$18,000',pct:34,color:'#6366f1'},planEnd:'12 Oct 2026',risk:false,riskMsg:''},
@@ -1291,8 +1461,8 @@ class Component extends DCLogic {
       {name:'Ruth Kim',init:'RK',tint:'#0891b2',core:{spent:'$14,640',total:'$31,000',pct:47,color:'#16b8a6'},cap:{spent:'$3,800',total:'$9,000',pct:42,color:'#6366f1'},planEnd:'19 Dec 2026',risk:false,riskMsg:''}
     ];
 
-    // agreements data
-    const agreementRows=[
+    // agreements data (demo fallback)
+    const demoAgreementRows=[
       {name:'Brightside Care',init:'BC',tint:'#16b8a6',participant:'Liam Wright',service:'Personal Care',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'},
       {name:'Northern Allied',init:'NA',tint:'#6366f1',participant:'Margaret Reyes',service:'Physiotherapy',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'},
       {name:'Coburg Community',init:'CC',tint:'#d98b22',participant:'Priya Sharma',service:'Community Access',status:'Awaiting signature',stFg:'#b4561f',stBg:'#fbf0df',ends:'—',review:'Chase'},
@@ -1300,22 +1470,34 @@ class Component extends DCLogic {
       {name:'Inner West OT',init:'IW',tint:'#9333ea',participant:'Ruth Kim',service:'Occupational Therapy',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',ends:'30 Jun 2027',review:'On track'}
     ];
 
-    // participants pipeline view
-    const participantRows=caseload.map(p=>({...p,
-      provider:'Brightside Care',coordinator:'Sarah Kelly',
-      goals:['Independent living','Community access'],
-      consentShared:p.risk!=='At risk',
-      consentFg:p.risk!=='At risk'?'#1e7a52':'#c0445c',
-      consentBg:p.risk!=='At risk'?'#e9f6ef':'#fbe9ed',
-      consentLabel:p.risk!=='At risk'?'Consent given':'Consent needed'
-    }));
-
-    // providers view
-    const providerRows=[
+    // providers view (demo fallback)
+    const demoProviderRows=[
       {name:'Brightside Care',init:'BC',tint:'#16b8a6',type:'Service Provider',participants:['Liam W.','Margaret R.','Tom B.'],hours:'112h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'bulent@brightside.com.au'},
       {name:'Northern Allied',init:'NA',tint:'#6366f1',type:'Allied Health',participants:['Margaret R.','David L.'],hours:'24h/wk',status:'Active',stFg:'#1e7a52',stBg:'#e9f6ef',agreement:'Signed',contact:'admin@northernallied.com.au'},
       {name:'Coburg Community',init:'CC',tint:'#d98b22',type:'Service Provider',participants:['Priya S.'],hours:'18h/wk',status:'Agreement pending',stFg:'#b4561f',stBg:'#fbf0df',agreement:'Awaiting signature',contact:'info@coburgcommunity.com.au'}
     ];
+
+    const budgetDisplayRows=demoMode?demoBudgetRows:(this.state.scBudgetRows||[]);
+    const agreementDisplayRows=demoMode?demoAgreementRows:(this.state.scAgreementRows||[]);
+    const providerDisplayRows=demoMode?demoProviderRows:(this.state.scProviderRows||[]);
+    const showBudgetEmpty=!demoMode&&this.state.scFinancialsLoaded&&!budgetDisplayRows.length;
+    const showBudgetTable=demoMode||budgetDisplayRows.length>0;
+    const showAgreementEmpty=!demoMode&&this.state.scFinancialsLoaded&&!agreementDisplayRows.length;
+    const showAgreementTable=demoMode||agreementDisplayRows.length>0;
+    const showProviderEmpty=!demoMode&&this.state.scFinancialsLoaded&&!providerDisplayRows.length;
+    const showProviderTable=demoMode||providerDisplayRows.length>0;
+
+    // participants pipeline view
+    const participantRows=caseload.map(p=>({...p,
+      provider:demoMode?'Brightside Care':'—',
+      coordinator:demoMode?'Sarah Kelly':'—',
+      planEndsLabel:demoMode?p.review:(p.planEnd?'Plan ends '+p.planEnd:'—'),
+      goals:demoMode?['Independent living','Community access']:[],
+      consentShared:demoMode?p.risk!=='At risk':null,
+      consentFg:demoMode?(p.risk!=='At risk'?'#1e7a52':'#c0445c'):'#5f726d',
+      consentBg:demoMode?(p.risk!=='At risk'?'#e9f6ef':'#fbe9ed'):'#f1f4f2',
+      consentLabel:demoMode?(p.risk!=='At risk'?'Consent given':'Consent needed'):'—'
+    }));
 
     // case notes
     const noteRows=[
@@ -1349,10 +1531,9 @@ class Component extends DCLogic {
         tintBg:done?'#e9f6ef':'#e7f4f1'
       };
     };
-    const coordTasksLive=this.state.supabaseConnected;
-    const coordTasks=coordTasksLive ? (this.state.liveTasks||[]).map(mapCoordTask) : tasks;
-    const coordTasksEmpty=coordTasksLive && coordTasks.length===0;
-    const taskBadge=coordTasksLive ? (coordTasks.length+' saved') : '7 due';
+    const coordTasks=demoMode ? tasks : (this.state.liveTasks||[]).map(mapCoordTask);
+    const coordTasksEmpty=!demoMode && coordTasks.length===0;
+    const taskBadge=demoMode ? '7 due' : (coordTasks.length ? (coordTasks.length+' saved') : '0 saved');
     const taskParticipantOptions=[{value:'',label:'No participant (general task)'}].concat(scParticipants.map(partOpt));
 
     // ===== COORDINATION NOTES (real, via listParticipantNotes) =====
@@ -1363,9 +1544,8 @@ class Component extends DCLogic {
       const pname=(n.participants&&(n.participants.full_name||n.participants.preferred_name))||nameForId(n.participant_id);
       return { init:scInitials(pname), tint:scTints2[i%scTints2.length], participant:pname, date:fmtDate(n.created_at), type:'Coordination', note:n.body||'', tags:[n.author_role||'support_coordinator'] };
     });
-    const coordNotesLive=this.state.supabaseConnected;
-    const coordNotes=coordNotesLive ? liveNoteRows : noteRows;
-    const coordNotesEmpty=coordNotesLive && coordNotes.length===0;
+    const coordNotes=demoMode ? noteRows : liveNoteRows;
+    const coordNotesEmpty=!demoMode && coordNotes.length===0;
     const noteParticipantOptions=scParticipants.length ? scParticipants.map(partOpt) : [];
 
     // ===== REFERRALS (real, RLS-scoped via loadReferralsForCurrentUser) =====
@@ -1374,15 +1554,23 @@ class Component extends DCLogic {
     const initialsOf=(s)=>String(s||'').trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
     const refPName=(r)=>(r.participants&&(r.participants.full_name||r.participants.preferred_name))||'Participant';
     const urgFromPriority=(p)=>p==='urgent'?'Urgent':(p==='high'?'High':'Standard');
-    const mapSentRef=(r)=>{ const pn=refPName(r); const allied=r.type==='allied_health'; return {recipient:allied?'Allied Health':'Provider',type:allied?'Allied Health':'Provider',init:'RF',tint:'#0b6b60',participant:pn,ptInit:(initialsOf(pn)||'P'),ptTint:'#0e5147',date:(r.created_at||'').slice(0,10),status:(r.status||'received'),stFg:'#0b6b60',stBg:'#e7f4f1',nextAction:'Saved to your account',urgent:(r.priority==='urgent')}; };
-    const mapIncomingRef=(r)=>{ const pn=refPName(r); const allied=r.type==='allied_health'; const urg=urgFromPriority(r.priority||'routine'); return {name:pn,init:(initialsOf(pn)||'P'),tint:'#16b8a6',from:'Referral',need:allied?'Allied Health':'Provider support',when:(r.created_at||'').slice(0,10),urgency:urg,urgFg:urg==='Standard'?'#1e7a52':'#c0445c',urgBg:urg==='Standard'?'#e9f6ef':'#fbe9ed',stage:(r.status||'received')}; };
+    const refStatusMeta = {
+      received: { label: 'Awaiting provider', fg: '#b4561f', bg: '#fbf0df', next: 'Waiting for provider response' },
+      participant_contacted: { label: 'Provider responded', fg: '#0891b2', bg: '#e0f2f5', next: 'Provider has contacted participant' },
+      assessment_booked: { label: 'Assessment booked', fg: '#4338ca', bg: '#eef0fd', next: 'Assessment scheduled' },
+      active: { label: 'Services active', fg: '#1e7a52', bg: '#e9f6ef', next: 'Provider confirmed services' },
+      declined: { label: 'Declined', fg: '#c0445c', bg: '#fbe9ed', next: 'Referral declined' },
+      closed: { label: 'Closed', fg: '#5f726d', bg: '#f1f4f2', next: 'Referral closed' },
+    };
+    const mapSentRef=(r)=>{ const pn=refPName(r); const allied=String(r.type||'').includes('allied'); const st=String(r.status||'received'); const sm=refStatusMeta[st]||{label:st.replace(/_/g,' '),fg:'#0b6b60',bg:'#e7f4f1',next:'Saved to your account'}; return {recipient:allied?'Allied Health':'Provider',type:allied?'Allied Health':'Provider',init:'RF',tint:'#0b6b60',participant:pn,ptInit:(initialsOf(pn)||'P'),ptTint:'#0e5147',date:(r.created_at||'').slice(0,10),status:sm.label,stFg:sm.fg,stBg:sm.bg,nextAction:sm.next,urgent:(r.priority==='urgent')}; };
+    const mapIncomingRef=(r)=>{ const pn=refPName(r); const allied=r.type==='allied_health'; const urg=urgFromPriority(r.priority||'routine'); const pid=r.participant_id||null; return {name:pn,init:(initialsOf(pn)||'P'),tint:'#16b8a6',from:'Referral',need:allied?'Allied Health':'Provider support',when:(r.created_at||'').slice(0,10),urgency:urg,urgFg:urg==='Standard'?'#1e7a52':'#c0445c',urgBg:urg==='Standard'?'#e9f6ef':'#fbe9ed',stage:(r.status||'received'),participantId:pid,openProfile:()=>this.navToParticipantProfile(pid)}; };
     const liveRefs=(this.state.liveReferrals||[]);
     const liveSentRows=liveRefs.filter(r=>r.from_org_id && r.from_org_id===this.state.orgId).map(mapSentRef);
     const liveIncomingRows=liveRefs.filter(r=>r.to_org_id && r.to_org_id===this.state.orgId).map(mapIncomingRef);
     const demoIncomingRefs=[
-      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Self-referred',need:'Personal Care + SC',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Initial contact',when:'2h ago'},
-      {name:'James Nguyen',init:'JN',tint:'#6366f1',from:'Hospital discharge',need:'Allied Health + Community Access',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Referral received',when:'Yesterday'},
-      {name:'Sofia Patel',init:'SP',tint:'#d98b22',from:'Provider referral',need:'Support Coordination',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df',stage:'Assessment of needs',when:'3 days ago'}
+      {name:'Eleni Pappas',init:'EP',tint:'#16b8a6',from:'Self-referred',need:'Personal Care + SC',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Initial contact',when:'2h ago',openProfile:()=>this.navToParticipantProfile(null)},
+      {name:'James Nguyen',init:'JN',tint:'#6366f1',from:'Hospital discharge',need:'Allied Health + Community Access',urgency:'High',urgFg:'#c0445c',urgBg:'#fbe9ed',stage:'Referral received',when:'Yesterday',openProfile:()=>this.navToParticipantProfile(null)},
+      {name:'Sofia Patel',init:'SP',tint:'#d98b22',from:'Provider referral',need:'Support Coordination',urgency:'Medium',urgFg:'#b4561f',urgBg:'#fbf0df',stage:'Assessment of needs',when:'3 days ago',openProfile:()=>this.navToParticipantProfile(null)}
     ];
     const demoSentRefs=[
       {recipient:'Brightside Care',type:'Provider',init:'BC',tint:'#16b8a6',participant:'Margaret Reyes',ptInit:'MR',ptTint:'#0e5147',date:'20 Jun 2026',status:'Accepted',stFg:'#1e7a52',stBg:'#e9f6ef',nextAction:'Service agreement being drafted',urgent:false},
@@ -1439,6 +1627,81 @@ class Component extends DCLogic {
     });
     const realDocsEmpty=realDocsRows.length===0;
 
+    // ===== EVIDENCE HUB (plan reviews + allied health, real mode) =====
+    const ALLIED_DOC_TYPES=['allied_health_report','functional_capacity_assessment','progress_report','assessment','support_plan'];
+    const shortName=(nm)=>{ const p=String(nm||'').trim().split(/\s+/); return p.length>1?(p[0]+' '+p[p.length-1][0]+'.'):(p[0]||'Participant'); };
+    const daysUntil=(dateStr)=>{ if(!dateStr) return null; const d=new Date(dateStr); if(isNaN(d.getTime())) return null; const now=new Date(); now.setHours(0,0,0,0); d.setHours(0,0,0,0); return Math.ceil((d-now)/86400000); };
+    const dueLabelFor=(days)=>{ if(days===null) return 'No date set'; if(days<0) return Math.abs(days)+'d overdue'; if(days===0) return 'Due today'; return 'Due in '+days+'d'; };
+    const dueUrgency=(days)=>{ if(days===null) return {urgFg:'#5f726d',urgBg:'#f1f4f2'}; if(days<0||days<=7) return {urgFg:'#c0445c',urgBg:'#fbe9ed'}; if(days<=14) return {urgFg:'#b4561f',urgBg:'#fbf0df'}; return {urgFg:'#1e7a52',urgBg:'#e9f6ef'}; };
+    const buildEvidenceRow=(p,i)=>{
+      const pid=p.id;
+      const nm=p.full_name||p.preferred_name||'Participant';
+      const docs=(this.state.liveDocs||[]).filter(d=>d.participant_id===pid);
+      const shiftNotes=(this.state.liveShiftNotes||[]).filter(n=>n.participant_id===pid);
+      const notes=(this.state.liveEvidenceNotes||[]).filter(n=>n.participant_id===pid);
+      const recs=(this.state.liveRecommendations||[]).filter(r=>r.participant_id===pid);
+      const ready=[]; const missing=[];
+      const alliedDocs=docs.filter(d=>ALLIED_DOC_TYPES.indexOf(String(d.type||'').toLowerCase())>-1);
+      if(alliedDocs.length||recs.length){
+        if(recs.length) ready.push('Clinical recommendations ('+recs.length+')');
+        else ready.push(alliedDocs.length+' allied health report(s)');
+      } else missing.push('Allied health report');
+      if(shiftNotes.length) ready.push(shiftNotes.length+' shift note(s)');
+      else missing.push('Worker shift notes');
+      const scNotes=notes.filter(n=>String(n.note_type||'').indexOf('coord')>-1||n.author_role==='support_coordinator');
+      if(scNotes.length) ready.push('SC summary ('+scNotes.length+' note(s))');
+      else missing.push('SC summary');
+      if(docs.some(d=>String(d.type)==='ndis_plan')) ready.push('NDIS plan on file');
+      else missing.push('NDIS plan on file');
+      if(docs.some(d=>String(d.type)==='service_agreement')) ready.push('Service agreement');
+      else missing.push('Service agreement');
+      if(docs.some(d=>String(d.type)==='consent_form')) ready.push('Consent form');
+      else missing.push('Consent form');
+      const days=daysUntil(p.plan_end);
+      const urg=dueUrgency(days);
+      return Object.assign({
+        participantId:pid,
+        name:shortName(nm),
+        init:scInitials(nm),
+        tint:scTints[i%scTints.length],
+        due:days,
+        planEnd:p.plan_end?fmtDate(p.plan_end):'—',
+        dueLabel:dueLabelFor(days),
+        hasMissing:missing.length>0,
+        missing,
+        ready,
+        readyEmpty:ready.length===0,
+        nothingMissing:missing.length===0,
+        goReviewPrep:()=>this.goReviewPrepFor(pid)
+      },urg);
+    };
+    const liveReviewListRaw=realCaseloadParts.map((p,i)=>buildEvidenceRow(p,i));
+    liveReviewListRaw.sort((a,b)=>{
+      if(a.due===null&&b.due===null) return 0;
+      if(a.due===null) return 1;
+      if(b.due===null) return -1;
+      return a.due-b.due;
+    });
+    const liveReviewList=liveReviewListRaw;
+    const reviewsDue14=liveReviewList.filter(r=>r.due!==null&&r.due>=0&&r.due<=14).length;
+    const reviewsOverdue=liveReviewList.filter(r=>r.due!==null&&r.due<0).length;
+    const reviewsDueHeader=reviewsDue14
+      ? (reviewsDue14+' plan review'+(reviewsDue14===1?'':'s')+' due in the next 14 days'+(reviewsOverdue?(' · '+reviewsOverdue+' overdue'):''))
+      : (liveReviewList.length?(liveReviewList.length+' participant'+(liveReviewList.length===1?'':'s')+' — add plan end dates to track review timing'):'No plan reviews scheduled yet');
+    const evidenceLoading=!demoMode&&this.state.supabaseConnected&&(!this.state.evidenceLoaded||!this.state.docsLoaded);
+    const liveReviewsEmpty=!demoMode&&liveReviewList.length===0&&!evidenceLoading;
+    const liveReviewsHas=!demoMode&&liveReviewList.length>0&&!evidenceLoading;
+    const alliedDiscLabel={allied_health_report:'Allied Health',functional_capacity_assessment:'FCA',progress_report:'Progress Report',assessment:'Assessment',support_plan:'Support Plan'};
+    const liveAhListRaw=(this.state.liveDocs||[]).filter(d=>ALLIED_DOC_TYPES.indexOf(String(d.type||'').toLowerCase())>-1).map((d,i)=>{
+      const t=String(d.type||'').toLowerCase();
+      const pname=d.participant_id?nameForId(d.participant_id):'—';
+      const title=d.title||'Allied health report';
+      return {name:title,init:scInitials(title),tint:scTints[i%scTints.length],disc:alliedDiscLabel[t]||'Report',client:shortName(pname),report:'Received',repFg:'#1e7a52',repBg:'#e9f6ef',goal:'—',status:'On file',stFg:'#1e7a52',stBg:'#e9f6ef',missing:false,chaseEl:null};
+    });
+    const liveAhList=liveAhListRaw.map(function(a){a.chaseEl=ic('send','#06201c',13);return a;});
+    const liveAhEmpty=!demoMode&&liveAhList.length===0&&!evidenceLoading;
+    const liveAhHas=!demoMode&&liveAhList.length>0&&!evidenceLoading;
+
     return {
       toast:this.state.toast,
       clearToast:()=>this.setState({toast:null}),
@@ -1483,8 +1746,44 @@ class Component extends DCLogic {
       // Open the Send Referral wizard (real multi-step flow that persists via createReferral).
       newReferral:()=>this.setState({sendRefOpen:true,sendRefStep:0,sendRefType:'provider',refTab:'incoming',refRecipient:'',refSupports:'',refFunding:'Core Supports',refUrgency:'Standard',refNotes:'',refConsent:true,refPlanStart:'',refPlanEnd:'',refParticipantId:'',refAttachments:[],lastSavedReferral:null}),
       goBilling:()=>{window.location.href='billing.html';},
-      // Connect an allied health professional = send them a referral. Opens the wizard preset to allied health.
-      connectAhp:()=>this.setState({sendRefOpen:true,sendRefStep:0,sendRefType:'allied',refTab:'incoming',refRecipient:'',refSupports:'',refFunding:'Capacity Building',refUrgency:'Standard',refNotes:'',refConsent:true,refPlanStart:'',refPlanEnd:'',refParticipantId:'',refAttachments:[],lastSavedReferral:null}),
+      // Connect an allied health professional to a participant care team.
+      connectAhp:()=>{
+        const sb=(this.state.supabaseParticipants||[]);
+        const pid=this.state.selectedParticipantId||(sb[0]&&sb[0].id)||'';
+        this.setState({connectAhpOpen:true,ahpParticipantId:pid,ahpEmail:'',ahpName:'',ahpTempPassword:''});
+      },
+      closeConnectAhp:()=>this.setState({connectAhpOpen:false}),
+      setAhpParticipant:(e)=>this.setState({ahpParticipantId:e.target.value}),
+      setAhpName:(e)=>this.setState({ahpName:e.target.value}),
+      setAhpEmail:(e)=>this.setState({ahpEmail:e.target.value}),
+      setAhpTempPassword:(e)=>this.setState({ahpTempPassword:e.target.value}),
+      submitConnectAhp:()=>{
+        const email=(this.state.ahpEmail||'').trim();
+        const fullName=(this.state.ahpName||'').trim();
+        const participantId=this.state.ahpParticipantId||'';
+        if(!participantId){ this.showToast('Select a participant'); return; }
+        if(!email||!fullName){ this.showToast('Enter name and email'); return; }
+        if(!(this.state.supabaseConnected&&window.inviteCareTeamMember)){
+          this.showToast('Sign in to connect allied health professionals');
+          return;
+        }
+        const payload={ participantId, email, fullName, role:'allied_health' };
+        const pw=(this.state.ahpTempPassword||'').trim();
+        if(pw) payload.tempPassword=pw;
+        if(this.state.orgId) payload.orgId=this.state.orgId;
+        Promise.resolve(window.inviteCareTeamMember(payload)).then(r=>{
+          if(r&&r.ok){
+            this.setState({connectAhpOpen:false,ahpEmail:'',ahpName:'',ahpTempPassword:'',ahpParticipantId:''});
+            this.showToast(r.created?'AHP account created and connected ✓':'Allied health professional connected ✓');
+          } else if(r&&r.code==='needs_password'){
+            this.showToast('No account for that email — enter a temporary password (8+ chars)');
+          } else if(r&&r.code==='needs_org'){
+            this.showToast('Org context required to create a new account — reload and try again');
+          } else {
+            this.showToast('Could not connect'+(r&&r.error?': '+r.error:''));
+          }
+        }).catch(e=>this.showToast('Could not connect'+(e&&e.message?': '+e.message:'')));
+      },
       // Chase an outstanding allied-health report: log a real coordination follow-up task when signed in.
       chaseReport:()=>{
         if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.createCoordinationTask){
@@ -1498,6 +1797,7 @@ class Component extends DCLogic {
       },
       // Add a case note = jump to the Case Notes workspace where the real note composer lives.
       addNoteSC:()=>this.setState({view:'notes'}),
+      goFileDrop:()=>this.setState({view:'filedrop'}),
       // Real upload — opens the file picker; doUploadDoc files it via window.uploadDocument.
       uploadDocSC:()=>{ if(this._docFileInput) this._docFileInput.click(); else this.showToast('Upload not ready — please reload'); },
       // Review at-risk plans = open the Budgets view, where utilisation/underspend risk is surfaced per participant.
@@ -1506,10 +1806,22 @@ class Component extends DCLogic {
       findProviders:()=>this.setState({view:'providers'}),
       // Attach a document to the referral — opens the file picker; doRefAttach records it (and uploads when signed in).
       addItemSC:()=>{ if(this._refFileInput) this._refFileInput.click(); else this.showToast('Attach not ready — please reload'); },
-      goParticipantProfile:()=>{ window.location.href='Participant Profile.dc.html'; },
+      goParticipantProfile:()=>{
+        const parts=this.state.supabaseParticipants||[];
+        const id=this.state.selectedParticipantId||this.state.noteParticipantId||(parts[0]&&parts[0].id)||null;
+        this.navToParticipantProfile(id);
+      },
       goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
-      goReviewPrep:()=>{ window.location.href='Plan Review Prep.dc.html'; },
+      goReviewPrep:()=>this.goReviewPrepFor(this.state.selectedParticipantId||(realCaseloadParts[0]&&realCaseloadParts[0].id)||null),
       sendRefOpen:this.state.sendRefOpen,
+      connectAhpOpen:this.state.connectAhpOpen,
+      ahpParticipantId:this.state.ahpParticipantId,
+      ahpEmail:this.state.ahpEmail,
+      ahpName:this.state.ahpName,
+      ahpTempPassword:this.state.ahpTempPassword,
+      ahpParticipantOptions:(!demoMode)
+        ? (this.state.supabaseParticipants||[]).map(p=>({value:p.id,label:(p.full_name||p.preferred_name||'Participant')+(p.ndis_number?(' — '+p.ndis_number):'')}))
+        : [{value:'Margaret Reyes',label:'Margaret Reyes — NDI-4310 887 226'},{value:'Liam Wright',label:'Liam Wright — NDI-3820 441 009'}],
       refParticipantId:this.state.refParticipantId,
       setRefParticipant:(e)=>this.setState({refParticipantId:e.target.value}),
       refParticipantOptions:(!demoMode)
@@ -1566,16 +1878,32 @@ class Component extends DCLogic {
             msg?('Notes: '+msg):null
           ].filter(Boolean).join('\n');
           if(this.state.supabaseConnected && this.state.orgId && pid && window.createReferral){
-            // RLS: referrals_org_scoped — from_org_id must be one of my active orgs.
-            Promise.resolve(window.createReferral({
-              from_org_id:this.state.orgId,
-              participant_id:pid,
-              type:type,
-              priority:priority,
-              status:'sent',
-              notes:composedNotes
-            })).then(r=>{
-              if(r && r.referral && !r.error){ this.setState({lastSavedReferral:r.referral}); this.showToast('Referral saved to your account ✓'); this.loadOrgAndReferrals(); }
+            // Route to the participant's linked provider org, or allied org seed id.
+            const alliedOrgId='33333333-3333-3333-3333-333333333333';
+            const resolveToOrg=()=>{
+              if(this.state.sendRefType==='allied') return Promise.resolve({orgId:alliedOrgId});
+              if(window.loadProviderOrgForParticipant) return Promise.resolve(window.loadProviderOrgForParticipant(pid));
+              return Promise.resolve({orgId:null});
+            };
+            resolveToOrg().then(link=>{
+              const toOrgId=link&&link.orgId;
+              if(this.state.sendRefType==='provider'&&!toOrgId){
+                this.showToast('No provider linked to this participant — link a provider first');
+                return;
+              }
+              // RLS: referrals_org_scoped — from_org_id must be one of my active orgs.
+              return Promise.resolve(window.createReferral({
+                from_org_id:this.state.orgId,
+                to_org_id:toOrgId,
+                participant_id:pid,
+                type:type,
+                priority:priority,
+                status:'received',
+                notes:composedNotes
+              }));
+            }).then(r=>{
+              if(!r) return;
+              if(r && r.referral && !r.error){ this.setState({lastSavedReferral:r.referral}); this.showToast('Referral sent to recipient ✓'); this.loadOrgAndReferrals(); }
               else this.showToast('Referral not saved'+(r&&r.error?': '+r.error:''));
             }).catch(e=>this.showToast('Referral not saved'+(e&&e.message?': '+e.message:'')));
           } else if(!this.state.supabaseConnected){
@@ -1691,7 +2019,7 @@ class Component extends DCLogic {
       scProfile: demoMode
         ? {name:'Sarah Kelly',org:'CiaraLink Support Coordination',regions:['Melbourne North','Glenroy','Coburg','Brunswick'],quals:['Cert IV Disability','Diploma Community Services'],caseload:32,email:'sarah.kelly@ciaralinksc.com.au',phone:'0438 221 770'}
         : {name:userFull,org:(this.state.authOrg||'Support Coordination'),regions:[],quals:[],caseload:(navPartCount?navPartCount:'—'),email:(this.state.authEmail||'—'),phone:'—'},
-      scBilling:{
+      scBilling:demoMode?{
         stats:[{label:'Total under management',value:'$303,200',color:'#0b6b60'},{label:'Delivered this month',value:'$28,400',color:'#14302b'},{label:'Remaining this period',value:'$274,800',color:'#1e9e6a'}],
         rows:[
           {name:'Liam Wright',init:'LW',tint:'#0e5147',hoursDelivered:'86h',hoursRemaining:'298h',budgetUsed:'$31,400',budgetRemaining:'$42,800',provider:'Brightside Care',flag:true,flagMsg:'Core budget at risk'},
@@ -1701,11 +2029,15 @@ class Component extends DCLogic {
           {name:'Tom Becker',init:'TB',tint:'#9333ea',hoursDelivered:'112h',hoursRemaining:'168h',budgetUsed:'$27,520',budgetRemaining:'$15,480',provider:'Brightside Care',flag:false,flagMsg:''},
           {name:'Ruth Kim',init:'RK',tint:'#0891b2',hoursDelivered:'58h',hoursRemaining:'202h',budgetUsed:'$14,640',budgetRemaining:'$16,360',provider:'Northern Allied',flag:false,flagMsg:''}
         ]
-      },
-      budgetRows,agreementRows,participantRows,providerRows,noteRows,docsRows,
+      }:{stats:[],rows:[]},
+      budgetDisplayRows,agreementDisplayRows,providerDisplayRows,
+      showBudgetEmpty,showBudgetTable,showAgreementEmpty,showAgreementTable,showProviderEmpty,showProviderTable,
+      participantRows,noteRows,docsRows,
       realDocsRows,realDocsEmpty,realDocsHas:!realDocsEmpty,
       addNoteEl:ic('plus','#06201c',15),docIconEl:ic('file','#6366f1',15),
       ahList,reviewList,
+      liveReviewList,liveReviewsEmpty,liveReviewsHas,reviewsDueHeader,evidenceLoading,
+      liveAhList,liveAhEmpty,liveAhHas,
       pulseEl:ic('pulse','#22d3bf',18),
       checkGrnEl:ic('check','#1e9e6a',15),
       alertRedEl:ic('alert','#e0556e',15),

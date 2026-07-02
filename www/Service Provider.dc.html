@@ -199,6 +199,9 @@
                 <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ p.status }}</span>
               </div>
             </sc-for>
+            <sc-if value="{{ participantsEmpty }}" hint-placeholder-val="">
+              <div style="padding:44px 24px;text-align:center;color:#6c7f79;font-size:13.5px;line-height:1.6">No participants yet — add your first participant to get started.</div>
+            </sc-if>
           </div>
 
           <!-- Right column -->
@@ -370,6 +373,9 @@
               <span style="font-size:11px;font-weight:700;color:{{ p.stFg }};background:{{ p.stBg }};padding:3px 9px;border-radius:7px;display:inline-block">{{ p.status }}</span>
             </div>
           </sc-for>
+          <sc-if value="{{ participantsEmpty }}" hint-placeholder-val="">
+            <div style="padding:44px 24px;text-align:center;color:#6c7f79;font-size:13.5px;line-height:1.6">No participants yet — add your first participant to get started.</div>
+          </sc-if>
         </div>
       </sc-if>
 
@@ -689,6 +695,7 @@ class Component extends DCLogic {
         status:st?(st.charAt(0).toUpperCase()+st.slice(1)):'Active',
         stFg:'#1e7a52',stBg:'#e9f6ef'};
     });
+    const participantsEmpty = !demoMode && participants.length===0;
 
     // Service areas are not backed by real org data — demo-only trust signal; the
     // card is hidden in real mode (showServiceAreas) rather than inventing suburbs.
@@ -922,8 +929,8 @@ class Component extends DCLogic {
       },
       inviteWorker:()=>this.setState({inviteOpen:true}),
       uploadDoc:()=>this.setState({uploadOpen:true}),
-      orgName,orgInitials,showOrgCompliance:demoMode,showServiceAreas:demoMode,
-      kpis,participants,serviceAreas,compliance,showCompliance:demoMode,quickActions,
+      orgName,orgInitials,showOrgCompliance:demoMode,showServiceAreas:demoMode,showDemo:demoMode,
+      kpis,participants,participantsEmpty,serviceAreas,compliance,showCompliance:demoMode,quickActions,
       workers,workersEmpty,docs,docsEmpty,profileFields,contactFields,serviceTypes,
       toast,clearToast:()=>this.setState({toast:null}),toastIcon:ic('check','#16b8a6',16),
       uploadOpen,inviteOpen,

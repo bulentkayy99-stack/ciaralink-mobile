@@ -22,7 +22,7 @@
 </script>
 <script src="./env.local.js?v=20260628"></script>
 <script src="/vendor/supabase.js"></script>
-<script src="./supabase-client.js?v=20260628c"></script>
+<script src="./supabase-client.js?v=20260630"></script>
 
 <style>
 :root{
@@ -283,7 +283,7 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     <div class="plans-head">
       <h2>Plans &amp; pricing</h2>
       <p>One fair subscription, priced by your size — every feature on every plan, 0% commission on the care you deliver.</p>
-      <span class="free-pill"><span class="sdot" style="position:static;width:7px;height:7px;border-radius:50%;background:var(--teal-d)"></span> 14-day free trial · no card required</span>
+      <span class="free-pill"><span class="sdot" style="position:static;width:7px;height:7px;border-radius:50%;background:var(--teal-d)"></span> 7-day free trial · card collected at checkout</span>
     </div>
     <div class="cats" id="cats" role="tablist"></div>
     <p class="cat-sub" id="catSub"></p>
@@ -300,32 +300,32 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     providers: { label:'Providers',
       sub:'Run participants, teams and billing from one console. <b>Priced by clients</b> — 1 user included, every feature on every tier.',
       tiers:[
-        {name:'Starter', clients:'0–5 clients', m:199},
-        {name:'Team', clients:'5–15 clients', m:399, pop:true},
-        {name:'Provider', clients:'15–30 clients', m:899},
+        {key:'providers_starter', name:'Starter', clients:'0–5 clients', m:199},
+        {key:'providers_team', name:'Team', clients:'5–15 clients', m:399, pop:true},
+        {key:'providers_provider', name:'Provider', clients:'15–30 clients', m:899},
         {type:'custom', name:'Enterprise', clients:'30+ clients', from:1800}
       ]},
     support_workers: { label:'Support Workers',
       sub:'For individual support workers. <b>Priced by clients</b> — every feature included. Start free, upgrade when you grow.',
       tiers:[
         {type:'free', name:'Free', clients:'1 client'},
-        {name:'Pro', clients:'Up to 10 clients', m:49, pop:true},
-        {name:'Premium', clients:'Unlimited clients', m:99}
+        {key:'support_workers_pro', name:'Pro', clients:'Up to 10 clients', m:49, pop:true},
+        {key:'support_workers_premium', name:'Premium', clients:'Unlimited clients', m:99}
       ]},
     coordination: { label:'Coordination',
       sub:'Manage caseloads, plan budgets and reviews with evidence attached. <b>Priced by clients</b> — 1 user included, every feature on every tier.',
       tiers:[
-        {name:'Starter', clients:'0–10 clients', m:99},
-        {name:'Standard', clients:'10–25 clients', m:199, pop:true},
-        {name:'Pro', clients:'25–50 clients', m:299},
+        {key:'coordination_starter', name:'Starter', clients:'0–10 clients', m:99},
+        {key:'coordination_standard', name:'Standard', clients:'10–25 clients', m:199, pop:true},
+        {key:'coordination_pro', name:'Pro', clients:'25–50 clients', m:299},
         {type:'custom', name:'Enterprise', clients:'50+ clients', from:599}
       ]},
     allied_health: { label:'Allied Health',
       sub:'Notes, assessments and shared goals across every discipline. <b>Priced by team size + $49 per discipline.</b>',
       tiers:[
-        {name:'Starter', clients:'1 user', m:199},
-        {name:'Practice', clients:'Up to 5 users', m:299, pop:true},
-        {name:'Clinic', clients:'Up to 15 users', m:599},
+        {key:'allied_health_starter', name:'Starter', clients:'1 user', m:199},
+        {key:'allied_health_practice', name:'Practice', clients:'Up to 5 users', m:299, pop:true},
+        {key:'allied_health_clinic', name:'Clinic', clients:'Up to 15 users', m:599},
         {type:'custom', name:'Enterprise', clients:'15+ users', from:799}
       ]}
   };
@@ -376,6 +376,17 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     catsEl.appendChild(b);
   });
   render();
+  (async function loadLivePricing(){
+    var A = window.CiaraLinkAuth;
+    if(!A || !A.loadPlatformSubscriptionPlans || !A.mergePricingCatalogFromPlans) return;
+    try {
+      var res = await A.loadPlatformSubscriptionPlans();
+      if(!res.ok || !(res.plans && res.plans.length)) return;
+      var merged = A.mergePricingCatalogFromPlans(CATS, [], res.plans);
+      CATS = merged.cats;
+      render();
+    } catch(e){}
+  })();
 })();
 </script>
 
@@ -412,6 +423,19 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
 
   function configured(){
     return !!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+  }
+
+  // Map Supabase/auth errors to plain-language messages — never blame the user incorrectly.
+  function signInErrorMessage(raw){
+    var m = String(raw || '').toLowerCase();
+    if(!raw) return 'Sign-in failed. Please try again.';
+    if(/invalid login credentials|invalid email or password/.test(m)) return 'Incorrect email or password. Please try again.';
+    if(/email not confirmed/.test(m)) return 'Please confirm your email before signing in — check your inbox for the confirmation link.';
+    if(/too many requests|rate limit/.test(m)) return 'Too many attempts. Please wait a minute and try again.';
+    if(/user banned|user disabled|account disabled/.test(m)) return 'This account has been disabled. Contact support if you need help.';
+    if(/network|fetch|failed to fetch|load failed/.test(m)) return 'Network error — check your connection and try again.';
+    if(/supabase not configured/.test(m)) return 'Sign-in is unavailable — this page is not connected to the live CiaraLink backend.';
+    return raw;
   }
 
   // Honour ?next= (auth-guard appends it). Only allow safe, same-origin relative paths.
@@ -458,6 +482,9 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     }catch(e){}
 
     var nxt = nextDest();
+    if (nxt && window.isPathAllowedForRole && role && !window.isPathAllowedForRole(nxt, role)) {
+      nxt = null;
+    }
     window.location.href = nxt || dest;
   }
 
@@ -518,7 +545,7 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
     var redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';
     try{
       var r = await client.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
-      if(r.error){ showError(r.error.message); }
+      if(r.error){ showError(signInErrorMessage(r.error.message)); }
       else { showError('Check your email for a password reset link.', 'ok'); }
     }catch(e){ showError(e.message || 'Could not send reset email.'); }
   });
@@ -539,16 +566,14 @@ input:disabled{background:#f1f5f4;cursor:not-allowed;color:var(--tx-3)}
       var out = await window.signInWithEmail(email, password);
       if(out.error){
         setLoading(false);
-        showError(out.error === 'Invalid login credentials'
-          ? 'Incorrect email or password. Please try again.'
-          : out.error);
+        showError(signInErrorMessage(out.error));
         return;
       }
       submitLabel.textContent = 'Taking you to your dashboard…';
       await resolveAndRedirect();
     }catch(e){
       setLoading(false);
-      showError(e.message || 'Sign-in failed. Please check your email and password.');
+      showError(signInErrorMessage(e.message) || 'Sign-in failed. Please check your email and password.');
     }
   });
 

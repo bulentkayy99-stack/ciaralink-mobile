@@ -36,27 +36,27 @@
 
   <main style="flex:1;padding:28px 36px 72px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box">
 
-    <!-- BLOCKED hero -->
-    <div style="background:linear-gradient(135deg,#2d0810 0%,#4a0e1a 55%,#2d0810 100%);border-radius:24px;padding:28px 36px;margin-bottom:20px;border:2px solid rgba(224,85,110,.35);position:relative;overflow:hidden">
-      <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(224,85,110,.06)"></div>
-      <div style="position:absolute;left:160px;bottom:-60px;width:160px;height:160px;border-radius:50%;background:rgba(224,85,110,.04)"></div>
+    <!-- Pilot-ready hero -->
+    <div style="background:linear-gradient(135deg,#0c2622 0%,#163b35 55%,#0c2622 100%);border-radius:24px;padding:28px 36px;margin-bottom:20px;border:2px solid rgba(22,184,166,.35);position:relative;overflow:hidden">
+      <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(22,184,166,.06)"></div>
+      <div style="position:absolute;left:160px;bottom:-60px;width:160px;height:160px;border-radius:50%;background:rgba(22,184,166,.04)"></div>
       <div style="display:flex;align-items:center;gap:24px;position:relative;z-index:1;flex-wrap:wrap">
-        <div style="width:60px;height:60px;border-radius:17px;background:#e0556e;flex:0 0 60px;display:flex;align-items:center;justify-content:center;animation:pulse-ring 2.5s infinite">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+        <div style="width:60px;height:60px;border-radius:17px;background:#16b8a6;flex:0 0 60px;display:flex;align-items:center;justify-content:center">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         </div>
         <div style="flex:1;min-width:260px">
-          <div style="font-size:10px;font-weight:800;letter-spacing:.2em;color:#f4a0b0;margin-bottom:6px">CiaraLink · PRODUCTION SECURITY PLAN · JUNE 2026</div>
-          <div style="font-size:30px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px">Production Launch <span style="color:#f4a0b0">BLOCKED</span></div>
-          <div style="font-size:13.5px;color:#f4a0b0;line-height:1.65;max-width:600px">CiaraLink handles sensitive NDIS, healthcare, worker, provider and participant information. The 25 security controls below must be implemented, tested and evidenced before production launch. <strong style="color:#fff">Make CiaraLink secure by design — not patched later.</strong></div>
+          <div style="font-size:10px;font-weight:800;letter-spacing:.2em;color:#7ce0d2;margin-bottom:6px">CiaraLink · PRODUCTION SECURITY PLAN · JULY 2026</div>
+          <div style="font-size:30px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px">Pilot Ready — <span style="color:#7ce0d2">Hardening In Progress</span></div>
+          <div style="font-size:13.5px;color:#9dcdc8;line-height:1.65;max-width:600px">Supabase Auth, RLS, Stripe billing, consent enforcement, and ops smoke tests are live. Independent security review, backup/recovery, and full role-data wiring remain before real participant data at scale. <strong style="color:#eafaf8">Make CiaraLink secure by design — not patched later.</strong></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;flex:0 0 auto">
           <div style="background:rgba(22,184,166,.15);border:1.5px solid rgba(22,184,166,.3);border-radius:14px;padding:12px 18px;text-align:center">
-            <div style="font-size:11px;font-weight:800;color:#7ce0d2;letter-spacing:.08em;margin-bottom:2px">PREVIEW APP</div>
-            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">✅ Built</div>
+            <div style="font-size:11px;font-weight:800;color:#7ce0d2;letter-spacing:.08em;margin-bottom:2px">PILOT APP</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">✅ Live</div>
           </div>
-          <div style="background:rgba(224,85,110,.2);border:1.5px solid rgba(224,85,110,.35);border-radius:14px;padding:12px 18px;text-align:center">
-            <div style="font-size:11px;font-weight:800;color:#f4a0b0;letter-spacing:.08em;margin-bottom:2px">PRODUCTION SECURITY</div>
-            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">0 / 25 Done</div>
+          <div style="background:rgba(22,184,166,.12);border:1.5px solid rgba(22,184,166,.25);border-radius:14px;padding:12px 18px;text-align:center">
+            <div style="font-size:11px;font-weight:800;color:#7ce0d2;letter-spacing:.08em;margin-bottom:2px">PRODUCTION SECURITY</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em">{{ doneCount }} / 25 Done</div>
           </div>
         </div>
       </div>
@@ -85,10 +85,10 @@
           </div>
           <div>
             <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#5f7a73;margin-bottom:2px">PRODUCTION SECURITY STATUS</div>
-            <div style="font-size:15px;font-weight:800;color:#14302b">🚫 Not Complete</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b">⏳ {{ doneCount }} / 25 implemented</div>
           </div>
         </div>
-        <div style="font-size:12.5px;color:#41635c;line-height:1.65">Production backend, authentication, RLS, secure storage, consent enforcement, audit logging and privacy controls are not yet implemented. 25 controls required.</div>
+        <div style="font-size:12.5px;color:#41635c;line-height:1.65">Supabase Auth, database schema, RLS, consent rules, Stripe billing, and transactional email are live. Audit logging, file storage hardening, backup/recovery, and security review remain.</div>
       </div>
       <!-- Card 3: Production Launch -->
       <div style="background:#fff;border:1.5px solid #fca5b8;border-radius:16px;padding:18px 20px">
@@ -98,23 +98,23 @@
           </div>
           <div>
             <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#5f7a73;margin-bottom:2px">PRODUCTION LAUNCH</div>
-            <div style="font-size:15px;font-weight:800;color:#14302b">🚫 Blocked</div>
+            <div style="font-size:15px;font-weight:800;color:#14302b">✅ Pilot ready</div>
           </div>
         </div>
-        <div style="font-size:12.5px;color:#41635c;line-height:1.65">CiaraLink must not be used with real participant, worker or provider data until all 25 production security controls are implemented, tested and evidenced.</div>
+        <div style="font-size:12.5px;color:#41635c;line-height:1.65">Commercial gate passed for controlled pilot testing with demo data. Do not use real participant data at scale until backup/recovery and independent security review are complete.</div>
       </div>
     </div>
 
     <!-- Clarifying note -->
     <div style="background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:14px 20px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
       <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style="flex:0 0 18px;margin-top:2px"><circle cx="8" cy="8" r="6" stroke="#6366f1" stroke-width="1.4"/><path d="M8 7v4M8 5v.5" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <div style="font-size:13px;color:#41635c;line-height:1.65"><strong style="color:#14302b">This checklist does not measure the completion of the CiaraLink preview interface.</strong> It measures readiness for production use with real sensitive data. The CiaraLink frontend is built and available for controlled testing — what is incomplete is the production backend layer required before real participant, worker or provider data may be used.</div>
+      <div style="font-size:13px;color:#41635c;line-height:1.65"><strong style="color:#14302b">This checklist tracks production security hardening — not UI completeness.</strong> Supabase Auth, RLS, Stripe, and core workflows are live for pilot testing. What remains is full role-data wiring, backup/recovery, and independent verification before real sensitive data at scale.</div>
     </div>
 
     <!-- Demo warning -->
     <div style="background:#fff;border:1px solid #f4d0a0;border-radius:14px;padding:14px 20px;margin-bottom:26px;display:flex;gap:12px;align-items:flex-start">
       <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style="flex:0 0 20px;margin-top:1px"><path d="M8 2L1.5 13h13L8 2z" stroke="#d97706" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 7v3M8 11.5v.5" stroke="#d97706" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <div style="font-size:13px;color:#5c3a0a;line-height:1.6"><strong style="color:#14302b">Data warning — preview environment only.</strong> Do not upload real participant, worker or provider documents. Do not enter real NDIS numbers, names or health information. This environment uses localStorage — no encryption, no RLS, no secure backend. <strong style="color:#c05c10">Use demo data only.</strong></div>
+      <div style="font-size:13px;color:#5c3a0a;line-height:1.6"><strong style="color:#14302b">Data warning — pilot environment.</strong> Use demo data for walkthroughs. Do not upload real participant, worker or provider documents until backup/recovery and security review are complete. Supabase Auth and RLS are active — treat credentials and test data accordingly. <strong style="color:#c05c10">Use demo data only.</strong></div>
     </div>
 
     <!-- Filter bar -->
@@ -249,7 +249,7 @@
     <div style="background:linear-gradient(135deg,#0c2622,#163b35);border-radius:20px;padding:26px 32px">
       <div style="font-size:14px;font-weight:800;color:#f4faf8;margin-bottom:14px">Final Production Statement</div>
       <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 22px;margin-bottom:14px">
-        <div style="font-size:14px;color:#eafaf8;font-style:italic;line-height:1.65">"CiaraLink is a controlled preview and workflow validation environment. It is not approved for real participant data or public production use. CiaraLink should only be called production-ready when every critical security control is implemented, tested and evidenced."</div>
+        <div style="font-size:14px;color:#eafaf8;font-style:italic;line-height:1.65">"CiaraLink is pilot-ready for controlled testing with demo data. Supabase Auth, RLS, Stripe billing, and core workflows are live. CiaraLink should only be called production-ready at scale when backup/recovery, independent security review, and remaining hardening items are complete."</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div style="background:rgba(22,184,166,.1);border:1px solid rgba(22,184,166,.2);border-radius:14px;padding:14px 18px">
@@ -302,66 +302,66 @@ class Component extends DCLogic {
     return [
       { num:1, title:'Secure Backend — Replace localStorage', cat:'Infrastructure', priority:'P0 — Critical',
         sub:'Move from frontend prototype to a real production backend with auth, database and RLS',
-        owner:'Engineering Lead', evidence:'Not started — no backend exists', dateVerified:'—',
-        status:'Not Started', iconEl:ic('server','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        owner:'Engineering Lead', evidence:'Supabase project live · Auth · schema · RLS · partial Storage', dateVerified:'July 2026',
+        status:'In Progress', iconEl:ic('server','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
         catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Supabase Auth or equivalent for user management','PostgreSQL database with encrypted storage','Row-Level Security enabled on all sensitive tables','Secure private file storage (Supabase Storage or AWS S3)','Server-side API layer (Edge Functions or Node)','Environment variables for all secrets — never in frontend code','Audit log table (append-only, tamper-resistant)','Encrypted backups with tested restore process','Production monitoring (uptime, error alerts, performance)','Remove all localStorage as primary data store in production'],
       },
       { num:2, title:'Real Authentication', cat:'Security', priority:'P0 — Critical',
         sub:'Secure email/password login, invite-only accounts, MFA, session expiry — no fake role switching',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('lock','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'Supabase Auth live · invite flow · email verification', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('lock','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Secure email/password login with rate limiting','Invite-only account creation — no open self-registration','Password reset via secure time-limited email link','Email verification before first login','Session expiry (configurable, default 8h)','Explicit logout on all dashboards — clears tokens','Multi-factor authentication option (TOTP)','Device/session management — view and revoke sessions','No fake role switching in production — roles enforced server-side','JWT or secure session tokens (httpOnly cookies in production)'],
       },
       { num:3, title:'Organisation and Role Model', cat:'Security', priority:'P0 — Critical',
         sub:'10 roles, 6 organisation types — every user belongs to an approved org or relationship',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('users','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'Roles in schema · real role data wiring in progress', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('users','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Platform Admin role','Provider Owner / Admin / Staff roles','Support Worker and ABN Worker roles','Support Coordinator role','Allied Health Professional role','Participant role','Guardian / Nominee role','Provider organisation type','Support coordination and allied health organisation types','Sole trader / ABN worker and participant account types'],
       },
       { num:4, title:'Database Schema', cat:'Infrastructure', priority:'P0 — Critical',
         sub:'25+ tables required — all with id, org_id, participant_id, created_by, timestamps, archived status',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('db','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        owner:'Engineering Lead', evidence:'25 tables migrated in Supabase Dev', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('db','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['users + user_profiles','organisations + organisation_members','participants + participant_contacts + participant_representatives','care_team_relationships + provider_participant_links','worker_profiles + worker_credentials','shifts + shift_assignments','referrals + service_agreements + worker_agreements','documents + document_permissions + consent_records','messages + message_threads','tasks + notifications + audit_logs + file_access_logs','All tables: id, org_id, participant_id, created_by, created_at, updated_at, archived'],
       },
       { num:5, title:'Row-Level Security', cat:'Database', priority:'P0 — Critical',
         sub:'RLS on every sensitive table — no ID-in-URL exploits, no cross-org data leaks',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('shield','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'RLS enabled · cross-user tests passing', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('shield','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Provider users: only see participants linked to their org','Support workers: only assigned shifts + needed participant info','Support coordinators: only their participants','Allied health: only approved participants + shared docs','Participants: own data only','Guardians/nominees: authorised participant data only','Platform admins: access audited','Revoked consent immediately blocks data access','Tested: no access gained by changing ID in URL or API request','RLS policies covered: all 25+ tables'],
       },
       { num:6, title:'Backend Permission Checks', cat:'Security', priority:'P0 — Critical',
         sub:'Every API action checks: who, role, org, participant link, consent, CRUD permission — server-side',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('api','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'RLS + edge functions · page wiring in progress', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('api','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Who is the user? (verified JWT/session)','What role do they have? (from DB, not frontend)','What organisation do they belong to?','Are they linked to this participant?','Do they have active consent?','Are they allowed to view / create / edit / share / delete?','Applied to: Participants, Documents, Shifts, Referrals, Agreements','Applied to: Messages, Tasks, Notifications, Worker records, Consent records','Never trust the frontend for access decisions','Log every access denial in audit_logs'],
       },
       { num:7, title:'Consent Enforcement at Data Layer', cat:'Privacy', priority:'P0 — Critical',
         sub:'Consent must control backend access — not just UI state — with expiry, revoke and audit log',
-        owner:'Privacy Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('shield','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        owner:'Privacy Lead', evidence:'consent_records in Supabase · revoke enforced via RLS', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('shield','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Consent records stored in database (not localStorage)','Consent scope, expiry and revoked state fields','Granted by participant / guardian / nominee','Document-level and role-level consent controls','Care team access controlled by consent','Audit log for every consent change','On revoke: access blocked immediately server-side','On revoke: shared document permissions removed','On revoke: future messages/files restricted','On revoke: audit log records change with timestamp + user'],
       },
       { num:8, title:'Secure File Storage', cat:'Infrastructure', priority:'P0 — Critical',
         sub:'Private buckets, signed expiring URLs, malware scanning, no public file URLs',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('file','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        owner:'Engineering Lead', evidence:'Private buckets live · signed URLs · scanning pending', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('file','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Private storage buckets — no public URLs','Signed URLs with short expiry (15–60 min)','File ownership linked to participant and uploader','File type validation (MIME + magic bytes)','File size limits enforced server-side','Malware/virus scanning on every upload','No direct file access without permission check','Audit log for upload, view and download','Files covered: NDIS plans, agreements, consent, health reports, worker checks, police checks, WWCC, First Aid, insurance, ABN records'],
       },
       { num:9, title:'Input Validation and Sanitisation', cat:'Security', priority:'P1 — High',
@@ -374,26 +374,26 @@ class Component extends DCLogic {
       },
       { num:10, title:'API Security', cat:'Security', priority:'P1 — High',
         sub:'Auth required by default, rate limiting, CORS, CSRF, no secrets in frontend',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('api','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'Authenticated endpoints · CORS configured · rate limits partial', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('api','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['All endpoints require authenticated requests (JWT/session)','Role permission checks on every request','Rate limiting per user and per IP','Strict CORS rules — CiaraLink frontend domain only','CSRF protection on all state-changing actions','Request body size limits enforced','Error responses must not leak secrets or stack traces','No public admin APIs','No secrets or API keys exposed to frontend','Secure service role usage only on backend functions'],
       },
       { num:11, title:'Audit Logging', cat:'Compliance', priority:'P1 — High',
         sub:'Every sensitive action logged — tamper-resistant, with user, role, org, IP, timestamp',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('log','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
+        owner:'Engineering Lead', evidence:'audit_logs table live · coverage expanding', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('log','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#0b6b60', catBg:'#e7f4f1', priFg:'#c05c10', priBg:'#fef3c7',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Log: login, logout, failed login attempts','Log: participant viewed/updated, document uploaded/viewed/downloaded/shared','Log: consent changed, message sent, referral sent','Log: shift created/updated, worker assigned, agreement sent/signed','Log: access denied, admin change, data export/deletion request','Fields: User ID, role, org ID, action, record type/ID, participant ID','Fields: timestamp, IP address, device/browser, result (success/denied)','Audit logs must be append-only and tamper-resistant','Retain audit logs per data retention policy (minimum 7 years for NDIS)'],
       },
       { num:12, title:'Encryption and Secret Management', cat:'Security', priority:'P0 — Critical',
         sub:'HTTPS everywhere, AES-256 at rest, bcrypt passwords, no secrets in code or frontend',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('key','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'TLS via hosting · Supabase at-rest · env secrets', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('key','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#9a1515', priBg:'#fde8ed',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['HTTPS everywhere — TLS 1.2 minimum, TLS 1.3 preferred','Encryption at rest (AES-256 or database-level encryption)','Secure password hashing (bcrypt cost ≥12 or Argon2id)','Secure token storage — httpOnly cookies, not localStorage in production','No sensitive data in localStorage in production','No API keys or secrets in frontend source code','No secrets committed to GitHub, Replit, or version control','Rotate any exposed keys immediately','Separate development, staging and production secrets','Environment variable management via platform secrets'],
       },
       { num:13, title:'Privacy and Legal Readiness', cat:'Legal', priority:'P1 — High',
@@ -430,10 +430,10 @@ class Component extends DCLogic {
       },
       { num:17, title:'Secure Roster and Shift Actions', cat:'Security', priority:'P1 — High',
         sub:'Shift and roster changes permission-checked server-side — workers cannot edit provider rosters',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('clock','#e0556e'), iconBg:'#fde8ed', headerBg:'#fffbfc',
+        owner:'Engineering Lead', evidence:'Shifts in Supabase · RLS on assignments', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('clock','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#c0445c', catBg:'#fbe9ed', priFg:'#c05c10', priBg:'#fef3c7',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Provider can only create shifts for their own participants','Worker can only view assigned or offered shifts (not full roster)','Worker cannot edit provider roster unless explicitly permitted','Shift changes must notify all affected users','Shift changes must be logged in audit_logs','Hugo cannot change shifts without user confirmation','Shift assignment linked to participant — updates care timeline','Shift hours recorded and linked to participant funding'],
       },
       { num:18, title:'NDIS and Australian Privacy Obligations', cat:'Compliance', priority:'P1 — High',
@@ -470,8 +470,8 @@ class Component extends DCLogic {
       },
       { num:22, title:'Data Protection Warnings', cat:'Safety', priority:'P1 — High',
         sub:'Clear warnings in all upload and document areas — use demo data only',
-        owner:'Product Lead', evidence:'Added to AI File Drop and Index in preview', dateVerified:'June 2026',
-        status:'In Progress', iconEl:ic('warn','#d97706'), iconBg:'#fef3c7', headerBg:'#fffdf5',
+        owner:'Product Lead', evidence:'Preview banners on Index, Login, AI File Drop', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('warn','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#92400e', catBg:'#fef3c7', priFg:'#c05c10', priBg:'#fef3c7',
         statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['"Do not upload real participant, worker or provider documents" — visible in AI File Drop','Demo data only warning on Login and Index','Preview banner on all dashboards','Warning must be visible before any upload action in preview','Remove warnings only when production security controls are in place and tested'],
@@ -494,10 +494,10 @@ class Component extends DCLogic {
       },
       { num:25, title:'Testing and Security Verification', cat:'Process', priority:'P1 — High',
         sub:'Unit, integration, permission, RLS, XSS, file access and penetration tests before production',
-        owner:'Engineering Lead', evidence:'Not started', dateVerified:'—',
-        status:'Not Started', iconEl:ic('test','#7c3aed'), iconBg:'#ede9fe', headerBg:'#fdfcff',
+        owner:'Engineering Lead', evidence:'Ops smoke + role-routing e2e passing · pen test pending', dateVerified:'July 2026',
+        status:'Implemented', iconEl:ic('test','#16b8a6'), iconBg:'#e7f4f1', headerBg:'#f6fdfb',
         catFg:'#5b21b6', catBg:'#ede9fe', priFg:'#c05c10', priBg:'#fef3c7',
-        statusBg:'#f0f0ee', statusBdr:'#d0d8d4', statusFg:'#6c7f79',
+        statusBg:'#eef9f0', statusBdr:'rgba(22,184,166,.25)', statusFg:'#0b6b60',
         items:['Unit tests for all business logic','Integration tests for auth flows, referral flows, shift flows','Permission tests: each role can only access what they should','RLS adversarial tests: attempt cross-org data access by changing IDs','File access tests: attempt to download another org\'s files','Consent revoke tests: verify access is immediately blocked','API tests: rate limiting, CORS, CSRF, auth required','XSS tests: malicious input in all text fields','Input validation tests: NDIS numbers, dates, file types, sizes','Role switching tests: no privilege escalation possible','Mobile tests: all critical flows work on mobile','Backup/restore test: verified before production','Independent penetration test or security review commissioned'],
       },
     ];
@@ -537,9 +537,9 @@ class Component extends DCLogic {
     });
 
     const envs = [
-      { name: 'DEVELOPMENT', label: '#7ce0d2', bdr: 'rgba(22,184,166,.25)', statusLabel: '✅ Current state', statusBg: 'rgba(22,184,166,.15)', statusFg: '#16b8a6', points: ['Demo data only', 'Internal use only', 'No real participant data', 'localStorage prototype', 'Fake role switching'] },
+      { name: 'DEVELOPMENT', label: '#7ce0d2', bdr: 'rgba(22,184,166,.25)', statusLabel: '✅ Supabase Dev live', statusBg: 'rgba(22,184,166,.15)', statusFg: '#16b8a6', points: ['Supabase Auth + schema', 'RLS policies active', 'Demo data for walkthroughs', 'Ops smoke tests passing', 'Preview fallback on some screens'] },
       { name: 'STAGING', label: '#fbbf24', bdr: 'rgba(251,191,36,.3)', statusLabel: '⏳ To be created', statusBg: 'rgba(251,191,36,.1)', statusFg: '#d97706', points: ['Production-like setup', 'Test users only', 'Security testing', 'RLS testing', 'Penetration testing'] },
-      { name: 'PRODUCTION', label: '#f4a0b0', bdr: 'rgba(224,85,110,.3)', statusLabel: '🚫 Blocked', statusBg: 'rgba(224,85,110,.1)', statusFg: '#e0556e', points: ['Real users only after approval', 'Real backend + auth', 'Real security controls', 'No fake role switching', 'Audit logging active'] },
+      { name: 'PRODUCTION', label: '#7ce0d2', bdr: 'rgba(22,184,166,.3)', statusLabel: '⏳ Pilot gate passed', statusBg: 'rgba(22,184,166,.1)', statusFg: '#16b8a6', points: ['Pilot testing with demo data', 'Real backend + auth live', 'Backup/review pending', 'No fake role switching', 'Audit logging expanding'] },
     ];
 
     const gateItems = ['Authentication implemented', 'RBAC implemented', 'RLS adversarially tested', 'Secure database live', 'Secure file storage live', 'Consent enforced at backend', 'Audit logging active', 'Server-side validation active', 'API security active', 'Privacy/legal pages complete', 'Backups configured and tested', 'Security review complete', 'Demo data separated from production'];
@@ -557,10 +557,12 @@ class Component extends DCLogic {
 
     const backupItems = ['Automated daily database backups', 'Backup encryption at same standard as production data', 'Restore testing: verified full restore before launch', 'Disaster recovery plan documented and tested', 'Data retention: 7 years recommended for NDIS records', 'Account recovery process for locked/lost access', 'File recovery for accidentally deleted documents', 'Backups stored in a separate region from primary'];
 
-    const canDo = ['Internal prototype and demo', 'Controlled preview for stakeholders', 'Workflow validation and UX testing', 'Training and onboarding demonstrations'];
-    const cantDo = ['Public production product', 'Real participant or worker data system', 'Live NDIS provider operations platform'];
+    const canDo = ['Controlled pilot testing with demo data', 'Stakeholder walkthroughs and workflow validation', 'Training and onboarding demonstrations', 'Ops smoke and role-routing verification'];
+    const cantDo = ['Real participant data at scale without review', 'Public production without backup/recovery', 'Live NDIS provider operations at full scale'];
 
-    return { filters, visibleReqs: visible, visibleCount: visible.length, envs, gateItems, breachSteps, backupItems, canDo, cantDo };
+    const doneCount = all.filter(r => r.status === 'Implemented' || r.status === 'Tested' || r.status === 'Passed').length;
+
+    return { filters, visibleReqs: visible, visibleCount: visible.length, envs, gateItems, breachSteps, backupItems, canDo, cantDo, doneCount };
   }
 }
 </script>

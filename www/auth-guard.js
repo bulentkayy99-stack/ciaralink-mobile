@@ -9,6 +9,12 @@
       enum role ('provider_owner'), so they never fired.
    Does nothing in the unconfigured design preview. */
 (function () {
+  function signInPage() {
+    try {
+      var native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      return native ? 'Login.dc.html' : 'signin.html';
+    } catch (e) { return 'Login.dc.html'; }
+  }
   // Normalize both demo short codes and real enum roles to a canonical bucket.
   function normRole(r) {
     var map = {
@@ -16,7 +22,7 @@
       worker: 'worker', support_worker: 'worker', abn_worker: 'worker',
       coordinator: 'coordinator', support_coordinator: 'coordinator',
       allied: 'allied', allied_health: 'allied', allied_health_admin: 'allied',
-      participant: 'participant', guardian_nominee: 'participant'
+      participant: 'participant', guardian: 'participant', guardian_nominee: 'participant'
     };
     return r ? (map[r] || null) : null;
   }
@@ -36,9 +42,12 @@
     'Payroll.dc.html': 'provider',
     'Claims.dc.html': 'provider',
     'Integrations.dc.html': 'provider',
+    'Roster.dc.html': 'provider',
     'Support Worker.dc.html': 'worker',
     'Worker App.dc.html': 'worker',
+    'Worker Passport.dc.html': 'worker',
     'Support Coordination.dc.html': 'coordinator',
+    'Plan Review Prep.dc.html': 'coordinator',
     'Allied Health.dc.html': 'allied',
     'Participant Dashboard.dc.html': 'participant'
   };
@@ -47,18 +56,53 @@
     try { return decodeURIComponent((location.pathname.split('/').pop() || '')); } catch (e) { return ''; }
   }
 
-  function routeByRole() {
+  function persistSessionRole(userId, role) {
+    try {
+      var s = JSON.parse(localStorage.getItem('ciaralink_session') || '{}');
+      s.loggedIn = true;
+      s.supabase = true;
+      if (userId) s.userId = userId;
+      if (role) s.role = role;
+      s.ts = Date.now();
+      localStorage.setItem('ciaralink_session', JSON.stringify(s));
+    } catch (e) {}
+  }
+
+  function routeByRole(roleEnum) {
     // Don't fight the embedded console iframe (rendered inside the provider dash).
     try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
     var want = PAGE_ROLE[currentPage()];
     if (!want) return; // page isn't role-specific
-    var have = null;
-    try { have = normRole((JSON.parse(localStorage.getItem('ciaralink_session') || '{}') || {}).role); } catch (e) {}
+    var have = normRole(roleEnum);
     if (!have) return; // unknown role -> fail open, don't lock the user out
     if (have !== want) {
       var dest = DASH[have];
       if (dest && dest !== currentPage()) window.location.replace(dest);
     }
+  }
+
+  function fetchRoleFromSupabase(client, userId) {
+    return client.from('organisation_members')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle()
+      .then(function (res) { return (res.data && res.data.role) || null; })
+      .catch(function () { return null; });
+  }
+
+  function resolveRoleAndRoute(client, session) {
+    fetchRoleFromSupabase(client, session.user.id).then(function (role) {
+      if (role) persistSessionRole(session.user.id, role);
+      routeByRole(role);
+    });
+  }
+
+  function redirectToSignIn() {
+    try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
+    var next = encodeURIComponent((location.pathname + location.search).replace(/^\//, ''));
+    window.location.replace(signInPage() + '?next=' + next);
   }
 
   function check(attempt) {
@@ -69,17 +113,18 @@
       var client = window.getSupabaseClient && window.getSupabaseClient();
       if (!client) { if (attempt < 50) setTimeout(function () { check(attempt + 1); }, 100); return; }
       client.auth.getSession().then(function (res) {
+        if (res && res.error) { redirectToSignIn(); return; }
         var session = res && res.data && res.data.session;
         if (!session) {
           // Don't redirect an embedded iframe (e.g. the console inside the
           // provider dashboard) to the sign-in page — the parent handles auth.
           try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
           var next = encodeURIComponent((location.pathname + location.search).replace(/^\//, ''));
-          window.location.replace('signin.html?next=' + next);
+          window.location.replace(signInPage() + '?next=' + next);
           return;
         }
-        routeByRole();
-      }).catch(function () {});
+        resolveRoleAndRoute(client, session);
+      }).catch(function () { redirectToSignIn(); });
     } catch (e) {}
   }
   check(0);

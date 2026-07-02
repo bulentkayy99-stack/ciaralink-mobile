@@ -58,7 +58,7 @@
         <div style="padding:18px 20px 26px">
           <div style="display:flex;align-items:center;gap:10px;background:#eef4ff;border:1px solid #d7e3fb;border-radius:13px;padding:11px 13px;margin-bottom:16px">
             <span style="display:flex">{{ sparkBlueEl }}</span>
-            <div style="flex:1;font-size:12px;color:#2a4a8a">I've pre-filled this from <b>Margaret's file</b> — just check it's right. Fill once, reuse every agreement.</div>
+            <div style="flex:1;font-size:12px;color:#2a4a8a">{{ prefillHint }}</div>
           </div>
           <sc-for list="{{ fields }}" as="f" hint-placeholder-count="5">
             <div style="margin-bottom:12px">
@@ -78,6 +78,13 @@
         <sc-if value="{{ isServices }}" hint-placeholder-val="">
         <div style="padding:18px 20px 26px">
           <div style="font-size:13px;color:#6c7f79;margin-bottom:14px">The supports covered by this agreement and their rates.</div>
+          <sc-if value="{{ noServices }}" hint-placeholder-val="">
+            <div style="background:#fff;border:1px dashed #d8e2de;border-radius:14px;padding:24px 18px;text-align:center;margin-bottom:10px">
+              <div style="font-size:14px;font-weight:700;color:#14302b;margin-bottom:4px">No support items loaded</div>
+              <div style="font-size:12.5px;color:#6c7f79;line-height:1.5">Import the NDIS price guide or check your connection — rates come from the active catalogue when Supabase is configured.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasServices }}" hint-placeholder-val="{{ true }}">
           <sc-for list="{{ services }}" as="s" hint-placeholder-count="3">
             <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7ece9;border-radius:14px;padding:13px 14px;margin-bottom:10px">
               <div style="width:38px;height:38px;border-radius:11px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;background:{{ s.tintBg }}">{{ s.iconEl }}</div>
@@ -85,9 +92,10 @@
               <div style="text-align:right"><div style="font-size:13.5px;font-weight:800;color:#0b6b60">{{ s.rate }}</div><div style="font-size:11px;color:#9aa8a3">{{ s.freq }}</div></div>
             </div>
           </sc-for>
+          </sc-if>
           <div style="display:flex;align-items:center;justify-content:space-between;background:#f7faf9;border:1px solid #e7ece9;border-radius:14px;padding:13px 15px;margin-top:6px">
             <div><div style="font-size:12px;color:#6c7f79">Estimated weekly</div><div style="font-size:11px;color:#9aa8a3">Based on planned hours</div></div>
-            <div style="font-size:20px;font-weight:800;color:#14302b">$1,012</div>
+            <div style="font-size:20px;font-weight:800;color:#14302b">{{ estimatedWeekly }}</div>
           </div>
           <div style="display:flex;align-items:center;gap:9px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:13px;padding:11px 13px;margin-top:14px">
             <span style="display:flex">{{ infoAmberEl }}</span>
@@ -188,7 +196,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  state = { step:0, signed:false, consents:{0:true,1:false}, toast:null, participant:null, filing:false, filedRef:null, filedReal:false, filedDoc:false, filedShared:false };
+  state = { step:0, signed:false, consents:{0:true,1:false}, toast:null, participant:null, filing:false, filedRef:null, filedReal:false, filedDoc:false, filedShared:false, ndisServices:[] };
   ic(name,color,size,sw){
     const stroke=color||'#5f726d',s=size||18;
     const P={
@@ -221,7 +229,46 @@ class Component extends DCLogic {
   }
   go(d){ this.setState(s=>({step:Math.max(0,Math.min(3,s.step+d))})); }
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
-  componentDidMount(){ this.loadParticipant(); }
+  componentDidMount(){ this.loadParticipant(); this.loadNdisServices(); }
+  fmtNdisRate(item){
+    if(!item) return '—';
+    if(item.quote_required) return 'Quote required';
+    const cap=window.ndisPriceCapForItem?window.ndisPriceCapForItem(item,'national'):item.price_cap_national;
+    const fmt=window.formatAudAmount?window.formatAudAmount(cap):('$'+Number(cap).toFixed(2));
+    const u=String(item.unit||'H').toUpperCase();
+    const suffix=(u==='EA')?' /ea':(u==='D'?' /day':' /hr');
+    return fmt+suffix;
+  }
+  mapNdisToService(item,idx){
+    const ic=(n,c,s)=>this.ic(n,c,s);
+    const tints=['#e7f4f1','#fbf0df','#eef0fd'];
+    const icons=[['heart','#16b8a6'],['truck','#d98b22'],['house','#6366f1']];
+    const pick=icons[idx%icons.length];
+    return {
+      name:item.name,
+      code:item.support_item_number,
+      rate:this.fmtNdisRate(item),
+      freq:item.support_category_name||item.unit||'—',
+      tintBg:tints[idx%tints.length],
+      iconEl:ic(pick[0],pick[1],17)
+    };
+  }
+  loadNdisServices(){
+    try{
+      if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadNdisSupportItems) return;
+      Promise.resolve(window.loadNdisSupportItems({limit:50})).then(res=>{
+        const items=(res && res.items) || [];
+        this.setState({ndisServices:items.map((item,i)=>this.mapNdisToService(item,i))});
+      }).catch(err=>console.warn('[ServiceAgreement] loadNdisServices:',err));
+    }catch(err){ console.warn('[ServiceAgreement] loadNdisServices:',err); }
+  }
+  liveServices(demoMode){
+    return demoMode?null:(this.state.ndisServices||[]);
+  }
+  calcEstimatedWeekly(demoMode,services){
+    if(demoMode) return '$1,012';
+    return '—';
+  }
   // Prefill the agreement from a real participant record when Supabase is
   // configured. Falls back to the hardcoded Margaret Reyes demo otherwise so
   // the form never renders blank.
@@ -229,9 +276,11 @@ class Component extends DCLogic {
     try{
       if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
       if(!window.queryParticipantProfile) return;
-      // Other pages may stash a chosen participant id; pass it through when present.
+      // Participant id: URL ?id= → session → legacy localStorage key.
       var pid=null;
-      try{ pid=localStorage.getItem('ciaralink_selected_participant')||null; }catch(e){}
+      try{ pid=window.getParticipantIdFromUrl?window.getParticipantIdFromUrl():null; }catch(e){}
+      if(!pid){ try{ const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}'); pid=s.selectedParticipantId||s.participantId||null; }catch(e){} }
+      if(!pid){ try{ pid=localStorage.getItem('ciaralink_selected_participant')||null; }catch(e){} }
       Promise.resolve(window.queryParticipantProfile(pid)).then(profile=>{
         if(profile) this.setState({participant:profile});
       }).catch(err=>console.warn('[ServiceAgreement] loadParticipant:',err));
@@ -243,17 +292,18 @@ class Component extends DCLogic {
   agreementData(){
     const p=this.state.participant;
     const real=!!(window.isSupabaseConfigured && window.isSupabaseConfigured() && p && p.id && String(p.id).indexOf('demo-')!==0);
-    const signerName=(p && (p.full_name||p.preferred_name)) || 'Margaret Reyes';
-    const ndis=(p && p.ndis_number) || 'C-10471';
-    const address=(p && p.address) || '12 Rose Street, Glenroy VIC';
-    const periodStart=(p && p.plan_start) || '01 Jul 2026';
-    const periodEnd=(p && p.plan_end) || '30 Jun 2027';
-    const provider='Brightside Care';
-    const services=[
+    const demoMode=!(window.isSupabaseConfigured && window.isSupabaseConfigured());
+    const signerName=(p && (p.full_name||p.preferred_name)) || (demoMode?'Margaret Reyes':'Participant');
+    const ndis=(p && p.ndis_number) || (demoMode?'C-10471':'—');
+    const address=(p && p.address) || (demoMode?'12 Rose Street, Glenroy VIC':'—');
+    const periodStart=(p && p.plan_start) || (demoMode?'01 Jul 2026':'—');
+    const periodEnd=(p && p.plan_end) || (demoMode?'30 Jun 2027':'—');
+    const provider=demoMode?'Brightside Care':'Your organisation';
+    const services=demoMode?[
       {name:'Personal Care',code:'Daily activities support',rate:'$46/hr',freq:'weekday'},
       {name:'Community Access',code:'Social & community participation',rate:'$42/hr',freq:'weekly'},
       {name:'Domestic Assistance',code:'Household tasks',rate:'$44/hr',freq:'fortnightly'}
-    ];
+    ]:(this.liveServices(false)||[]);
     const terms=[
       'Either party may end this agreement with 14 days’ notice.',
       'Cancellations under 24 hours may be charged per the price guide.',
@@ -265,7 +315,8 @@ class Component extends DCLogic {
       'I consent to my information being shared with my assigned workers.'
     ];
     const consents=consentLabels.map((label,i)=>({label,agreed:!!this.state.consents[i]}));
-    return {real,participant_id:(p&&p.id)||null,org_id:(p&&p.org_id)||null,signerName,ndis,address,periodStart,periodEnd,provider,services,terms,consents,estimatedWeekly:'$1,012/wk'};
+    const estimatedWeekly=this.calcEstimatedWeekly(demoMode,services);
+    return {real,participant_id:(p&&p.id)||null,org_id:(p&&p.org_id)||null,signerName,ndis,address,periodStart,periodEnd,provider,services,terms,consents,estimatedWeekly:estimatedWeekly+(demoMode?'/wk':'')};
   }
   esc(v){ return String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // Build a self-contained, printable HTML rendering of the agreement. Used both
@@ -414,30 +465,38 @@ class Component extends DCLogic {
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const step=this.state.step;
+    const demoMode=!(window.isSupabaseConfigured && window.isSupabaseConfigured());
     const titles=[['NEW AGREEMENT','Client details'],['SERVICES','Supports & pricing'],['SIGN','Terms & signature'],['DONE','All filed']];
     const progress=[0,1,2,3].map(i=>({bg:i<=step?'#16b8a6':'#e7ece9'}));
-    // Real participant when loaded (Supabase configured), else demo fallback.
+    // Real participant when loaded (Supabase configured), else demo fallback in preview only.
     const p=this.state.participant;
-    const signerName=(p && (p.full_name||p.preferred_name)) || 'Margaret Reyes';
-    const period=(p && (p.plan_start||p.plan_end)) ? ((p.plan_start||'')+' – '+(p.plan_end||'')) : '01 Jul 2026 – 30 Jun 2027';
+    const signerName=(p && (p.full_name||p.preferred_name)) || (demoMode?'Margaret Reyes':'Participant');
+    const signerPoss=signerName==='Participant'?('The participant\u2019s'):((signerName.slice(-1)==='s'?signerName:signerName+'\u2019s'));
+    const prefillHint=demoMode
+      ?('I\u2019ve pre-filled this from Margaret\u2019s file \u2014 just check it\u2019s right. Fill once, reuse every agreement.')
+      :((p && (p.full_name||p.preferred_name))
+        ?('I\u2019ve pre-filled this from '+signerName+'\u2019s file \u2014 just check it\u2019s right.')
+        :('Confirm client details below \u2014 open a participant profile to auto-fill from their record.'));
+    const period=(p && (p.plan_start||p.plan_end)) ? ((p.plan_start||'')+' – '+(p.plan_end||'')) : (demoMode?'01 Jul 2026 – 30 Jun 2027':'—');
 
     const fields=[
-      {label:'PARTICIPANT',value:signerName,prefilled:true,iconEl:ic('user','#16b8a6',16)},
-      {label:'CLIENT ID',value:(p && p.ndis_number) || 'C-10471',prefilled:true,iconEl:ic('card','#6366f1',16)},
-      {label:'ADDRESS',value:(p && p.address) || '12 Rose Street, Glenroy VIC',prefilled:true,iconEl:ic('pin','#d98b22',16)},
-      {label:'AGREEMENT PERIOD',value:period,prefilled:true,iconEl:ic('cal','#0891b2',16)},
-      {label:'PROVIDER',value:'Brightside Care',prefilled:true,iconEl:ic('users','#9333ea',16)}
+      {label:'PARTICIPANT',value:signerName,prefilled:!!(p && (p.full_name||p.preferred_name)),iconEl:ic('user','#16b8a6',16)},
+      {label:'CLIENT ID',value:(p && p.ndis_number) || (demoMode?'C-10471':'—'),prefilled:!!(p && p.ndis_number),iconEl:ic('card','#6366f1',16)},
+      {label:'ADDRESS',value:(p && p.address) || (demoMode?'12 Rose Street, Glenroy VIC':'—'),prefilled:!!(p && p.address),iconEl:ic('pin','#d98b22',16)},
+      {label:'AGREEMENT PERIOD',value:period,prefilled:!!(p && (p.plan_start||p.plan_end)),iconEl:ic('cal','#0891b2',16)},
+      {label:'PROVIDER',value:demoMode?'Brightside Care':'Your organisation',prefilled:demoMode,iconEl:ic('users','#9333ea',16)}
     ];
-    const services=[
+    const services=demoMode?[
       {name:'Personal Care',code:'Daily activities support',rate:'$46/hr',freq:'weekday',tintBg:'#e7f4f1',iconEl:ic('heart','#16b8a6',17)},
       {name:'Community Access',code:'Social & community participation',rate:'$42/hr',freq:'weekly',tintBg:'#fbf0df',iconEl:ic('truck','#d98b22',17)},
       {name:'Domestic Assistance',code:'Household tasks',rate:'$44/hr',freq:'fortnightly',tintBg:'#eef0fd',iconEl:ic('house','#6366f1',17)}
-    ];
+    ]:(this.liveServices(false)||[]);
+    const estimatedWeekly=this.calcEstimatedWeekly(demoMode,services);
     const terms=[
       'Either party may end this agreement with 14 days\u2019 notice.',
       'Cancellations under 24 hours may be charged per the price guide.',
       'Supports are delivered by screened, qualified workers.',
-      'Margaret\u2019s information is kept private and shared only with her care team.'
+      signerPoss+' information is kept private and shared only with the care team.'
     ];
     const cd=[
       'I agree to the supports, rates and terms above.',
@@ -458,11 +517,15 @@ class Component extends DCLogic {
       (this.state.filedShared
         ? {label:'Logged for signing/sharing',sub:'Visible in signing workflows',iconEl:ic('send','#d98b22',17)}
         : {label:'Care team can access',sub:'Shared per consent & RLS',iconEl:ic('users','#d98b22',17)})
-    ] : [
+    ] : (demoMode?[
       {label:signerName+'\u2019s profile',sub:'Preview \u2014 not persisted',iconEl:ic('folder','#16b8a6',17)},
       {label:'Sign in to file for real',sub:'Connect a participant to persist',iconEl:ic('send','#6366f1',17)},
       {label:'Demo mode',sub:'No data saved',iconEl:ic('users','#d98b22',17)}
-    ];
+    ]:[
+      {label:'Not filed yet',sub:'Select a participant and sign to persist',iconEl:ic('folder','#16b8a6',17)},
+      {label:'Preview walkthrough',sub:'Sample agreement only',iconEl:ic('send','#6366f1',17)},
+      {label:'No data saved',sub:'Connect a participant profile first',iconEl:ic('users','#d98b22',17)}
+    ]);
     const filedRefLine=(this.state.filedRef||'SA-\u2014')+' \u00b7 valid to '+(p&&p.plan_end?p.plan_end:'30 Jun 2027');
     const sideItems=[
       {iconEl:ic('spark','#7ce0d2',17),title:'Pre-filled for you',body:'Pulls the client\u2019s details straight from their file — no retyping.'},
@@ -484,8 +547,9 @@ class Component extends DCLogic {
       restart:()=>this.setState({step:0,signed:false,filedRef:null,filedReal:false,filedDoc:false,filedShared:false,consents:{0:true,1:false}}),
       backEl:ic('back','#14302b',18),arrowEl:ic('arrow','#06201c',17),
       isDetails:step===0,isServices:step===1,isSign:step===2,isDone:step===3,
-      fields,sparkBlueEl:ic('spark','#6366f1',17),
-      services,infoAmberEl:ic('info','#d98b22',17),
+      fields,sparkBlueEl:ic('spark','#6366f1',17),prefillHint,showDemo:demoMode,realMode:!demoMode,
+      services,hasServices:services.length>0,estimatedWeekly,
+      infoAmberEl:ic('info','#d98b22',17),noServices:!demoMode&&services.length===0,
       terms,checkTinyEl:ic('check','#16b8a6',15,2.4),consents,
       signerName,signed:this.state.signed,unsigned:!this.state.signed,
       doSign:()=>this.setState({signed:true}),

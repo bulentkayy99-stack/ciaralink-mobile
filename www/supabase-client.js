@@ -412,8 +412,25 @@ async function loadParticipantCareTeam(participantId) {
   if (!client) {
     return { careTeam: [], error: 'Supabase not configured' };
   }
-  
+
   try {
+    const { data: profileRows, error: rpcError } = await client.rpc('care_team_profiles', {
+      p_participant_id: participantId,
+    });
+
+    if (!rpcError && Array.isArray(profileRows) && profileRows.length) {
+      const careTeam = profileRows.map((row) => ({
+        user_id: row.user_id,
+        role: row.role,
+        org_id: row.org_id,
+        full_name: row.full_name || null,
+        email: row.email || null,
+        status: 'active',
+        participant_id: participantId,
+      }));
+      return { careTeam, error: null };
+    }
+
     const { data, error } = await client
       .from('care_team_relationships')
       .select(`
@@ -430,7 +447,7 @@ async function loadParticipantCareTeam(participantId) {
       .eq('participant_id', participantId)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
-    
+
     if (error) return { careTeam: [], error: error.message };
     return { careTeam: data || [], error: null };
   } catch (e) {
@@ -589,6 +606,9 @@ async function createShiftNote(input) {
  *   - a worker sees the notes they authored ("shift_notes_worker_read_own")
  *   - a provider owner/admin/staff sees every note for their org's shifts
  *     ("shift_notes_provider_org")
+ *   - care-team members (SC, allied, worker on team) via "shift_notes_care_team_read"
+ *     when is_care_team_member(participant_id) — requires consent_given on the link.
+ * Used by the plan-review evidence pack (loadReviewEvidencePack) for SC visibility.
  * Embeds the participant name for display. Author name is resolved separately
  * (shift_notes.author_id → auth.users, which PostgREST can't embed directly).
  * @param {{participantId?: string, limit?: number}} [opts]
@@ -854,6 +874,62 @@ async function markAllNotificationsRead() {
   }
 }
 
+/**
+ * Count unread notifications for the current user.
+ * @returns {Promise<{count, error}>}
+ */
+async function countUnreadNotifications() {
+  const client = getSupabaseClient();
+  if (!client) return { count: 0, error: 'Supabase not configured' };
+  try {
+    const { user, error: userError } = await getCurrentUser();
+    if (userError || !user) return { count: 0, error: 'No user logged in' };
+    const { count, error } = await client
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .is('read_at', null);
+    if (error) return { count: 0, error: error.message };
+    return { count: count || 0, error: null };
+  } catch (e) {
+    console.error('Count unread notifications error:', e.message);
+    return { count: 0, error: e.message };
+  }
+}
+
+/** @type {ReturnType<typeof setInterval>|null} */
+let _notifPollTimer = null;
+
+/**
+ * Poll unread notification count (in-app refresh; no browser push).
+ * @param {(count:number)=>void} onUpdate
+ * @param {number} [intervalMs=45000]
+ * @returns {()=>void} stop function
+ */
+function startNotificationPolling(onUpdate, intervalMs) {
+  const ms = intervalMs || 45000;
+  const tick = () => {
+    Promise.resolve(countUnreadNotifications()).then((res) => {
+      if (res && !res.error && typeof onUpdate === 'function') onUpdate(res.count || 0);
+    }).catch(() => {});
+  };
+  tick();
+  if (_notifPollTimer) clearInterval(_notifPollTimer);
+  _notifPollTimer = setInterval(tick, ms);
+  return () => {
+    if (_notifPollTimer) {
+      clearInterval(_notifPollTimer);
+      _notifPollTimer = null;
+    }
+  };
+}
+
+function stopNotificationPolling() {
+  if (_notifPollTimer) {
+    clearInterval(_notifPollTimer);
+    _notifPollTimer = null;
+  }
+}
+
 // ============================================================
 // REFERRALS (RLS: referrals_org_scoped — from_org_id/to_org_id in my orgs)
 // ============================================================
@@ -943,6 +1019,87 @@ async function createReferral(input) {
     return { referral: data, error: null };
   } catch (e) {
     console.error('Create referral error:', e.message);
+    return { referral: null, error: e.message };
+  }
+}
+
+/**
+ * Provider sends a structured handoff to the participant's support coordinator(s):
+ * coordination note on profile + in-app notification (+ optional referral status → active).
+ * Requires migration 20260630120000_shift_completed_and_handoff.sql (RPC).
+ * @param {{participant_id:string, message:string, referral_id?:string}} input
+ * @returns {Promise<{ok:boolean, noteId?:string, error?:string}>}
+ */
+async function sendHandoffToCoordinator(input) {
+  input = input || {};
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, error: 'Supabase not configured' };
+  if (!input.participant_id || !input.message) {
+    return { ok: false, error: 'participant_id and message are required' };
+  }
+  try {
+    const { data, error } = await client.rpc('send_handoff_to_coordinator', {
+      p_participant_id: input.participant_id,
+      p_message: input.message,
+      p_referral_id: input.referral_id || null,
+    });
+    if (error) return { ok: false, error: error.message };
+    if (!data || !data.ok) return { ok: false, error: (data && data.error) || 'Handoff failed' };
+    return { ok: true, noteId: data.note_id, error: null };
+  } catch (e) {
+    console.error('sendHandoffToCoordinator error:', e.message);
+    return { ok: false, error: e.message };
+  }
+}
+
+/**
+ * Resolve the active provider org linked to a participant (provider_participant_links).
+ * Used when a support coordinator sends a referral to the participant's service provider.
+ * @param {string} participantId
+ * @returns {Promise<{orgId, error}>}
+ */
+async function loadProviderOrgForParticipant(participantId) {
+  const client = getSupabaseClient();
+  if (!client) return { orgId: null, error: 'Supabase not configured' };
+  if (!participantId) return { orgId: null, error: 'participant_id is required' };
+  try {
+    const { data, error } = await client
+      .from('provider_participant_links')
+      .select('provider_org_id')
+      .eq('participant_id', participantId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return { orgId: null, error: error.message };
+    return { orgId: data?.provider_org_id || null, error: null };
+  } catch (e) {
+    console.error('loadProviderOrgForParticipant error:', e.message);
+    return { orgId: null, error: e.message };
+  }
+}
+
+/**
+ * Update referral status (RLS: referrals_org_scoped — from/to org member).
+ * @param {string} referralId
+ * @param {string} status — referral_status enum value
+ * @returns {Promise<{referral, error}>}
+ */
+async function updateReferralStatus(referralId, status) {
+  const client = getSupabaseClient();
+  if (!client) return { referral: null, error: 'Supabase not configured' };
+  if (!referralId || !status) return { referral: null, error: 'referralId and status are required' };
+  try {
+    const { data, error } = await client
+      .from('referrals')
+      .update({ status })
+      .eq('id', referralId)
+      .select()
+      .single();
+    if (error) return { referral: null, error: error.message };
+    return { referral: data, error: null };
+  } catch (e) {
+    console.error('updateReferralStatus error:', e.message);
     return { referral: null, error: e.message };
   }
 }
@@ -1333,11 +1490,453 @@ async function queryParticipantsByAlliedHealth() {
 }
 
 /**
+ * Read ?id= or ?participantId= from the current page URL.
+ * @returns {string|null}
+ */
+function getParticipantIdFromUrl() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id') || params.get('participantId') || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Read ?view= tab key from the current page URL (Participant Profile).
+ * @returns {string|null}
+ */
+function getParticipantViewFromUrl() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('view') || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Build a Participant Profile URL with optional id and tab view.
+ * @param {string} [participantId]
+ * @param {string} [view] - overview|plan|goals|team|docs|notes|timeline|review
+ * @returns {string}
+ */
+function participantProfileUrl(participantId, view) {
+  const base = 'Participant Profile.dc.html';
+  const params = new URLSearchParams();
+  if (participantId) params.set('id', participantId);
+  if (view) params.set('view', view);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
+/** Normalize demo short codes and real enum roles (matches auth-guard.js). */
+function normRoleBucket(role) {
+  const map = {
+    provider: 'provider', provider_owner: 'provider', provider_admin: 'provider',
+    provider_staff: 'provider', platform_admin: 'provider',
+    worker: 'worker', support_worker: 'worker', abn_worker: 'worker',
+    coordinator: 'coordinator', support_coordinator: 'coordinator',
+    allied: 'allied', allied_health: 'allied', allied_health_admin: 'allied',
+    participant: 'participant', guardian: 'participant', guardian_nominee: 'participant',
+  };
+  return role ? (map[role] || null) : null;
+}
+
+/** Which canonical role bucket a protected .dc.html page belongs to (matches auth-guard.js). */
+function pageRoleBucketForFile(fileName) {
+  const PAGE_ROLE = {
+    'CiaraLink Provider Dashboard.dc.html': 'provider',
+    'Provider Console.dc.html': 'provider',
+    'Compliance Register.dc.html': 'provider',
+    'Incident Centre.dc.html': 'provider',
+    'Payroll.dc.html': 'provider',
+    'Claims.dc.html': 'provider',
+    'Integrations.dc.html': 'provider',
+    'Roster.dc.html': 'provider',
+    'Support Worker.dc.html': 'worker',
+    'Worker App.dc.html': 'worker',
+    'Worker Passport.dc.html': 'worker',
+    'Support Coordination.dc.html': 'coordinator',
+    'Plan Review Prep.dc.html': 'coordinator',
+    'Allied Health.dc.html': 'allied',
+    'Participant Dashboard.dc.html': 'participant',
+  };
+  let file = fileName || '';
+  try { file = decodeURIComponent(String(file).split('?')[0].split('/').pop() || ''); } catch (e) {}
+  return PAGE_ROLE[file] || null;
+}
+
+/** True when a relative path is allowed for the user's enum role (sign-in ?next= guard). */
+function isPathAllowedForRole(relativePath, roleEnum) {
+  const want = pageRoleBucketForFile(relativePath);
+  if (!want) return true;
+  const have = normRoleBucket(roleEnum);
+  return !!(have && have === want);
+}
+
+/**
+ * Deep-link href for a notification row (Notification Centre + ops e2e).
+ * @param {{reference_type?: string, reference_id?: string}} n
+ * @param {string} [roleBucket] - canonical bucket from normRoleBucket
+ */
+function resolveNotificationHref(n, roleBucket) {
+  if (!n || !n.reference_type) return null;
+  const id = n.reference_id;
+  const enc = id != null ? encodeURIComponent(String(id)) : '';
+  const role = roleBucket || null;
+
+  switch (n.reference_type) {
+    case 'shift':
+      if (!id) return null;
+      if (role === 'worker') return `Support Worker.dc.html?shift=${enc}`;
+      return `CiaraLink Provider Dashboard.dc.html?nav=roster&shift=${enc}`;
+    case 'referral':
+      if (role === 'coordinator') return 'Support Coordination.dc.html';
+      return id ? `CiaraLink Provider Dashboard.dc.html?nav=referrals&selRef=${enc}` : null;
+    case 'document':
+      if (role === 'coordinator') return 'Support Coordination.dc.html';
+      if (role === 'allied') return 'Allied Health.dc.html';
+      return 'CiaraLink Provider Dashboard.dc.html?nav=docs_hub';
+    case 'participant':
+      if (id) rememberSelectedParticipantId(id);
+      return participantProfileUrl(id || null);
+    case 'incident':
+      return id ? `Incident Centre.dc.html?id=${enc}` : 'Incident Centre.dc.html';
+    case 'worker_credential':
+      return 'Worker Passport.dc.html';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Persist the active participant id in the local session (for pages that read
+ * selectedParticipantId when ?id= is absent).
+ * @param {string} participantId
+ */
+function rememberSelectedParticipantId(participantId) {
+  if (!participantId || typeof window === 'undefined') return;
+  try {
+    const s = JSON.parse(localStorage.getItem('ciaralink_session') || '{}');
+    s.selectedParticipantId = participantId;
+    localStorage.setItem('ciaralink_session', JSON.stringify(s));
+  } catch (e) {
+    /* ignore storage errors */
+  }
+}
+
+/**
+ * Navigate to Participant Profile with optional tab view.
+ * @param {string} [participantId]
+ * @param {string} [view]
+ */
+function navigateToParticipantProfile(participantId, view) {
+  if (participantId) rememberSelectedParticipantId(participantId);
+  if (typeof window !== 'undefined') {
+    window.location.href = participantProfileUrl(participantId, view);
+  }
+}
+
+/**
+ * Resolve which participant id to load: explicit arg → URL → session.
+ * @param {string} [explicitId]
+ * @returns {string|null}
+ */
+function resolveParticipantProfileId(explicitId) {
+  if (explicitId) return explicitId;
+  const urlId = getParticipantIdFromUrl();
+  if (urlId) return urlId;
+  if (typeof window === 'undefined') return null;
+  try {
+    const s = JSON.parse(localStorage.getItem('ciaralink_session') || '{}');
+    return s.selectedParticipantId || s.participantId || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Load NDIS plan budget rows for a participant (claim_budget_status view when available).
+ * @param {string} participantId
+ * @returns {Promise<{budgets: Array, error: string|null}>}
+ */
+async function listParticipantPlanBudgets(participantId) {
+  const client = getSupabaseClient();
+  if (!client || !participantId) {
+    return { budgets: [], error: 'Supabase not configured or no participant id' };
+  }
+
+  try {
+    const { data, error } = await client
+      .from('claim_budget_status')
+      .select('*')
+      .eq('participant_id', participantId)
+      .order('support_category_number', { ascending: true });
+
+    if (!error && data) {
+      return { budgets: data, error: null };
+    }
+
+    const { data: rows, error: tableError } = await client
+      .from('participant_plan_budgets')
+      .select('*')
+      .eq('participant_id', participantId)
+      .order('support_category_number', { ascending: true });
+
+    if (tableError) return { budgets: [], error: tableError.message };
+    return { budgets: rows || [], error: null };
+  } catch (e) {
+    console.warn('listParticipantPlanBudgets error:', e.message);
+    return { budgets: [], error: e.message };
+  }
+}
+
+const SC_CORE_CATEGORIES = new Set([1, 2, 3, 4]);
+const SC_CAP_CATEGORIES = new Set([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24]);
+
+function fmtAudShort(n) {
+  if (n == null || isNaN(n)) return '—';
+  return '$' + Number(n).toLocaleString('en-AU', { maximumFractionDigits: 0 });
+}
+
+function pctUsed(spent, total) {
+  if (!total || total <= 0) return 0;
+  return Math.min(100, Math.round((Number(spent) / Number(total)) * 100));
+}
+
+function barColor(pct) {
+  if (pct >= 85) return '#c0445c';
+  if (pct >= 65) return '#d98b22';
+  if (pct <= 20) return '#e0556e';
+  return '#16b8a6';
+}
+
+/**
+ * SC dashboards: budgets, agreements, and linked providers for a caseload.
+ * @param {Array<{id:string, full_name?:string, preferred_name?:string, plan_end?:string}>} participants
+ */
+async function loadScCaseloadFinancials(participants) {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { budgetRows: [], agreementRows: [], providerRows: [], error: 'Supabase not configured' };
+  }
+  const ids = (participants || []).map((p) => p.id).filter(Boolean);
+  if (!ids.length) {
+    return { budgetRows: [], agreementRows: [], providerRows: [], error: null };
+  }
+
+  const nameOf = (p) => (p && (p.preferred_name || p.full_name)) || 'Participant';
+  const initials = (s) => {
+    const parts = String(s || '').trim().split(/\s+/);
+    return (parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : String(s || '').slice(0, 2)).toUpperCase();
+  };
+  const tints = ['#0e5147', '#16b8a6', '#6366f1', '#d98b22', '#9333ea', '#0891b2'];
+
+  try {
+    const { data: budgets, error: bErr } = await client
+      .from('claim_budget_status')
+      .select('*')
+      .in('participant_id', ids);
+    if (bErr) throw new Error(bErr.message);
+
+    const { data: agreements, error: aErr } = await client
+      .from('service_agreements')
+      .select('id, participant_id, participant_name, provider_name, period_end, status, reference')
+      .in('participant_id', ids)
+      .order('created_at', { ascending: false });
+    if (aErr) throw new Error(aErr.message);
+
+    const { data: links, error: lErr } = await client
+      .from('provider_participant_links')
+      .select('participant_id, provider_org_id, status, organisations(name, email)')
+      .in('participant_id', ids)
+      .eq('status', 'active');
+    if (lErr) throw new Error(lErr.message);
+
+    const budgetRows = [];
+    (participants || []).forEach((p, idx) => {
+      const rows = (budgets || []).filter((b) => b.participant_id === p.id);
+      if (!rows.length) return;
+      let coreBudget = 0;
+      let coreClaimed = 0;
+      let capBudget = 0;
+      let capClaimed = 0;
+      let planEnd = p.plan_end || null;
+      rows.forEach((b) => {
+        const cat = Number(b.support_category_number);
+        const budget = Number(b.budget_amount) || 0;
+        const claimed = Number(b.claimed_amount) || 0;
+        if (!planEnd && b.plan_end) planEnd = b.plan_end;
+        if (SC_CORE_CATEGORIES.has(cat)) {
+          coreBudget += budget;
+          coreClaimed += claimed;
+        } else if (SC_CAP_CATEGORIES.has(cat)) {
+          capBudget += budget;
+          capClaimed += claimed;
+        }
+      });
+      if (!coreBudget && !capBudget) return;
+      const corePct = pctUsed(coreClaimed, coreBudget);
+      const capPct = pctUsed(capClaimed, capBudget);
+      const risk = corePct >= 85 || capPct <= 15;
+      budgetRows.push({
+        name: nameOf(p),
+        init: initials(nameOf(p)),
+        tint: tints[idx % tints.length],
+        core: { spent: fmtAudShort(coreClaimed), total: fmtAudShort(coreBudget), pct: corePct, color: barColor(corePct) },
+        cap: { spent: fmtAudShort(capClaimed), total: fmtAudShort(capBudget), pct: capPct, color: barColor(capPct) },
+        planEnd: planEnd ? String(planEnd).slice(0, 10) : '—',
+        risk,
+        riskMsg: corePct >= 85 ? 'Core budget pacing high — review before plan end' : (capPct <= 15 ? 'Capacity building underspend — review utilisation' : ''),
+      });
+    });
+
+    const agreementRows = (agreements || []).map((a, i) => {
+      const st = String(a.status || 'draft').toLowerCase();
+      const active = st === 'active' || st === 'signed';
+      const pending = st.includes('await') || st === 'sent' || st === 'pending';
+      return {
+        name: a.provider_name || 'Provider',
+        init: initials(a.provider_name || 'PR'),
+        tint: tints[i % tints.length],
+        participant: a.participant_name || 'Participant',
+        service: a.reference || 'Service agreement',
+        status: a.status || 'Draft',
+        stFg: active ? '#1e7a52' : (pending ? '#b4561f' : '#5f726d'),
+        stBg: active ? '#e9f6ef' : (pending ? '#fbf0df' : '#f1f4f2'),
+        ends: a.period_end ? String(a.period_end).slice(0, 10) : '—',
+      };
+    });
+
+    const providerMap = new Map();
+    (links || []).forEach((link) => {
+      const org = link.organisations || {};
+      const key = link.provider_org_id || org.name;
+      if (!key) return;
+      if (!providerMap.has(key)) {
+        providerMap.set(key, {
+          name: org.name || 'Provider',
+          init: initials(org.name || 'PR'),
+          tint: tints[providerMap.size % tints.length],
+          type: 'Service Provider',
+          participants: [],
+          hours: '—',
+          status: 'Active',
+          stFg: '#1e7a52',
+          stBg: '#e9f6ef',
+          agreement: 'Linked',
+          contact: org.email || '—',
+        });
+      }
+      const part = (participants || []).find((x) => x.id === link.participant_id);
+      const short = part ? String(nameOf(part)).split(' ')[0] + '.' : 'Participant';
+      const row = providerMap.get(key);
+      if (!row.participants.includes(short)) row.participants.push(short);
+    });
+    const providerRows = Array.from(providerMap.values());
+
+    return { budgetRows, agreementRows, providerRows, error: null };
+  } catch (e) {
+    console.warn('loadScCaseloadFinancials error:', e.message);
+    return { budgetRows: [], agreementRows: [], providerRows: [], error: e.message };
+  }
+}
+
+const NDIS_PRICE_REGIONS = {
+  national: 'price_cap_national',
+  act_nsw_qld_vic: 'price_cap_act_nsw_qld_vic',
+  wa_nt_sa_tas: 'price_cap_wa_nt_sa_tas',
+  remote: 'price_cap_remote',
+  very_remote: 'price_cap_very_remote',
+};
+
+function ndisPriceCapForItem(item, region = 'national') {
+  if (!item) return null;
+  const col = NDIS_PRICE_REGIONS[region] || NDIS_PRICE_REGIONS.national;
+  if (item[col] != null) return Number(item[col]);
+  if (item.price_cap_national != null) return Number(item.price_cap_national);
+  if (item.price_caps && item.price_caps[region] != null) return Number(item.price_caps[region]);
+  return null;
+}
+
+function formatAudAmount(n) {
+  if (n == null || isNaN(n)) return '—';
+  return '$' + Number(n).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * Active NDIS price guide version (is_active = true).
+ * @returns {Promise<{version: object|null, error: string|null}>}
+ */
+async function loadActiveNdisPriceGuide() {
+  const client = getSupabaseClient();
+  if (!client) return { version: null, error: 'Supabase not configured' };
+  try {
+    const { data, error } = await client
+      .from('ndis_price_guide_versions')
+      .select('id, name, effective_from, effective_to, source, is_placeholder, is_active, notes')
+      .eq('is_active', true)
+      .order('effective_from', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return { version: null, error: error.message };
+    return { version: data || null, error: null };
+  } catch (e) {
+    return { version: null, error: e.message };
+  }
+}
+
+/**
+ * NDIS support catalogue items for the active (or specified) price guide.
+ * @param {{ versionId?: string, search?: string, limit?: number }} [opts]
+ */
+async function loadNdisSupportItems(opts) {
+  const o = opts || {};
+  const client = getSupabaseClient();
+  if (!client) return { items: [], version: null, error: 'Supabase not configured' };
+  try {
+    let versionId = o.versionId || null;
+    let version = null;
+    if (!versionId) {
+      const vRes = await loadActiveNdisPriceGuide();
+      if (vRes.error) return { items: [], version: null, error: vRes.error };
+      version = vRes.version;
+      versionId = version && version.id;
+    }
+    if (!versionId) return { items: [], version: null, error: 'No active price guide' };
+
+    let query = client
+      .from('ndis_support_items')
+      .select('id, support_item_number, name, support_category_number, support_category_name, support_purpose, unit, gst_code, quote_required, price_cap_national, price_cap_act_nsw_qld_vic, price_cap_wa_nt_sa_tas, price_cap_remote, price_cap_very_remote, price_caps')
+      .eq('version_id', versionId)
+      .eq('active', true)
+      .order('support_item_number', { ascending: true })
+      .limit(o.limit || 500);
+
+    if (o.search) {
+      const q = String(o.search).trim();
+      if (q) query = query.or('support_item_number.ilike.%' + q + '%,name.ilike.%' + q + '%');
+    }
+
+    const { data, error } = await query;
+    if (error) return { items: [], version, error: error.message };
+    return { items: data || [], version, error: null };
+  } catch (e) {
+    return { items: [], version: null, error: e.message };
+  }
+}
+
+/**
  * Query participant profile (for Participant Dashboard)
- * ASYNC: When Supabase is configured, returns the logged-in participant's own
- * record (RLS returns only their own row). Otherwise returns demo data.
+ * ASYNC: When Supabase is configured, loads the requested participant by id (URL,
+ * session, or explicit arg). For participant-role users with no id, returns their
+ * own RLS-scoped row when exactly one is visible. Never falls back to demo data
+ * when Supabase is configured — returns null instead.
  * @param {string} participantId - optional explicit participant id
- * @returns {Promise<Object>} participant data
+ * @returns {Promise<Object|null>} participant data
  */
 async function queryParticipantProfile(participantId) {
   const demoProfile = {
@@ -1359,22 +1958,35 @@ async function queryParticipantProfile(participantId) {
     return demoProfile;
   }
 
-  // Load real data from Supabase — RLS returns only the participant's own row.
+  const pid = resolveParticipantProfileId(participantId);
+
   try {
-    if (participantId) {
-      const { participant, error } = await loadParticipantById(participantId);
+    if (pid) {
+      const { participant, error } = await loadParticipantById(pid);
       if (!error && participant) return participant;
-      return demoProfile;
+      console.warn('Participant not found or not accessible:', pid, error);
+      return null;
     }
+
     const { participants, error } = await loadParticipantsForCurrentUser();
     if (error) {
       console.warn('Failed to load participant profile from Supabase:', error);
-      return demoProfile;
+      return null;
     }
-    return participants && participants.length > 0 ? participants[0] : demoProfile;
+
+    // Participant self-view: RLS typically returns exactly one row.
+    if (participants && participants.length === 1) return participants[0];
+
+    // Provider/SC/AH with multiple clients must pass ?id= — do not pick arbitrarily.
+    if (participants && participants.length > 1) {
+      console.warn('Multiple participants visible — pass ?id= to open a specific profile');
+      return null;
+    }
+
+    return null;
   } catch (e) {
     console.warn('Error loading participant profile:', e.message);
-    return demoProfile;
+    return null;
   }
 }
 
@@ -1485,6 +2097,7 @@ function getDashboardForRole(role) {
     'provider_owner': 'CiaraLink Provider Dashboard.dc.html',
     'provider_admin': 'CiaraLink Provider Dashboard.dc.html',
     'provider_staff': 'CiaraLink Provider Dashboard.dc.html',
+    'platform_admin': 'CiaraLink Provider Dashboard.dc.html',
     'support_worker': 'Support Worker.dc.html',
     'abn_worker': 'Support Worker.dc.html',
     'support_coordinator': 'Support Coordination.dc.html',
@@ -1492,6 +2105,12 @@ function getDashboardForRole(role) {
     'allied_health_admin': 'Allied Health.dc.html',
     'participant': 'Participant Dashboard.dc.html',
     'guardian_nominee': 'Participant Dashboard.dc.html',
+    // preview-mode shortcuts
+    'provider': 'CiaraLink Provider Dashboard.dc.html',
+    'worker': 'Support Worker.dc.html',
+    'coordinator': 'Support Coordination.dc.html',
+    'allied': 'Allied Health.dc.html',
+    'guardian': 'Participant Dashboard.dc.html',
   };
 
   return roleMap[role] || 'Index.dc.html';
@@ -1580,6 +2199,14 @@ async function addTeamMember({ orgId, email, fullName, role, tempPassword }) {
 /** Admin: reset a member's password to a new temp value. */
 async function resetMemberPassword({ orgId, targetUserId, newPassword }) {
   return callTeamApi('reset-password', { orgId, targetUserId, newPassword });
+}
+
+/** Link a user to a participant care team (creates account if needed). */
+async function inviteCareTeamMember(input) {
+  const r = await callTeamApi('invite-care-team', input);
+  if (!r.ok) return r;
+  const d = r.data || {};
+  return { ok: true, userId: d.userId, careTeamId: d.careTeamId, created: d.created };
 }
 
 /** Admin: suspend / reactivate a member (RLS update; status drives seat use). */
@@ -1671,6 +2298,9 @@ if (typeof module !== 'undefined' && module.exports) {
     loadNotificationsForCurrentUser,
     markNotificationRead,
     markAllNotificationsRead,
+    countUnreadNotifications,
+    startNotificationPolling,
+    stopNotificationPolling,
     loadReferralsForCurrentUser,
     createReferral,
     loadMessageThreadsForCurrentUser,
@@ -1683,6 +2313,7 @@ if (typeof module !== 'undefined' && module.exports) {
     loadOrgTeam,
     addTeamMember,
     resetMemberPassword,
+    inviteCareTeamMember,
     setMemberStatus,
     updateMemberRole,
     changeOwnPassword,
@@ -1699,7 +2330,7 @@ async function loadCurrentSubscription() {
   try {
     const { data, error } = await client
       .from('subscriptions')
-      .select('plan,status,price_id,current_period_end,stripe_subscription_id,updated_at')
+      .select('plan,status,price_id,current_period_end,stripe_subscription_id,stripe_customer_id,cancel_at_period_end,updated_at')
       .order('updated_at', { ascending: false })
       .limit(1);
     if (error) return { ok: false, subscription: null, active: false, reason: error.message };
@@ -1709,6 +2340,151 @@ async function loadCurrentSubscription() {
   } catch (e) {
     return { ok: false, subscription: null, active: false, reason: e.message };
   }
+}
+
+// Platform SaaS plans (Stripe-linked). NDIS claim caps are separate (ndis_support_items).
+async function loadPlatformSubscriptionPlans(opts) {
+  const client = getSupabaseClient();
+  const category = opts && opts.category;
+  // Public pricing page: use server endpoint when not signed in (RLS requires auth on direct table read).
+  if (!client || !(await getSession())) {
+    try {
+      const r = await fetch('/api/public-subscription-plans');
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok && Array.isArray(data.plans)) {
+        const plans = category ? data.plans.filter((p) => p.category === category) : data.plans;
+        return { ok: true, plans };
+      }
+    } catch { /* fall through */ }
+    if (!client) return { ok: false, plans: [], reason: 'not-configured' };
+  }
+  if (!client) return { ok: false, plans: [], reason: 'not-configured' };
+  try {
+    let q = client
+      .from('platform_subscription_plans')
+      .select('slug,name,category,per_unit,display_monthly_aud,display_annual_aud,stripe_price_month_id,stripe_price_year_id,notes')
+      .eq('active', true)
+      .order('sort_order');
+    if (category) q = q.eq('category', category);
+    const { data, error } = await q;
+    if (error) return { ok: false, plans: [], reason: error.message };
+    return { ok: true, plans: data || [] };
+  } catch (e) {
+    return { ok: false, plans: [], reason: e.message };
+  }
+}
+
+function shortPlanDisplayName(name, slug) {
+  if (name && String(name).includes('·')) {
+    return String(name).split('·').pop().trim();
+  }
+  if (slug) {
+    const parts = String(slug).split('_');
+    const last = parts[parts.length - 1];
+    return last.charAt(0).toUpperCase() + last.slice(1);
+  }
+  return name || slug || '';
+}
+
+function numAud(v) {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Map platform_subscription_plans rows → price overlays + add-on lists for pricing UI. */
+function buildPricingCatalogFromPlans(plans) {
+  const subscriptionCategories = ['providers', 'support_workers', 'coordination', 'allied_health'];
+  const prices = {};
+  const addonPrices = {};
+  const extraAddons = [];
+
+  (plans || []).forEach((p) => {
+    const m = numAud(p.display_monthly_aud);
+    const y = numAud(p.display_annual_aud);
+    const entry = {
+      key: p.slug,
+      name: shortPlanDisplayName(p.name, p.slug),
+      m,
+      y,
+      perUnit: !!p.per_unit,
+      notes: p.notes || null,
+    };
+
+    if (p.category === 'addon_referrals') {
+      addonPrices[p.slug] = entry;
+    } else if (/_addon$/.test(p.category) || p.per_unit) {
+      extraAddons.push({
+        ...entry,
+        group: p.category.replace(/_addon$/, ''),
+        monthlyOnly: y == null,
+      });
+    } else if (subscriptionCategories.includes(p.category)) {
+      prices[p.slug] = entry;
+    }
+  });
+
+  extraAddons.sort((a, b) => (a.key < b.key ? -1 : 1));
+  return { prices, addonPrices, extraAddons };
+}
+
+/** Merge DB plan prices into hardcoded CATS/ADDONS templates (UI metadata stays in HTML). */
+function mergePricingCatalogFromPlans(baseCats, baseAddons, plans) {
+  const built = buildPricingCatalogFromPlans(plans);
+  const cats = {};
+
+  Object.keys(baseCats || {}).forEach((catKey) => {
+    const src = baseCats[catKey];
+    cats[catKey] = {
+      ...src,
+      tiers: (src.tiers || []).map((t) => {
+        if (!t.key || !built.prices[t.key]) return { ...t };
+        const p = built.prices[t.key];
+        const merged = { ...t };
+        if (p.m != null) merged.m = p.m;
+        if (p.y != null) merged.y = p.y;
+        return merged;
+      }),
+    };
+  });
+
+  const addons = (baseAddons || []).map((a) => {
+    const p = built.addonPrices[a.key];
+    if (!p) return { ...a };
+    const merged = { ...a };
+    if (p.m != null) merged.m = p.m;
+    if (p.y != null) merged.y = p.y;
+    return merged;
+  });
+
+  return { cats, addons, extraAddons: built.extraAddons };
+}
+
+async function resolvePlatformPlanLabel(priceId) {
+  if (!priceId) return null;
+  const res = await loadPlatformSubscriptionPlans();
+  if (!res.ok) return null;
+  const match = (res.plans || []).find(
+    (p) => p.stripe_price_month_id === priceId || p.stripe_price_year_id === priceId
+  );
+  return match ? match.name : null;
+}
+
+async function resolvePlatformPlanDisplay(priceId) {
+  if (!priceId) return null;
+  const res = await loadPlatformSubscriptionPlans();
+  if (!res.ok) return null;
+  const match = (res.plans || []).find(
+    (p) => p.stripe_price_month_id === priceId || p.stripe_price_year_id === priceId
+  );
+  if (!match) return null;
+  const isAnnual = match.stripe_price_year_id === priceId;
+  const amount = numAud(isAnnual ? match.display_annual_aud : match.display_monthly_aud);
+  return {
+    name: match.name,
+    interval: isAnnual ? 'year' : 'month',
+    amount,
+  };
 }
 
 // Make available globally
@@ -1738,6 +2514,9 @@ window.CiaraLinkAuth = {
   loadNotificationsForCurrentUser,
   markNotificationRead,
   markAllNotificationsRead,
+  countUnreadNotifications,
+  startNotificationPolling,
+  stopNotificationPolling,
   loadReferralsForCurrentUser,
   createReferral,
   loadMessageThreadsForCurrentUser,
@@ -1750,11 +2529,17 @@ window.CiaraLinkAuth = {
   loadOrgTeam,
   addTeamMember,
   resetMemberPassword,
+  inviteCareTeamMember,
   setMemberStatus,
   updateMemberRole,
   changeOwnPassword,
   mustChangePassword,
   loadCurrentSubscription,
+  loadPlatformSubscriptionPlans,
+  buildPricingCatalogFromPlans,
+  mergePricingCatalogFromPlans,
+  resolvePlatformPlanLabel,
+  resolvePlatformPlanDisplay,
 };
 
 // Global query helpers for dashboards
@@ -1764,6 +2549,22 @@ window.queryParticipantsByAlliedHealth = queryParticipantsByAlliedHealth;
 window.queryParticipantProfile = queryParticipantProfile;
 window.queryParticipantsForWorker = queryParticipantsForWorker;
 window.queryShiftsForWorker = queryShiftsForWorker;
+window.getParticipantIdFromUrl = getParticipantIdFromUrl;
+window.getParticipantViewFromUrl = getParticipantViewFromUrl;
+window.participantProfileUrl = participantProfileUrl;
+window.normRoleBucket = normRoleBucket;
+window.pageRoleBucketForFile = pageRoleBucketForFile;
+window.isPathAllowedForRole = isPathAllowedForRole;
+window.resolveNotificationHref = resolveNotificationHref;
+window.resolveParticipantProfileId = resolveParticipantProfileId;
+window.rememberSelectedParticipantId = rememberSelectedParticipantId;
+window.navigateToParticipantProfile = navigateToParticipantProfile;
+window.listParticipantPlanBudgets = listParticipantPlanBudgets;
+window.loadScCaseloadFinancials = loadScCaseloadFinancials;
+window.loadActiveNdisPriceGuide = loadActiveNdisPriceGuide;
+window.loadNdisSupportItems = loadNdisSupportItems;
+window.ndisPriceCapForItem = ndisPriceCapForItem;
+window.formatAudAmount = formatAudAmount;
 
 // Expose public functions to window
 window.getSupabaseClient = getSupabaseClient;
@@ -1784,6 +2585,22 @@ window.queryParticipantsByAlliedHealth = queryParticipantsByAlliedHealth;
 window.queryParticipantProfile = queryParticipantProfile;
 window.queryParticipantsForWorker = queryParticipantsForWorker;
 window.queryShiftsForWorker = queryShiftsForWorker;
+window.getParticipantIdFromUrl = getParticipantIdFromUrl;
+window.getParticipantViewFromUrl = getParticipantViewFromUrl;
+window.participantProfileUrl = participantProfileUrl;
+window.normRoleBucket = normRoleBucket;
+window.pageRoleBucketForFile = pageRoleBucketForFile;
+window.isPathAllowedForRole = isPathAllowedForRole;
+window.resolveNotificationHref = resolveNotificationHref;
+window.resolveParticipantProfileId = resolveParticipantProfileId;
+window.rememberSelectedParticipantId = rememberSelectedParticipantId;
+window.navigateToParticipantProfile = navigateToParticipantProfile;
+window.listParticipantPlanBudgets = listParticipantPlanBudgets;
+window.loadScCaseloadFinancials = loadScCaseloadFinancials;
+window.loadActiveNdisPriceGuide = loadActiveNdisPriceGuide;
+window.loadNdisSupportItems = loadNdisSupportItems;
+window.ndisPriceCapForItem = ndisPriceCapForItem;
+window.formatAudAmount = formatAudAmount;
 window.loadParticipantsForCurrentUser = loadParticipantsForCurrentUser;
 window.loadParticipantById = loadParticipantById;
 window.loadParticipantContacts = loadParticipantContacts;
@@ -1803,8 +2620,14 @@ window.updateTaskStatus = updateTaskStatus;
 window.loadNotificationsForCurrentUser = loadNotificationsForCurrentUser;
 window.markNotificationRead = markNotificationRead;
 window.markAllNotificationsRead = markAllNotificationsRead;
+window.countUnreadNotifications = countUnreadNotifications;
+window.startNotificationPolling = startNotificationPolling;
+window.stopNotificationPolling = stopNotificationPolling;
 window.loadReferralsForCurrentUser = loadReferralsForCurrentUser;
 window.createReferral = createReferral;
+window.loadProviderOrgForParticipant = loadProviderOrgForParticipant;
+window.updateReferralStatus = updateReferralStatus;
+window.sendHandoffToCoordinator = sendHandoffToCoordinator;
 window.loadMessageThreadsForCurrentUser = loadMessageThreadsForCurrentUser;
 window.loadThreadMessages = loadThreadMessages;
 window.sendMessage = sendMessage;
@@ -1857,9 +2680,12 @@ window.createDocumentRecord = createDocumentRecord;
     const client = getSupabaseClient();
     if (!client) return { notes: [], error: 'Supabase not configured' };
     try {
-      const { data, error } = await client.from('participant_notes')
+      let query = client.from('participant_notes')
         .select('id, org_id, participant_id, author_id, author_role, note_type, body, created_at, updated_at')
-        .eq('participant_id', participantId).order('created_at', { ascending: false }).limit(100);
+        .order('created_at', { ascending: false })
+        .limit(participantId ? 100 : 300);
+      if (participantId) query = query.eq('participant_id', participantId);
+      const { data, error } = await query;
       if (error) return { notes: [], error: error.message };
       return { notes: data || [], error: null };
     } catch (e) { return { notes: [], error: e.message }; }
@@ -2129,6 +2955,92 @@ window.createDocumentRecord = createDocumentRecord;
   }
   window.createRecommendation = createRecommendation;
   window.loadRecommendationsForCurrentUser = loadRecommendationsForCurrentUser;
+  window.loadClinicalRecommendations = loadRecommendationsForCurrentUser;
+
+  const ALLIED_EVIDENCE_TYPES = ['allied_health_report', 'functional_capacity_assessment', 'progress_report', 'assessment', 'support_plan'];
+  const EVIDENCE_CHECKLIST = [
+    { key: 'allied', label: 'Allied health report', test: (ctx) => ctx.alliedDocs.length > 0 || ctx.recs.length > 0 },
+    { key: 'shifts', label: 'Worker shift notes', test: (ctx) => ctx.shiftNotes.length > 0 },
+    { key: 'sc', label: 'SC summary', test: (ctx) => ctx.scNotes.length > 0 },
+    { key: 'plan', label: 'NDIS plan on file', test: (ctx) => ctx.docs.some(d => String(d.type) === 'ndis_plan') },
+    { key: 'agreement', label: 'Service agreement', test: (ctx) => ctx.docs.some(d => String(d.type) === 'service_agreement') },
+    { key: 'consent', label: 'Consent form', test: (ctx) => ctx.docs.some(d => String(d.type) === 'consent_form') },
+  ];
+
+  function buildEvidenceChecklist(ctx) {
+    const ready = [];
+    const missing = [];
+    EVIDENCE_CHECKLIST.forEach(item => {
+      if (item.test(ctx)) {
+        if (item.key === 'allied' && ctx.recs.length) ready.push('Clinical recommendations (' + ctx.recs.length + ')');
+        else if (item.key === 'allied') ready.push(ctx.alliedDocs.length + ' allied health report(s)');
+        else if (item.key === 'shifts') ready.push(ctx.shiftNotes.length + ' shift note(s)');
+        else if (item.key === 'sc') ready.push('SC summary (' + ctx.scNotes.length + ' note(s))');
+        else ready.push(item.label);
+      } else missing.push(item.label);
+    });
+    const total = EVIDENCE_CHECKLIST.length;
+    const readinessPct = total ? Math.round((ready.length / total) * 100) : 0;
+    return { ready, missing, readinessPct };
+  }
+
+  /** Load documents, notes, shift notes, recommendations, goals and budgets for plan review prep. */
+  async function loadReviewEvidencePack(participantId) {
+    if (!participantId) return { pack: null, error: 'participantId is required' };
+    try {
+      const [docsRes, notesRes, shiftRes, recsRes, goalsRes, budgetsRes] = await Promise.all([
+        loadDocumentsForCurrentUser(),
+        listParticipantNotes(participantId),
+        loadShiftNotes({ participantId, limit: 100 }),
+        loadRecommendationsForCurrentUser(),
+        listParticipantGoals(participantId),
+        listParticipantPlanBudgets(participantId),
+      ]);
+      const docs = ((docsRes && docsRes.documents) || []).filter(d => d.participant_id === participantId);
+      const notes = (notesRes && notesRes.notes) || [];
+      const shiftNotes = (shiftRes && shiftRes.notes) || [];
+      const recs = ((recsRes && recsRes.recommendations) || []).filter(r => r.participant_id === participantId);
+      const goals = (goalsRes && goalsRes.goals) || [];
+      const budgets = (budgetsRes && budgetsRes.budgets) || [];
+      const alliedDocs = docs.filter(d => ALLIED_EVIDENCE_TYPES.indexOf(String(d.type || '').toLowerCase()) > -1);
+      const scNotes = notes.filter(n => String(n.note_type || '').indexOf('coord') > -1 || n.author_role === 'support_coordinator');
+      const ctx = { docs, notes, shiftNotes, recs, goals, budgets, alliedDocs, scNotes };
+      const { ready, missing, readinessPct } = buildEvidenceChecklist(ctx);
+      return { pack: Object.assign({ docs, notes, shiftNotes, recs, goals, budgets, alliedDocs, scNotes, ready, missing, readinessPct }, ctx), error: null };
+    } catch (e) {
+      return { pack: null, error: e.message };
+    }
+  }
+
+  async function linkCareTeamMember(input) {
+    const client = getSupabaseClient();
+    if (!client) return { link: null, error: 'Supabase not configured' };
+    const row = {
+      participant_id: input.participantId,
+      user_id: input.userId,
+      role: input.role,
+      org_id: input.orgId || null,
+      status: 'active',
+      consent_given: input.consentGiven === true,
+      consent_date: input.consentGiven === true ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    };
+    try {
+      const { data, error } = await client
+        .from('care_team_relationships')
+        .upsert(row, { onConflict: 'participant_id,user_id' })
+        .select()
+        .single();
+      if (error) return { link: null, error: error.message };
+      return { link: data, error: null };
+    } catch (e) {
+      return { link: null, error: e.message };
+    }
+  }
+
+  window.loadReviewEvidencePack = loadReviewEvidencePack;
+  window.inviteCareTeamMember = inviteCareTeamMember;
+  window.linkCareTeamMember = linkCareTeamMember;
 
   // ============================================================
   // PARTICIPANT SELF-SIGNUP (own record + NDIS plan)
@@ -2579,19 +3491,19 @@ window.createDocumentRecord = createDocumentRecord;
   /**
    * Log a "send for signature" request (org-scoped, RLS-protected).
    * @param {{document_title:string, participant_name?:string, participant_id?:string, document_id?:string, recipient?:string, org_id?:string, status?:string}} input
-   * @returns {Promise<{request, error}>}
+   * @returns {Promise<{request, error, emailSent, emailError}>}
    */
   async function createSignatureRequest(input) {
     input = input || {};
     const client = getSupabaseClient();
-    if (!client) return { request: null, error: 'Supabase not configured' };
+    if (!client) return { request: null, error: 'Supabase not configured', emailSent: false, emailError: null };
     try {
       const { user, error: userError } = await getCurrentUser();
-      if (userError || !user) return { request: null, error: 'No user logged in' };
-      if (!input.document_title) return { request: null, error: 'document_title is required' };
+      if (userError || !user) return { request: null, error: 'No user logged in', emailSent: false, emailError: null };
+      if (!input.document_title) return { request: null, error: 'document_title is required', emailSent: false, emailError: null };
       let orgId = input.org_id || null;
       if (!orgId) { const ctx = await loadCurrentUserContext(); orgId = ctx && ctx.organisationId ? ctx.organisationId : null; }
-      if (!orgId) return { request: null, error: 'No organisation found for current user' };
+      if (!orgId) return { request: null, error: 'No organisation found for current user', emailSent: false, emailError: null };
       const row = {
         org_id: orgId,
         requested_by: user.id,
@@ -2604,9 +3516,32 @@ window.createDocumentRecord = createDocumentRecord;
         filled_html: input.filled_html || null,
       };
       const { data, error } = await client.from('signature_requests').insert(row).select().single();
-      if (error) return { request: null, error: error.message };
-      return { request: data, error: null };
-    } catch (e) { return { request: null, error: e.message }; }
+      if (error) return { request: null, error: error.message, emailSent: false, emailError: null };
+      let emailSent = false;
+      let emailError = null;
+      if (data && data.status === 'sent' && data.recipient && /@/.test(String(data.recipient))) {
+        try {
+          const sess = await client.auth.getSession();
+          const token = sess && sess.data && sess.data.session && sess.data.session.access_token;
+          if (token) {
+            const er = await fetch('/api/send-signing-invite', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+              body: JSON.stringify({ id: data.id }),
+            });
+            const ej = await er.json().catch(function () { return {}; });
+            emailSent = !!ej.emailSent;
+            emailError = ej.emailError || ej.error || null;
+            if (!er.ok && !emailError) emailError = 'HTTP ' + er.status;
+          } else {
+            emailError = 'no_auth_token';
+          }
+        } catch (e) {
+          emailError = e.message || String(e);
+        }
+      }
+      return { request: data, error: null, emailSent: emailSent, emailError: emailError };
+    } catch (e) { return { request: null, error: e.message, emailSent: false, emailError: null }; }
   }
 
   /**
@@ -2634,6 +3569,34 @@ window.createDocumentRecord = createDocumentRecord;
 
   window.createSignatureRequest = createSignatureRequest;
   window.loadSignatureRequests = loadSignatureRequests;
+
+  /**
+   * Load plan-review share audit rows for a participant (RLS: author + visibility).
+   * @param {string} participantId
+   * @returns {Promise<{shares, error}>}
+   */
+  async function loadPlanReviewShares(participantId) {
+    const client = getSupabaseClient();
+    if (!client) return { shares: [], error: 'Supabase not configured' };
+    try {
+      const { user, error: userError } = await getCurrentUser();
+      if (userError || !user) return { shares: [], error: 'No user logged in' };
+      if (!participantId) return { shares: [], error: 'participantId is required' };
+      const { data, error } = await client
+        .from('plan_review_shares')
+        .select('id, participant_id, recipient_name, recipient_email, recipient_role, status, contained_illustrative_data, created_at')
+        .eq('participant_id', participantId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) return { shares: [], error: error.message };
+      return { shares: data || [], error: null };
+    } catch (e) {
+      console.error('Load plan review shares error:', e.message);
+      return { shares: [], error: e.message };
+    }
+  }
+
+  window.loadPlanReviewShares = loadPlanReviewShares;
 
   // ============================================================
   // SERVICE AGREEMENTS (NDIS)  — Service Agreement.dc.html

@@ -30,6 +30,7 @@
   <script src="./env.local.js?v=20260628"></script>
   <script src="/vendor/supabase.js"></script>
   <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./stripe-pricing.js?v=20260630"></script>
   <script src="./auth-guard.js?v=4"></script>
   <script src="data.js"></script>
   <script src="hugo.js"></script>
@@ -82,7 +83,7 @@
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
             <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(150deg,#16b8a6,#0b6b60);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">{{ workerInitials }}</div>
             <div style="flex:1"><div style="font-size:13px;color:#6c7f79">Good morning,</div><div style="font-size:18px;font-weight:800;letter-spacing:-.02em;color:#14302b">{{ workerFirst }} 👋</div></div>
-            <div style="position:relative;width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e">{{ bellEl }}<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></div>
+            <button onClick="{{ goNotifications }}" style="position:relative;width:42px;height:42px;border-radius:13px;background:#fff;border:1px solid #e7ece9;display:flex;align-items:center;justify-content:center;color:#3a544e;cursor:pointer" title="Notifications">{{ bellEl }}<sc-if value="{{ notifUnread }}" hint-placeholder-val=""><span style="position:absolute;top:9px;right:10px;min-width:7px;height:7px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></sc-if></button>
           </div>
 
           <button onClick="{{ goPlans }}" style="width:100%;display:flex;align-items:center;gap:11px;background:#fff7ed;border:1px solid #f4e6cf;border-radius:14px;padding:11px 13px;margin-bottom:16px;cursor:pointer;font-family:inherit;text-align:left">
@@ -582,20 +583,20 @@
         </div>
         </sc-if>
 
-        <!-- ============ SHIFT NOTE (pushed) ============ -->
-        <sc-if value="{{ isNote }}" hint-placeholder-val="">
+        <!-- ============ SHIFT NOTE (pushed) — preview demo only ============ -->
+        <sc-if value="{{ isNote && demoMode }}" hint-placeholder-val="{{ true }}">
         <div>
           <div style="padding:6px 18px 14px;display:flex;align-items:center;gap:12px">
             <button onClick="{{ back }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #e7ece9;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#14302b">{{ backEl }}</button>
-            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">SHIFT NOTE</div><div style="font-size:16px;font-weight:800;color:#14302b">Margaret R. · 18 Jun</div></div>
+            <div style="flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#9aa8a3">SHIFT NOTE</div><div style="font-size:16px;font-weight:800;color:#14302b">{{ noteTitle }}</div></div>
             <span style="font-size:10.5px;font-weight:700;color:#1e9e6a;background:#e9f6ef;padding:4px 9px;border-radius:7px">Locked</span>
           </div>
 
           <div style="padding:0 18px 26px">
             <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;overflow:hidden">
               <div style="display:flex;align-items:center;gap:11px;padding:14px 16px;background:#f7faf9;border-bottom:1px solid #eef2f0">
-                <div style="width:40px;height:40px;border-radius:12px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff">MR</div>
-                <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Personal Care · 4h</div><div style="font-size:11.5px;color:#6c7f79">Wed 18 Jun · 11:00–14:58 · A. Okafor</div></div>
+                <div style="width:40px;height:40px;border-radius:12px;background:#16b8a6;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff">{{ noteInit }}</div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#14302b">Personal Care · 4h</div><div style="font-size:11.5px;color:#6c7f79">{{ noteWhen }} · A. Okafor</div></div>
               </div>
 
               <div style="display:flex;gap:8px;padding:13px 16px;border-bottom:1px solid #f1f4f2">
@@ -630,7 +631,7 @@
 
               <div style="padding:14px 16px;display:flex;align-items:center;gap:11px">
                 <svg viewBox="0 0 120 40" style="width:84px;height:28px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
-                <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — Margaret Reyes</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · co-located ✓</div></div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — {{ noteSigner }}</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · co-located ✓</div></div>
               </div>
             </div>
 
@@ -640,6 +641,13 @@
             </div>
             <div style="text-align:center;margin-top:11px;font-size:11px;color:#9aa8a3">Synced to coordinator · part of record #CL-48201</div>
           </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ isNote && realMode }}" hint-placeholder-val="">
+        <div style="padding:24px 20px 40px;text-align:center">
+          <div style="font-size:16px;font-weight:800;color:#14302b">No shift note selected</div>
+          <div style="font-size:13px;color:#8a9a94;margin-top:8px;line-height:1.55">Your submitted shift notes appear on the home screen and in each client file after a visit.</div>
+          <button onClick="{{ back }}" style="margin-top:18px;height:44px;padding:0 18px;border-radius:12px;border:1px solid #e7ece9;background:#fff;color:#14302b;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">← Back</button>
         </div>
         </sc-if>
 
@@ -806,9 +814,10 @@ class Component extends DCLogic {
   componentDidMount(){
     try{
       const s=JSON.parse(localStorage.getItem('ciaralink_session')||'{}');
-      if(s.loggedIn && s.role && s.role!=='worker'){
-        const m={provider:'CiaraLink Provider Dashboard.dc.html',coordinator:'Support Coordination.dc.html',allied:'Allied Health.dc.html'};
-        if(m[s.role]) window.location.href=m[s.role];
+      const norm=window.normRoleBucket||(r=>r);
+      const dash=window.getDashboardForRole||(r=>'Index.dc.html');
+      if(s.loggedIn&&s.role&&norm(s.role)!=='worker'){
+        window.location.replace(dash(s.role));
       }
     }catch(e){}
     const AD=window.AegisData;
@@ -820,14 +829,50 @@ class Component extends DCLogic {
       if(Object.keys(avail).length) upd.avail=avail;
       if(Object.keys(upd).length) this.setState(upd);
     }
+    this.applyUrlNav();
     this.loadWorkerData();
     this.loadIdentity();
     this.loadDocuments();
     this.loadShiftNotesFromDb();
     this.loadMessages();
+    this.loadNotifCount();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling((c)=>this.setState({notifUnread:c>0?c:0}),45000);
+    }
   }
-  state = { view:'home', backTo:'home', workFilter:'all', pro:false, showPhoto:true, paid:{}, scan:'idle', swClients:[], swShifts:[], supabaseConnected:(typeof window!=='undefined'&&window.isSupabaseConfigured&&window.isSupabaseConfigured())||false, authName:null, authInitials:null, authRole:null, toast:null, swOrgId:null, swBusy:false, swAddClientOpen:false, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:'', nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:'', swNoteClient:'', swSelectedClient:null, swClientContacts:[], swClientNotes:[], swDocuments:[], swDocUploading:false, swLanguages:null, swSkills:null, swThreads:null, swExpandedNoteId:null };
+
+  componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
+  }
+
+  loadNotifCount(){
+    try{
+      if(!(window.isSupabaseConfigured&&window.isSupabaseConfigured()&&window.countUnreadNotifications)) return;
+      Promise.resolve(window.countUnreadNotifications()).then(res=>{
+        if(res&&!res.error) this.setState({notifUnread:(res.count||0)});
+      }).catch(()=>{});
+    }catch(e){}
+  }
+  state = { view:'home', backTo:'home', workFilter:'all', pro:false, showPhoto:true, paid:{}, scan:'idle', swClients:[], swShifts:[], supabaseConnected:(typeof window!=='undefined'&&window.isSupabaseConfigured&&window.isSupabaseConfigured())||false, authName:null, authInitials:null, authRole:null, toast:null, swOrgId:null, swBusy:false, swAddClientOpen:false, swNewShiftOpen:false, acName:'', acNdis:'', acPhone:'', acEmail:'', acAddress:'', nsParticipant:'', nsDate:'', nsStart:'', nsEnd:'', nsType:'', swNoteClient:'', swSelectedClient:null, swClientContacts:[], swClientNotes:[], swDocuments:[], swDocUploading:false, swLanguages:null, swSkills:null, swThreads:null, swExpandedNoteId:null, notifUnread:0, swDeepShiftId:null, swDeepShiftConsumed:false };
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  applyUrlNav(){
+    try{
+      const shiftId=new URLSearchParams(window.location.search).get('shift');
+      if(shiftId) this.setState({ swDeepShiftId:shiftId, view:'work' });
+    }catch(e){}
+  }
+  consumeDeepShift(){
+    const id=this.state.swDeepShiftId;
+    if(!id||this.state.swDeepShiftConsumed) return;
+    const shifts=this.state.swShifts||[];
+    const sh=shifts.find(s=>String(s.id)===String(id));
+    if(!sh) return;
+    const nm=(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    this.setState({ swDeepShiftConsumed:true, view:'work' });
+    if(sh.participant_id){
+      this.openClientFile(Object.assign({id:sh.participant_id}, sh.participants||{}, {full_name:nm}));
+    } else { this.showToast('No client file is linked to this shift yet'); }
+  }
   // Load the logged-in worker's assigned participants + shifts from Supabase
   // (RLS-scoped). Falls back to demo data via the query helpers.
   loadWorkerData(){
@@ -844,8 +889,9 @@ class Component extends DCLogic {
       if(window.queryShiftsForWorker){
         Promise.resolve(window.queryShiftsForWorker()).then(shifts=>{
           const real=(shifts||[]).filter(s=>s&&s.id&&!String(s.id).startsWith('demo-'));
-          if(configured){ this.setState({ swShifts: real }); }
-          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }); }
+          if(configured){ this.setState({ swShifts: real }, ()=>this.consumeDeepShift()); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }, ()=>this.consumeDeepShift()); }
+          else { this.consumeDeepShift(); }
         }).catch(err=>console.error('loadWorkerData shifts error:',err));
       }
     };
@@ -1087,11 +1133,17 @@ class Component extends DCLogic {
       return {label,onClick:()=>this.setView(key),fg:a?'#0b6b60':'#9aa8a3',iconEl:ic(icon,a?'#16b8a6':'#9aa8a3',22,a?2.1:1.7)};
     });
 
-    // home recent notes
+    // home recent notes — demo showcase, or the worker's real notes from loadShiftNotesFromDb.
+    const noteTints=['#16b8a6','#d98b22','#6366f1','#9333ea','#0891b2','#0e5147'];
+    const _mapHomeNote=(n,i)=>{
+      const body=String(n.body||'').trim();
+      const preview=body.length>52?body.slice(0,52)+'…':body;
+      return {client:n.client||'Client',init:n.init||(String(n.client||'C').substring(0,2).toUpperCase()),tint:noteTints[i%noteTints.length],preview,verified:'Saved',time:n.date||''};
+    };
     const recentNotes=demoMode?[
       {client:'Margaret R.',init:'MR',tint:'#16b8a6',preview:'Good spirits, ate well, steady mobility…',verified:'Verified',time:'Wed'},
       {client:'Tom B.',init:'TB',tint:'#d98b22',preview:'Community outing to library, big win…',verified:'Verified',time:'Tue'}
-    ]:[];
+    ]:(this.state.swSavedNotes||[]).slice(0,2).map(_mapHomeNote);
     const _pd=(label,state)=>{
       const m={done:{dotBg:'#16b8a6',dotBd:'#16b8a6',fg:'#0b6b60',iconEl:ic('check','#fff',14,2.6),lineBg:'#16b8a6'},
         now:{dotBg:'#fbf0df',dotBd:'#d98b22',fg:'#b4561f',iconEl:ic('clock','#d98b22',14),lineBg:'#e2e9e6'},
@@ -1170,7 +1222,8 @@ class Component extends DCLogic {
     };
     const mapShift=(sh,i)=>{
       const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
-      return {accent:st.accent,cardBd:st.cardBd,tint:swTints2[i%swTints2.length],
+      const isDeep=!!(this.state.swDeepShiftId&&String(sh.id)===String(this.state.swDeepShiftId));
+      return {accent:isDeep?'#0b6b60':st.accent,cardBd:isDeep?'#16b8a6':st.cardBd,tint:swTints2[i%swTints2.length],
         client:nm,init:nm.substring(0,2).toUpperCase(),
         hasBadge:true,badge:st.badge,badgeBg:st.badgeBg,badgeFg:st.badgeFg,
         bldgEl:ic('pin','#9aa8a3',13),provider:sh.location||'Location TBC',
@@ -1411,10 +1464,14 @@ class Component extends DCLogic {
     const cfHasContactInfo = cfContactInfo.length>0;
     const cfEmpty = !cfHasImportant && !cfHasPrefs && !cfHasGoals && !cfHasContacts && !cfHasDocs && !cfHasNotes && !cfHasContactInfo;
 
-    // shift note detail
-    const noteTasks=['Personal care & hygiene','Medication prompt (9:00)','Light meal preparation','Mobility / short walk'].map(label=>({label,checkEl:ic('check','#16b8a6',16,2.4)}));
-    const noteChips=['Ate well','Good mobility','Bright mood','Took medication'];
-    const noteBody='Margaret was in good spirits today. Assisted with personal care and a light breakfast, which she ate well. Medication prompted and taken at 9:00 as charted. We did a short walk to the garden — mobility steady with the frame. No concerns to report.';
+    // shift note detail — preview demo only (never shown to signed-in real users)
+    const noteTitle=demoMode?'Margaret R. · 18 Jun':'—';
+    const noteInit=demoMode?'MR':'—';
+    const noteWhen=demoMode?'Wed 18 Jun · 11:00–14:58':'—';
+    const noteSigner=demoMode?'Margaret Reyes':'—';
+    const noteTasks=demoMode?['Personal care & hygiene','Medication prompt (9:00)','Light meal preparation','Mobility / short walk'].map(label=>({label,checkEl:ic('check','#16b8a6',16,2.4)})):[];
+    const noteChips=demoMode?['Ate well','Good mobility','Bright mood','Took medication']:[];
+    const noteBody=demoMode?'Margaret was in good spirits today. Assisted with personal care and a light breakfast, which she ate well. Medication prompted and taken at 9:00 as charted. We did a short walk to the garden — mobility steady with the frame. No concerns to report.':'';
 
     // plans
     const ck=(on)=> on?ic('check','#16b8a6',16,2.4):ic('x','#cdd8d3',15,2);
@@ -1426,26 +1483,22 @@ class Component extends DCLogic {
       {name:'Pro',tagline:'most workers',price:'$49',per:'/mo',badge:'MOST POPULAR',cardBg:'#0c2622',cardBd:'#16b8a6',shadow:'0 18px 38px -20px rgba(11,80,71,.8)',
         nameFg:'#f4faf8',subFg:'#86a39b',priceFg:'#7ce0d2',cta:'Upgrade to Pro',btnBg:'#16b8a6',btnFg:'#06201c',btnBd:'none',
         features:[featW('Everything in Free',true),featW('Priority matching on dashboards',true),featW('Document wallet',true),featW('GPS verification',true),featW('Extra worker tools',true)]},
-      {name:'ABN / Business',tagline:'contractors',price:'$99',per:'/mo',badge:'',cardBg:'#fff',cardBd:'#e7ece9',shadow:'0 1px 2px rgba(20,48,43,.04)',
-        nameFg:'#14302b',subFg:'#8a9a94',priceFg:'#14302b',cta:'Go Business',btnBg:'#fff',btnFg:'#0b6b60',btnBd:'1.5px solid #16b8a6',
+      {name:'Premium',tagline:'contractors',price:'$99',per:'/mo',badge:'',cardBg:'#fff',cardBd:'#e7ece9',shadow:'0 1px 2px rgba(20,48,43,.04)',
+        nameFg:'#14302b',subFg:'#8a9a94',priceFg:'#14302b',cta:'Go Premium',btnBg:'#fff',btnFg:'#0b6b60',btnBd:'1.5px solid #16b8a6',
         features:[feat('Everything in Pro',true),feat('Invoicing',true),feat('Tax invoices (GST-aware)',true),feat('ABN tools & contractor mgmt',true),feat('Connect with more providers',true)]}
     ];
     function featW(label,on){return {label,iconEl:ck(on),fg:'#cfe2dc'};}
 
-    // Real Stripe checkout for worker plans (live price IDs from stripe-prices.json)
-    const PLAN_PRICE={support_workers_pro:'price_1TnCzDElpzmLM2qq9clB3DAL',support_workers_premium:'price_1TnCzGElpzmLM2qqTTpZwy7u'};
     const goCheckout=async(planKey)=>{
-      const priceId=PLAN_PRICE[planKey];
-      if(!priceId){ this.showToast('Plan unavailable — please try again'); return; }
+      if(!window.CiaraLinkStripe||!window.CiaraLinkStripe.startCheckout){
+        this.showToast('Checkout unavailable — please try pricing page');
+        return;
+      }
       this.showToast('Opening secure checkout…');
-      const headers={'Content-Type':'application/json'};
-      try{ const c=window.supabaseClient; if(c&&c.auth){ const r=await c.auth.getSession(); const t=r&&r.data&&r.data.session&&r.data.session.access_token; if(t){ headers['Authorization']='Bearer '+t; } } }catch(e){}
-      try{
-        const resp=await fetch('./api/create-checkout-session',{method:'POST',headers,body:JSON.stringify({priceId,mode:'subscription',quantity:1})});
-        const data=await resp.json().catch(()=>({}));
-        if(resp.ok&&data&&data.url){ window.location=data.url; return; }
-        this.showToast((data&&data.error)?('Checkout — '+data.error):'Checkout failed — please try again');
-      }catch(e){ this.showToast('Network error — please try again'); }
+      const res=await window.CiaraLinkStripe.startCheckout({slug:planKey,interval:'month'});
+      if(!res||!res.redirecting){
+        this.showToast((res&&res.error)?('Checkout — '+res.error):'Checkout failed — please try again');
+      }
     };
     plans[0].onCta=()=>this.showToast("You're on the Free plan ✓");
     plans[1].onCta=()=>goCheckout('support_workers_pro');
@@ -1485,10 +1538,13 @@ class Component extends DCLogic {
       walletEl:ic('wallet','#7ce0d2',15),bankEl:ic('bank','#06201c',17),bankSmEl:ic('bank','#86a39b',13),
       goPayments:()=>this.push('payments'),
       goPlans:()=>this.push('plans'),goWork:()=>this.setView('work'),
-      openNote:()=>this.push('note'),openClient:()=>this.push('client'),
+      openNote:()=>{ if(demoMode){ this.push('note'); return; } if((this.state.swSavedNotes||[]).length){ this.push('shift_notes'); return; } this.showToast('No shift notes yet — tap "+ Add note" after a visit'); },
+      openClient:()=>this.push('client'),
       back:()=>this.setView(this.state.backTo),
       backEl:ic('back','#14302b',18),chevEl:ic('chev','#b6c4be',16),
       bellEl:ic('bell','#3a544e',19),pinSmEl:ic('pin','#a9cfc8',15),clockSmEl:ic('clock','#dff5f1',15),
+      notifUnread:this.state.notifUnread||0,
+      goNotifications:()=>{ window.location.href='Notification Centre.dc.html'; },
       tagSmEl:ic('tag','#dff5f1',15),lockTinyEl:ic('lock','#8fb3aa',16),boltAmberEl:ic('bolt','#d98b22',17),
       hasNextShift,noNextShift:!hasNextShift,nextShiftLabel,nextShiftName,nextShiftLocation,nextShiftTime,nextShiftType,
       clockAction,clockBtnLabel,clockSubLabel,clockBtnBg,clockBtnFg,clockCursor,clockIconEl,
@@ -1536,7 +1592,7 @@ class Component extends DCLogic {
       onNsStart:(e)=>this.setState({nsStart:e.target.value}),
       onNsEnd:(e)=>this.setState({nsEnd:e.target.value}),
       onNsType:(e)=>this.setState({nsType:e.target.value}),
-      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html?resetSession=1';},
+      signOut:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='Login.dc.html?resetSession=1';},
       goBilling:()=>{window.location.href='billing.html';},
       signOutSmEl:ic('logout','#c0445c',16),
       openConnect:()=>{ window.location.href='CiaraLink Connect.dc.html'; },
@@ -1629,6 +1685,7 @@ class Component extends DCLogic {
       cfHasImportant,cfHasPrefs,cfHasGoals,cfHasContacts,cfHasDocs,cfHasNotes,cfEmpty,
       cfContactInfo,cfHasContactInfo,
       pinGreenEl:ic('pin','#16b8a6',15),qrPurpleEl:ic('shield','#6366f1',15),smileEl:ic('smile','#1e9e6a',14),
+      noteTitle,noteInit,noteWhen,noteSigner,
       noteTasks,noteChips,noteBody,cameraSmEl:ic('camera','#b6c4be',18),pdfEl:ic('pdf','#2c4a44',16),sendEl:ic('send','#06201c',16),
       plans,sideItems
     };

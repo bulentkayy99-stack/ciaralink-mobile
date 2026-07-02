@@ -6,16 +6,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pricing — CiaraLink</title>
-<meta name="description" content="CiaraLink pricing — one fair subscription, every feature included, 0% commission on the care you deliver. Plans for Providers, Support Workers, Support Coordination and Allied Health. 14-day free trial.">
+<meta name="description" content="CiaraLink pricing — one fair subscription, every feature included, 0% commission on the care you deliver. Plans for Providers, Support Workers, Support Coordination and Allied Health. 7-day free trial.">
 <meta property="og:title" content="CiaraLink Pricing — 0% commission, every feature included">
-<meta property="og:description" content="One fair subscription priced by your size. Every feature on every plan. 0% commission, ever. 14-day free trial.">
+<meta property="og:description" content="One fair subscription priced by your size. Every feature on every plan. 0% commission, ever. 7-day free trial.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>if(typeof window.ENV==='undefined'){window.ENV={SUPABASE_URL:'',SUPABASE_ANON_KEY:''};}</script>
 <script src="./env.local.js"></script>
 <script src="/vendor/supabase.js"></script>
-<script src="./supabase-client.js?v=20260628c"></script>
+<script src="./supabase-client.js?v=20260630"></script>
+<script src="./stripe-pricing.js?v=20260630"></script>
 <style>
 :root{
   --teal:#16b8a6; --teal-2:#11d4be; --teal-d:#0b6b60; --teal-dd:#074a43;
@@ -160,6 +161,25 @@ h1,h2,h3{letter-spacing:-.03em;line-height:1.04;font-weight:800}
 .addon-note{font-size:12.5px;color:var(--on-dark-3);font-weight:600;margin-top:18px;position:relative;z-index:1;max-width:760px;line-height:1.55}
 @media(max-width:680px){.addon-card{padding:28px 22px}.addon-grid{grid-template-columns:1fr}}
 
+/* ===== Seat / discipline add-ons ===== */
+.seat-addon{padding:0 0 30px}
+.seat-card{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:28px 26px}
+.seat-card h3{font-size:20px;font-weight:900;margin-bottom:6px}
+.seat-card .seat-lead{font-size:14px;color:var(--tx-2);font-weight:500;margin-bottom:22px;line-height:1.55;max-width:720px}
+.seat-group{margin-bottom:22px}
+.seat-group:last-child{margin-bottom:0}
+.seat-group h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);font-weight:800;margin-bottom:12px}
+.seat-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line)}
+.seat-row:first-of-type{border-top:none;padding-top:0}
+.seat-info{flex:1;min-width:180px}
+.seat-info .sn{font-size:15px;font-weight:800;color:var(--tx)}
+.seat-info .sd{font-size:12.5px;color:var(--tx-3);font-weight:600;margin-top:2px}
+.seat-price{font-size:15px;font-weight:800;color:var(--teal-d);min-width:88px}
+.seat-qty{display:inline-flex;align-items:center;gap:8px}
+.seat-qty label{font-size:12px;font-weight:700;color:var(--tx-2)}
+.seat-qty input{width:56px;height:40px;border:1px solid var(--line);border-radius:10px;text-align:center;font-family:inherit;font-size:15px;font-weight:800;color:var(--tx)}
+.seat-row .btn{width:auto;min-width:148px;height:44px;padding:0 16px;font-size:14px}
+
 /* ===== FAQ / commission strip ===== */
 .commit{padding:30px 0 70px}
 .commit-row{display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;text-align:center;background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:30px}
@@ -217,11 +237,11 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
   <div class="wrap">
     <div class="eyebrow">Pricing</div>
     <h1>Every feature included.<br><span class="grad">0% commission</span>, ever.</h1>
-    <p class="hero-sub">One fair subscription, priced by your size — not a cut of the care you deliver. Providers, support workers, coordinators and allied health all get every feature. Start free for 14 days.</p>
+    <p class="hero-sub">One fair subscription, priced by your size — not a cut of the care you deliver. Providers, support workers, coordinators and allied health all get every feature. Start free for 7 days.</p>
     <div class="hero-micro">
       <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> No commission on care</span>
       <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Every feature on every plan</span>
-      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 14-day free trial</span>
+      <span><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#0b6b60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 7-day free trial</span>
     </div>
 
     <!-- Billing toggle -->
@@ -262,6 +282,17 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
         <div><span class="ik"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Row-level security</div>
       </div>
       <p style="text-align:center;font-size:12.5px;color:var(--tx-3);margin-top:16px;font-weight:600;line-height:1.55;max-width:720px;margin-left:auto;margin-right:auto">Rostering, credentials, incidents, payroll and claiming modules are tools to help you organise work — your organisation remains responsible for regulatory compliance. Some modules use placeholder rates or prices until verified.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SEAT & DISCIPLINE ADD-ONS ================= -->
+<section class="seat-addon">
+  <div class="wrap">
+    <div class="seat-card">
+      <h3>Extra users &amp; disciplines</h3>
+      <p class="seat-lead">Add seats or allied-health disciplines to an existing plan. Quantity is billed per unit — start checkout when you know how many you need.</p>
+      <div id="extraAddonGroups"></div>
     </div>
   </div>
 </section>
@@ -312,7 +343,7 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
       </div>
       <div>
         <h4>Get started</h4>
-        <a href="./landing.html#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="./pricing.html">Start a trial</a>
+        <a href="./landing.html#early">Early access</a><a href="./signin.html">Sign in</a><a href="./signup.html">Create account</a><a href="./signup.html">Start a trial</a>
       </div>
       <div>
         <h4>Company</h4>
@@ -322,7 +353,7 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
     <p class="foot-disc"><b>Important.</b> CiaraLink is a care-coordination software tool — not a registered auditor, legal practice, or compliance authority. We are not lawyers, compliance officers, or audit officers, and nothing on this platform is legal, financial, clinical, or compliance advice. CiaraLink is intended only to help health and disability care teams organise and share their own work; you remain responsible for your own obligations and decisions. Please don’t ask our team for professional advice — speak to a suitably qualified professional instead.</p>
     <div class="foot-bot">
       <span>© 2026 CiaraLink. All rights reserved.</span>
-      <span>Launch preview · prices in AUD ex-GST · annual = 2 months free.</span>
+      <span>Prices in AUD ex-GST · annual = 2 months free · 7-day trial.</span>
     </div>
   </div>
 </footer>
@@ -331,15 +362,16 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:56px 0 34px}
 <div class="toast" id="toast" role="alert" aria-live="polite">
   <span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.3" fill="currentColor"/><path d="M12 3l9 16H3l9-16z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
   <div>
-    <div class="tt" id="toastTitle">Checkout isn’t switched on yet</div>
-    <div class="ts" id="toastBody">This launch preview can’t take payments just yet. <a href="./landing.html#early">Join the early-access list →</a></div>
+    <div class="tt" id="toastTitle">Could not start checkout</div>
+    <div class="ts" id="toastBody">Please sign in and try again, or contact us if this keeps happening.</div>
   </div>
   <button class="tx" id="toastX" aria-label="Dismiss">×</button>
 </div>
 
 <script>
 /* =========================================================
-   TEST price IDs — from stripe-prices.test.json (TEST mode).
+   Fallback price IDs — mirrors stripe-prices.json (same catalogue as
+   stripe-pricing.js and the create-checkout-session allowlist).
    Price IDs are NOT secret and are safe to embed in the frontend.
    ========================================================= */
 var PRICE_IDS = {
@@ -403,6 +435,28 @@ var ADDONS = [
   { key:'priority_referrals_pro',  name:'Pro',  forWho:'Providers & clinics', m:199, y:1990, inc:'Everything in Lite + referral analytics and maximum priority.', pop:true }
 ];
 
+var EXTRA_ADDONS = [
+  { key:'providers_extra_user_starter', name:'Extra user (Starter)', m:25, y:null, monthlyOnly:true, group:'providers' },
+  { key:'providers_extra_user_team', name:'Extra user (Team)', m:20, y:null, monthlyOnly:true, group:'providers' },
+  { key:'providers_extra_user_provider', name:'Extra user (Provider)', m:15, y:null, monthlyOnly:true, group:'providers' },
+  { key:'coordination_extra_user_starter_standard', name:'Extra user', m:20, y:null, monthlyOnly:true, group:'coordination' },
+  { key:'coordination_extra_user_pro', name:'Extra user (Pro)', m:15, y:null, monthlyOnly:true, group:'coordination' },
+  { key:'allied_health_discipline', name:'Discipline', m:49, y:490, monthlyOnly:false, group:'allied_health' }
+];
+var EXTRA_ADDON_LABELS = {
+  providers_extra_user_starter: 'For Starter plan',
+  providers_extra_user_team: 'For Team plan',
+  providers_extra_user_provider: 'For Provider plan',
+  coordination_extra_user_starter_standard: 'For Starter & Standard plans',
+  coordination_extra_user_pro: 'For Pro plan',
+  allied_health_discipline: 'Speech, OT, Physio, Psychology, Dietetics, EP, Social Work'
+};
+var EXTRA_ADDON_GROUPS = [
+  { id:'providers', title:'Providers — extra users' },
+  { id:'coordination', title:'Support Coordination — extra users' },
+  { id:'allied_health', title:'Allied Health — extra disciplines' }
+];
+
 /* ---- State ---- */
 var state = { interval:'month', cat:'providers' };
 var fmt = function(n){ return '$' + n.toLocaleString('en-AU'); };
@@ -440,7 +494,7 @@ function renderCards(){
       }
       var btnCls = t.pop ? 'btn-primary' : 'btn-outline';
       cta = '<button class="btn ' + btnCls + ' tier-cta-pad" data-key="' + t.key + '">' +
-            '<span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+            '<span class="lbl">Start 7-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
     }
 
     card.innerHTML =
@@ -473,10 +527,47 @@ function renderAddons(){
       '<div class="at-price"><span class="at-amt">' + fmt(amt) + '</span><span class="at-per">/ mo</span></div>' +
       '<div class="at-billed">' + billed + '</div>' +
       '<div class="at-inc">' + a.inc + '</div>' +
-      '<button class="btn btn-primary" data-key="' + a.key + '"><span class="lbl">Start 14-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
+      '<button class="btn btn-primary" data-key="' + a.key + '"><span class="lbl">Start 7-day trial</span><span class="arrow">→</span><span class="spin"></span></button>';
     wrap.appendChild(el);
   });
   bindCheckout(wrap);
+}
+
+/* ---- Render seat / discipline add-ons ---- */
+function renderExtraAddons(){
+  var host = document.getElementById('extraAddonGroups');
+  if(!host) return;
+  host.innerHTML = '';
+  if(!EXTRA_ADDONS.length){
+    host.innerHTML = '<p style="font-size:13px;color:var(--tx-3);font-weight:600">No add-ons available right now.</p>';
+    return;
+  }
+  var annual = state.interval === 'year';
+  EXTRA_ADDON_GROUPS.forEach(function(g){
+    var items = EXTRA_ADDONS.filter(function(a){ return a.group === g.id; });
+    if(!items.length) return;
+    var section = document.createElement('div');
+    section.className = 'seat-group';
+    section.innerHTML = '<h4>' + g.title + '</h4>';
+    items.forEach(function(a){
+      var useAnnual = annual && !a.monthlyOnly && a.y != null;
+      var unit = useAnnual ? a.y : a.m;
+      var per = useAnnual ? '/ yr each' : '/ mo each';
+      var row = document.createElement('div');
+      row.className = 'seat-row';
+      row.innerHTML =
+        '<div class="seat-info"><div class="sn">' + a.name + '</div>' +
+        '<div class="sd">' + (EXTRA_ADDON_LABELS[a.key] || a.notes || '') + '</div></div>' +
+        '<div class="seat-price">' + fmt(unit) + '<span style="font-size:12px;font-weight:700;color:var(--tx-3)">' + per + '</span></div>' +
+        '<div class="seat-qty"><label for="qty-' + a.key + '">Qty</label>' +
+        '<input type="number" id="qty-' + a.key + '" min="1" max="100" value="1" inputmode="numeric"></div>' +
+        '<button class="btn btn-outline" data-key="' + a.key + '" data-addon="1" data-qty-input="qty-' + a.key + '" data-interval="' + (useAnnual ? 'year' : 'month') + '">' +
+        '<span class="lbl">Add to plan</span><span class="arrow">→</span><span class="spin"></span></button>';
+      section.appendChild(row);
+    });
+    host.appendChild(section);
+  });
+  bindCheckout(host);
 }
 
 /* ---- Checkout (honest fallback) ---- */
@@ -486,25 +577,62 @@ function bindCheckout(scope){
   });
 }
 
+async function ensureSignedIn(){
+  var A = window.CiaraLinkAuth;
+  if(!A || !A.isSupabaseConfigured || !A.isSupabaseConfigured()) return true;
+  var client = A.getSupabaseClient && A.getSupabaseClient();
+  if(!client) return true;
+  try {
+    var r = await client.auth.getSession();
+    if(r && r.data && r.data.session) return true;
+  } catch(e){}
+  window.location.href = './signin.html?next=' + encodeURIComponent('pricing.html');
+  return false;
+}
+
+function checkoutErrorMessage(err, data){
+  var code = (data && data.error) || err || '';
+  if(code === 'sign in required') return { title:'Sign in required', body:'Create an account or <a href="./signin.html?next=pricing.html">sign in</a> to start your free trial.' };
+  if(/Stripe not configured|missing STRIPE_SECRET_KEY/i.test(code)) return { title:'Billing not available', body:'Checkout is not configured on this server yet. Try again later or <a href="./landing.html#early">contact us</a>.' };
+  if(code === 'unknown priceId' || code === 'unknown_plan') return { title:'Plan not found', body:'That plan could not be loaded. Refresh the page or pick another tier.' };
+  if(code === 'network') return { title:'Connection problem', body:'Could not reach the checkout server. Check your connection and try again.' };
+  return { title:'Could not start checkout', body:(code ? String(code) + ' — ' : '') + 'Please try again or <a href="./signin.html?next=pricing.html">sign in</a> first.' };
+}
+
 async function startCheckout(btn){
   if(btn.classList.contains('loading')) return;
   var key = btn.getAttribute('data-key');
-  var ids = PRICE_IDS[key];
-  var priceId = ids ? ids[state.interval] : null;
-  if(!priceId){ // fall back to monthly if no annual price exists
-    priceId = ids ? ids.month : null;
+  if(!key){ showToast('Pick a plan', 'Choose a tier above to start your trial.'); return; }
+  if(!(await ensureSignedIn())) return;
+
+  var qty = 1;
+  var qtyInputId = btn.getAttribute('data-qty-input');
+  if(qtyInputId){
+    var inp = document.getElementById(qtyInputId);
+    qty = Math.min(Math.max(parseInt(inp && inp.value, 10) || 1, 1), 100);
+    if(inp) inp.value = String(qty);
   }
-  if(!priceId){ showToast(); return; }
+  var interval = btn.getAttribute('data-interval') || state.interval;
 
   btn.classList.add('loading');
   btn.disabled = true;
-
   var done = function(){ btn.classList.remove('loading'); btn.disabled = false; };
 
-  // Link the checkout to the signed-in user so the subscription maps to their account.
-  // The server derives the account id from this token (verified) — it does NOT trust a
-  // client-supplied id, so a subscription can't be attached to someone else's account.
-  var body = { priceId: priceId, mode:'subscription', quantity:1 };
+  if(window.CiaraLinkStripe && window.CiaraLinkStripe.startCheckout){
+    var res = await window.CiaraLinkStripe.startCheckout({ slug: key, interval: interval, quantity: qty });
+    if(res && res.redirecting) return;
+    done();
+    var msg = checkoutErrorMessage(res && res.error, res && res.data);
+    showToast(msg.title, msg.body);
+    return;
+  }
+
+  var ids = PRICE_IDS[key];
+  var priceId = ids ? ids[state.interval] : null;
+  if(!priceId) priceId = ids ? ids.month : null;
+  if(!priceId){ done(); showToast('Plan not found', 'That plan could not be loaded. Refresh and try again.'); return; }
+
+  var body = { priceId: priceId, mode:'subscription', quantity: qty };
   var headers = { 'Content-Type':'application/json' };
   try {
     var client = window.CiaraLinkAuth && window.CiaraLinkAuth.getSupabaseClient && window.CiaraLinkAuth.getSupabaseClient();
@@ -513,7 +641,7 @@ async function startCheckout(btn){
       var token = r && r.data && r.data.session && r.data.session.access_token;
       if(token){ headers['Authorization'] = 'Bearer ' + token; }
     }
-  } catch(e){ /* not signed in — checkout still works, just unlinked */ }
+  } catch(e){}
 
   fetch('./api/create-checkout-session', {
     method:'POST',
@@ -525,19 +653,22 @@ async function startCheckout(btn){
   }).then(function(res){
     if(res.ok && res.data && res.data.url){
       window.location = res.data.url;
-      return; // keep loading state during redirect
+      return;
     }
     done();
-    showToast();
+    var msg = checkoutErrorMessage((res.data && res.data.error) || 'checkout_failed', res.data);
+    showToast(msg.title, msg.body);
   }).catch(function(){
     done();
-    showToast();
+    showToast('Connection problem', 'Could not reach the checkout server. Check your connection and try again.');
   });
 }
 
 /* ---- Toast ---- */
 var toastTimer;
-function showToast(){
+function showToast(title, body){
+  document.getElementById('toastTitle').textContent = title || 'Could not start checkout';
+  document.getElementById('toastBody').innerHTML = body || 'Please try again or <a href="./signin.html?next=pricing.html">sign in</a> first.';
   var t = document.getElementById('toast');
   t.classList.add('show');
   clearTimeout(toastTimer);
@@ -553,7 +684,7 @@ document.getElementById('billSeg').addEventListener('click', function(e){
   var b = e.target.closest('button'); if(!b) return;
   state.interval = b.getAttribute('data-int');
   this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
-  renderCards(); renderAddons();
+  renderCards(); renderAddons(); renderExtraAddons();
 });
 
 document.getElementById('cats').addEventListener('click', function(e){
@@ -563,9 +694,29 @@ document.getElementById('cats').addEventListener('click', function(e){
   renderCards();
 });
 
-/* ---- Init ---- */
-renderCards();
-renderAddons();
+/* ---- Init: render fallback, then merge live plan prices ---- */
+function renderAll(){
+  renderCards();
+  renderAddons();
+  renderExtraAddons();
+}
+
+async function loadLivePricing(){
+  var A = window.CiaraLinkAuth;
+  if(!A || !A.loadPlatformSubscriptionPlans || !A.mergePricingCatalogFromPlans) return;
+  try {
+    var res = await A.loadPlatformSubscriptionPlans();
+    if(!res.ok || !(res.plans && res.plans.length)) return;
+    var merged = A.mergePricingCatalogFromPlans(CATS, ADDONS, res.plans);
+    CATS = merged.cats;
+    ADDONS = merged.addons;
+    EXTRA_ADDONS = merged.extraAddons || [];
+    renderAll();
+  } catch(e){ /* keep hardcoded fallback */ }
+}
+
+renderAll();
+loadLivePricing();
 </script>
 </body>
 </html>

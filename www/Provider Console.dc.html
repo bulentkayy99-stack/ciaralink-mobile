@@ -21,6 +21,8 @@
   <script src="./env.local.js?v=20260628"></script>
   <script src="/vendor/supabase.js"></script>
   <script src="./supabase-client.js?v=20260628c"></script>
+  <script src="./credentials-client.js?v=20260629"></script>
+  <script src="./incident-client.js?v=20260630"></script>
   <script src="./auth-guard.js?v=4"></script>
   <style>
     *{box-sizing:border-box} html,body{margin:0}
@@ -120,7 +122,7 @@
         <button onClick="{{ toggleNotif }}" style="position:relative;width:40px;height:40px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3a544e" style-hover="background:#f6f9f7">{{ bellEl }}<span style="position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:99px;background:#e0556e;border:1.5px solid #fff"></span></button>
         <sc-if value="{{ notifOpen }}" hint-placeholder-val="">
           <div style="position:absolute;right:0;top:48px;width:330px;background:#fff;border:1px solid #e2e9e6;border-radius:16px;box-shadow:0 24px 48px -20px rgba(20,48,43,.4);overflow:hidden;z-index:40">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f4f2"><span style="font-size:14px;font-weight:800;color:#14302b">Notifications</span><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:999px">5 new</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #f1f4f2"><span style="font-size:14px;font-weight:800;color:#14302b">Notifications</span><sc-if value="{{ notifNewCount }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#0b6b60;background:#e7f4f1;padding:2px 8px;border-radius:999px">{{ notifNewCount }} new</span></sc-if></div>
             <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
               <div style="display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid #f1f4f2;background:{{ n.bg }}">
                 <div style="width:32px;height:32px;border-radius:9px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;background:{{ n.tintBg }}">{{ n.iconEl }}</div>
@@ -177,6 +179,12 @@
       </sc-if>
       <sc-if value="{{ hasRecords }}" hint-placeholder-val="{{ true }}">
       <div style="">
+        <sc-if value="{{ recordsSessionOnly }}" hint-placeholder-val="">
+          <div style="display:flex;align-items:flex-start;gap:11px;background:#fbf6ec;border:1px solid #f0e6d2;border-radius:14px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:#7a5a1f;line-height:1.5">
+            <span style="display:flex;flex:0 0 auto;margin-top:1px">{{ shieldSmEl }}</span>
+            <span>Approve, send back, and review notes are <strong>session only</strong> — they are not saved to the database yet. Reloading this page will reset them.</span>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:16px;margin-bottom:18px">
           <sc-for list="{{ recStats }}" as="s" hint-placeholder-count="4">
             <div style="flex:1;background:#fff;border:1px solid #e7ece9;border-radius:16px;padding:15px 18px;box-shadow:0 1px 2px rgba(20,48,43,.04)">
@@ -234,6 +242,7 @@
                 </sc-for>
               </div>
 
+              <sc-if value="{{ recordsDemoDetail }}" hint-placeholder-val="{{ true }}">
               <div style="position:relative;height:130px;border-radius:13px;overflow:hidden;background:linear-gradient(135deg,#dfe9e4,#eef3f0);margin-bottom:16px">
                 <div style="position:absolute;top:0;bottom:0;left:42%;width:12px;background:#fff;transform:skewX(-12deg)"></div>
                 <div style="position:absolute;left:0;right:0;top:56%;height:12px;background:#fff;transform:skewY(-3deg)"></div>
@@ -241,15 +250,21 @@
                 <div style="position:absolute;left:56%;top:52%;width:20px;height:20px;border-radius:50% 50% 50% 0;background:#0c2622;transform:translate(-50%,-100%) rotate(-45deg)"></div>
                 <div style="position:absolute;left:11px;bottom:9px;display:flex;gap:11px;font-size:10.5px;font-weight:600;color:#41635c"><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:99px;background:#16b8a6"></span>In 11:00</span><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:99px;background:#0c2622"></span>Out 14:58</span></div>
               </div>
+              </sc-if>
 
+              <sc-if value="{{ recordsDemoDetail }}" hint-placeholder-val="{{ true }}">
               <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">TASKS COMPLETED</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px">
                 <sc-for list="{{ d.tasks }}" as="t" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:8px">{{ checkSmEl }}<span style="font-size:12.5px;color:#41635c">{{ t }}</span></div></sc-for>
               </div>
+              </sc-if>
 
               <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:#8a9a94;margin-bottom:9px">SHIFT NOTE</div>
+              <sc-if value="{{ recordsDemoDetail }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px"><sc-for list="{{ d.chips }}" as="c" hint-placeholder-count="3"><span style="font-size:11px;font-weight:600;color:#0b6b60;background:#e7f4f1;padding:3px 9px;border-radius:7px">{{ c }}</span></sc-for></div>
+              </sc-if>
               <div style="font-size:13px;line-height:1.6;color:#2c4a44;margin-bottom:14px">{{ d.note }}</div>
+              <sc-if value="{{ recordsDemoDetail }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;gap:9px;margin-bottom:16px">
                 <div style="width:96px;height:70px;border-radius:11px;background:linear-gradient(135deg,#cfe6d6,#e7f4f1)"></div>
                 <div style="width:96px;height:70px;border-radius:11px;background:linear-gradient(135deg,#d7dffb,#eef0fd)"></div>
@@ -264,6 +279,7 @@
                 <svg viewBox="0 0 120 40" style="width:80px;height:26px"><path d="M8 30 C16 14,22 14,26 28 C30 38,38 36,42 22 C46 30,54 28,62 26 C72 22,80 32,92 24 C100 18,108 22,114 18" fill="none" stroke="#0e5147" stroke-width="2.4" stroke-linecap="round"></path></svg>
                 <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#14302b">Signed — {{ d.client }}</div><div style="font-size:10.5px;color:#9aa8a3">14:58 · GPS co-located ✓</div></div>
               </div>
+              </sc-if>
             </div>
 
             <div style="display:flex;align-items:center;gap:10px;padding:11px 22px;background:#f4faf8;border-top:1px solid #eef2f0">{{ shieldSmEl }}<div style="font-size:11.5px;color:#41635c">Approving locks this as <b style="color:#14302b">agreed proof the shift happened</b> — it protects your worker and you if a claim is ever questioned.</div></div>
@@ -272,7 +288,7 @@
               <button onClick="{{ sendBack }}" style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ backEl }}Send back</button>
               <button onClick="{{ addNote }}" style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#f6f9f7">{{ noteAddEl }}Add note</button>
               <div style="flex:1"></div>
-              <button onClick="{{ goBilling }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkWEl }}Approve & bill</button>
+              <button onClick="{{ approveAndBill }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;background:#16b8a6;color:#06201c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#2bcbb9">{{ checkWEl }}Approve & bill</button>
             </div>
           </div>
         </div>
@@ -284,6 +300,7 @@
       <sc-if value="{{ isBilling }}" hint-placeholder-val="">
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <button onClick="{{ goClaims }}" style="padding:9px 14px;border-radius:11px;border:1px solid #16b8a6;background:#f0faf8;color:#0b6b60;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">NDIS Claims →</button>
+        <button onClick="{{ goPriceGuide }}" style="padding:9px 14px;border-radius:11px;border:1px solid #dde4e1;background:#fff;color:#41635c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Price Guide →</button>
         <button onClick="{{ goPayroll }}" style="padding:9px 14px;border-radius:11px;border:1px solid #e2e9e6;background:#fff;color:#2c4a44;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Payroll (SCHADS) →</button>
       </div>
       <sc-if value="{{ noBilling }}" hint-placeholder-val="">
@@ -460,7 +477,7 @@
       <div style="">
         <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:18px;align-items:start">
           <div style="background:#fff;border:1px solid #e7ece9;border-radius:18px;box-shadow:0 1px 2px rgba(20,48,43,.04);overflow:hidden">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:15px;font-weight:800;color:#14302b">Incident reports</span><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:2px 9px;border-radius:999px">2 open</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2f0"><span style="font-size:15px;font-weight:800;color:#14302b">Incident reports</span><sc-if value="{{ openIncCount }}" hint-placeholder-val=""><span style="font-size:11px;font-weight:700;color:#c0445c;background:#fbe9ed;padding:2px 9px;border-radius:999px">{{ openIncCount }}</span></sc-if></div>
             <sc-for list="{{ incidents }}" as="i" hint-placeholder-count="3">
               <button onClick="{{ i.onClick }}" style="width:100%;display:flex;gap:12px;padding:14px 16px;border:none;border-bottom:1px solid #f1f4f2;border-left:3px solid {{ i.selBar }};cursor:pointer;font-family:inherit;text-align:left;background:{{ i.rowBg }}">
                 <div style="width:9px;height:9px;border-radius:99px;flex:0 0 9px;margin-top:5px;background:{{ i.sevDot }}"></div>
@@ -510,7 +527,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
 class Component extends DCLogic {
-  state = { view:'records', sel:0, notifOpen:false, billClient:0, incSel:0, billDone:{}, clientCycles:{}, supabaseParticipants:[], supabaseConnected:false, toast:null, searchTerm:'', orgName:'', orgRole:'', orgInit:'', orgShiftNotes:[], snSel:0 };
+  state = { view:'records', sel:0, notifOpen:false, billClient:0, incSel:0, billDone:{}, clientCycles:{}, supabaseParticipants:[], supabaseConnected:false, toast:null, searchTerm:'', orgName:'', orgRole:'', orgInit:'', orgShiftNotes:[], snSel:0, liveNotifications:[], notifLoaded:false, liveIncidents:[], incidentsLoaded:false, orgShifts:[], liveAgreements:[], complianceRows:[], liveCredentials:[], liveClaims:[], claimLineItems:[], visitApproved:{}, sentBack:{}, reviewNotes:{} };
   showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
   // --- Real client-side document helpers (no backend required) -------------
   // Trigger a browser file download from an in-memory string. Used for the
@@ -636,9 +653,103 @@ class Component extends DCLogic {
     return React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke,strokeWidth:sw||1.8,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:P[name]||P.inbox}));
   }
   setView(v){ this.setState({view:v, notifOpen:false}); }
-  componentDidMount(){ const allowed=['records','billing','compliance','incidents']; const h=(location.hash||'').replace('#',''); if(allowed.includes(h)) this.setState({view:h}); if(new URLSearchParams(location.search).get('embed')==='1'){ const st=document.createElement('style'); st.textContent='aside{display:none!important} main>header{display:none!important} main{background:#eaeeec!important}'; document.head.appendChild(st); }
+  componentDidMount(){
+    const allowed=['records','billing','compliance','incidents','agreements'];
+    const h=(location.hash||'').replace('#','');
+    if(allowed.includes(h)) this.setState({view:h});
+    if(new URLSearchParams(location.search).get('embed')==='1'){
+      const st=document.createElement('style');
+      st.textContent='aside{display:none!important} main>header{display:none!important} main{background:#eaeeec!important}';
+      document.head.appendChild(st);
+    }
+    this.loadNotifs();
+    if(window.startNotificationPolling){
+      this._stopNotifPoll=window.startNotificationPolling(()=>this.loadNotifs(),45000);
+    }
     window.addEventListener('hashchange',()=>{ const x=(location.hash||'').replace('#',''); if(allowed.includes(x)) this.setState({view:x}); });
-    this.loadParticipants(); this.loadOrgContext(); this.loadOrgShiftNotes(); }
+    this.loadParticipants();
+    this.loadOrgContext();
+    this.loadOrgShiftNotes();
+    this.loadLiveIncidents();
+    this.loadLiveShifts();
+    this.loadLiveAgreements();
+    this.loadLiveCompliance();
+    this.loadLiveBilling();
+  }
+
+  componentWillUnmount(){
+    try{ if(this._stopNotifPoll) this._stopNotifPoll(); }catch(e){}
+  }
+
+  loadNotifs(){
+    try{
+      if(window.isSupabaseConfigured && window.isSupabaseConfigured() && window.loadNotificationsForCurrentUser){
+        this.setState({supabaseConnected:true});
+        Promise.resolve(window.loadNotificationsForCurrentUser()).then(res=>{
+          this.setState({liveNotifications:(res && !res.error)?(res.notifications||[]):[], notifLoaded:true});
+        }).catch(()=>this.setState({notifLoaded:true}));
+      }
+    }catch(e){}
+  }
+  loadLiveIncidents(attempt){
+    attempt=attempt||0;
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    if(typeof window.loadIncidents!=='function'){
+      if(attempt<25) setTimeout(()=>this.loadLiveIncidents(attempt+1),150);
+      return;
+    }
+    Promise.resolve(window.loadIncidents({limit:100})).then(res=>{
+      if(res && !res.error) this.setState({liveIncidents:res.incidents||[], incidentsLoaded:true});
+      else this.setState({incidentsLoaded:true});
+    }).catch(()=>this.setState({incidentsLoaded:true}));
+  }
+  loadLiveShifts(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadOrgShifts) return;
+    Promise.resolve(window.loadOrgShifts({})).then(res=>{
+      if(res && !res.error) this.setState({orgShifts:res.shifts||[]});
+    }).catch(err=>console.error('loadLiveShifts error:',err));
+  }
+  loadLiveAgreements(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured()) || !window.loadServiceAgreementsForParticipant) return;
+    Promise.resolve(window.loadServiceAgreementsForParticipant()).then(res=>{
+      if(res && !res.error) this.setState({liveAgreements:res.agreements||[]});
+    }).catch(err=>console.error('loadLiveAgreements error:',err));
+  }
+  loadLiveCompliance(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    const C=window.CiaraCredentials;
+    const c=window.getSupabaseClient && window.getSupabaseClient();
+    if(!C || !C.loadComplianceRegister || !c) return;
+    Promise.all([
+      C.loadComplianceRegister(),
+      c.from('worker_credential_status').select('worker_id,type,expiry,days_to_expiry,status,mandatory').order('worker_id')
+    ]).then(([regRes,credRes])=>{
+      this.setState({
+        complianceRows:(regRes && regRes.rows)||[],
+        liveCredentials:(credRes && credRes.data)||[]
+      });
+    }).catch(err=>console.error('loadLiveCompliance error:',err));
+  }
+  loadLiveBilling(){
+    if(!(window.isSupabaseConfigured && window.isSupabaseConfigured())) return;
+    const c=window.getSupabaseClient && window.getSupabaseClient();
+    if(!c) return;
+    Promise.resolve(c.from('claims')
+      .select('id,reference,status,total_amount,line_count,created_at,submitted_at,paid_at')
+      .order('created_at',{ascending:false}).limit(50))
+      .then(res=>{
+        if(res.error){ console.error('loadLiveBilling claims error:',res.error); return; }
+        const claims=res.data||[];
+        this.setState({liveClaims:claims});
+        const draft=claims.find(x=>x.status==='draft');
+        if(!draft) return;
+        return c.from('claim_line_items')
+          .select('id,claim_id,participant_id,support_item_number,supports_delivered_from,hours,unit_price,line_total,participants(full_name,preferred_name)')
+          .eq('claim_id',draft.id).limit(200);
+      }).then(linesRes=>{
+        if(linesRes && !linesRes.error) this.setState({claimLineItems:linesRes.data||[]});
+      }).catch(err=>console.error('loadLiveBilling error:',err));
+  }
   renderVals(){
     const ic=(n,c,s,w)=>this.ic(n,c,s,w);
     const view=this.state.view;
@@ -646,14 +757,20 @@ class Component extends DCLogic {
     // client names) renders ONLY in the unconfigured preview.
     const demoMode = !(window.isSupabaseConfigured && window.isSupabaseConfigured());
     const sbParts=this.state.supabaseParticipants||[];
+    const _pName=(p)=>p?(p.preferred_name||p.full_name||'Participant'):'Participant';
+    const _fmtDate=(iso)=>{ if(!iso) return '—'; const d=new Date(iso); return isNaN(d.getTime())?'—':d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); };
+    const _fmtWhen=(iso)=>{ if(!iso) return '—'; const d=new Date(iso); return isNaN(d.getTime())?'—':d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); };
+    const _shiftHours=(s)=>{ if(!s||!s.start_time||!s.end_time) return 0; return Math.max(0,(new Date(s.end_time)-new Date(s.start_time))/36e5-(Number(s.break_minutes||0)/60)); };
+    const _money=(n)=>'$'+Number(n||0).toLocaleString('en-AU',{minimumFractionDigits:0,maximumFractionDigits:0});
+    const _tints=['#16b8a6','#6366f1','#d98b22','#9333ea','#0891b2','#0e5147'];
+    const _openInc=(this.state.liveIncidents||[]).filter(i=>!['resolved','closed'].includes(String(i.status||'').toLowerCase())).length;
 
-    // Nav badge counts are demo-only; real mode shows no fabricated numbers.
     const navDefs=[
       ['records','Visit Records','inbox',demoMode?'8':null,'#16b8a6','#06201c'],
       ['agreements','Agreements','receipt',null,'',''],
       ['billing','Billing','receipt',null,'',''],
       ['compliance','Compliance','shield',null,'',''],
-      ['incidents','Incidents','alert',demoMode?'2':null,'#fbe9ed','#c0445c']
+      ['incidents','Incidents','alert',demoMode?'2':(_openInc||null),'#fbe9ed','#c0445c']
     ];
     const nav=navDefs.map(([key,label,icon,badge,badgeBg,badgeFg])=>{
       const a=view===key;
@@ -671,21 +788,76 @@ class Component extends DCLogic {
     };
 
     // notifications
-    const notifs=[
+    const fmtNotifTime=(iso)=>{ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; const m=Math.floor((Date.now()-d.getTime())/60000); if(m<1) return 'Just now'; if(m<60) return m+' min ago'; const h=Math.floor(m/60); if(h<24) return h+' h ago'; return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); };
+    const demoNotifs=[
       {text:'Amara O. submitted a verified visit for Margaret R.',time:'2 min ago',bg:'#f4faf8',tintBg:'#e7f4f1',iconEl:ic('inbox','#16b8a6',16)},
       {text:'Incident flagged — David L. knee pain during physio',time:'18 min ago',bg:'#fff',tintBg:'#fbe9ed',iconEl:ic('alert','#e0556e',16)},
       {text:'Noah R.\u2019s First Aid expires in 7 days',time:'1 h ago',bg:'#fff',tintBg:'#fbf0df',iconEl:ic('cert','#d98b22',16)},
       {text:'Invoice batch ready — 12 visits, $4,860',time:'2 h ago',bg:'#fff',tintBg:'#eef0fd',iconEl:ic('receipt','#6366f1',16)}
     ];
+    const liveNotifRows=(this.state.liveNotifications||[]).map(n=>({
+      text:(n.title||n.body||'Notification'), time:fmtNotifTime(n.created_at), bg:n.read_at?'#fff':'#f7fbf9', tintBg:'#eef2f0', iconEl:ic('bell','#16b8a6',16)
+    }));
+    const notifs=demoMode?demoNotifs:liveNotifRows;
 
     // ---- records ----
-    const recStats=[
+    const orgShifts=this.state.orgShifts||[];
+    const _notesByShift={};
+    (this.state.orgShiftNotes||[]).forEach(n=>{ if(n.shift_id) _notesByShift[n.shift_id]=n; });
+    const _liveShiftRows= demoMode ? [] : orgShifts.filter(s=>['completed','in_progress'].includes(String(s.status||''))).map((s,i)=>{
+      const client=_pName(s.participants||{});
+      const worker=s.worker_name||'Unassigned';
+      const hrs=_shiftHours(s);
+      const note=_notesByShift[s.id];
+      const st=note&&note.note_type==='incident'?'flagged':'new';
+      return {id:s.id,worker,init:(worker||'U').substring(0,2).toUpperCase(),tint:_tints[i%_tints.length],pro:false,
+        client,service:(s.support_type||s.title||'Support')+' · '+hrs.toFixed(1)+'h',when:_fmtWhen(s.end_time||s.start_time),st,
+        shift:s,noteBody:note?note.body:'',checkedIn:s.checked_in_at,checkedOut:s.checked_out_at};
+    });
+    const recStats= demoMode ? [
       {label:'Awaiting review',value:'8',iconEl:ic('inbox','#16b8a6',17),tintBg:'#e7f4f1'},
       {label:'Approved today',value:'23',iconEl:ic('check','#1e9e6a',17),tintBg:'#e9f6ef'},
       {label:'Flagged',value:'2',iconEl:ic('flag','#e0556e',17),tintBg:'#fbe9ed'},
       {label:'Hours this week',value:'412',iconEl:ic('clock','#6366f1',17),tintBg:'#eef0fd'}
+    ] : null;
+    const _sentBack=this.state.sentBack||{};
+    const _visitApproved=this.state.visitApproved||{};
+    const _recKey=(r,i)=>String((r&&r.id)||(r&&r.shift&&r.shift.id)||i);
+    const _applyReviewState=(rows)=>rows.map((r,i)=>{
+      const key=_recKey(r,i);
+      if(_sentBack[key]||_sentBack[i]) return null;
+      let st=r.st;
+      if(_visitApproved[key]||_visitApproved[i]) st='approved';
+      return Object.assign({}, r, {st, _key:key});
+    }).filter(Boolean);
+    const recDataRaw = demoMode ? [
+      {worker:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,client:'Margaret Reyes',service:'Personal Care · 4h',when:'Today 14:58',st:'new'},
+      {worker:'Jordan Pham',init:'JP',tint:'#6366f1',pro:true,client:'David Lowe',service:'Physio · 1h',when:'Today 15:10',st:'flagged'},
+      {worker:'Lena Sørensen',init:'LS',tint:'#d98b22',pro:false,client:'Tom Becker',service:'Community · 3h',when:'Today 13:20',st:'new'},
+      {worker:'Noah Reed',init:'NR',tint:'#0e5147',pro:false,client:'Priya Sharma',service:'Personal Care · 4h',when:'Today 13:02',st:'new'},
+      {worker:'Grace Adeyemi',init:'GA',tint:'#9333ea',pro:true,client:'Ruth Kim',service:'Disability · 3h',when:'Today 12:40',st:'approved'},
+      {worker:'Marcus Hill',init:'MH',tint:'#0891b2',pro:false,client:'Sam Wills',service:'Personal Care · 5h',when:'Today 11:30',st:'new'}
+    ] : _liveShiftRows;
+    const recData=_applyReviewState(recDataRaw);
+    const recStatsFinal= demoMode ? recStats : [
+      {label:'Awaiting review',value:String(recData.filter(r=>r.st==='new').length),iconEl:ic('inbox','#16b8a6',17),tintBg:'#e7f4f1'},
+      {label:'Approved (session)',value:String(recData.filter(r=>r.st==='approved').length),iconEl:ic('check','#1e9e6a',17),tintBg:'#e9f6ef'},
+      {label:'Flagged',value:String(recData.filter(r=>r.st==='flagged').length),iconEl:ic('flag','#e0556e',17),tintBg:'#fbe9ed'},
+      {label:'Hours logged',value:String(Math.round(recData.reduce((a,r)=>a+_shiftHours(r.shift),0)))+'h',iconEl:ic('clock','#6366f1',17),tintBg:'#eef0fd'}
     ];
-    const tabDefs=[['new','New 8'],['flagged','Flagged 2'],['approved','Approved'],['all','All']];
+    const tabDefs= demoMode ? [
+      ['new','New 8'],['flagged','Flagged 2'],['approved','Approved'],['all','All']
+    ] : (()=>{
+      const nc=recData.filter(r=>r.st==='new').length;
+      const fc=recData.filter(r=>r.st==='flagged').length;
+      const ac=recData.filter(r=>r.st==='approved').length;
+      return [
+        ['new','New'+(nc?' '+nc:'')],
+        ['flagged','Flagged'+(fc?' '+fc:'')],
+        ['approved','Approved'+(ac?' '+ac:'')],
+        ['all','All']
+      ];
+    })();
     const recTab=this.state.recTab||'new';
     const recTabs=tabDefs.map(([key,label])=>{const a=recTab===key;return{label,onClick:()=>this.setState({recTab:key}),bg:a?'#0c2622':'#f1f4f2',fg:a?'#eafaf8':'#5f726d'};});
 
@@ -695,17 +867,10 @@ class Component extends DCLogic {
     // names onto these fabricated records (the old modulo) would attach fake visit
     // evidence to real people, so the demo set renders only in preview. In real
     // mode the records view shows an honest empty-state (hasRecords/noRecords).
-    const recData = demoMode ? [
-      {worker:'Amara Okafor',init:'AO',tint:'#16b8a6',pro:true,client:'Margaret Reyes',service:'Personal Care · 4h',when:'Today 14:58',st:'new'},
-      {worker:'Jordan Pham',init:'JP',tint:'#6366f1',pro:true,client:'David Lowe',service:'Physio · 1h',when:'Today 15:10',st:'flagged'},
-      {worker:'Lena Sørensen',init:'LS',tint:'#d98b22',pro:false,client:'Tom Becker',service:'Community · 3h',when:'Today 13:20',st:'new'},
-      {worker:'Noah Reed',init:'NR',tint:'#0e5147',pro:false,client:'Priya Sharma',service:'Personal Care · 4h',when:'Today 13:02',st:'new'},
-      {worker:'Grace Adeyemi',init:'GA',tint:'#9333ea',pro:true,client:'Ruth Kim',service:'Disability · 3h',when:'Today 12:40',st:'approved'},
-      {worker:'Marcus Hill',init:'MH',tint:'#0891b2',pro:false,client:'Sam Wills',service:'Personal Care · 5h',when:'Today 11:30',st:'new'}
-    ] : [];
     // Client-side live filter over already-loaded rows (header search).
     const q=(this.state.searchTerm||'').trim().toLowerCase();
-    const records=recData.map((r,i)=>{
+    const recTabFiltered=recTab==='all'?recData:recData.filter(r=>r.st===recTab);
+    const records=recTabFiltered.map((r,i)=>{
       const s=ST[r.st];const a=this.state.sel===i;
       return {worker:r.worker,init:r.init,tint:r.tint,pro:r.pro,client:r.client,service:r.service,when:r.when,
         status:s.label,statusFg:s.fg,statusBg:s.bg,
@@ -713,21 +878,26 @@ class Component extends DCLogic {
         rowBg:a?'#f4faf8':'#fff',selBar:a?'#16b8a6':'transparent',
         _match:(r.worker+' '+r.client).toLowerCase()};
     }).filter(o=>!q||o._match.includes(q));
-    const dr=recData[this.state.sel]||recData[0]||null;
+    const dr=recTabFiltered[this.state.sel]||recTabFiltered[0]||null;
     const ds=dr?ST[dr.st]:null;
     const d= dr ? {
-      worker:dr.worker,init:dr.init,tint:dr.tint,pro:dr.pro,client:dr.client,service:dr.service,date:'Wed 18 Jun 2026',
+      worker:dr.worker,init:dr.init,tint:dr.tint,pro:dr.pro,client:dr.client,service:dr.service,date:dr.when||'',
       status:ds.label,statusFg:ds.fg,statusBg:ds.bg,
-      proofs:[
-        {label:'GPS clock-in',val:'\u00b16m · 11:00:04',iconEl:ic('pin','#16b8a6',16)},
-        {label:'GPS clock-out',val:'\u00b18m · 14:58:11',iconEl:ic('pin','#0b6b60',16)},
+      proofs: demoMode ? [
+        {label:'GPS clock-in',val:'±6m · 11:00:04',iconEl:ic('pin','#16b8a6',16)},
+        {label:'GPS clock-out',val:'±8m · 14:58:11',iconEl:ic('pin','#0b6b60',16)},
         {label:'Assigned by',val:'Brightside Care',iconEl:ic('users','#6366f1',16)},
         {label:'Device',val:'Amara’s iPhone · trusted',iconEl:ic('device','#d98b22',16)}
+      ] : [
+        {label:'Clock-in',val:dr.checkedIn?_fmtWhen(dr.checkedIn):'Not recorded',iconEl:ic('pin','#16b8a6',16)},
+        {label:'Clock-out',val:dr.checkedOut?_fmtWhen(dr.checkedOut):'Not recorded',iconEl:ic('pin','#0b6b60',16)},
+        {label:'Shift status',val:String(dr.shift&&dr.shift.status||'—').replace(/_/g,' '),iconEl:ic('clock','#6366f1',16)},
+        {label:'Location',val:(dr.shift&&dr.shift.location)||'—',iconEl:ic('device','#d98b22',16)}
       ],
-      tasks:['Personal care & hygiene','Medication prompt 9:00','Light meal preparation','Mobility / short walk'],
-      chips:['Ate well','Good mobility','Bright mood'],
-      note:'Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. Short walk — mobility steady with the frame. No concerns to report.',
-      travelPurpose:'Transport with participant'
+      tasks: demoMode ? ['Personal care & hygiene','Medication prompt 9:00','Light meal preparation','Mobility / short walk'] : [],
+      chips: demoMode ? ['Ate well','Good mobility','Bright mood'] : [],
+      note: demoMode ? 'Margaret was in good spirits today. Assisted with personal care and a light meal, which she ate well. Medication prompted and taken at 9:00. Short walk — mobility steady with the frame. No concerns to report.' : (dr.noteBody||(dr.shift&&dr.shift.notes)||'No shift note submitted yet.'),
+      travelPurpose: demoMode ? 'Transport with participant' : ''
     } : {worker:'',init:'',tint:'#16b8a6',pro:false,client:'',service:'',date:'',status:'',statusFg:'#6c7f79',statusBg:'#f1f4f2',proofs:[],tasks:[],chips:[],note:'',travelPurpose:''};
 
     // ---- REAL shift notes (Visit Records, real mode) ----------------------
@@ -744,7 +914,7 @@ class Component extends DCLogic {
       return {id:n.id,client,init:(client||'P').substring(0,2).toUpperCase(),tint:_snTints[i%_snTints.length],
         when,typeLabel,body:n.body||'',_match:(client+' '+(n.body||'')).toLowerCase()};
     }).filter(o=>!q||o._match.includes(q));
-    const snHas=!demoMode && snRows.length>0;
+    const snHas=!demoMode && snRows.length>0 && !_liveShiftRows.length;
     const snSelIdx=Math.min(this.state.snSel||0,Math.max(0,snRows.length-1));
     const shiftNotes=snRows.map((r,i)=>{
       const a=i===snSelIdx;
@@ -759,20 +929,41 @@ class Component extends DCLogic {
     //d.proofs[3].val='Amara\u2019s iPhone · trusted';
 
     // ---- billing ----
-    // Fabricated $ figures, client rollups and the draft invoice are demo-only;
-    // real mode shows an honest empty-state (hasBilling/noBilling).
+    const liveClaims=this.state.liveClaims||[];
+    const _completedShifts=orgShifts.filter(s=>String(s.status)==='completed');
+    const _shiftBillGroups={};
+    _completedShifts.forEach(s=>{
+      const pid=s.participant_id||'unknown';
+      if(!_shiftBillGroups[pid]) _shiftBillGroups[pid]={name:_pName(s.participants),shifts:[],hours:0};
+      _shiftBillGroups[pid].shifts.push(s);
+      _shiftBillGroups[pid].hours+=_shiftHours(s);
+    });
+    const _draftTotal=liveClaims.filter(c=>c.status==='draft').reduce((a,c)=>a+Number(c.total_amount||0),0);
+    const _filedTotal=liveClaims.filter(c=>['submitted','paid','accepted'].includes(String(c.status))).reduce((a,c)=>a+Number(c.total_amount||0),0);
+    const _visitCount=_completedShifts.length||liveClaims.reduce((a,c)=>a+Number(c.line_count||0),0);
+    const _periodHours=Math.round(Object.values(_shiftBillGroups).reduce((a,g)=>a+g.hours,0));
     const billStats= demoMode ? [
       {label:'Ready to invoice',value:'$12,840',color:'#0b6b60'},
       {label:'Filed this month',value:'$22,400',color:'#6366f1'},
       {label:'Visits billed',value:'64',color:'#1e9e6a'},
       {label:'Hours this period',value:'412h',color:'#14302b'}
-    ] : [];
+    ] : (_draftTotal||_filedTotal||_visitCount ? [
+      {label:'Ready to invoice',value:_money(_draftTotal),color:'#0b6b60'},
+      {label:'Filed (claims)',value:_money(_filedTotal),color:'#6366f1'},
+      {label:'Completed visits',value:String(_visitCount),color:'#1e9e6a'},
+      {label:'Hours this period',value:_periodHours+'h',color:'#14302b'}
+    ] : []);
     const bcData= demoMode ? [
       {name:'Michael Reyes',init:'MR',tint:'#16b8a6',visits:'7',hours:'21.0h',total:'$966',cid:'C-10471',cyc:'weekly',y:2026,m:0,d:5},
       {name:'Max Becker',init:'MB',tint:'#6366f1',visits:'8',hours:'24.0h',total:'$1,104',cid:'C-10488',cyc:'fortnightly',y:2026,m:0,d:1},
       {name:'Luna Sharma',init:'LS',tint:'#d98b22',visits:'18',hours:'60.0h',total:'$2,760',cid:'C-10502',cyc:'monthly',y:2026,m:2,d:1},
       {name:'Margaret Lowe',init:'ML',tint:'#9333ea',visits:'6',hours:'18.0h',total:'$828',cid:'C-10515',cyc:'fortnightly',y:2026,m:5,d:16}
-    ] : [];
+    ] : Object.values(_shiftBillGroups).map((g,i)=>({
+      name:g.name,init:(g.name||'P').substring(0,2).toUpperCase(),tint:_tints[i%_tints.length],
+      visits:String(g.shifts.length),hours:g.hours.toFixed(1)+'h',total:'—',
+      cid:(g.shifts[0]&&g.shifts[0].participant_id)?String(g.shifts[0].participant_id).slice(0,8):'—',
+      cyc:'fortnightly',y:new Date().getFullYear(),m:new Date().getMonth(),d:new Date().getDate()
+    }));
     const _cyc=this.state.clientCycles||{};
     const _mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const _pad=n=>('0'+n).slice(-2);
@@ -794,41 +985,108 @@ class Component extends DCLogic {
     const invLineSets={
       0:[{service:'Personal Care',date:'Mon',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Personal Care',date:'Wed',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Personal Care',date:'Thu',code:'PC-STD',hours:'4.0',rate:'$46',amount:'$184'},{service:'Community Access',date:'Fri',code:'CA-STD',hours:'3.0',rate:'$42',amount:'$126'}]
     };
-    const lines= bc ? invLineSets[0] : [];
-    const inv= bc ? {client:bc.name,cid:bc.cid,cycLabel:bcCyc.cycLabel,startStr:bcCyc.startStr,endStr:bcCyc.endStr,range:bcCyc.range,folder:bcCyc.folder,number:'INV-20614',lines,
-      subtotal:'$941.00',gst:'$94.10',total:'$1,035.10'} : {client:'',cid:'',cycLabel:'',startStr:'',endStr:'',range:'',folder:'',number:'',lines:[],subtotal:'',gst:'',total:''};
+    const _liveLines=(this.state.claimLineItems||[]).map(l=>({
+      service:l.support_item_number||'Support',date:_fmtDate(l.supports_delivered_from),code:l.support_item_number||'',
+      hours:Number(l.hours||0).toFixed(1),rate:'$'+Number(l.unit_price||0).toFixed(2),amount:'$'+Number(l.line_total||0).toFixed(2)
+    }));
+    const _liveDraft=liveClaims.find(c=>c.status==='draft');
+    const _billGroupKeys=Object.keys(_shiftBillGroups);
+    const _selGroup=_billGroupKeys[this.state.billClient||0] ? _shiftBillGroups[_billGroupKeys[this.state.billClient||0]] : null;
+    const _liveShiftLines=(!demoMode && _selGroup) ? _selGroup.shifts.map(s=>({
+      service:(s.support_type||s.title||'Support'),date:_fmtDate(s.start_time),code:'SHIFT',hours:_shiftHours(s).toFixed(1),rate:'—',amount:'—'
+    })) : [];
+    const invLines= demoMode ? (bc ? invLineSets[0] : []) : (_liveLines.length ? _liveLines : _liveShiftLines);
+    const _sub=invLines.reduce((a,l)=>a+Number(String(l.amount||'').replace(/[^0-9.]/g,'')||0),0);
+    const inv= bc ? {client:bc.name,cid:bc.cid,cycLabel:bcCyc.cycLabel,startStr:bcCyc.startStr,endStr:bcCyc.endStr,range:bcCyc.range,folder:bcCyc.folder,
+      number:(_liveDraft&&_liveDraft.reference)||('INV-'+String(bc.cid||'DRAFT')),
+      lines:invLines,
+      subtotal:demoMode?'$941.00':(_sub?_money(_sub):'—'),gst:demoMode?'$94.10':(_sub?_money(_sub*0.1):'—'),total:demoMode?'$1,035.10':(_sub?_money(_sub*1.1):'—')} : {client:'',cid:'',cycLabel:'',startStr:'',endStr:'',range:'',folder:'',number:'',lines:[],subtotal:'',gst:'',total:''};
 
     // ---- compliance ----
-    // Fabricated worker names/statuses are demo-only; real mode shows an honest
-    // empty-state (hasCompliance/noCompliance).
     const okC='#1e7a52',warnC='#b4561f',badC='#c0445c';
+    const _compRows=this.state.complianceRows||[];
+    const _credsByWorker={};
+    (this.state.liveCredentials||[]).forEach(cr=>{
+      if(!_credsByWorker[cr.worker_id]) _credsByWorker[cr.worker_id]=[];
+      _credsByWorker[cr.worker_id].push(cr);
+    });
+    const _fmtCred=(creds,types)=>{
+      const c=(creds||[]).find(x=>types.includes(x.type));
+      if(!c) return {text:'Missing',fg:badC};
+      if(c.status==='expired') return {text:'Expired',fg:badC};
+      if(c.status==='expiring_soon') return {text:'Exp. '+(c.days_to_expiry!=null?c.days_to_expiry:'soon')+' days',fg:warnC};
+      return {text:(c.expiry?('Valid · '+c.expiry'):'Valid'),fg:'#41635c'};
+    };
+    const _compWorkers=_compRows.length;
+    const _compEligible=_compRows.filter(r=>r.rostering_eligible).length;
+    const _compExpiring=_compRows.reduce((a,r)=>a+(Number(r.expiring_count)||0),0);
+    const _compMissing=_compRows.reduce((a,r)=>a+(Number(r.mandatory_expired_count)||0),0);
     const compTiles= demoMode ? [
       {label:'Paperwork up to date',value:'94%',color:'#1e9e6a',iconEl:ic('shield','#16b8a6',17),tintBg:'#e9f6ef'},
       {label:'Expiring 30d',value:'3',color:'#b4561f',iconEl:ic('cert','#d98b22',17),tintBg:'#fbf0df'},
       {label:'Missing docs',value:'2',color:'#c0445c',iconEl:ic('alert','#e0556e',17),tintBg:'#fbe9ed'},
       {label:'Notes overdue',value:'1',color:'#6366f1',iconEl:ic('note','#6366f1',17),tintBg:'#eef0fd'}
-    ] : [];
+    ] : (_compWorkers ? [
+      {label:'Roster eligible',value:(_compWorkers?Math.round(100*_compEligible/_compWorkers):0)+'%',color:'#1e9e6a',iconEl:ic('shield','#16b8a6',17),tintBg:'#e9f6ef'},
+      {label:'Expiring 30d',value:String(_compExpiring),color:'#b4561f',iconEl:ic('cert','#d98b22',17),tintBg:'#fbf0df'},
+      {label:'Mandatory expired',value:String(_compMissing),color:'#c0445c',iconEl:ic('alert','#e0556e',17),tintBg:'#fbe9ed'},
+      {label:'Workers tracked',value:String(_compWorkers),color:'#6366f1',iconEl:ic('users','#6366f1',17),tintBg:'#eef0fd'}
+    ] : []);
     const compData= demoMode ? [
       {name:'Amara Okafor',init:'AO',tint:'#16b8a6',screening:'Valid · 2028',firstAid:'Valid · 2027',st:'ok'},
       {name:'Noah Reed',init:'NR',tint:'#0e5147',screening:'Valid · 2027',firstAid:'Exp. 7 days',st:'warn'},
       {name:'Lena Sørensen',init:'LS',tint:'#d98b22',screening:'Valid · 2029',firstAid:'Valid · 2028',st:'ok'},
       {name:'Marcus Hill',init:'MH',tint:'#0891b2',screening:'Missing',firstAid:'Valid · 2026',st:'bad'},
       {name:'Grace Adeyemi',init:'GA',tint:'#9333ea',screening:'Valid · 2028',firstAid:'Valid · 2027',st:'ok'}
-    ] : [];
+    ] : _compRows.map((r,i)=>{
+      const creds=_credsByWorker[r.worker_id]||[];
+      const scr=_fmtCred(creds,['ndis_worker_screening','wwcc','police_check']);
+      const fa=_fmtCred(creds,['first_aid','cpr']);
+      const st=r.mandatory_expired_count>0?'bad':(r.expiring_count>0?'warn':'ok');
+      const nm=r.full_name||'Unnamed worker';
+      return {name:nm,init:nm.substring(0,2).toUpperCase(),tint:_tints[i%_tints.length],screening:scr.text,scrFg:scr.fg,firstAid:fa.text,faFg:fa.fg,st};
+    });
     const cst={ok:{fg:okC,bg:'#e9f6ef',label:'Up to date'},warn:{fg:warnC,bg:'#fbf0df',label:'Needs a nudge'},bad:{fg:badC,bg:'#fbe9ed',label:'Needs sorting'}};
     const compRows=compData.map(r=>({name:r.name,init:r.init,tint:r.tint,
-      screening:r.screening,scrFg:r.screening.includes('Missing')?badC:'#41635c',
-      firstAid:r.firstAid,faFg:r.firstAid.includes('Exp')?warnC:'#41635c',
+      screening:r.screening,scrFg:r.scrFg||(r.screening.includes('Missing')?badC:'#41635c'),
+      firstAid:r.firstAid,faFg:r.faFg||(r.firstAid.includes('Exp')?warnC:'#41635c'),
       status:cst[r.st].label,statusFg:cst[r.st].fg,statusBg:cst[r.st].bg}));
 
     // ---- incidents ----
-    // Fabricated incident reports (fake client/worker names) are demo-only; real
-    // mode shows an honest empty-state (hasIncidents/noIncidents).
+    // Fabricated incident reports are demo-only; real mode loads from incidents table.
+    const _fmtIncDate=(iso)=>{ if(!iso) return '—'; const d=new Date(iso); return isNaN(d.getTime())?'—':d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); };
+    const _mapIncStatus=(st)=>{
+      const s=String(st||'').toLowerCase();
+      if(s==='resolved'||s==='closed') return 'closed';
+      if(s==='under_review'||s==='investigating') return 'review';
+      return 'open';
+    };
+    const _sevLabel=(s)=>{
+      const m={critical:'High',major:'High',moderate:'Moderate',minor:'Low'};
+      return m[String(s||'').toLowerCase()]||'Moderate';
+    };
     const incData= demoMode ? [
       {title:'Client reported knee pain',client:'David Lowe',worker:'Jordan Pham',date:'18 Jun',sev:'Moderate',st:'open'},
       {title:'Medication delay',client:'Priya Sharma',worker:'Noah Reed',date:'17 Jun',sev:'Low',st:'review'},
       {title:'Near-miss — wet floor',client:'Tom Becker',worker:'Lena Sørensen',date:'15 Jun',sev:'Low',st:'closed'}
-    ] : [];
+    ] : (this.state.liveIncidents||[]).map(inc=>{
+      const p=inc.participants||{};
+      let clientName=_pName(p);
+      if(clientName==='Participant'&&inc.participant_id){
+        const sp=(sbParts||[]).find(x=>x.id===inc.participant_id);
+        if(sp) clientName=_pName(sp);
+      }
+      return {
+      title: inc.title||inc.description||'Incident report',
+      client: clientName,
+      worker: inc.reporter_label||'—',
+      date: _fmtIncDate(inc.occurred_at||inc.reported_at),
+      sev: _sevLabel(inc.severity),
+      st: _mapIncStatus(inc.status),
+      detail: inc.description||'',
+      sirsReportable:!!inc.sirs_reportable,
+      _id: inc.id,
+    };});
     // Provider-applied resolutions (markResolved) — a real UI state change driven
     // by the user's own action, persisted in component state for the session.
     const _incResolved=this.state.incResolved||{};
@@ -838,9 +1096,9 @@ class Component extends DCLogic {
     const ci=incData[this.state.incSel]||incData[0]||null;
     const sevMap={Moderate:{fg:'#b4561f',bg:'#fbf0df'},Low:{fg:'#0b6b60',bg:'#e7f4f1'},High:{fg:'#c0445c',bg:'#fbe9ed'}};
     const inc= ci ? {title:ci.title,client:ci.client,worker:ci.worker,severity:ci.sev,sevFg:sevMap[ci.sev].fg,sevBg:sevMap[ci.sev].bg,
-      detail:'During the physiotherapy session David reported mild pain in his right knee while doing weight-bearing exercises. Worker reduced the load immediately, paused the activity and noted no swelling or visible injury.',
-      meta:[{k:'Date & time',v:'18 Jun · 14:30'},{k:'Location',v:'Client home'},{k:'Witnesses',v:'None'},{k:'Injury',v:'No visible injury'}],
-      actions:['Activity paused, load reduced','GP review recommended to family','Logged in incident register','Coordinator notified']} : {title:'',client:'',worker:'',severity:'',sevFg:'#6c7f79',sevBg:'#f1f4f2',detail:'',meta:[],actions:[]};
+      detail: ci.detail || (demoMode ? 'During the physiotherapy session David reported mild pain in his right knee while doing weight-bearing exercises. Worker reduced the load immediately, paused the activity and noted no swelling or visible injury.' : 'No additional detail loaded.'),
+      meta: demoMode ? [{k:'Date & time',v:'18 Jun · 14:30'},{k:'Location',v:'Client home'},{k:'Witnesses',v:'None'},{k:'Injury',v:'No visible injury'}] : [{k:'Reported',v:ci.date},{k:'Reporter',v:ci.worker},{k:'Participant',v:ci.client}],
+      actions: demoMode ? ['Activity paused, load reduced','GP review recommended to family','Logged in incident register','Coordinator notified'] : []} : {title:'',client:'',worker:'',severity:'',sevFg:'#6c7f79',sevBg:'#f1f4f2',detail:'',meta:[],actions:[]};
 
     // ---- service agreements ----
     // Fabricated stats and the agreements list (incl. the old modulo that recycled
@@ -850,14 +1108,37 @@ class Component extends DCLogic {
       {label:'Active agreements',value:'46',color:'#0b6b60'},
       {label:'Awaiting signature',value:'3',color:'#b4561f'},
       {label:'Signed this month',value:'11',color:'#1e9e6a'}
-    ] : [];
+    ] : (()=>{
+      const ags=this.state.liveAgreements||[];
+      const now=new Date();
+      const signedMo=ags.filter(a=>a.signed_at&&new Date(a.signed_at).getMonth()===now.getMonth()&&new Date(a.signed_at).getFullYear()===now.getFullYear()).length;
+      return ags.length ? [
+        {label:'Total agreements',value:String(ags.length),color:'#0b6b60'},
+        {label:'Awaiting signature',value:String(ags.filter(a=>a.status==='sent').length),color:'#b4561f'},
+        {label:'Signed this month',value:String(signedMo),color:'#1e9e6a'}
+      ] : [];
+    })();
     const agSt={signed:{fg:'#1e7a52',bg:'#e9f6ef',label:'Signed'},sent:{fg:'#b4561f',bg:'#fbf0df',label:'Awaiting signature'},draft:{fg:'#5f726d',bg:'#f1f4f2',label:'Draft'}};
     const agRaw= demoMode ? [
       {client:'Margaret Reyes',init:'MR',tint:'#16b8a6',service:'Personal Care · ongoing',date:'Signed 12 Jan 2026',st:'signed'},
       {client:'David Lowe',init:'DL',tint:'#6366f1',service:'Physiotherapy · 12 sessions',date:'Sent 18 Jun · awaiting',st:'sent'},
       {client:'Tom Becker',init:'TB',tint:'#d98b22',service:'Community Access · ongoing',date:'Sent 17 Jun · awaiting',st:'sent'},
       {client:'Priya Sharma',init:'PS',tint:'#9333ea',service:'Personal Care · ongoing',date:'Draft · ready to send',st:'draft'}
-    ] : [];
+    ] : (this.state.liveAgreements||[]).map((a,i)=>{
+      const pname=a.participant_name||'Participant';
+      const signed=a.status==='signed';
+      const sent=a.status==='sent';
+      const draft=a.status==='draft';
+      let dateStr='';
+      if(signed&&a.signed_at) dateStr='Signed '+_fmtDate(a.signed_at);
+      else if(sent) dateStr='Sent · awaiting signature';
+      else if(draft) dateStr='Draft · ready to send';
+      else dateStr=String(a.status||'').replace(/_/g,' ');
+      const period=(a.period_start||'—')+' – '+(a.period_end||'—');
+      return {client:pname,init:pname.substring(0,2).toUpperCase(),tint:_tints[i%_tints.length],
+        service:(a.reference||'Service agreement')+' · '+period,date:dateStr,
+        st:signed?'signed':(sent?'sent':'draft')};
+    });
     const agList=agRaw.map(a=>({client:a.client,init:a.init,tint:a.tint,service:a.service,date:a.date,status:agSt[a.st].label,statusFg:agSt[a.st].fg,statusBg:agSt[a.st].bg,isDraft:a.st==='draft',isSent:a.st==='sent',isSigned:a.st==='signed'})).filter(o=>!q||o.client.toLowerCase().includes(q));
 
     return {
@@ -877,15 +1158,25 @@ class Component extends DCLogic {
         if(!dr){ this.showToast('Select a visit record first'); return; }
         const reason=window.prompt('Send '+dr.worker+'’s visit back for — what needs fixing?');
         if(reason===null) return;
-        this.setState(s=>({ sentBack:{...(s.sentBack||{}),[s.sel]:reason||'No reason given'} }));
+        const key=dr._key!=null?dr._key:_recKey(dr,this.state.sel||0);
+        this.setState(s=>({ sentBack:{...(s.sentBack||{}),[key]:reason||'No reason given'} }));
         this.showToast('Sent back to '+dr.worker+' for correction');
       },
       addNote:()=>{
         if(!dr){ this.showToast('Select a visit record first'); return; }
         const txt=window.prompt('Add a review note to '+dr.worker+'’s visit for '+dr.client+':');
         if(txt===null||!txt.trim()) return;
-        this.setState(s=>({ reviewNotes:{...(s.reviewNotes||{}),[s.sel]:txt.trim()} }));
+        const key=dr._key!=null?dr._key:_recKey(dr,this.state.sel||0);
+        this.setState(s=>({ reviewNotes:{...(s.reviewNotes||{}),[key]:txt.trim()} }));
         this.showToast('Note added to this visit record');
+      },
+      approveAndBill:()=>{
+        if(!dr){ this.showToast('Select a visit record first'); return; }
+        if(demoMode){ this.setView('billing'); return; }
+        const key=dr._key!=null?dr._key:_recKey(dr,this.state.sel||0);
+        this.setState(s=>({ visitApproved:{...(s.visitApproved||{}),[key]:true} }));
+        this.showToast('Visit approved for this session — open Billing to invoice');
+        this.setView('billing');
       },
       // ---- Invoicing -------------------------------------------------------
       // Real CSV export built from the invoice currently on screen.
@@ -999,6 +1290,7 @@ class Component extends DCLogic {
       goComplianceRegister:()=>{ window.location.href='Compliance Register.dc.html'; },
       goIncidentCentre:()=>{ window.location.href='Incident Centre.dc.html'; },
       goClaims:()=>{ window.location.href='Claims.dc.html'; },
+      goPriceGuide:()=>{ window.location.href='Price Guide.dc.html'; },
       goPayroll:()=>{ window.location.href='Payroll.dc.html'; },
       signOutPC:async()=>{try{if(window.signOut){await window.signOut();}else if(window.getSupabaseClient&&window.getSupabaseClient()){await window.getSupabaseClient().auth.signOut();}}catch(e){}; try{localStorage.removeItem('ciaralink_session')}catch(e){}; window.location.href='signin.html';},
       goPlanBilling:()=>{ window.location.href='billing.html'; },
@@ -1010,9 +1302,17 @@ class Component extends DCLogic {
       nav,pageTitle:pages[view].title,pageSub:pages[view].sub,
       notifOpen:this.state.notifOpen,toggleNotif:()=>this.setState(s=>({notifOpen:!s.notifOpen})),notifs,
       isRecords:view==='records',isBilling:view==='billing',isCompliance:view==='compliance',isIncidents:view==='incidents',isAgreements:view==='agreements',
-      hasAgreements:demoMode,noAgreements:!demoMode,hasBilling:demoMode,noBilling:!demoMode,hasCompliance:demoMode,noCompliance:!demoMode,hasIncidents:demoMode,noIncidents:!demoMode,
+      hasAgreements:demoMode||(this.state.liveAgreements||[]).length>0,noAgreements:!demoMode&&!(this.state.liveAgreements||[]).length,
+      hasBilling:demoMode||billStats.length>0,noBilling:!demoMode&&!billStats.length,
+      hasCompliance:demoMode||compTiles.length>0,noCompliance:!demoMode&&!compTiles.length,
+      hasIncidents:demoMode||incidents.length>0,noIncidents:!demoMode&&incidents.length===0,
+      openIncCount:demoMode?'2':(_openInc?_openInc+' open':null),
       agStats,agList,agClientEl:ic('user','#16b8a6',16),agSignEl:ic('check','#06201c',16),agSendEl:ic('send','#06201c',16),penWEl:ic('receipt','#0b6b60',16),
-      recStats,recTabs,records,d,hasRecords:demoMode,noRecords:!demoMode && !snHas,
+      recStats:recStatsFinal,recTabs,records,d,hasRecords:demoMode||_liveShiftRows.length>0,noRecords:!demoMode && !_liveShiftRows.length && !snHas,
+      recordsSessionOnly:!demoMode&&(_liveShiftRows.length>0||snHas),
+      recordsDemoDetail:demoMode,
+      notifNewCount:demoMode?5:((this.state.liveNotifications||[]).filter(n=>!n.read_at).length||0),
+      showDemo:demoMode,
       hasShiftNotes:snHas,shiftNotes,snDetail,
       checkSmEl:ic('check','#16b8a6',16,2.4),checkWEl:ic('check','#06201c',16),carEl:ic('car','#6366f1',17),
       flagEl:ic('flag','#c0445c',15),backEl:ic('back','#2c4a44',15),noteAddEl:ic('note','#2c4a44',15),

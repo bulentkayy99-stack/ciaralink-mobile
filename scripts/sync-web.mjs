@@ -24,7 +24,7 @@ const API_ORIGIN = 'https://ciaralink.vercel.app';
 
 // Native-only files we own (never come from the website). These are (re)written
 // every run so the bundle is correct even from a clean www/.
-const NATIVE_FILES = ['capacitor-bridge.js', 'native-init.js', 'index.html'];
+const NATIVE_FILES = ['capacitor-bridge.js', 'native-init.js', 'mobile-native.css', 'index.html'];
 
 // Root files we explicitly DO NOT bundle.
 const SKIP_FILES = new Set([
@@ -57,9 +57,9 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
  * JS, icons and Supabase calls all work offline-first / on-device.
  *
  * Two jobs:
- *  1. Route relative serverless calls (fetch('/api/...')) to the live
- *     Vercel backend, because those /api functions are NOT bundled — they
- *     run on ${API_ORIGIN}. Supabase calls already use absolute URLs.
+ *  1. Route relative serverless calls (fetch('/api/...') and fetch('./api/...'))
+ *     to the live Vercel backend, because those /api functions are NOT bundled —
+ *     they run on ${API_ORIGIN}. Supabase calls already use absolute URLs.
  *  2. Neutralise the PWA service worker inside the native shell (it can serve
  *     stale cached assets after an app update; the WebView already caches).
  *
@@ -71,16 +71,44 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
   var IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   if (!IS_NATIVE) return;
 
+  /* Native phone layout: mark root + load shared mobile CSS before first paint. */
+  try {
+    document.documentElement.classList.add('cl-native');
+    var vp = document.querySelector('meta[name="viewport"]');
+    if (vp) {
+      vp.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    } else {
+      vp = document.createElement('meta');
+      vp.name = 'viewport';
+      vp.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+      document.head.appendChild(vp);
+    }
+    if (!document.querySelector('link[href*="mobile-native.css"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/mobile-native.css';
+      document.head.appendChild(link);
+    }
+  } catch (e) {}
+
   var API_ORIGIN = '${API_ORIGIN}';
+
+  function rewriteApiUrl(url) {
+    if (typeof url !== 'string') return url;
+    if (url.indexOf('/api/') === 0) return API_ORIGIN + url;
+    if (url.indexOf('./api/') === 0) return API_ORIGIN + url.slice(1);
+    return url;
+  }
 
   var origFetch = window.fetch ? window.fetch.bind(window) : null;
   if (origFetch) {
     window.fetch = function (input, init) {
       try {
-        if (typeof input === 'string' && input.indexOf('/api/') === 0) {
-          input = API_ORIGIN + input;
-        } else if (input && typeof input === 'object' && typeof input.url === 'string' && input.url.indexOf('/api/') === 0) {
-          input = new Request(API_ORIGIN + input.url, input);
+        if (typeof input === 'string') {
+          input = rewriteApiUrl(input);
+        } else if (input && typeof input === 'object' && typeof input.url === 'string') {
+          var rewritten = rewriteApiUrl(input.url);
+          if (rewritten !== input.url) input = new Request(rewritten, input);
         }
       } catch (e) {}
       return origFetch(input, init);
@@ -91,9 +119,7 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
     var origOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url) {
       try {
-        if (typeof url === 'string' && url.indexOf('/api/') === 0) {
-          arguments[1] = API_ORIGIN + url;
-        }
+        if (typeof url === 'string') arguments[1] = rewriteApiUrl(url);
       } catch (e) {}
       return origOpen.apply(this, arguments);
     };
@@ -109,7 +135,7 @@ const capacitorBridgeJs = `/* CiaraLink — Capacitor native bridge shim
       .catch(function () {});
   }
 
-  console.log('[capacitor-bridge] native shell active — /api -> ' + API_ORIGIN + ', SW disabled');
+  console.log('[capacitor-bridge] native shell active — /api + ./api -> ' + API_ORIGIN + ', SW disabled');
 })();
 `;
 
@@ -148,6 +174,88 @@ const nativeInitJs = `/* CiaraLink — native runtime niceties (vanilla, no bund
           P.App.exitApp();
         }
       });
+    }
+  } catch (e) {}
+
+  /* ---- Push notifications ------------------------------------------------
+   * The @capacitor/push-notifications plugin is installed + configured. This
+   * registers the device on launch, captures the APNs/FCM token, best-effort
+   * reports it to the backend so pushes can be targeted per user, and routes a
+   * tapped notification to its target page (or the in-app Notification Centre).
+   *
+   * Delivery still needs the platform credentials (Bulent's wall):
+   *   iOS     — an APNs Auth Key + the Push Notifications capability (signing).
+   *   Android — a Firebase project's google-services.json in android/app/.
+   * Until then, registration simply no-ops gracefully — nothing breaks. */
+  try {
+    var PN = P.PushNotifications;
+    if (PN && PN.addListener) {
+      function clSession() {
+        try { return JSON.parse(localStorage.getItem('ciaralink_session') || '{}') || {}; }
+        catch (e) { return {}; }
+      }
+
+      function postToken(token, authToken) {
+        try {
+          var sess = clSession();
+          var platform = (C.getPlatform && C.getPlatform()) || 'unknown';
+          var headers = { 'Content-Type': 'application/json' };
+          if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+          // Bridge routes /api/* to the live Vercel backend. Best-effort — a 404
+          // (endpoint not deployed yet) is swallowed; the token is kept locally.
+          fetch('/api/register-push-token', {
+            method: 'POST', headers: headers,
+            body: JSON.stringify({ token: token, platform: platform, userId: sess.userId || null, role: sess.role || null })
+          }).catch(function () {});
+        } catch (e) {}
+      }
+
+      function reportToken(token) {
+        try { localStorage.setItem('ciaralink_push_token', token); } catch (e) {}
+        // Attach the Supabase access token so the backend verifies the user
+        // server-side rather than trusting a spoofable body field.
+        try {
+          var c = window.getSupabaseClient && window.getSupabaseClient();
+          if (c && c.auth && c.auth.getSession) {
+            c.auth.getSession()
+              .then(function (r) { postToken(token, r && r.data && r.data.session && r.data.session.access_token); })
+              .catch(function () { postToken(token, null); });
+          } else { postToken(token, null); }
+        } catch (e) { postToken(token, null); }
+      }
+
+      PN.addListener('registration', function (t) { if (t && t.value) reportToken(t.value); });
+      PN.addListener('registrationError', function (err) {
+        try { console.warn('[push] registration error', (err && (err.error || err)) || err); } catch (e) {}
+      });
+      PN.addListener('pushNotificationReceived', function (n) {
+        try { console.log('[push] received in foreground:', n && n.title); } catch (e) {}
+      });
+      PN.addListener('pushNotificationActionPerformed', function (a) {
+        var data = (a && a.notification && a.notification.data) || {};
+        var dest = data.url || data.page || 'Notification%20Centre.dc.html';
+        // Only allow in-bundle relative targets — never an external scheme.
+        if (typeof dest !== 'string' || /^[a-z][a-z0-9+.-]*:/i.test(dest) || dest.indexOf('//') === 0) {
+          dest = 'Notification%20Centre.dc.html';
+        }
+        try { window.location.href = dest; } catch (e) {}
+      });
+
+      // Ask permission + register once per app launch (listeners still attach on
+      // every page so a notification tap that cold-launches the app routes too).
+      var alreadyRegistered = false;
+      try { alreadyRegistered = sessionStorage.getItem('cl_push_registered') === '1'; } catch (e) {}
+      if (!alreadyRegistered) {
+        PN.checkPermissions().then(function (res) {
+          if (res && (res.receive === 'prompt' || res.receive === 'prompt-with-rationale')) return PN.requestPermissions();
+          return res;
+        }).then(function (res) {
+          if (res && res.receive === 'granted') {
+            PN.register();
+            try { sessionStorage.setItem('cl_push_registered', '1'); } catch (e) {}
+          }
+        }).catch(function () {});
+      }
     }
   } catch (e) {}
 })();
@@ -238,10 +346,13 @@ async function run() {
     }
   }
 
-  // 3. (Re)write native-only files.
+  // 3. (Re)write native-only files (mobile-native.css is edited in www/ — preserve it).
   await fs.writeFile(path.join(DEST, 'capacitor-bridge.js'), capacitorBridgeJs);
   await fs.writeFile(path.join(DEST, 'native-init.js'), nativeInitJs);
   await fs.writeFile(path.join(DEST, 'index.html'), indexHtml);
+  if (!existsSync(path.join(DEST, 'mobile-native.css'))) {
+    throw new Error('www/mobile-native.css missing — restore before sync');
+  }
 
   // 4. Re-inject the bridge + native-init into every page (fresh copies lost it)
   //    and point the supabase-js <script> at the local vendored copy.
@@ -265,6 +376,347 @@ async function run() {
     if (changed) { await fs.writeFile(path.join(DEST, name), html); injected++; }
   }
   console.log(`[sync-web] supabase-js CDN -> ${SUPABASE_LOCAL} on ${rewired} pages`);
+
+  // 4b. Mobile QA uses @ciaralink.example demo accounts (live Supabase). The web
+  //     repo still lists .com.au in workflow1-auth-test — rewrite after copy.
+  const wfTest = path.join(DEST, 'workflow1-auth-test.html');
+  if (existsSync(wfTest)) {
+    let wf = await fs.readFile(wfTest, 'utf8');
+    const patched = wf.replace(/@ciaralink\.com\.au/g, '@ciaralink.example');
+    if (patched !== wf) {
+      await fs.writeFile(wfTest, patched);
+      console.log('  patched workflow1-auth-test.html demo emails -> @ciaralink.example');
+    }
+  }
+
+  // 4c. auth-guard.js from the web repo redirects to /signin or signin.html — patch
+  //     for native-aware Login.dc.html redirects so auth survives npm run refresh.
+  const authGuardPath = path.join(DEST, 'auth-guard.js');
+  if (existsSync(authGuardPath)) {
+    let ag = await fs.readFile(authGuardPath, 'utf8');
+    let changed = false;
+
+    if (!ag.includes('function signInPage()')) {
+      ag = ag.replace(
+        '(function () {',
+        `(function () {
+  function signInPage() {
+    try {
+      var native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      return native ? 'Login.dc.html' : 'signin.html';
+    } catch (e) { return 'Login.dc.html'; }
+  }`
+      );
+      changed = true;
+    }
+
+    const redirectRe = /window\.location\.replace\(['"]\/?signin(?:\.html)?\?next=['"]\s*\+\s*next\)/g;
+    if (redirectRe.test(ag)) {
+      ag = ag.replace(redirectRe, "window.location.replace(signInPage() + '?next=' + next)");
+      changed = true;
+    }
+
+    if (ag.includes('if (storedRole)') && ag.includes('routeByRole(storedRole)')) {
+      ag = ag.replace(
+        /function resolveRoleAndRoute\(client, session\) \{[\s\S]*?\n  \}/,
+        `function resolveRoleAndRoute(client, session) {
+    fetchRoleFromSupabase(client, session.user.id).then(function (role) {
+      if (role) persistSessionRole(session.user.id, role);
+      routeByRole(role);
+    });
+  }`
+      );
+      changed = true;
+    }
+
+    if (ag.includes("}).catch(function () {});")) {
+      ag = ag.replace(
+        /if \(!session\) \{[\s\S]*?window\.location\.replace\([^)]+\);[\s\S]*?return;\s*\}/,
+        `if (!session) {
+          redirectToSignIn();
+          return;
+        }`
+      );
+      if (!ag.includes('function redirectToSignIn()')) {
+        ag = ag.replace(
+          /function check\(attempt\)/,
+          `function redirectToSignIn() {
+    try { if (new URLSearchParams(location.search).get('embed') === '1') return; } catch (e) {}
+    var next = encodeURIComponent((location.pathname + location.search).replace(/^\\//, ''));
+    window.location.replace(signInPage() + '?next=' + next);
+  }
+
+  function check(attempt)`
+        );
+      }
+      ag = ag.replace(/\}\)\.catch\(function \(\) \{\}\);/, '}).catch(function () { redirectToSignIn(); });');
+      if (ag.includes('getSession().then(function (res) {') && !ag.includes('res && res.error')) {
+        ag = ag.replace(
+          'var session = res && res.data && res.data.session;',
+          'if (res && res.error) { redirectToSignIn(); return; }\n        var session = res && res.data && res.data.session;'
+        );
+      }
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(authGuardPath, ag);
+      console.log('  patched auth-guard.js for native login redirects');
+    }
+  }
+
+  // 4d. Native page transforms. The web pages send users to signin.html and use
+  //     web-only redirects; inside the native bundle the canonical login is
+  //     Login.dc.html. These are re-applied after every copy so `npm run refresh`
+  //     never silently reverts native auth. All idempotent (no-op if already done).
+  let nativePatched = 0;
+  for (const name of await fs.readdir(DEST)) {
+    if (!name.endsWith('.html') || name === 'index.html') continue;
+    const p = path.join(DEST, name);
+    let html = await fs.readFile(p, 'utf8');
+    const before = html;
+
+    // Sign-out / session-reset always lands on the native login page.
+    html = html.split("signin.html?resetSession=1").join("Login.dc.html?resetSession=1");
+
+    // Broken doc link: DATA_RESIDENCY.md is not a bundled/servable page (404 in
+    // the WebView). Point it at the real privacy page, which covers data handling.
+    html = html.split('href="DATA_RESIDENCY.md"').join('href="privacy.html"');
+
+    if (html !== before) { await fs.writeFile(p, html); nativePatched++; }
+  }
+
+  // 4e. Login.dc.html native hardening (one page, exact anchors from the web repo).
+  //     Each step is guarded so re-running is a no-op once applied.
+  const loginPath = path.join(DEST, 'Login.dc.html');
+  if (existsSync(loginPath)) {
+    let lg = await fs.readFile(loginPath, 'utf8');
+    let changed = false;
+
+    // (1) Inject native helper methods (nextDest + native-aware reset URL) just
+    //     before fetchRoleAndRedirect.
+    if (!lg.includes('passwordResetRedirectTo()') && lg.includes('  async fetchRoleAndRedirect(userId) {')) {
+      lg = lg.replace(
+        '  async fetchRoleAndRedirect(userId) {',
+        `  nextDest() {
+    try {
+      const raw = new URLSearchParams(window.location.search).get('next');
+      if (!raw) return null;
+      const dec = decodeURIComponent(raw);
+      if (dec.charAt(0) === '/' && dec.charAt(1) === '/') return null;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(dec)) return null;
+      return dec;
+    } catch (e) { return null; }
+  }
+
+  passwordResetRedirectTo() {
+    const page = 'Set%20Password.dc.html';
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    if (isNative) return 'capacitor://localhost/' + page;
+    return window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + page;
+  }
+
+  async fetchRoleAndRedirect(userId) {`
+      );
+      changed = true;
+    }
+
+    // (2) Org-membership role lookup: .single() throws for users with no active
+    //     membership and dumps them to Index; .maybeSingle() returns null cleanly.
+    if (lg.includes('.limit(1)\n        .single();')) {
+      lg = lg.replace('.limit(1)\n        .single();', '.limit(1)\n        .maybeSingle();');
+      changed = true;
+    }
+
+    // (3) After login, honour a safe ?next= deep link (set by auth-guard) instead
+    //     of always bouncing to the role's default dashboard.
+    if (lg.includes("      window.location.href = this.getRoleDest(role);\n    } catch (e) {")) {
+      lg = lg.replace(
+        "      window.location.href = this.getRoleDest(role);\n    } catch (e) {",
+        `      const nxt = this.nextDest();
+      if (nxt && window.isPathAllowedForRole && role && !window.isPathAllowedForRole(nxt, role)) {
+        window.location.href = this.getRoleDest(role);
+        return;
+      }
+      window.location.href = nxt || this.getRoleDest(role);
+    } catch (e) {`
+      );
+      changed = true;
+    }
+
+    // (4) Supabase-ready detection via the shared helper (robust to load order),
+    //     in both the submit handler and the render badge.
+    if (lg.includes("    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());")) {
+      lg = lg.replace(
+        "    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    let sbReady = !!(window.CIARALINK_SUPABASE_CONFIGURED && this.ensureSupabaseClient());",
+        "    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());\n    let sbReady = sbConfigured && !!(this.ensureSupabaseClient() || this.state.supabaseReady);"
+      );
+      changed = true;
+    }
+    if (lg.includes("    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    const sbReady = sbConfigured || supabaseReady;")) {
+      lg = lg.replace(
+        "    const sbConfigured = !!(window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY);\n    const sbReady = sbConfigured || supabaseReady;",
+        "    const sbConfigured = !!(window.isSupabaseConfigured && window.isSupabaseConfigured());\n    const sbReady = sbConfigured && (supabaseReady || this.ensureSupabaseClient());"
+      );
+      changed = true;
+    }
+
+    // (5) Password-reset return URL is native-aware (deep link in the app shell).
+    if (lg.includes("const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';")) {
+      lg = lg.replace(
+        "const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'Set%20Password.dc.html';",
+        "const redirectTo = this.passwordResetRedirectTo();"
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(loginPath, lg);
+      console.log('  patched Login.dc.html for native auth (helpers + maybeSingle + next + supabase-ready + reset)');
+    }
+  }
+
+  // 4f. Deep-link handlers for notification tap targets (?shift= / ?id=).
+  //     Re-applied after every copy from ../ciaralink so npm run refresh never
+  //     drops mobile notification routing. All guarded — no-op once applied.
+  const swPath = path.join(DEST, 'Support Worker.dc.html');
+  if (existsSync(swPath)) {
+    let sw = await fs.readFile(swPath, 'utf8');
+    let changed = false;
+
+    if (!sw.includes('swDeepShiftId')) {
+      sw = sw.replace(
+        'swExpandedNoteId:null, notifUnread:0 };',
+        'swExpandedNoteId:null, notifUnread:0, swDeepShiftId:null, swDeepShiftConsumed:false };'
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('applyUrlNav(){') && sw.includes('showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }')) {
+      sw = sw.replace(
+        'showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }',
+        `showToast(msg){ this.setState({toast:msg}); setTimeout(()=>this.setState({toast:null}),3000); }
+  applyUrlNav(){
+    try{
+      const shiftId=new URLSearchParams(window.location.search).get('shift');
+      if(shiftId) this.setState({ swDeepShiftId:shiftId, view:'work' });
+    }catch(e){}
+  }
+  consumeDeepShift(){
+    const id=this.state.swDeepShiftId;
+    if(!id||this.state.swDeepShiftConsumed) return;
+    const shifts=this.state.swShifts||[];
+    const sh=shifts.find(s=>String(s.id)===String(id));
+    if(!sh) return;
+    const nm=(sh.participants&&(sh.participants.preferred_name||sh.participants.full_name))||sh.title||'Shift';
+    this.setState({ swDeepShiftConsumed:true, view:'work' });
+    if(sh.participant_id){
+      this.openClientFile(Object.assign({id:sh.participant_id}, sh.participants||{}, {full_name:nm}));
+    } else { this.showToast('No client file is linked to this shift yet'); }
+  }`
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('this.applyUrlNav();') && sw.includes('this.loadWorkerData();')) {
+      sw = sw.replace('this.loadWorkerData();', 'this.applyUrlNav();\n    this.loadWorkerData();');
+      changed = true;
+    }
+
+    if (!sw.includes('consumeDeepShift') && sw.includes('if(configured){ this.setState({ swShifts: real }); }')) {
+      sw = sw.replace(
+        `if(configured){ this.setState({ swShifts: real }); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }); }`,
+        `if(configured){ this.setState({ swShifts: real }, ()=>this.consumeDeepShift()); }
+          else if(shifts && shifts.length>0){ this.setState({ swShifts: shifts }, ()=>this.consumeDeepShift()); }
+          else { this.consumeDeepShift(); }`
+      );
+      changed = true;
+    }
+
+    if (!sw.includes('swDeepShiftId&&String(sh.id)') && sw.includes('const mapShift=(sh,i)=>{')) {
+      sw = sw.replace(
+        `const mapShift=(sh,i)=>{
+      const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
+      return {accent:st.accent,cardBd:st.cardBd,tint:swTints2[i%swTints2.length],`,
+        `const mapShift=(sh,i)=>{
+      const nm=_pName(sh); const st=statusStyle[sh.status]||statusStyle.accepted;
+      const isDeep=!!(this.state.swDeepShiftId&&String(sh.id)===String(this.state.swDeepShiftId));
+      return {accent:isDeep?'#0b6b60':st.accent,cardBd:isDeep?'#16b8a6':st.cardBd,tint:swTints2[i%swTints2.length],`
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(swPath, sw);
+      console.log('  patched Support Worker.dc.html for ?shift= deep links');
+    }
+  }
+
+  const icPath = path.join(DEST, 'Incident Centre.dc.html');
+  if (existsSync(icPath)) {
+    let ic = await fs.readFile(icPath, 'utf8');
+    let changed = false;
+
+    if (!ic.includes('pendingDeepId')) {
+      ic = ic.replace(
+        'toast: null,\n  };',
+        'toast: null,\n    pendingDeepId: null,\n  };'
+      );
+      changed = true;
+    }
+
+    if (!ic.includes('applyUrlNav()') && ic.includes('componentDidMount() {')) {
+      ic = ic.replace(
+        `      this.loadAll();
+    } catch (e) {}
+    this.setState({ loading: false });
+  }
+
+  loadAll() {
+    if (!window.loadIncidents) return;
+    Promise.resolve(window.loadIncidents({ limit: 300 })).then((res) => {
+      if (res && !res.error) this.setState({ incidents: res.incidents || [] });
+    }).catch(() => {});
+  }`,
+        `      this.applyUrlNav();
+      this.loadAll();
+    } catch (e) {}
+    this.setState({ loading: false });
+  }
+
+  applyUrlNav() {
+    try {
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (id) this.setState({ pendingDeepId: id });
+    } catch (e) {}
+  }
+
+  consumeDeepLink() {
+    const id = this.state.pendingDeepId;
+    if (!id) return;
+    this.setState({ pendingDeepId: null });
+    this.open(id);
+  }
+
+  loadAll() {
+    if (!window.loadIncidents) { this.consumeDeepLink(); return; }
+    Promise.resolve(window.loadIncidents({ limit: 300 })).then((res) => {
+      if (res && !res.error) this.setState({ incidents: res.incidents || [] }, () => this.consumeDeepLink());
+      else this.setState({}, () => this.consumeDeepLink());
+    }).catch(() => this.consumeDeepLink());
+  }`
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await fs.writeFile(icPath, ic);
+      console.log('  patched Incident Centre.dc.html for ?id= deep links');
+    }
+  }
+
+  if (nativePatched) console.log(`  rewrote native sign-out redirect on ${nativePatched} page(s)`);
 
   // 5. Secret guard: env.local.js must be anon-only, and no service_role anywhere.
   const envPath = path.join(DEST, 'env.local.js');

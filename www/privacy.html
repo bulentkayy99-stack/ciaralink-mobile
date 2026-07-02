@@ -136,7 +136,7 @@ footer{background:var(--ink-3);color:var(--on-dark-3);padding:44px 0 30px;margin
 
     <section id="security"><h2><span class="num">06</span> Storage &amp; security</h2>
       <p>Care data is stored in our managed database (Supabase — Postgres, Auth and file storage) with access controls, encryption in transit, and row-level security so records are isolated to the people entitled to them. No system is perfectly secure, but we take reasonable steps to protect information and to limit who can access it. Tell us promptly if you believe your account has been compromised.</p>
-      <p><b>Data location.</b> CiaraLink is designed for Australian care teams and we target Australian data residency (AWS Sydney, <code>ap-southeast-2</code>). The Supabase project region must be confirmed in the Supabase dashboard — it is not encoded in this website. Until Australian residency is confirmed and documented, you should assume infrastructure may process or store data outside Australia. See our internal residency guide or contact us for the current status.</p>
+      <p><b>Data location.</b> CiaraLink is built for Australian care teams and we are working toward full Australian data residency. <b>Today:</b> participant and care records at rest are stored in AWS Seoul, South Korea (<code>ap-northeast-2</code>). Application hosting and serverless functions run in Sydney (<code>syd1</code>). We plan to migrate the database to AWS Sydney (<code>ap-southeast-2</code>). Some providers we rely on (for example Stripe for card payments) may process limited data globally under their own privacy obligations.</p>
     </section>
 
     <section id="providers"><h2><span class="num">07</span> Service providers</h2>
